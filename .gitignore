@@ -28,7 +28,7 @@ replay_pid*
 **/dist/
 **/.mvn/
 **/*.log
-.env*
+.env.local
 
 .DS_Store
 .idea/
