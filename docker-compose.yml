@@ -1,0 +1,168 @@
+services:
+  ### Service Discovery: Consul ###
+  consul:
+    image: consul:1.15
+    container_name: consul
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"      # HTTP UI/API
+      - "8600:8600/udp"  # DNS
+    networks: [workfitai-net]
+
+  ### Zookeeper (for Kafka) ###
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks: [workfitai-net]
+
+  ### Kafka ###
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks: [workfitai-net]
+
+  ### Databases & infra ###
+  auth-mongo:
+    image: mongo:6.0
+    container_name: auth-mongo
+    environment:
+      MONGO_INITDB_DATABASE: auth-db
+    networks: [workfitai-net]
+
+  auth-redis:
+    image: redis:6-alpine
+    container_name: auth-redis
+    networks: [workfitai-net]
+
+  job-mongo:
+    image: mongo:6.0
+    container_name: job-mongo
+    environment:
+      MONGO_INITDB_DATABASE: job-db
+    networks: [workfitai-net]
+
+  cv-mongo:
+    image: mongo:6.0
+    container_name: cv-mongo
+    environment:
+      MONGO_INITDB_DATABASE: cv-db
+    networks: [workfitai-net]
+
+  application-mongo:
+    image: mongo:6.0
+    container_name: application-mongo
+    environment:
+      MONGO_INITDB_DATABASE: app-db
+    networks: [workfitai-net]
+
+  user-postgres:
+    image: postgres:15
+    container_name: user-postgres
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASS}
+    networks: [workfitai-net]
+
+  ### Spring-Boot Services ###
+  auth-service:
+    build:
+      context: ./services/auth-service
+    env_file:
+      - .env.local
+    ports:
+      - "8081:8080"
+    depends_on:
+      - consul
+      - auth-mongo
+      - auth-redis
+    networks: [workfitai-net]
+
+  user-service:
+    build:
+      context: ./services/user-service
+    env_file:
+      - .env.local
+    ports:
+      - "8082:8080"
+    depends_on:
+      - consul
+      - user-postgres
+    networks: [workfitai-net]
+
+  job-service:
+    build:
+      context: ./services/job-service
+    env_file:
+      - .env.local
+    ports:
+      - "8083:8080"
+    depends_on:
+      - consul
+      - job-mongo
+      - kafka
+    networks: [workfitai-net]
+
+  cv-service:
+    build:
+      context: ./services/cv-service
+    env_file:
+      - .env.local
+    ports:
+      - "8084:8080"
+    depends_on:
+      - consul
+      - cv-mongo
+    networks: [workfitai-net]
+
+  application-service:
+    build:
+      context: ./services/application-service
+    env_file:
+      - .env.local
+    ports:
+      - "8085:8080"
+    depends_on:
+      - consul
+      - application-mongo
+    networks: [workfitai-net]
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+    env_file:
+      - .env.local
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    depends_on:
+      - consul
+    networks: [workfitai-net]
+
+  monitoring-service:
+    build:
+      context: ./services/monitoring-service
+    env_file:
+      - .env.local
+    ports:
+      - "9080:8080"
+    depends_on:
+      - consul
+    networks: [workfitai-net]
+
+networks:
+  workfitai-net:
+    driver: bridge
