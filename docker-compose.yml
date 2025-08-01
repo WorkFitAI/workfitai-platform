@@ -2,7 +2,7 @@ services:
   ### Service Discovery: Consul ###
   consul:
     image: hashicorp/consul:1.16.2
-    container_name: consul
+    container_name: consul-workfitai
     command: agent -dev -client=0.0.0.0
     ports:
       - "8500:8500"      # HTTP UI/API
@@ -12,7 +12,7 @@ services:
   ### Zookeeper (for Kafka) ###
   zookeeper:
     image: bitnami/zookeeper:latest
-    container_name: zookeeper
+    container_name: zookeeper-workfitai
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks: [workfitai-net]
@@ -20,7 +20,7 @@ services:
   ### Kafka ###
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
+    container_name: kafka-workfitai
     depends_on:
       - zookeeper
     ports:

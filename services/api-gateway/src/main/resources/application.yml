@@ -5,6 +5,12 @@ spring:
   application:
     name: api-gateway
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/disabled
+
   cloud:
     gateway:
       server:
@@ -14,7 +20,8 @@ spring:
               enabled: true
               lower-case-service-id: true
     consul:
-      host: ${CONSUL_HOST:consul}
+      #      host: ${CONSUL_HOST:consul}
+      host: localhost
       port: ${CONSUL_PORT:8500}
       config:
         enabled: false
@@ -26,6 +33,9 @@ spring:
         instance-id: ${spring.application.name}-${server.port}
         deregister: true
         health-check-critical-timeout: 1m
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
 
 management:
   endpoints:
@@ -49,17 +59,14 @@ logging:
 resilience4j:
   circuitbreaker:
     instances:
-      patientCB:
-        sliding-window-size: 5
+      authCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
-      keycloakAuthCB:
-        sliding-window-size: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
   timelimiter:
     instances:
-      patientCB:
-        timeout-duration: 10s
-      keycloakAuthCB:
-        timeout-duration: 10s
+      authTL:
+        timeout-duration: 2s
+        cancel-running-future: true

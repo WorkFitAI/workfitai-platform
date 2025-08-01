@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.workfitai.authservice.response.ResponseData;
 
 @RestController
 @RequestMapping()
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @GetMapping()
-    public String healthCheck() {
-        return "Auth Service is running";
+    public ResponseData<String> healthCheck() {
+        return ResponseData.success("Auth Service is running");
     }
 }
