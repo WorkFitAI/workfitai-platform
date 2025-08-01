@@ -75,12 +75,16 @@ services:
   user-postgres:
     image: postgres:15
     container_name: user-postgres
+    ports:
+      - "5432:5432"
     env_file:
       - .env.local
     environment:
       POSTGRES_DB: ${USER_DB_NAME}
       POSTGRES_USER: ${USER_DB_USER}
       POSTGRES_PASSWORD: ${USER_DB_PASS}
+    volumes:
+        - user-postgres-data:/var/lib/postgresql/data
     networks: [workfitai-net]
 
   ### Spring-Boot Services ###
@@ -152,7 +156,11 @@ services:
     env_file:
       - .env.local
     ports:
-      - "${GATEWAY_PORT}:8080"
+        - "8080:8080"
+    environment:
+      - API_GATEWAY_PORT=${API_GATEWAY_PORT:-8080}
+      - CONSUL_HOST=${CONSUL_HOST:-consul}
+      - CONSUL_PORT=${CONSUL_PORT:-8500}
     depends_on:
       - consul
     networks: [workfitai-net]
@@ -167,6 +175,9 @@ services:
     depends_on:
       - consul
     networks: [workfitai-net]
+
+volumes:
+    user-postgres-data:
 
 networks:
   workfitai-net:
