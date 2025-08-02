@@ -1,8 +1,8 @@
 services:
   ### Service Discovery: Consul ###
   consul:
-    image: consul:1.15
-    container_name: consul
+    image: hashicorp/consul:1.16.2
+    container_name: consul-workfitai
     command: agent -dev -client=0.0.0.0
     ports:
       - "8500:8500"      # HTTP UI/API
@@ -12,25 +12,30 @@ services:
   ### Zookeeper (for Kafka) ###
   zookeeper:
     image: bitnami/zookeeper:latest
-    container_name: zookeeper
+    container_name: zookeeper-workfitai
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks: [workfitai-net]
 
   ### Kafka ###
   kafka:
-    image: bitnami/kafka:latest
-    container_name: kafka
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-    ports:
-      - "9092:9092"
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-workfitai
     depends_on:
       - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: >
+        PLAINTEXT://localhost:9092,
+        PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks: [workfitai-net]
 
   ### Databases & infra ###
@@ -70,12 +75,16 @@ services:
   user-postgres:
     image: postgres:15
     container_name: user-postgres
+    ports:
+      - "5432:5432"
     env_file:
       - .env.local
     environment:
       POSTGRES_DB: ${USER_DB_NAME}
       POSTGRES_USER: ${USER_DB_USER}
       POSTGRES_PASSWORD: ${USER_DB_PASS}
+    volumes:
+        - user-postgres-data:/var/lib/postgresql/data
     networks: [workfitai-net]
 
   ### Spring-Boot Services ###
@@ -147,7 +156,11 @@ services:
     env_file:
       - .env.local
     ports:
-      - "${GATEWAY_PORT}:8080"
+        - "8080:8080"
+    environment:
+      - API_GATEWAY_PORT=${API_GATEWAY_PORT:-8080}
+      - CONSUL_HOST=${CONSUL_HOST:-consul}
+      - CONSUL_PORT=${CONSUL_PORT:-8500}
     depends_on:
       - consul
     networks: [workfitai-net]
@@ -162,6 +175,9 @@ services:
     depends_on:
       - consul
     networks: [workfitai-net]
+
+volumes:
+    user-postgres-data:
 
 networks:
   workfitai-net:
