@@ -10,7 +10,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # Copy jar artifact từ builder
-COPY --from=builder /app/target/*.jar /app/app.jar
+COPY --from=builder /app/target/*.jar /app.jar
 
 # Mở port 8080
 EXPOSE 8080

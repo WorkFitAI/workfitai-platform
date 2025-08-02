@@ -20,8 +20,8 @@ spring:
               enabled: true
               lower-case-service-id: true
     consul:
-      #      host: ${CONSUL_HOST:consul}
-      host: localhost
+      host: ${CONSUL_HOST:consul}
+      #      host: localhost
       port: ${CONSUL_PORT:8500}
       config:
         enabled: false
