@@ -13,7 +13,7 @@ spring:
         vault:
           host: ${VAULT_HOST:localhost}
           port: 8200
-          kvVersion: 2
+          kv-version: 2
           authentication: TOKEN
           token: ${VAULT_TOKEN:my-vault-token}
           skipSslValidation: true
@@ -30,8 +30,18 @@ spring:
         deregister: true
         health-check-critical-timeout: 1m
 
+    bus:
+      enabled: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, busrefresh, refresh
+
+logging:
+  level:
+    org.springframework.vault: DEBUG

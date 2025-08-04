@@ -8,7 +8,6 @@ import org.springframework.cloud.config.server.EnableConfigServer;
         org.springframework.cloud.vault.config.VaultAutoConfiguration.class
 })
 @EnableConfigServer
-
 public class ConfigServerApplication {
 
     public static void main(String[] args) {
