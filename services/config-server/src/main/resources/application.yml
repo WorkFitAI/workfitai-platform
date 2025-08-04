@@ -1,0 +1,37 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: vault
+
+  cloud:
+    config:
+      server:
+        vault:
+          host: ${VAULT_HOST:localhost}
+          port: 8200
+          kvVersion: 2
+          authentication: TOKEN
+          token: ${VAULT_TOKEN:my-vault-token}
+          skipSslValidation: true
+
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}-${server.port}
+        deregister: true
+        health-check-critical-timeout: 1m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

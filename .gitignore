@@ -36,3 +36,5 @@ replay_pid*
 .DS_Store
 .idea/
 source_dump.txt
+
+.vault/data/
