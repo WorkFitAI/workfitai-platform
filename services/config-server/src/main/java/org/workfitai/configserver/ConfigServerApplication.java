@@ -4,9 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.config.server.EnableConfigServer;
 
-@SpringBootApplication(exclude = {
-        org.springframework.cloud.vault.config.VaultAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableConfigServer
 public class ConfigServerApplication {
 

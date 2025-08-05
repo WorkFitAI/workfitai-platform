@@ -186,6 +186,8 @@ services:
     volumes:
       - ./vault/config:/vault/config
       - ./vault/data:/vault/data
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
     command: vault server -config=/vault/config/vault.hcl
     networks: [ workfitai-net ]
   

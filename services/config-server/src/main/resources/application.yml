@@ -4,19 +4,24 @@ server:
 spring:
   application:
     name: config-server
+
   profiles:
-    active: vault
+    active: native,vault
 
   cloud:
     config:
       server:
-        vault:
-          host: ${VAULT_HOST:localhost}
-          port: 8200
-          kv-version: 2
-          authentication: TOKEN
-          token: ${VAULT_TOKEN:my-vault-token}
-          skipSslValidation: true
+        native:
+          search-locations: classpath:/shared
+
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: 8200
+      kv-version: 2
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:my-vault-token}
+      skip-ssl-validation: true
+    #          skipSslValidation: true
 
     consul:
       host: ${CONSUL_HOST:consul}
