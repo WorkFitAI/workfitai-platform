@@ -176,6 +176,20 @@ services:
       - consul
     networks: [ workfitai-net ]
 
+    #  vault:
+    #    image: vault:1.13.3
+    #    container_name: vault
+    #    ports:
+    #      - "8200:8200"
+    #    cap_add:
+    #      - IPC_LOCK
+    #    volumes:
+    #      - ./vault/config:/vault/config
+    #      - ./vault/data:/vault/data
+    #    environment:
+    #      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+    #    command: vault server -config=/vault/config/vault.hcl
+    #    networks: [ workfitai-net ]
   vault:
     image: vault:1.13.3
     container_name: vault
@@ -183,12 +197,10 @@ services:
       - "8200:8200"
     cap_add:
       - IPC_LOCK
-    volumes:
-      - ./vault/config:/vault/config
-      - ./vault/data:/vault/data
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
-    command: vault server -config=/vault/config/vault.hcl
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    command: vault server -dev
     networks: [ workfitai-net ]
   
   config-server:
@@ -197,7 +209,7 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8888:8080"
+      - "8888:8888"
     depends_on:
       - consul
     networks: [ workfitai-net ]

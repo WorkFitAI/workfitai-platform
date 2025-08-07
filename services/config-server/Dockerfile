@@ -20,6 +20,7 @@ WORKDIR /app
 
 # Copy file jar từ stage builder sang runtime
 COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/classes/shared ./shared
 
 # Mở port cho ứng dụng (Config Server mặc định là 8888)
 EXPOSE 8888

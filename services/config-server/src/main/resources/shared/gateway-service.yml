@@ -1,0 +1,69 @@
+#server:
+#  port: ${API_GATEWAY_PORT:8080}
+#
+#spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: http://localhost:0/disabled
+#
+#  cloud:
+#    gateway:
+#      server:
+#        webflux:
+#          discovery:
+#            locator:
+#              enabled: true
+#              lower-case-service-id: true
+#    consul:
+#      host: ${CONSUL_HOST:consul}
+#      #      host: localhost
+#      port: ${CONSUL_PORT:8500}
+#      config:
+#        enabled: false
+#      discovery:
+#        register: true
+#        prefer-ip-address: true
+#        health-check-path: /actuator/health
+#        health-check-interval: 10s
+#        instance-id: ${spring.application.name}-${server.port}
+#        deregister: true
+#        health-check-critical-timeout: 1m
+#  main:
+#    allow-bean-definition-overriding: true
+#    web-application-type: reactive
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: gateway, health
+#
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        cloud:
+#          gateway: DEBUG
+#          "[gateway.handler.RoutePredicateHandlerMapping]": TRACE
+#        security: TRACE
+#    reactor:
+#      netty:
+#        http:
+#          client: DEBUG
+#
+#resilience4j:
+#  circuitbreaker:
+#    instances:
+#      authCB:
+#        sliding-window-size: 10
+#        minimum-number-of-calls: 5
+#        failure-rate-threshold: 50
+#        wait-duration-in-open-state: 10s
+#        permitted-number-of-calls-in-half-open-state: 3
+#  timelimiter:
+#    instances:
+#      authTL:
+#        timeout-duration: 2s
+#        cancel-running-future: true
