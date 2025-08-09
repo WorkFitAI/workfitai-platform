@@ -7,7 +7,7 @@ services:
     ports:
       - "8500:8500"      # HTTP UI/API
       - "8600:8600/udp"  # DNS
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   ### Zookeeper (for Kafka) ###
   zookeeper:
@@ -15,7 +15,7 @@ services:
     container_name: zookeeper-workfitai
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   ### Kafka ###
   kafka:
@@ -36,7 +36,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   ### Databases & infra ###
   auth-mongo:
@@ -44,33 +44,33 @@ services:
     container_name: auth-mongo
     environment:
       MONGO_INITDB_DATABASE: auth-db
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   auth-redis:
     image: redis:6-alpine
     container_name: auth-redis
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   job-mongo:
     image: mongo:6.0
     container_name: job-mongo
     environment:
       MONGO_INITDB_DATABASE: job-db
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   cv-mongo:
     image: mongo:6.0
     container_name: cv-mongo
     environment:
       MONGO_INITDB_DATABASE: cv-db
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   application-mongo:
     image: mongo:6.0
     container_name: application-mongo
     environment:
       MONGO_INITDB_DATABASE: app-db
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   user-postgres:
     image: postgres:15
@@ -84,8 +84,8 @@ services:
       POSTGRES_USER: ${USER_DB_USER}
       POSTGRES_PASSWORD: ${USER_DB_PASS}
     volumes:
-        - user-postgres-data:/var/lib/postgresql/data
-    networks: [workfitai-net]
+      - user-postgres-data:/var/lib/postgresql/data
+    networks: [ workfitai-net ]
 
   ### Spring-Boot Services ###
   auth-service:
@@ -99,7 +99,7 @@ services:
       - consul
       - auth-mongo
       - auth-redis
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   user-service:
     build:
@@ -111,7 +111,7 @@ services:
     depends_on:
       - consul
       - user-postgres
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   job-service:
     build:
@@ -124,7 +124,7 @@ services:
       - consul
       - job-mongo
       - kafka
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   cv-service:
     build:
@@ -136,7 +136,7 @@ services:
     depends_on:
       - consul
       - cv-mongo
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   application-service:
     build:
@@ -148,7 +148,7 @@ services:
     depends_on:
       - consul
       - application-mongo
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   api-gateway:
     build:
@@ -156,14 +156,14 @@ services:
     env_file:
       - .env.local
     ports:
-        - "8080:8080"
+      - "8080:8080"
     environment:
       - API_GATEWAY_PORT=${API_GATEWAY_PORT:-8080}
       - CONSUL_HOST=${CONSUL_HOST:-consul}
       - CONSUL_PORT=${CONSUL_PORT:-8500}
     depends_on:
       - consul
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
 
   monitoring-service:
     build:
@@ -174,10 +174,48 @@ services:
       - "9080:8080"
     depends_on:
       - consul
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
+
+    #  vault:
+    #    image: vault:1.13.3
+    #    container_name: vault
+    #    ports:
+    #      - "8200:8200"
+    #    cap_add:
+    #      - IPC_LOCK
+    #    volumes:
+    #      - ./vault/config:/vault/config
+    #      - ./vault/data:/vault/data
+    #    environment:
+    #      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+    #    command: vault server -config=/vault/config/vault.hcl
+    #    networks: [ workfitai-net ]
+  vault:
+    image: vault:1.13.3
+    container_name: vault
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    command: vault server -dev
+    networks: [ workfitai-net ]
+  
+  config-server:
+    build:
+      context: ./services/config-server
+    env_file:
+      - .env.local
+    ports:
+      - "8888:8888"
+    depends_on:
+      - consul
+    networks: [ workfitai-net ]
 
 volumes:
-    user-postgres-data:
+  user-postgres-data:
 
 networks:
   workfitai-net:

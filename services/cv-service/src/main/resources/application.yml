@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: cv-service
+  config:
+    import: optional:configserver:http://config-server:8888
