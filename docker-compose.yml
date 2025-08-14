@@ -94,7 +94,16 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8081:8080"
+      - "9081:9005"
+    environment:
+      - SPRING_APPLICATION_NAME=auth
+      - SERVER_PORT=9005        # keep in-container at 9005 (matches properties)
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
+      - AUTH_JWT_ACCESS_EXP_MS=900000
+      - AUTH_JWT_REFRESH_EXP_MS=604800000
+      - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
       - auth-mongo
@@ -156,11 +165,14 @@ services:
     env_file:
       - .env.local
     ports:
-        - "8088:8080"
+      - "8088:9005"
     environment:
-      - API_GATEWAY_PORT=${API_GATEWAY_PORT:-8080}
-      - CONSUL_HOST=${CONSUL_HOST:-consul}
-      - CONSUL_PORT=${CONSUL_PORT:-8500}
+      - API_GATEWAY_PORT=9005   # keep in-container port consistent
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+      - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
     networks: [workfitai-net]

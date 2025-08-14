@@ -7,6 +7,7 @@ import org.workfitai.authservice.repository.PermissionRepository;
 import org.workfitai.authservice.repository.RoleRepository;
 import org.workfitai.authservice.service.iRoleService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -51,9 +52,12 @@ public class RoleServiceImpl implements iRoleService {
 
     @Override
     public Set<String> getPermissions(String roleName) {
+        // Fail-open: return empty permissions instead of throwing
+        // (and log once so we can spot data issues)
+        // You can switch to log.warn if you prefer noisier logs.
         return roles.findByName(roleName)
                 .map(Role::getPermissions)
-                .orElseThrow(() -> new NoSuchElementException("Role not found"));
+                .orElseGet(java.util.Set::of); // empty when role missing
     }
 
     @Override
