@@ -1,0 +1,81 @@
+package org.workfitai.authservice.security;
+
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Stream;
+
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final AntPathMatcher PATHS = new AntPathMatcher();
+
+    // Endpoints that never require a token
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/",                 // health on root (your controller)
+            "/register",
+            "/login",
+            "/refresh",
+            "/actuator/**",
+            "/error",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    );
+
+    private final JwtService jwtService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // Skip all preflight requests
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
+
+        String path = request.getRequestURI();
+        for (String p : PUBLIC_PATHS) {
+            if (PATHS.match(p, path)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res,
+                                    FilterChain chain)
+            throws ServletException, IOException {
+
+        String header = req.getHeader("Authorization");
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            if (jwtService.validateToken(token)) {
+                Claims claims = jwtService.getClaims(token);
+                String username = claims.getSubject();
+
+                @SuppressWarnings("unchecked")
+                var roles = (List<String>) claims.getOrDefault("roles", List.of());
+                @SuppressWarnings("unchecked")
+                var perms = (List<String>) claims.getOrDefault("perms", List.of());
+
+                var authorities = Stream.concat(roles.stream(), perms.stream())
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
+
+                var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        }
+        chain.doFilter(req, res);
+    }
+}

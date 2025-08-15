@@ -4,15 +4,12 @@ server:
 spring:
   application:
     name: api-gateway
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: http://localhost:0/disabled
-
   cloud:
+    # disable remote config so startup never blocks on configserver
+    config:
+      enabled: false
     gateway:
+      # ✅ new key path for Discovery Locator on Spring Cloud Gateway (server-webflux)
       server:
         webflux:
           discovery:
@@ -21,7 +18,6 @@ spring:
               lower-case-service-id: true
     consul:
       host: ${CONSUL_HOST:consul}
-      #      host: localhost
       port: ${CONSUL_PORT:8500}
       config:
         enabled: false
@@ -37,36 +33,22 @@ spring:
     allow-bean-definition-overriding: true
     web-application-type: reactive
 
+# same secret as auth-service (HMAC HS256)
+auth:
+  jwt:
+    secret: ${AUTH_JWT_SECRET}
+
+# ✅ expose the gateway actuator endpoint so you can inspect routes
 management:
+  endpoint:
+    gateway:
+      access: read_only
   endpoints:
     web:
       exposure:
-        include: gateway, health
+        include: gateway,health
 
-logging:
-  level:
-    org:
-      springframework:
-        cloud:
-          gateway: DEBUG
-          "[gateway.handler.RoutePredicateHandlerMapping]": TRACE
-        security: TRACE
-    reactor:
-      netty:
-        http:
-          client: DEBUG
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      authCB:
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-  timelimiter:
-    instances:
-      authTL:
-        timeout-duration: 2s
-        cancel-running-future: true
+# ✅ hard-disable the brittle response rewriter (prevents TCP resets)
+gateway:
+  status-mapping:
+    enabled: false
