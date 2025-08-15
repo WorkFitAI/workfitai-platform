@@ -1,0 +1,52 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+
+  profiles:
+    active: native,vault
+
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/shared
+
+        vault:
+          host: ${VAULT_HOST:vault}
+          port: 8200
+          kv-version: 2
+          authentication: TOKEN
+          token: ${VAULT_TOKEN:dev-vault-token}
+          skip-ssl-validation: true
+
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}-${server.port}
+        deregister: true
+        health-check-critical-timeout: 1m
+
+    bus:
+      enabled: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, busrefresh, refresh
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.vault: DEBUG
