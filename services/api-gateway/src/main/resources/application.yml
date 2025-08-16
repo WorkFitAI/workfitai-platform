@@ -46,7 +46,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: gateway,health
+        include: gateway,health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 # ✅ hard-disable the brittle response rewriter (prevents TCP resets)
 gateway:

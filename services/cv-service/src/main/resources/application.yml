@@ -3,3 +3,12 @@ spring:
     name: cv-service
   config:
     import: optional:configserver:http://config-server:8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

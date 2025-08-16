@@ -105,6 +105,18 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Actuator endpoints (/actuator/**) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer Prometheus registry (enables /actuator/prometheus) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- ✂️ REMOVE these from your POM:
              - spring-cloud-starter-gateway (deprecated)
              - spring-cloud-starter-config (Config Client)
