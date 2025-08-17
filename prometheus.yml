@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Spring Boot Micrometer uses /actuator/prometheus
+scrape_configs:
+  - job_name: 'spring-boot-services'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # use container DNS names + container ports
+      - targets:
+          - api-gateway:9005         # mapped to 8088 outside, but 9005 in container
+          - auth-service:9005
+          - monitoring-service:8080  # mapped to 9080 outside, but 8080 in container
+          - job-service:8080
+          - user-service:8080
+          - cv-service:8080
+          - application-service:8080
