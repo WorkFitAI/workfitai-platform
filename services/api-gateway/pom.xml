@@ -117,13 +117,16 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <!-- ✂️ REMOVE these from your POM:
-             - spring-cloud-starter-gateway (deprecated)
-             - spring-cloud-starter-config (Config Client)
-             - spring-cloud-starter-consul-config (Consul Config)
-             - spring-cloud-config-server (Config Server)
-             - spring-boot-starter-oauth2-authorization-server (not needed on gateway)
-        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
     </dependencies>
 
     <build>

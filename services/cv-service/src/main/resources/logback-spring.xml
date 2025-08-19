@@ -1,0 +1,29 @@
+<configuration>
+    <!-- pick application name from Spring -->
+    <springProperty scope="context" name="appName" source="spring.application.name"/>
+
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <pattern>
+                    <pattern>
+                        {
+                        "level":"%level",
+                        "logger":"%logger{36}",
+                        "thread":"%thread",
+                        "msg":"%message"
+                        }
+                    </pattern>
+                </pattern>
+                <mdc/>      <!-- will include requestId/traceId/application -->
+                <context/>
+                <arguments/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_STDOUT"/>
+    </root>
+</configuration>
