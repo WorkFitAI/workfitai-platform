@@ -69,16 +69,6 @@ public class JwtService {
                 .compact();
     }
 
-    /** As before, no change needed: separate refresh-token logic */
-    public String generateRefreshToken(UserDetails user) {
-        return Jwts.builder()
-                .setSubject(user.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpMs))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
     /** Validate signature & expiry */
     public boolean validateToken(String token) {
         try {
@@ -101,5 +91,26 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /** Create a new random JTI */
+    public String newJti() {
+        return UUID.randomUUID().toString();
+    }
+
+    /** Issue a refresh token carrying a specific jti */
+    public String generateRefreshTokenWithJti(UserDetails user, String jti) {
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .setId(jti) // <-- make jti part of the token
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpMs))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /** Extract the jti from a refresh token */
+    public String extractJti(String token) {
+        return getClaims(token).getId();
     }
 }

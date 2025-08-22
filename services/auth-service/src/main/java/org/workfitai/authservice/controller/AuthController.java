@@ -25,22 +25,25 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest req
+            @Valid @RequestBody RegisterRequest req,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId
     ) {
-        return ResponseEntity.ok(authService.register(req));
+        return ResponseEntity.ok(authService.register(req, deviceId));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-            @Valid @RequestBody LoginRequest req
+            @Valid @RequestBody LoginRequest req,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId
     ) {
-        return ResponseEntity.ok(authService.login(req));
+        return ResponseEntity.ok(authService.login(req, deviceId));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
-            @Valid @RequestBody RefreshRequest req
+            @Valid @RequestBody RefreshRequest req,
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId
     ) {
-        return ResponseEntity.ok(authService.refresh(req));
+        return ResponseEntity.ok(authService.refresh(req, deviceId));
     }
 }

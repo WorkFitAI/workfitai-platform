@@ -7,7 +7,7 @@ import org.workfitai.authservice.dto.RegisterRequest;
 import org.workfitai.authservice.response.*;
 
 public interface iAuthService {
-    AuthResponse register(RegisterRequest req);
-    AuthResponse login(LoginRequest req);
-    AuthResponse refresh(RefreshRequest req);
+    AuthResponse register(RegisterRequest req, String deviceId);
+    AuthResponse login(LoginRequest req, String deviceId);
+    AuthResponse refresh(RefreshRequest req, String deviceId);
 }

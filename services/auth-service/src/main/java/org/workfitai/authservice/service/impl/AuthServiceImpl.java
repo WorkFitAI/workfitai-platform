@@ -1,5 +1,6 @@
 package org.workfitai.authservice.service.impl;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
@@ -28,8 +29,10 @@ public class AuthServiceImpl implements iAuthService {
     private final JwtService jwt;
     private final RefreshTokenService refreshStore;
 
+    private static final String DEFAULT_DEVICE = "default";
+
     @Override
-    public AuthResponse register(RegisterRequest req) {
+    public AuthResponse register(RegisterRequest req, String deviceId) {
         if (users.existsByUsername(req.getUsername()) ||
                 users.existsByEmail(req.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -52,55 +55,78 @@ public class AuthServiceImpl implements iAuthService {
                 .authorities("USER")
                 .build();
 
-        String access  = jwt.generateAccessToken(ud);
-        String refresh = jwt.generateRefreshToken(ud);
-        refreshStore.store(refresh, user.getId());
+        String access = jwt.generateAccessToken(ud);
+        String jti    = jwt.newJti();
+        String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+
+        String dev = normalizeDevice(deviceId);
+        refreshStore.saveJti(user.getId(), dev, jti); // device-bound jti
 
         return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
     }
 
     @Override
-    public AuthResponse login(LoginRequest req) {
+    public AuthResponse login(LoginRequest req, String deviceId) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            req.getUsernameOrEmail(),
-                            req.getPassword()
-                    )
+                            req.getUsernameOrEmail(), req.getPassword())
             );
             UserDetails ud = (UserDetails) authentication.getPrincipal();
-            String access  = jwt.generateAccessToken(ud);
-            String refresh = jwt.generateRefreshToken(ud);
 
-            // find the user's id
+            // Look up the user id by username
             String userId = users.findByUsername(ud.getUsername())
                     .orElseThrow()
                     .getId();
-            refreshStore.store(refresh, userId);
+
+            String access = jwt.generateAccessToken(ud);
+            String jti    = jwt.newJti();
+            String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+
+            String dev = normalizeDevice(deviceId);
+            refreshStore.saveJti(userId, dev, jti);     // overwrite any previous jti for this device
 
             return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
 
         } catch (BadCredentialsException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
     }
 
     @Override
-    public AuthResponse refresh(RefreshRequest req) {
-        String oldToken = req.getRefreshToken();
-        String userId   = refreshStore.getUserId(oldToken);
-        if (userId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Invalid or expired refresh token");
+    public AuthResponse refresh(RefreshRequest req, String deviceId) {
+        String dev = normalizeDevice(deviceId);
+        String presented = req.getRefreshToken();
+
+        // Parse claims — will throw on bad signature/expiry
+        String username;
+        String jti;
+        try {
+            username = jwt.extractUsername(presented);
+            jti = jwt.extractJti(presented);
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_INVALID");
         }
 
-        // rotate
-        refreshStore.delete(oldToken);
+        // Resolve userId (we store by userId in Redis)
+        String userId = users.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"))
+                .getId();
 
+        // Validate the jti for this user+device
+        String activeJti = refreshStore.getJti(userId, dev);
+        if (activeJti == null) {
+            // No active session for this device (expired/evicted)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED");
+        }
+        if (!activeJti.equals(jti)) {
+            // Presented refresh is not the currently active one (stolen/rotated)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_INVALID");
+        }
+
+        // Rotate: issue new tokens, overwrite stored jti (previous jti becomes invalid)
         User user = users.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
@@ -108,10 +134,16 @@ public class AuthServiceImpl implements iAuthService {
                 .authorities(user.getRoles().toArray(new String[0]))
                 .build();
 
-        String access  = jwt.generateAccessToken(ud);
-        String refresh = jwt.generateRefreshToken(ud);
-        refreshStore.store(refresh, userId);
+        String access = jwt.generateAccessToken(ud);
+        String newJti = jwt.newJti();
+        String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
-        return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
+        refreshStore.saveJti(userId, dev, newJti);  // overwrites + resets TTL
+
+        return AuthResponse.of(access, newRefresh, jwt.getAccessExpMs());
+    }
+
+    private String normalizeDevice(String deviceId) {
+        return (deviceId == null || deviceId.isBlank()) ? DEFAULT_DEVICE : deviceId.trim();
     }
 }
