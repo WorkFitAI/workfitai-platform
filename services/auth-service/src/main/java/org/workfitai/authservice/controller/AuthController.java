@@ -3,6 +3,8 @@ package org.workfitai.authservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.authservice.dto.AuthResponse;
 import org.workfitai.authservice.dto.LoginRequest;
@@ -37,6 +39,15 @@ public class AuthController {
             @RequestHeader(value = "X-Device-Id", required = false) String deviceId
     ) {
         return ResponseEntity.ok(authService.login(req, deviceId));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+            @AuthenticationPrincipal UserDetails me
+    ) {
+        authService.logout(deviceId, me);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/refresh")

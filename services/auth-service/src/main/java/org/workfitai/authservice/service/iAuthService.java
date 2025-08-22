@@ -1,5 +1,6 @@
 package org.workfitai.authservice.service;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.workfitai.authservice.dto.AuthResponse;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.RefreshRequest;
@@ -10,4 +11,5 @@ public interface iAuthService {
     AuthResponse register(RegisterRequest req, String deviceId);
     AuthResponse login(LoginRequest req, String deviceId);
     AuthResponse refresh(RefreshRequest req, String deviceId);
+    void logout(String deviceId, UserDetails me);
 }

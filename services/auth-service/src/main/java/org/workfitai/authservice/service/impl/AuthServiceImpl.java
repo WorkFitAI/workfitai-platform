@@ -94,6 +94,17 @@ public class AuthServiceImpl implements iAuthService {
     }
 
     @Override
+    public void logout(String deviceId, UserDetails me) {
+        // Resolve current userId by username (you already do this in login/refresh flows)
+        String userId = users.findByUsername(me.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"))
+                .getId();
+
+        // Delete the device-scoped refresh binding
+        refreshStore.delete(userId, normalizeDevice(deviceId));
+    }
+
+    @Override
     public AuthResponse refresh(RefreshRequest req, String deviceId) {
         String dev = normalizeDevice(deviceId);
         String presented = req.getRefreshToken();

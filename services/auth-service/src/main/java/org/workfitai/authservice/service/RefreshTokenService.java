@@ -36,6 +36,6 @@ public class RefreshTokenService {
 
     /** Remove the device binding (used by logout later) */
     public void delete(String userId, String deviceId) {
-        redis.delete(key(userId, deviceId));
+        redis.delete(String.format(KEY_FMT, userId, deviceId));
     }
 }
