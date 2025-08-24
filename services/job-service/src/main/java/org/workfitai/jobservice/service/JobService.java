@@ -1,5 +1,6 @@
 package org.workfitai.jobservice.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,6 +13,8 @@ import org.workfitai.jobservice.domain.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
+import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResUpdateJobDTO;
@@ -73,14 +76,18 @@ public class JobService {
         return this.jobRepository.findById(id);
     }
 
-    public ResCreateJobDTO createJob(Job job) {
+    @Transactional
+    public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
+        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, null);
         checkCompany(job, null);
         Job currentJob = this.jobRepository.save(job);
         return jobMapper.toResCreateJobDTO(currentJob);
     }
 
-    public ResUpdateJobDTO updateJob(Job job, Job dbJob) {
+    @Transactional
+    public ResUpdateJobDTO updateJob(ReqUpdateJobDTO jobDTO, Job dbJob) {
+        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
 
@@ -94,8 +101,8 @@ public class JobService {
         dbJob.setCurrency(job.getCurrency());
         dbJob.setEmploymentType(job.getEmploymentType());
         dbJob.setStatus(job.getStatus());
-        dbJob.setCompany(dbJob.getCompany());
-        dbJob.setSkills(job.getSkills());
+        dbJob.setQuantity(job.getQuantity());
+        dbJob.setExpiresAt(job.getExpiresAt());
 
         this.jobRepository.save(dbJob);
         return jobMapper.toResUpdateJobDTO(dbJob);
@@ -114,7 +121,8 @@ public class JobService {
 
     private void checkCompany(Job job, Job dbJob) {
         if (job.getCompany() != null) {
-            Optional<Company> company = this.companyRepository.findById(job.getCompany().getId());
+            String companyId = job.getCompany().getId();
+            Optional<Company> company = this.companyRepository.findById(companyId);
             if (company.isPresent()) {
                 if (dbJob != null) {
                     dbJob.setCompany(company.get()); // update company

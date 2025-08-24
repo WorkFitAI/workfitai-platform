@@ -1,7 +1,5 @@
-package org.workfitai.jobservice.domain;
+package org.workfitai.jobservice.service.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.workfitai.jobservice.domain.enums.EmploymentType;
@@ -13,33 +11,25 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "jobs")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Job extends AbstractAuditingEntity<UUID> {
+public class ReqJobDTO {
 
-    @Id
-    private UUID jobId;
-
-    @NotBlank(message = "Title must not null")
+    @NotBlank(message = "Title must not be null")
     @Size(min = 5, max = 120, message = "Title must be between 5 and 120 characters")
     private String title;
 
-    @NotBlank(message = "Description must not null")
+    @NotBlank(message = "Description must not be null")
     @Size(min = 20, max = 5000, message = "Description must be between 20 and 5000 characters")
-    @Column(columnDefinition = "TEXT")
     private String description;
 
     @NotNull(message = "Employment type must not be null")
-    @Enumerated(EnumType.STRING)
     private EmploymentType employmentType;
 
     @NotNull(message = "Experience level must not be null")
-    @Enumerated(EnumType.STRING)
     private ExperienceLevel experienceLevel;
 
     @NotNull(message = "salaryMin must not be null")
@@ -67,49 +57,17 @@ public class Job extends AbstractAuditingEntity<UUID> {
     private Instant expiresAt;
 
     @NotNull(message = "Job status must not be null")
-    @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    @NotBlank(message = "Education level must not be null")
     @Size(min = 2, max = 120, message = "Education level must be between 2 and 120 characters")
     private String educationLevel;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id", nullable = false)
-    @NotNull(message = "Company must not be null")
-    private Company company;
+    @NotNull(message = "CompanyId must not be null")
+    private String companyNo;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = {"jobs"})
     @NotEmpty(message = "Job must have at least one skill")
-    @JoinTable(
-            name = "job_skill",
-            joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private List<Skill> skills;
-
-    @PrePersist
-    public void handleBeforeCreate() {
-        if (this.jobId == null) {
-            this.jobId = UUID.randomUUID();
-        }
-
-        if (this.getCreatedBy() == null) {
-            this.setCreatedBy("SYSTEM");
-        }
-    }
-
-    @PreUpdate
-    public void handleBeforeUpdate() {
-        if (this.getLastModifiedBy() == null) {
-            this.setLastModifiedBy("SYSTEM_UPDATED");
-        }
-    }
-
-    @Override
-    public UUID getId() {
-        return this.jobId;
-    }
+    private List<UUID> skillIds;
 
     @AssertTrue(message = "salaryMax must be greater than or equal to salaryMin")
     public boolean isSalaryValid() {

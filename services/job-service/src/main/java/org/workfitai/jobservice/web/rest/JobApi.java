@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.domain.Job;
 import org.workfitai.jobservice.domain.response.RestResponse;
 import org.workfitai.jobservice.service.JobService;
+import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
+import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResUpdateJobDTO;
@@ -34,12 +36,12 @@ public class JobApi {
 
     @PostMapping("")
     @ApiMessage("Create new job")
-    public ResponseEntity<RestResponse<ResCreateJobDTO>> create(@Valid @RequestBody Job job) {
+    public ResponseEntity<RestResponse<ResCreateJobDTO>> create(@Valid @RequestBody ReqJobDTO jobDTO) {
         RestResponse<ResCreateJobDTO> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.CREATED.value());
         response.setError(null);
         response.setMessage("Job created successfully");
-        response.setData(this.jobService.createJob(job));
+        response.setData(this.jobService.createJob(jobDTO));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -74,8 +76,8 @@ public class JobApi {
 
     @PutMapping("")
     @ApiMessage("Update a job")
-    public ResponseEntity<RestResponse<ResUpdateJobDTO>> update(@Valid @RequestBody Job job) throws InvalidDataException {
-        Optional<Job> currentJob = this.jobService.getJobById(job.getId());
+    public ResponseEntity<RestResponse<ResUpdateJobDTO>> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO) throws InvalidDataException {
+        Optional<Job> currentJob = this.jobService.getJobById(jobDTO.getJobId());
         if (currentJob.isEmpty()) {
             throw new InvalidDataException("Job not found");
         }
@@ -83,7 +85,7 @@ public class JobApi {
         RestResponse<ResUpdateJobDTO> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setError(null);
-        response.setData(this.jobService.updateJob(job, currentJob.get()));
+        response.setData(this.jobService.updateJob(jobDTO, currentJob.get()));
 
         return ResponseEntity.ok().body(response);
     }

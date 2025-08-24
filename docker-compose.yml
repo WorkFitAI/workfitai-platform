@@ -144,6 +144,9 @@ services:
       - .env.local
     ports:
       - "8083:8080"
+      - "5005:5005"
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       - consul
       - job-postgres
