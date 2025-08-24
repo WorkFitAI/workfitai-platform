@@ -51,12 +51,12 @@ services:
     container_name: auth-redis
     networks: [ workfitai-net ]
 
-  job-mongo:
-    image: mongo:6.0
-    container_name: job-mongo
-    environment:
-      MONGO_INITDB_DATABASE: job-db
-    networks: [ workfitai-net ]
+  #  job-mongo:
+  #    image: mongo:6.0
+  #    container_name: job-mongo
+  #    environment:
+  #      MONGO_INITDB_DATABASE: job-db
+  #    networks: [ workfitai-net ]
 
   cv-mongo:
     image: mongo:6.0
@@ -85,6 +85,21 @@ services:
       POSTGRES_PASSWORD: ${USER_DB_PASS}
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
+    networks: [ workfitai-net ]
+
+  job-postgres:
+    image: postgres:15
+    container_name: job-postgres
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${JOB_DB_NAME}
+      POSTGRES_USER: ${JOB_DB_USER}
+      POSTGRES_PASSWORD: ${JOB_DB_PASS}
+    volumes:
+      - job-postgres-data:/var/lib/postgresql/data
     networks: [ workfitai-net ]
 
   ### Spring-Boot Services ###
@@ -131,7 +146,7 @@ services:
       - "8083:8080"
     depends_on:
       - consul
-      - job-mongo
+      - job-postgres
       - kafka
     networks: [ workfitai-net ]
 
@@ -254,6 +269,7 @@ services:
 
 volumes:
   user-postgres-data:
+  job-postgres-data:
   prometheus-data:
 
 networks:
