@@ -1,6 +1,11 @@
 package org.workfitai.authservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,10 +20,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.workfitai.authservice.repository.UserRepository;
+import org.workfitai.authservice.response.ApiError;
 import org.workfitai.authservice.response.ResponseData;
 import org.workfitai.authservice.security.JwtAuthenticationFilter;
+import org.workfitai.authservice.web.MdcTraceFilter;
 
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -38,17 +46,25 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, ex1) -> { // 401
+                        .authenticationEntryPoint((req, res, ex1) -> {
                             res.setStatus(401);
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            var body = ResponseData.error(401, "Unauthorized");
-                            res.getOutputStream().write(om.writeValueAsString(body).getBytes(StandardCharsets.UTF_8));
+                            var err = ApiError.builder()
+                                    .code(401).message("Unauthorized")
+                                    .traceId(MDC.get(MdcTraceFilter.TRACE_ID))
+                                    .timestamp(OffsetDateTime.now())
+                                    .build();
+                            res.getOutputStream().write(om.writeValueAsBytes(err));
                         })
-                        .accessDeniedHandler((req, res, ex2) -> { // 403
+                        .accessDeniedHandler((req, res, ex2) -> {
                             res.setStatus(403);
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            var body = ResponseData.error(403, "Forbidden");
-                            res.getOutputStream().write(om.writeValueAsString(body).getBytes(StandardCharsets.UTF_8));
+                            var err = ApiError.builder()
+                                    .code(403).message("Forbidden")
+                                    .traceId(MDC.get(MdcTraceFilter.TRACE_ID))
+                                    .timestamp(OffsetDateTime.now())
+                                    .build();
+                            res.getOutputStream().write(om.writeValueAsBytes(err));
                         })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -58,7 +74,10 @@ public class SecurityConfig {
 
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper om = new ObjectMapper();
+        om.registerModule(new JavaTimeModule());
+        om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return om;
     }
 
     @Bean

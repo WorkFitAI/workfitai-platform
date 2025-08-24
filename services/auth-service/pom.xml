@@ -102,6 +102,11 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <!-- Data: MongoDB & Redis -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
