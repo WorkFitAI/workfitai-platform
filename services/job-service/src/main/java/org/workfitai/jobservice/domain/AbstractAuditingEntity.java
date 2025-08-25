@@ -31,13 +31,13 @@ public abstract class AbstractAuditingEntity<T> implements Serializable {
     private String createdBy;
     @CreatedDate
     @Column(name = "created_date", updatable = false)
-    private Instant createdDate = Instant.now();
+    private Instant createdDate;
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
     private String lastModifiedBy;
     @LastModifiedDate
     @Column(name = "last_modified_date")
-    private Instant lastModifiedDate = Instant.now();
+    private Instant lastModifiedDate;
 
     public abstract T getId();
 }

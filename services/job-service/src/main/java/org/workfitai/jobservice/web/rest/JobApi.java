@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.domain.Job;
 import org.workfitai.jobservice.domain.response.RestResponse;
-import org.workfitai.jobservice.service.JobService;
+import org.workfitai.jobservice.service.abstraction.iJobService;
 import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
@@ -28,13 +28,13 @@ import java.util.UUID;
 @RequestMapping()
 @Transactional
 public class JobApi {
-    private final JobService jobService;
+    private final iJobService jobService;
 
-    public JobApi(JobService jobService) {
+    public JobApi(iJobService jobService) {
         this.jobService = jobService;
     }
 
-    @PostMapping("")
+    @PostMapping()
     @ApiMessage("Create new job")
     public ResponseEntity<RestResponse<ResCreateJobDTO>> create(@Valid @RequestBody ReqJobDTO jobDTO) {
         RestResponse<ResCreateJobDTO> response = new RestResponse<>();
@@ -61,7 +61,7 @@ public class JobApi {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("")
+    @GetMapping()
     @ApiMessage("Get job with pagination")
     public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllJob(
             @Filter Specification<Job> spec,
@@ -74,7 +74,7 @@ public class JobApi {
         return ResponseEntity.ok().body(response);
     }
 
-    @PutMapping("")
+    @PutMapping()
     @ApiMessage("Update a job")
     public ResponseEntity<RestResponse<ResUpdateJobDTO>> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO) throws InvalidDataException {
         Optional<Job> currentJob = this.jobService.getJobById(jobDTO.getJobId());

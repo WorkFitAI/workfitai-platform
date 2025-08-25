@@ -1,6 +1,5 @@
 package org.workfitai.jobservice.service;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,6 +12,7 @@ import org.workfitai.jobservice.domain.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.service.abstraction.iJobService;
 import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class JobService {
+public class JobService implements iJobService {
     private final JobRepository jobRepository;
     private final JobMapper jobMapper;
 
@@ -45,6 +45,7 @@ public class JobService {
     }
 
 
+    @Override
     public ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
         Page<ResJobDTO> pageJobDTO = pageJob.map(jobMapper::toResJobDTO);
@@ -64,6 +65,7 @@ public class JobService {
         return rs;
     }
 
+    @Override
     public ResJobDTO fetchJobById(UUID id) {
         Optional jobOptional = this.jobRepository.findById(id);
         if (jobOptional.isPresent()) {
@@ -72,11 +74,12 @@ public class JobService {
         return null;
     }
 
+    @Override
     public Optional<Job> getJobById(UUID id) {
         return this.jobRepository.findById(id);
     }
 
-    @Transactional
+    @Override
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
         Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, null);
@@ -85,7 +88,7 @@ public class JobService {
         return jobMapper.toResCreateJobDTO(currentJob);
     }
 
-    @Transactional
+    @Override
     public ResUpdateJobDTO updateJob(ReqUpdateJobDTO jobDTO, Job dbJob) {
         Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, dbJob);
@@ -108,6 +111,7 @@ public class JobService {
         return jobMapper.toResUpdateJobDTO(dbJob);
     }
 
+    @Override
     public void deleteJob(UUID jobId) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
