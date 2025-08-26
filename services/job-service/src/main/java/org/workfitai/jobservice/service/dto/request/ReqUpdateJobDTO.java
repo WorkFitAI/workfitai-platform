@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import org.workfitai.jobservice.domain.enums.EmploymentType;
 import org.workfitai.jobservice.domain.enums.ExperienceLevel;
-import org.workfitai.jobservice.domain.enums.JobStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -58,9 +57,6 @@ public class ReqUpdateJobDTO {
     @NotNull(message = "ExpiresAt must not be null")
     @Future(message = "ExpiresAt must be a future date")
     private Instant expiresAt;
-
-    @NotNull(message = "Job status must not be null")
-    private JobStatus status;
 
     @NotBlank(message = "Education level must not be null")
     @Size(min = 2, max = 120, message = "Education level must be between 2 and 120 characters")

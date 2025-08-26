@@ -23,6 +23,8 @@ import java.util.UUID;
 public class Job extends AbstractAuditingEntity<UUID> {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "job_id", updatable = false, nullable = false)
     private UUID jobId;
 
     @NotBlank(message = "Title must not null")
@@ -87,24 +89,6 @@ public class Job extends AbstractAuditingEntity<UUID> {
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
     private List<Skill> skills;
-
-    @PrePersist
-    public void handleBeforeCreate() {
-        if (this.jobId == null) {
-            this.jobId = UUID.randomUUID();
-        }
-
-        if (this.getCreatedBy() == null) {
-            this.setCreatedBy("SYSTEM");
-        }
-    }
-
-    @PreUpdate
-    public void handleBeforeUpdate() {
-        if (this.getLastModifiedBy() == null) {
-            this.setLastModifiedBy("SYSTEM_UPDATED");
-        }
-    }
 
     @Override
     public UUID getId() {

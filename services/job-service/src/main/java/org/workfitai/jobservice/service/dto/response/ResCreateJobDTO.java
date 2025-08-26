@@ -30,6 +30,7 @@ public class ResCreateJobDTO {
     private String educationLevel;
     @JsonIgnoreProperties(value = {"jobs"})
     private List<String> skillNames;
+    private String location;
     private Instant createdDate;
     private String createdBy;
 }
