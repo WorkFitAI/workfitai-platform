@@ -10,14 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.domain.Job;
+import org.workfitai.jobservice.domain.enums.JobStatus;
 import org.workfitai.jobservice.domain.response.RestResponse;
-import org.workfitai.jobservice.service.abstraction.iJobService;
 import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.service.dto.response.*;
+import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.util.ApiMessage;
 import org.workfitai.jobservice.web.errors.InvalidDataException;
 
@@ -86,6 +84,23 @@ public class JobApi {
         response.setStatusCode(HttpStatus.OK.value());
         response.setError(null);
         response.setData(this.jobService.updateJob(jobDTO, currentJob.get()));
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PutMapping("/{id}/{status}")
+    @ApiMessage("Update status of a job")
+    public ResponseEntity<RestResponse<ResModifyStatus>> updateStatus(
+            @PathVariable("id") UUID id, @PathVariable("status") JobStatus status) throws InvalidDataException {
+        Optional<Job> currentJob = this.jobService.getJobById(id);
+        if (currentJob.isEmpty()) {
+            throw new InvalidDataException("Job not found");
+        }
+
+        RestResponse<ResModifyStatus> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setError(null);
+        response.setData(this.jobService.updateStatus(currentJob.get(), status));
 
         return ResponseEntity.ok().body(response);
     }

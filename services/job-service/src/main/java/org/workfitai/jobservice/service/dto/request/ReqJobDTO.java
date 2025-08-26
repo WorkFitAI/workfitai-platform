@@ -56,8 +56,7 @@ public class ReqJobDTO {
     @Future(message = "ExpiresAt must be a future date")
     private Instant expiresAt;
 
-    @NotNull(message = "Job status must not be null")
-    private JobStatus status;
+    private JobStatus status = JobStatus.DRAFT;
 
     @NotBlank(message = "Education level must not be null")
     @Size(min = 2, max = 120, message = "Education level must be between 2 and 120 characters")

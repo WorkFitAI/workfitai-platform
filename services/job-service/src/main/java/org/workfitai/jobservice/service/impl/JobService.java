@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.service;
+package org.workfitai.jobservice.service.impl;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,13 +12,10 @@ import org.workfitai.jobservice.domain.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
-import org.workfitai.jobservice.service.abstraction.iJobService;
 import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResCreateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.service.dto.response.*;
+import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.service.mapper.JobMapper;
 import org.workfitai.jobservice.web.errors.JobConflictException;
 
@@ -43,7 +40,6 @@ public class JobService implements iJobService {
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
     }
-
 
     @Override
     public ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable) {
@@ -103,12 +99,25 @@ public class JobService implements iJobService {
         dbJob.setEducationLevel(job.getEducationLevel());
         dbJob.setCurrency(job.getCurrency());
         dbJob.setEmploymentType(job.getEmploymentType());
-        dbJob.setStatus(job.getStatus());
         dbJob.setQuantity(job.getQuantity());
         dbJob.setExpiresAt(job.getExpiresAt());
 
         this.jobRepository.save(dbJob);
         return jobMapper.toResUpdateJobDTO(dbJob);
+    }
+
+    @Override
+    public ResModifyStatus updateStatus(Job job, JobStatus status) {
+        if (status == job.getStatus()) {
+            throw new JobConflictException("Job status conflict");
+        }
+        job.setStatus(status);
+        this.jobRepository.save(job);
+
+        return new ResModifyStatus().builder()
+                .status(String.valueOf(job.getStatus()))
+                .updatedAt(job.getLastModifiedDate())
+                .build();
     }
 
     @Override
