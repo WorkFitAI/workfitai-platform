@@ -5,7 +5,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.workfitai.jobservice.domain.response.RestResponse;
+import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.util.ApiMessage;
 
 @Aspect
@@ -14,13 +14,17 @@ public class ApiMessageAspect {
 
     @Around("@annotation(apiMessage)")
     public Object handleApiMessage(ProceedingJoinPoint joinPoint, ApiMessage apiMessage) throws Throwable {
-        Object result = joinPoint.proceed(); // chạy method gốc
+        Object result = joinPoint.proceed();
 
         if (result instanceof ResponseEntity<?> responseEntity) {
             Object body = responseEntity.getBody();
             if (body instanceof RestResponse<?> restResponse) {
-                restResponse.setMessage(apiMessage.value()); // gắn message từ annotation
+                return ResponseEntity
+                        .status(responseEntity.getStatusCode())
+                        .body(new RestResponse<>(restResponse.getStatus(), apiMessage.value(), restResponse.getData()));
             }
+        } else if (result instanceof RestResponse<?> restResponse) {
+            return new RestResponse<>(restResponse.getStatus(), apiMessage.value(), restResponse.getData());
         }
 
         return result;

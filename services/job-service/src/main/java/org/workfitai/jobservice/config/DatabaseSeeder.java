@@ -2,12 +2,12 @@ package org.workfitai.jobservice.config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
-import org.workfitai.jobservice.domain.Company;
-import org.workfitai.jobservice.domain.Job;
-import org.workfitai.jobservice.domain.Skill;
-import org.workfitai.jobservice.domain.enums.EmploymentType;
-import org.workfitai.jobservice.domain.enums.ExperienceLevel;
-import org.workfitai.jobservice.domain.enums.JobStatus;
+import org.workfitai.jobservice.model.Company;
+import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.enums.EmploymentType;
+import org.workfitai.jobservice.model.enums.ExperienceLevel;
+import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
