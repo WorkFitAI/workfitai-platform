@@ -1,13 +1,10 @@
 server:
-  port: ${API_GATEWAY_PORT:8080}
+  port: ${API_GATEWAY_PORT_DOCKER:8088}
 
 spring:
   application:
     name: api-gateway
   cloud:
-    # disable remote config so startup never blocks on configserver
-    config:
-      enabled: false
     gateway:
       # ✅ new key path for Discovery Locator on Spring Cloud Gateway (server-webflux)
       server:
@@ -19,8 +16,6 @@ spring:
     consul:
       host: ${CONSUL_HOST:consul}
       port: ${CONSUL_PORT:8500}
-      config:
-        enabled: false
       discovery:
         register: true
         prefer-ip-address: true
@@ -29,6 +24,10 @@ spring:
         instance-id: ${spring.application.name}-${server.port}
         deregister: true
         health-check-critical-timeout: 1m
+  data:
+    redis:
+      host: ${REDIS_GATEWAY_HOST:api-redis}
+      port: ${REDIS_GATEWAY_PORT:6380}
   main:
     allow-bean-definition-overriding: true
     web-application-type: reactive
@@ -37,8 +36,8 @@ spring:
 auth:
   jwt:
     secret: ${AUTH_JWT_SECRET}
+    issuer: auth-service
 
-# ✅ expose the gateway actuator endpoint so you can inspect routes
 management:
   endpoint:
     gateway:
@@ -51,7 +50,11 @@ management:
     tags:
       application: ${spring.application.name}
 
-# ✅ hard-disable the brittle response rewriter (prevents TCP resets)
-gateway:
-  status-mapping:
-    enabled: false
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.cloud: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.consul: DEBUG
+    com.workfitai: DEBUG

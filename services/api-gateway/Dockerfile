@@ -1,19 +1,26 @@
-# Build stage
-FROM maven:latest AS builder
+# =====================
+# BUILD STAGE
+# =====================
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
 WORKDIR /app
-COPY pom.xml /app/
-COPY src /app/src
+
+COPY pom.xml .
+COPY src ./src
+
+# Build app using Maven
 RUN mvn clean package -DskipTests
 
-# Stage 2: runtime
-FROM openjdk:21-jdk
-WORKDIR /app
+# =====================
+# RUNTIME STAGE
+# =====================
+FROM eclipse-temurin:17-jdk
 
-# Copy jar artifact từ builder
-COPY --from=builder /app/target/*.jar /app.jar
+# Copy built jar from previous stage
+COPY --from=build /app/target/api-gateway-*.jar app.jar
 
-# Mở port 8080
-EXPOSE 8080
+# Expose port (must match `server.port` in application.properties)
+EXPOSE 8088
 
-# Chạy ứng dụng
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Run the jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

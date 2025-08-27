@@ -185,7 +185,6 @@ services:
     ports:
       - "8088:9005"
     environment:
-      - API_GATEWAY_PORT=9005   # keep in-container port consistent
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
@@ -193,6 +192,13 @@ services:
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
+    networks: [ workfitai-net ]
+
+  api-redis:
+    image: redis:6-alpine
+    container_name: api-redis
+    ports:
+      - "6380:6379"
     networks: [ workfitai-net ]
 
   monitoring-service:
