@@ -2,11 +2,11 @@ package org.workfitai.jobservice.service;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.workfitai.jobservice.domain.Job;
-import org.workfitai.jobservice.domain.enums.JobStatus;
-import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
-import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.*;
+import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
+import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.*;
+import org.workfitai.jobservice.model.enums.JobStatus;
 
 import java.util.Optional;
 import java.util.UUID;

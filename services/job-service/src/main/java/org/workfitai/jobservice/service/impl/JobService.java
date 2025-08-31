@@ -5,24 +5,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.workfitai.jobservice.domain.Company;
-import org.workfitai.jobservice.domain.Job;
-import org.workfitai.jobservice.domain.Skill;
-import org.workfitai.jobservice.domain.enums.JobStatus;
+import org.workfitai.jobservice.config.errors.JobConflictException;
+import org.workfitai.jobservice.model.Company;
+import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
+import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.*;
+import org.workfitai.jobservice.model.enums.JobStatus;
+import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
-import org.workfitai.jobservice.service.dto.request.ReqJobDTO;
-import org.workfitai.jobservice.service.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.service.dto.response.*;
 import org.workfitai.jobservice.service.iJobService;
-import org.workfitai.jobservice.service.mapper.JobMapper;
-import org.workfitai.jobservice.web.errors.JobConflictException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
 @Service
 public class JobService implements iJobService {
@@ -109,7 +112,7 @@ public class JobService implements iJobService {
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
         if (status == job.getStatus()) {
-            throw new JobConflictException("Job status conflict");
+            throw new JobConflictException(JOB_STATUS_CONFLICT);
         }
         job.setStatus(status);
         this.jobRepository.save(job);
@@ -123,7 +126,7 @@ public class JobService implements iJobService {
     @Override
     public void deleteJob(UUID jobId) {
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
 
         if (job.getStatus() == JobStatus.PUBLISHED) {
             throw new JobConflictException("Cannot delete a PUBLISHED job");
