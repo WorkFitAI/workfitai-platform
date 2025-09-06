@@ -1,14 +1,44 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: cv-service
-  config:
-    import: optional:configserver:http://config-server:8888
+    name: cv
+
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      config:
+        enabled: false
+      discovery:
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}-${server.port}
+        deregister: true
+        health-check-critical-timeout: 1m
+
+  data:
+    mongodb:
+      uri: mongodb://user:123456@cv-mongo:27017/cv-db?authSource=cv-db
+
+auth:
+  jwt:
+    secret: ${AUTH_JWT_SECRET}
+    issuer: auth-service
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
-  metrics:
-    tags:
-      application: ${spring.application.name}
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.boot.actuate.health: DEBUG
