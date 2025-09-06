@@ -55,8 +55,8 @@ services:
     image: mongo:6.0
     container_name: cv-mongo
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_ROOT_USERNAME: ${CV_INIT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${CV_INIT_PASS}
       MONGO_INITDB_DATABASE: cv-db
     volumes:
       - ./initialize/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
@@ -163,7 +163,7 @@ services:
       - "5004:5005"
     environment:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      - SPRING_DATA_MONGODB_URI=mongodb://user:123456@cv-mongo:27017/cv-db?authSource=cv-db
+      - SPRING_DATA_MONGODB_URI=mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
     depends_on:
       - consul
       - cv-mongo
