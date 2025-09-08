@@ -23,52 +23,51 @@ import java.util.ArrayList;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
-  @Value("${auth.jwt.secret}")
-  private String jwtSecret;
+    @Value("${auth.jwt.secret}")
+    private String jwtSecret;
+    @Value("${auth.jwt.issuer}")
+    private String issuer;
 
-  @Bean
-  public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-    return http
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .authorizeExchange(exchanges -> exchanges
-            .pathMatchers("/actuator/**",
-                "/auth/login",
-                "/auth/refresh",
-                "/auth/register",
-                "/job/**").permitAll()
-            .anyExchange().authenticated())
-        .exceptionHandling(e -> e
-            .authenticationEntryPoint((swe, err) ->
-                Mono.fromRunnable(() -> {
-                  swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                })
-            )
-            .accessDeniedHandler((swe, err) ->
-                Mono.fromRunnable(() -> {
-                  swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                })
-            )
-        )
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-        .build();
-  }
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers("/actuator/**",
+                                "/auth/login",
+                                "/auth/refresh",
+                                "/auth/register",
+                                "/cv/**").permitAll()
+                        .anyExchange().authenticated())
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((swe, err) ->
+                                Mono.fromRunnable(() -> {
+                                    swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                })
+                        )
+                        .accessDeniedHandler((swe, err) ->
+                                Mono.fromRunnable(() -> {
+                                    swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                                })
+                        )
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .build();
+    }
 
-  @Value("${auth.jwt.issuer}")
-  private String issuer;
+    @Bean
+    public ReactiveJwtDecoder jwtDecoder() {
+        var key = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        var decoder = NimbusReactiveJwtDecoder.withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
 
-  @Bean
-  public ReactiveJwtDecoder jwtDecoder() {
-    var key = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-    var decoder = NimbusReactiveJwtDecoder.withSecretKey(key)
-        .macAlgorithm(MacAlgorithm.HS256)
-        .build();
+        var validators = new ArrayList<OAuth2TokenValidator<Jwt>>();
+        validators.add(JwtValidators.createDefault());
+        validators.add(new JwtIssuerValidator(issuer));
 
-    var validators = new ArrayList<OAuth2TokenValidator<Jwt>>();
-    validators.add(JwtValidators.createDefault());
-    validators.add(new JwtIssuerValidator(issuer));
-
-    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
-    return decoder;
-  }
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
+        return decoder;
+    }
 
 }
