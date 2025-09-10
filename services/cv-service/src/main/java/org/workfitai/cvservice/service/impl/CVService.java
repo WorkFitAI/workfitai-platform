@@ -1,7 +1,7 @@
 package org.workfitai.cvservice.service.impl;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,40 +11,65 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
+import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
 import org.workfitai.cvservice.model.dto.response.ResCvDTO;
 import org.workfitai.cvservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.cvservice.model.mapper.CVMapper;
 import org.workfitai.cvservice.repository.CVRepository;
+import org.workfitai.cvservice.service.factory.CvCreationFactory;
 import org.workfitai.cvservice.service.iCVService;
+import org.workfitai.cvservice.service.shared.FileService;
+import org.workfitai.cvservice.service.strategy.CvCreationStrategy;
+import org.workfitai.cvservice.validation.FileValidator;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.workfitai.cvservice.constant.ErrorConst.CV_CONFLICT_DATA;
-import static org.workfitai.cvservice.constant.ErrorConst.CV_NOT_FOUND;
+import static org.workfitai.cvservice.constant.ErrorConst.*;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CVService implements iCVService {
-
     private final CVRepository repository;
     private final MongoTemplate mongoTemplate;
+    private final CvCreationFactory cvCreationFactory;
+    private final FileService fileService;
 
+    // ---------------- Create & Upload ----------------
 
-    // ---------------- Create ----------------
     @Override
-    public ResCvDTO create(@Valid ReqCvDTO req) {
-        CV cv = CVMapper.INSTANCE.toEntity(req);
-        cv.setBelongTo(UUID.randomUUID().toString()); // Chỉnh lại lấy từ Kafka sau!
-        var saved = repository.save(cv);
-        return CVMapper.INSTANCE.toResDTO(saved);
+    public <T> ResCvDTO createCv(String type, T dto) throws InvalidDataException {
+        if ("upload".equalsIgnoreCase(type) && dto instanceof ReqCvUploadDTO) {
+            MultipartFile file = ((ReqCvUploadDTO) dto).getFile();
+            FileValidator.validate(file);
+        }
+
+        CvCreationStrategy<T> strategy = (CvCreationStrategy<T>) cvCreationFactory.getStrategy(type);
+
+        // strategy build CV
+        CV cv = strategy.createCv(dto);
+
+        // get user id
+        String userId = UUID.randomUUID().toString();
+        cv.setBelongTo(userId);
+        cv.setUpdatedAt(null);
+        cv.setCreatedAt(null);
+
+        // lưu DB
+        CV saved = repository.save(cv);
+
+        // map sang ResCvDTO
+        return CVMapper.INSTANCE.toResCreateDTO(saved);
     }
 
     // ---------------- Read ----------------
@@ -158,7 +183,7 @@ public class CVService implements iCVService {
     @Override
     public ResCvDTO update(String cvId, @Valid ReqCvDTO req) throws CVConflictException, InvalidDataException {
         CV cv = repository.findById(cvId)
-                .orElseThrow(() -> new InvalidDataException(CV_NOT_FOUND));
+                .orElseThrow(() -> new InvalidDataException(CV_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         if (!cv.isExist()) {
             throw new CVConflictException(CV_CONFLICT_DATA);
@@ -175,7 +200,7 @@ public class CVService implements iCVService {
     @Override
     public void delete(String cvId) throws CVConflictException, InvalidDataException {
         CV cv = repository.findById(cvId)
-                .orElseThrow(() -> new InvalidDataException(CV_NOT_FOUND));
+                .orElseThrow(() -> new InvalidDataException(CV_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         if (!cv.isExist()) {
             throw new CVConflictException(CV_CONFLICT_DATA);
@@ -183,5 +208,18 @@ public class CVService implements iCVService {
 
         cv.setExist(false);
         repository.save(cv);
+    }
+
+    // ---------------- DOWNLOAD ----------------
+    @Override
+    public InputStream downloadCV(String objectName) {
+        if (!objectName.matches(CVConst.PDF_FILE_PATTERN)) {
+            throw new InvalidDataException(CV_INVALID_FILE, HttpStatus.BAD_REQUEST);
+        }
+        try {
+            return fileService.downloadCV(objectName);
+        } catch (Exception e) {
+            throw new InvalidDataException("File not found or cannot be read: " + objectName + "-" + e, HttpStatus.BAD_REQUEST);
+        }
     }
 }

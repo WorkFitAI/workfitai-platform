@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/refresh",
                                 "/auth/register",
-                                "/cv/**").permitAll()
+                                "/cv/shared/**").permitAll()
                         .anyExchange().authenticated())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((swe, err) ->

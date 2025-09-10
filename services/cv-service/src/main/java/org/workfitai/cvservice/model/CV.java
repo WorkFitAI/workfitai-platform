@@ -1,7 +1,11 @@
 package org.workfitai.cvservice.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,12 +14,10 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.model.enums.TemplateType;
-import org.workfitai.cvservice.validation.ValidCvId;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Document(collection = "cv")
 @Data
@@ -25,17 +27,12 @@ import java.util.UUID;
 public class CV {
 
     @Id
-    @NotNull(message = "cvId cannot be null")
-    @ValidCvId
-    private String cvId = UUID.randomUUID().toString();
+    private String cvId;
 
-    @NotBlank(message = "Title cannot be blank")
-    @Size(max = 200, message = "Title max 200 characters")
     private String headline;
 
     private String summary;
 
-    @NotBlank(message = "PDF URL cannot be blank")
     @Pattern(regexp = CVConst.URL_PATTERN, message = "pdfUrl must be a valid URL")
     private String pdfUrl;
 
@@ -51,7 +48,7 @@ public class CV {
     private boolean isExist = true;
 
     @CreatedDate
-    @NotNull(message = "createdAt cannot be null")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     @PastOrPresent(message = "createdAt must be in the past or present")
     private Instant createdAt;
 
@@ -60,6 +57,7 @@ public class CV {
     private String createdBy;
 
     @LastModifiedDate
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     @PastOrPresent(message = "updatedAt must be in the past or present")
     private Instant updatedAt;
 
