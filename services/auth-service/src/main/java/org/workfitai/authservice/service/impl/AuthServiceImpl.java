@@ -82,7 +82,7 @@ public class AuthServiceImpl implements iAuthService {
 
             // Look up the user id by username
             String userId = users.findByUsername(ud.getUsername())
-                    .orElseThrow()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
                     .getId();
 
             String access = jwt.generateAccessToken(ud);
@@ -118,23 +118,23 @@ public class AuthServiceImpl implements iAuthService {
             username = jwt.extractUsername(refreshTokenFromCookie);
             jti = jwt.extractJti(refreshTokenFromCookie);
         } catch (JwtException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_INVALID");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
         }
 
         String userId = users.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
                 .getId();
 
         // Check device-scoped JTI in Redis
         String activeJti = refreshStore.getJti(userId, dev);
         if (activeJti == null)
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_EXPIRED);
         if (!activeJti.equals(jti))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "TOKEN_INVALID");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
 
         // Rotate
         User user = users.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())

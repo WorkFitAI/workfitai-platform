@@ -1,9 +1,10 @@
 package org.workfitai.authservice.config;
 
-import java.time.LocalDateTime;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.time.LocalDateTime;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -43,19 +44,21 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, ex1) -> {
-                            res.setStatus(401);
+                            res.setStatus(HttpStatus.UNAUTHORIZED.value());
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             var err = ApiError.builder()
-                                    .code(401).message(Messages.Error.UNAUTHORIZED)
+                                    .status(HttpStatus.UNAUTHORIZED.value())
+                                    .message(Messages.Error.UNAUTHORIZED)
                                     .timestamp(LocalDateTime.now())
                                     .build();
                             res.getOutputStream().write(om.writeValueAsBytes(err));
                         })
                         .accessDeniedHandler((req, res, ex2) -> {
-                            res.setStatus(403);
+                            res.setStatus(HttpStatus.FORBIDDEN.value());
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             var err = ApiError.builder()
-                                    .code(403).message(Messages.Error.FORBIDDEN)
+                                    .status(HttpStatus.FORBIDDEN.value())
+                                    .message(Messages.Error.FORBIDDEN)
                                     .timestamp(LocalDateTime.now())
                                     .build();
                             res.getOutputStream().write(om.writeValueAsBytes(err));

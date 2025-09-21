@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.time.Duration;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.RegisterRequest;
@@ -34,7 +36,8 @@ public class AuthController {
 
         @GetMapping()
         public ResponseData<String> healthCheck() {
-                return ResponseData.success(Messages.Success.AUTH_SERVICE_RUNNING);
+                return ResponseData.success(Messages.Success.AUTH_SERVICE_RUNNING,
+                                Messages.Success.AUTH_SERVICE_RUNNING);
         }
 
         @PostMapping("/register")
@@ -50,6 +53,7 @@ public class AuthController {
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
+                                                Messages.Success.USER_REGISTERED,
                                                 new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
         }
 
@@ -66,16 +70,17 @@ public class AuthController {
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
+                                                Messages.Success.TOKENS_ISSUED,
                                                 new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
         }
 
         @PostMapping("/logout")
-        public ResponseEntity<Void> logout(
+        public ResponseEntity<ResponseData<Void>> logout(
                         @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
                         Principal principal) {
 
                 if (principal == null) {
-                        return ResponseEntity.status(401).build();
+                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.UNAUTHORIZED);
                 }
                 authService.logout(deviceId, principal.getName());
 
@@ -86,9 +91,9 @@ public class AuthController {
                                 .maxAge(0) // hết hạn ngay
                                 .build();
 
-                return ResponseEntity.noContent()
+                return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
-                                .build();
+                                .body(ResponseData.success(Messages.Success.LOGGED_OUT));
         }
 
         @PostMapping("/refresh")
@@ -104,6 +109,7 @@ public class AuthController {
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
+                                                Messages.Success.TOKENS_REFRESHED,
                                                 new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
         }
 }

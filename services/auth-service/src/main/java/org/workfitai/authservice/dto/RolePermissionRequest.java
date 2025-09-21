@@ -1,6 +1,6 @@
 package org.workfitai.authservice.dto;
 
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +11,7 @@ import org.workfitai.authservice.constants.Messages;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdatePermissionDto {
-    @Size(max = 255, message = Messages.Validation.PERMISSION_DESCRIPTION_SIZE)
-    String description; // name is immutable by design
+public class RolePermissionRequest {
+    @NotBlank(message = Messages.Validation.PERMISSION_CODE_REQUIRED)
+    private String permission;
 }

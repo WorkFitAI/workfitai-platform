@@ -25,11 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class RestExceptionHandler {
 
-    private ApiError build(int code, String message, List<String> errors) {
+    private ApiError build(HttpStatus status, String message, List<String> errors) {
+        List<String> safeErrors = (errors == null || errors.isEmpty()) ? List.of() : errors;
         return ApiError.builder()
-                .code(code)
+                .status(status.value())
                 .message(message)
-                .errors(errors)
+                .errors(safeErrors)
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -37,14 +38,14 @@ public class RestExceptionHandler {
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<ApiError> handleDuplicate(DuplicateKeyException ex) {
         return ResponseEntity.badRequest()
-                .body(build(400, Messages.Error.USERNAME_EMAIL_ALREADY_IN_USE, List.of()));
+                .body(build(HttpStatus.BAD_REQUEST, Messages.Error.USERNAME_EMAIL_ALREADY_IN_USE, List.of()));
     }
 
     // If the driver bubbles raw Mongo exceptions in some cases:
     @ExceptionHandler({ MongoWriteException.class, MongoWriteConcernException.class })
     public ResponseEntity<ApiError> handleMongoWrite(RuntimeException ex) {
         return ResponseEntity.badRequest()
-                .body(build(400, Messages.Error.USERNAME_EMAIL_ALREADY_IN_USE, List.of()));
+                .body(build(HttpStatus.BAD_REQUEST, Messages.Error.USERNAME_EMAIL_ALREADY_IN_USE, List.of()));
     }
 
     // 400 – DTO @Valid errors
@@ -53,7 +54,7 @@ public class RestExceptionHandler {
         var errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .toList();
-        return ResponseEntity.badRequest().body(build(400, Messages.Error.VALIDATION_FAILED, errors));
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, Messages.Error.VALIDATION_FAILED, errors));
     }
 
     // 400 – @Validated on @ConfigurationProperties, @PathVariable, @RequestParam…
@@ -62,38 +63,40 @@ public class RestExceptionHandler {
         var errors = ex.getConstraintViolations().stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .toList();
-        return ResponseEntity.badRequest().body(build(400, Messages.Error.INVALID_REQUEST, errors));
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, Messages.Error.INVALID_REQUEST, errors));
     }
 
     // 400 – bad/malformed JSON
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleBadJson(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body(build(400, Messages.Error.MALFORMED_JSON, List.of()));
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, Messages.Error.MALFORMED_JSON, List.of()));
     }
 
     // 401 – spring-security/explicit
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuth(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(build(401, Messages.Error.UNAUTHORIZED, List.of()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(build(HttpStatus.UNAUTHORIZED, Messages.Error.UNAUTHORIZED, List.of()));
     }
 
     // Map service-layer ResponseStatusException without catching in services
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiError> handleStatus(ResponseStatusException ex) {
-        int code = ex.getStatusCode().value();
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
         String msg = (ex.getReason() != null) ? ex.getReason() : Messages.Error.DEFAULT_ERROR;
-        return ResponseEntity.status(code).body(build(code, msg, List.of()));
+        return ResponseEntity.status(status).body(build(status, msg, List.of()));
     }
 
     // (Optional) 404/400 helpers – when services throw common JDK exceptions
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegal(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(build(400, ex.getMessage(), List.of()));
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of()));
     }
 
     @ExceptionHandler(java.util.NoSuchElementException.class)
     public ResponseEntity<ApiError> handleNotFound(java.util.NoSuchElementException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(build(404, ex.getMessage(), List.of()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
     }
 
     // 500 – last resort
@@ -101,6 +104,6 @@ public class RestExceptionHandler {
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
         log.error(Messages.Error.UNEXPECTED_ERROR, ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(build(500, Messages.Error.INTERNAL_SERVER_ERROR, List.of()));
+                .body(build(HttpStatus.INTERNAL_SERVER_ERROR, Messages.Error.INTERNAL_SERVER_ERROR, List.of()));
     }
 }

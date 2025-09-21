@@ -1,16 +1,16 @@
 package org.workfitai.authservice.service.impl;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.model.Permission;
 import org.workfitai.authservice.repository.PermissionRepository;
 import org.workfitai.authservice.repository.RoleRepository;
 import org.workfitai.authservice.service.iPermissionService;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class PermissionServiceImpl implements iPermissionService {
     @Override
     public Permission create(Permission p) {
         if (perms.findByName(p.getName()).isPresent()) {
-            throw new IllegalArgumentException("Permission exists");
+            throw new IllegalArgumentException(String.format(Messages.Error.PERMISSION_ALREADY_EXISTS, p.getName()));
         }
         return perms.save(p);
     }
@@ -34,13 +34,13 @@ public class PermissionServiceImpl implements iPermissionService {
     @Override
     public Permission getByName(String name) {
         return perms.findByName(name)
-                .orElseThrow(() -> new NoSuchElementException("Permission not found"));
+                .orElseThrow(() -> new NoSuchElementException(Messages.Error.PERMISSION_NOT_FOUND));
     }
 
     @Override
     public Permission updateDescription(String name, String description) {
         Permission existing = perms.findByName(name)
-                .orElseThrow(() -> new NoSuchElementException("Permission not found"));
+                .orElseThrow(() -> new NoSuchElementException(Messages.Error.PERMISSION_NOT_FOUND));
         existing.setDescription(description);
         return perms.save(existing);
     }
@@ -49,10 +49,10 @@ public class PermissionServiceImpl implements iPermissionService {
     public void deleteByName(String name) {
         // Prevent destructive delete if any role still references this permission
         if (roles.existsByPermissionsContains(name)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Permission is referenced by one or more roles");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, Messages.Error.PERMISSION_IN_USE);
         }
         Permission existing = perms.findByName(name)
-                .orElseThrow(() -> new NoSuchElementException("Permission not found"));
+                .orElseThrow(() -> new NoSuchElementException(Messages.Error.PERMISSION_NOT_FOUND));
         perms.delete(existing);
     }
 }
