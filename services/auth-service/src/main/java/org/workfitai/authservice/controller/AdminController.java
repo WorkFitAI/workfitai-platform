@@ -1,19 +1,28 @@
 package org.workfitai.authservice.controller;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.workfitai.authservice.dto.*;
-import org.workfitai.authservice.model.*;
-import org.workfitai.authservice.service.*;
-
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.workfitai.authservice.dto.CreateRoleDto;
+import org.workfitai.authservice.model.Permission;
+import org.workfitai.authservice.model.Role;
+import org.workfitai.authservice.service.iPermissionService;
+import org.workfitai.authservice.service.iRoleService;
+import org.workfitai.authservice.service.iUserRoleService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
 @RequiredArgsConstructor
 public class AdminController {
@@ -22,48 +31,34 @@ public class AdminController {
     private final iRoleService roleService;
     private final iUserRoleService userRoleService;
 
-    @PostMapping("/permissions")
-    public ResponseEntity<Permission> createPerm(
-            @Valid @RequestBody CreatePermissionDto dto) {
-        return ResponseEntity.ok(permissionService.create(
-                Permission.builder()
-                        .name(dto.getName())
-                        .description(dto.getDescription())
-                        .build()));
-    }
-
     @GetMapping("/permissions")
+    @PreAuthorize("hasAuthority('perm:read')")
     public List<Permission> listPerms() {
         return permissionService.listAll();
     }
 
     @PostMapping("/roles")
+    @PreAuthorize("hasAuthority('role:create')")
     public ResponseEntity<Role> createRole(
             @Valid @RequestBody CreateRoleDto dto) {
+        Set<String> perms = (dto.getPermissions() == null) ? Set.of() : dto.getPermissions();
         return ResponseEntity.ok(roleService.create(
                 Role.builder()
                         .name(dto.getName())
                         .description(dto.getDescription())
-                        .permissions(dto.getPermissions())
-                        .build()));
+                        .permissions(perms)
+                        .build()
+        ));
     }
 
     @GetMapping("/roles")
+    @PreAuthorize("hasAuthority('role:read')")
     public List<Role> listRoles() {
         return roleService.listAll();
     }
 
-    @PostMapping("/roles/add-perm")
-    public Role addPerm(@RequestBody RolePermissionDto dto) {
-        return roleService.addPermission(dto.getRoleName(), dto.getPermName());
-    }
-
-    @PostMapping("/roles/remove-perm")
-    public Role removePerm(@RequestBody RolePermissionDto dto) {
-        return roleService.removePermission(dto.getRoleName(), dto.getPermName());
-    }
-
     @PostMapping("/users/{username}/roles")
+    @PreAuthorize("hasAuthority('role:grant')")
     public ResponseEntity<Void> grantRole(
             @PathVariable String username,
             @RequestParam String role) {
@@ -72,6 +67,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{username}/roles")
+    @PreAuthorize("hasAuthority('role:revoke')")
     public ResponseEntity<Void> revokeRole(
             @PathVariable String username,
             @RequestParam String role) {
@@ -80,9 +76,16 @@ public class AdminController {
     }
 
     @GetMapping("/users/{username}/roles")
+    @PreAuthorize("hasAuthority('role:read')")
     public ResponseEntity<Set<String>> listUserRoles(
             @PathVariable String username) {
         Set<String> roles = userRoleService.getUserRoles(username);
         return ResponseEntity.ok(roles);
+    }
+
+    @GetMapping("/permissions/{name}")
+    @PreAuthorize("hasAuthority('perm:read')")
+    public ResponseEntity<Permission> getPerm(@PathVariable String name) {
+        return ResponseEntity.ok(permissionService.getByName(name));
     }
 }
