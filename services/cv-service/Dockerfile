@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=builder /app/target/*.jar /app.jar
 
 # Mở port 8080
-EXPOSE 8080
+EXPOSE 8084
 
 # Chạy ứng dụng
 ENTRYPOINT ["java","-jar","/app.jar"]

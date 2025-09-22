@@ -53,18 +53,18 @@ services:
     container_name: auth-redis
     networks: [ workfitai-net ]
 
-  job-mongo:
-    image: mongo:6.0
-    container_name: job-mongo
-    environment:
-      MONGO_INITDB_DATABASE: job-db
-    networks: [ workfitai-net ]
-
   cv-mongo:
     image: mongo:6.0
     container_name: cv-mongo
     environment:
+      MONGO_INITDB_ROOT_USERNAME: ${CV_INIT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${CV_INIT_PASS}
       MONGO_INITDB_DATABASE: cv-db
+    volumes:
+      - ./initialize/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - cv-mongo-data:/data/db
+    ports:
+      - "27018:27017"
     networks: [ workfitai-net ]
 
   application-mongo:
@@ -87,6 +87,21 @@ services:
       POSTGRES_PASSWORD: ${USER_DB_PASS}
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
+    networks: [ workfitai-net ]
+
+  job-postgres:
+    image: postgres:15
+    container_name: job-postgres
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${JOB_DB_NAME}
+      POSTGRES_USER: ${JOB_DB_USER}
+      POSTGRES_PASSWORD: ${JOB_DB_PASS}
+    volumes:
+      - job-postgres-data:/var/lib/postgresql/data
     networks: [ workfitai-net ]
 
   ### Spring-Boot Services ###
@@ -131,9 +146,12 @@ services:
       - .env.local
     ports:
       - "8083:8080"
+      - "5003:5005"
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       - consul
-      - job-mongo
+      - job-postgres
       - kafka
     networks: [ workfitai-net ]
 
@@ -144,6 +162,10 @@ services:
       - .env.local
     ports:
       - "8084:8080"
+      - "5004:5005"
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - SPRING_DATA_MONGODB_URI=mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
     depends_on:
       - consul
       - cv-mongo
@@ -169,7 +191,6 @@ services:
     ports:
       - "8088:9005"
     environment:
-      - API_GATEWAY_PORT=9005   # keep in-container port consistent
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
@@ -177,6 +198,13 @@ services:
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
+    networks: [ workfitai-net ]
+
+  api-redis:
+    image: redis:6-alpine
+    container_name: api-redis
+    ports:
+      - "6380:6379"
     networks: [ workfitai-net ]
 
   monitoring-service:
@@ -190,20 +218,6 @@ services:
       - consul
     networks: [ workfitai-net ]
 
-    #  vault:
-    #    image: vault:1.13.3
-    #    container_name: vault
-    #    ports:
-    #      - "8200:8200"
-    #    cap_add:
-    #      - IPC_LOCK
-    #    volumes:
-    #      - ./vault/config:/vault/config
-    #      - ./vault/data:/vault/data
-    #    environment:
-    #      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
-    #    command: vault server -config=/vault/config/vault.hcl
-    #    networks: [ workfitai-net ]
   vault:
     image: vault:1.13.3
     container_name: vault
@@ -215,17 +229,6 @@ services:
       - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
     command: vault server -dev
-    networks: [ workfitai-net ]
-  
-  config-server:
-    build:
-      context: ./services/config-server
-    env_file:
-      - .env.local
-    ports:
-      - "8888:8888"
-    depends_on:
-      - consul
     networks: [ workfitai-net ]
 
   prometheus:
@@ -256,6 +259,8 @@ services:
 
 volumes:
   user-postgres-data:
+  job-postgres-data:
+  cv-mongo-data:
   prometheus-data:
 
 networks:
