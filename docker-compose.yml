@@ -44,6 +44,8 @@ services:
     container_name: auth-mongo
     environment:
       MONGO_INITDB_DATABASE: auth-db
+    ports:
+      - "27017:27017"                       # mở cổng ra máy Mac
     networks: [ workfitai-net ]
 
   auth-redis:

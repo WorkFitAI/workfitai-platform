@@ -5,6 +5,10 @@ server:
 spring:
   application:
     name: auth
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
 
   data:
     mongodb:

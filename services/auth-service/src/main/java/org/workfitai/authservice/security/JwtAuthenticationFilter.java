@@ -1,21 +1,23 @@
 package org.workfitai.authservice.security;
 
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Stream;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -56,9 +58,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain chain)
             throws ServletException, IOException {
 
+        System.out.println("Filtering request: " + req.getRequestURI());
+
         String header = req.getHeader("Authorization");
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        if (StringUtils.hasText(header)) {
+            String token = header;
             if (jwtService.validateToken(token)) {
                 Claims claims = jwtService.getClaims(token);
                 String username = claims.getSubject();
@@ -71,6 +75,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 var authorities = Stream.concat(roles.stream(), perms.stream())
                         .map(SimpleGrantedAuthority::new)
                         .toList();
+
+                System.out.println("Authenticated user: " + username + " with authorities: " + authorities);
 
                 var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);

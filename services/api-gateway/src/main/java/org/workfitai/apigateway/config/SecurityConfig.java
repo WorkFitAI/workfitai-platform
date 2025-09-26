@@ -1,5 +1,9 @@
 package org.workfitai.apigateway.config;
 
+import java.nio.charset.StandardCharsets;
+
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +19,6 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
@@ -32,6 +32,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .logout(logout -> logout.disable())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**",
                                 "/auth/login",

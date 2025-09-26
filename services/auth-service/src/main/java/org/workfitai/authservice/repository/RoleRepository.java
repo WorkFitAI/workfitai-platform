@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends MongoRepository<Role,String> {
     Optional<Role> findByName(String name);
+
+    // used to prevent deleting a permission still referenced by any role
+    boolean existsByPermissionsContains(String permissionName);
 }
