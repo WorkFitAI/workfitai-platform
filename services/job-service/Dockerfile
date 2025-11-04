@@ -6,7 +6,7 @@ COPY src /app/src
 RUN mvn clean package -DskipTests
 
 # Stage 2: runtime
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
 # Copy jar artifact từ builder

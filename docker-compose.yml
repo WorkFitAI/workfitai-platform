@@ -11,7 +11,7 @@ services:
 
   ### Zookeeper (for Kafka) ###
   zookeeper:
-    image: bitnami/zookeeper:latest
+    image: zookeeper:latest
     container_name: zookeeper-workfitai
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
