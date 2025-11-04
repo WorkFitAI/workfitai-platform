@@ -44,21 +44,20 @@ public class OpaqueToJwtPreFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
       String auth = exchange.getRequest().getHeaders().getFirst("Authorization");
-      if (!StringUtils.hasText(auth) || !auth.startsWith("Bearer ")) {
+      if (!StringUtils.hasText(auth)) {
         return chain.filter(exchange);
       }
-      String token = auth.substring(7).trim();
 
       // Nếu là JWT (có 2 dấu chấm) → bỏ qua
-      if (token.chars().filter(ch -> ch == '.').count() == 2) {
+      if (auth.chars().filter(ch -> ch == '.').count() == 2) {
         return chain.filter(exchange);
       }
 
       // Lưu opaque để post filter revoke sau khi /auth/logout thành công
-      exchange.getAttributes().put(ATTR_OPAQUE_USED, token);
+      exchange.getAttributes().put(ATTR_OPAQUE_USED, auth);
 
       // Đổi opaque → jwt
-      return service.toJwt(token)
+      return service.toJwt(auth)
           .defaultIfEmpty("")
           .flatMap(jwt -> {
             if (!StringUtils.hasText(jwt)) {
@@ -67,7 +66,7 @@ public class OpaqueToJwtPreFilter {
             }
             ServerHttpRequest mutated = exchange.getRequest().mutate()
                 .headers(h -> {
-                  h.set("Authorization", "Bearer " + jwt);
+                  h.set("Authorization", jwt);
                   h.set("X-Token-Source", "opaque"); // optional
                 })
                 .build();
