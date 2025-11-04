@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
+import java.util.ArrayList;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -38,6 +39,7 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/refresh",
                                 "/auth/register",
+                                "/auth/logout",
                                 "/cv/**").permitAll()
                         .anyExchange().authenticated())
                 .exceptionHandling(e -> e
