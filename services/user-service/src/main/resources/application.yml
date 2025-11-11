@@ -1,0 +1,53 @@
+server:
+  port: 8082
+
+spring:
+  config:
+    import: "optional:classpath:/"
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+  application:
+    name: user
+  cloud:
+    config:
+      enabled: false
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      config:
+        enabled: false
+      discovery:
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}-${server.port}
+        deregister: true
+        health-check-critical-timeout: 1m
+  datasource:
+    url: jdbc:postgresql://${USER_HOST}:${USER_DB_PORT}/${USER_DB_NAME}
+    username: ${USER_DB_USER}
+    password: ${USER_DB_PASS}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+    endpoints:
+        web:
+            exposure:
+              include: health,info,metrics,prometheus
+    metrics:
+        tags:
+            application: ${spring.application.name}
+
+logging:
+    level:
+        org.springframework.cloud.config: DEBUG

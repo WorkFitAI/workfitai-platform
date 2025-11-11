@@ -82,9 +82,9 @@ services:
     env_file:
       - .env.local
     environment:
-      POSTGRES_DB: ${USER_DB_NAME}
-      POSTGRES_USER: ${USER_DB_USER}
-      POSTGRES_PASSWORD: ${USER_DB_PASS}
+      POSTGRES_DB: ${USER_DB_NAME:-user_db}
+      POSTGRES_USER: ${USER_DB_USER:-user}
+      POSTGRES_PASSWORD: ${USER_DB_PASS:-pass}
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
     networks: [ workfitai-net ]
