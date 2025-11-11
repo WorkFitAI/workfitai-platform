@@ -1,7 +1,15 @@
 server:
   port: 8082
 
+jwt:
+  secret: ${AUTH_JWT_SECRET}
+
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${AUTH_JWT_SECRET}
   config:
     import: "optional:classpath:/"
   main:
@@ -40,14 +48,14 @@ spring:
         format_sql: true
 
 management:
-    endpoints:
-        web:
-            exposure:
-              include: health,info,metrics,prometheus
-    metrics:
-        tags:
-            application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 logging:
-    level:
-        org.springframework.cloud.config: DEBUG
+  level:
+    org.springframework.cloud.config: DEBUG
