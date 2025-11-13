@@ -4,6 +4,11 @@
 # Log file
 *.log
 
+# key files
+*.jks
+*.keystore
+*.pem
+
 #.env.local files
 .env.local
 
