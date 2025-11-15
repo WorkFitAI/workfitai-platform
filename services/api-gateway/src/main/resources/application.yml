@@ -32,11 +32,12 @@ spring:
     allow-bean-definition-overriding: true
     web-application-type: reactive
 
-# same secret as auth-service (HMAC HS256)
+# RSA public key for JWT verification (RS256)
 auth:
   jwt:
-    secret: ${AUTH_JWT_SECRET}
     issuer: auth-service
+    rsa:
+      public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:keys/public_key.pem}
 
 management:
   endpoint:

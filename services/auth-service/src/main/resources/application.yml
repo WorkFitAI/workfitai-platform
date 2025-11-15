@@ -34,9 +34,11 @@ spring:
 
 auth:
   jwt:
-    secret: ${AUTH_JWT_SECRET}
     access-exp-ms: ${AUTH_JWT_ACCESS_EXP_MS:900000}
     refresh-exp-ms: ${AUTH_JWT_REFRESH_EXP_MS:604800000}
+    rsa:
+      private-key: ${AUTH_JWT_RSA_PRIVATE_KEY:classpath:keys/private_key_pkcs8.pem}
+      public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:keys/public_key.pem}
   init:
     enabled: true
 
