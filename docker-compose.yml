@@ -5,9 +5,9 @@ services:
     container_name: consul-workfitai
     command: agent -dev -client=0.0.0.0
     ports:
-      - "8500:8500"      # HTTP UI/API
-      - "8600:8600/udp"  # DNS
-    networks: [ workfitai-net ]
+      - "8500:8500" # HTTP UI/API
+      - "8600:8600/udp" # DNS
+    networks: [workfitai-net]
 
   ### Zookeeper (for Kafka) ###
   zookeeper:
@@ -15,7 +15,7 @@ services:
     container_name: zookeeper-workfitai
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   ### Kafka ###
   kafka:
@@ -36,7 +36,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   ### Databases & infra ###
   auth-mongo:
@@ -45,13 +45,13 @@ services:
     environment:
       MONGO_INITDB_DATABASE: auth-db
     ports:
-      - "27017:27017"                       # mở cổng ra máy Mac
-    networks: [ workfitai-net ]
+      - "27017:27017" # mở cổng ra máy Mac
+    networks: [workfitai-net]
 
   auth-redis:
     image: redis:6-alpine
     container_name: auth-redis
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   cv-mongo:
     image: mongo:6.0
@@ -65,14 +65,14 @@ services:
       - cv-mongo-data:/data/db
     ports:
       - "27018:27017"
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   application-mongo:
     image: mongo:6.0
     container_name: application-mongo
     environment:
       MONGO_INITDB_DATABASE: app-db
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   user-postgres:
     image: postgres:15
@@ -87,7 +87,7 @@ services:
       POSTGRES_PASSWORD: ${USER_DB_PASS:-pass}
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   job-postgres:
     image: postgres:15
@@ -102,7 +102,7 @@ services:
       POSTGRES_PASSWORD: ${JOB_DB_PASS}
     volumes:
       - job-postgres-data:/var/lib/postgresql/data
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   ### Spring-Boot Services ###
   auth-service:
@@ -114,18 +114,19 @@ services:
       - "9081:9005"
     environment:
       - SPRING_APPLICATION_NAME=auth
-      - SERVER_PORT=9005        # keep in-container at 9005 (matches properties)
+      - SERVER_PORT=9005 # keep in-container at 9005 (matches properties)
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
-      - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
       - AUTH_JWT_ACCESS_EXP_MS=900000
       - AUTH_JWT_REFRESH_EXP_MS=604800000
+      - AUTH_JWT_RSA_PRIVATE_KEY=classpath:keys/private_key_pkcs8.pem
+      - AUTH_JWT_RSA_PUBLIC_KEY=classpath:keys/public_key.pem
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
       - auth-mongo
       - auth-redis
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   user-service:
     build:
@@ -137,7 +138,7 @@ services:
     depends_on:
       - consul
       - user-postgres
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   job-service:
     build:
@@ -153,7 +154,7 @@ services:
       - consul
       - job-postgres
       - kafka
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   cv-service:
     build:
@@ -169,7 +170,7 @@ services:
     depends_on:
       - consul
       - cv-mongo
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   application-service:
     build:
@@ -181,7 +182,7 @@ services:
     depends_on:
       - consul
       - application-mongo
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   api-gateway:
     build:
@@ -193,19 +194,19 @@ services:
     environment:
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
-      - AUTH_JWT_SECRET=CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX
+      - AUTH_JWT_RSA_PUBLIC_KEY=classpath:keys/public_key.pem
       - SPRING_CLOUD_CONFIG_ENABLED=false
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       - consul
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   api-redis:
     image: redis:6-alpine
     container_name: api-redis
     ports:
       - "6380:6379"
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   monitoring-service:
     build:
@@ -216,7 +217,7 @@ services:
       - "9080:8080"
     depends_on:
       - consul
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   vault:
     image: vault:1.13.3
@@ -229,19 +230,19 @@ services:
       - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
     command: vault server -dev
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   prometheus:
     image: prom/prometheus:v2.53.0
     container_name: prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--config.file=/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -255,7 +256,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
-    networks: [ workfitai-net ]
+    networks: [workfitai-net]
 
 volumes:
   user-postgres-data:

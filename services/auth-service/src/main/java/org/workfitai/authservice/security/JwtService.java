@@ -1,6 +1,7 @@
 package org.workfitai.authservice.security;
 
-import java.security.Key;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -8,34 +9,34 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.workfitai.authservice.config.RsaKeyProperties;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.service.iRoleService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Generates and validates JWTs, now embedding both roles and permissions.
+ * Generates and validates JWTs using RS256 algorithm with RSA public/private
+ * key pair.
+ * This provides better security than HS256 as it uses asymmetric cryptography.
  */
 @Data
 @Component
+@EnableConfigurationProperties(RsaKeyProperties.class)
 @RequiredArgsConstructor
 public class JwtService {
 
     private final iRoleService roleService;
-
-    @Value("${auth.jwt.secret}")
-    private String secret;
+    private final RsaKeyProperties rsaKeys;
 
     @Value("${auth.jwt.access-exp-ms}")
     private long accessExpMs;
@@ -43,15 +44,20 @@ public class JwtService {
     @Value("${auth.jwt.refresh-exp-ms}")
     private long refreshExpMs;
 
-    private Key key;
+    private RSAPrivateKey privateKey;
+    private RSAPublicKey publicKey;
 
     @PostConstruct
     public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        if (keyBytes.length < 32) {
-            throw new IllegalStateException(Messages.Error.INVALID_SECRET_PROVIDED);
+        this.privateKey = rsaKeys.privateKey();
+        this.publicKey = rsaKeys.publicKey();
+
+        if (this.privateKey == null) {
+            throw new IllegalStateException("RSA private key must be configured for JWT signing");
         }
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        if (this.publicKey == null) {
+            throw new IllegalStateException("RSA public key must be configured for JWT verification");
+        }
     }
 
     /**
@@ -71,20 +77,23 @@ public class JwtService {
                 .collect(Collectors.toSet());
 
         return Jwts.builder()
-                .setSubject(user.getUsername())
-                .setIssuer(Messages.JWT.ISSUER)
+                .subject(user.getUsername())
+                .issuer(Messages.JWT.ISSUER)
                 .claim(Messages.JWT.ROLES_CLAIM, roles)
                 .claim(Messages.JWT.PERMISSIONS_CLAIM, perms)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessExpMs))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + accessExpMs))
+                .signWith(privateKey) // RS256 is automatically selected for RSA keys
                 .compact();
     }
 
     /** Validate signature & expiry */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser()
+                    .verifyWith(publicKey)
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (JwtException ex) {
             return false;
@@ -98,11 +107,11 @@ public class JwtService {
 
     /** Expose raw claims so the filter can read roles+perms */
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith(publicKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /** Create a new random JTI */
@@ -113,12 +122,12 @@ public class JwtService {
     /** Issue a refresh token carrying a specific jti */
     public String generateRefreshTokenWithJti(UserDetails user, String jti) {
         return Jwts.builder()
-                .setSubject(user.getUsername())
-                .setIssuer(Messages.JWT.ISSUER)
-                .setId(jti) // <-- make jti part of the token
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpMs))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .subject(user.getUsername())
+                .issuer(Messages.JWT.ISSUER)
+                .id(jti) // <-- make jti part of the token
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpMs))
+                .signWith(privateKey) // RS256 is automatically selected for RSA keys
                 .compact();
     }
 
