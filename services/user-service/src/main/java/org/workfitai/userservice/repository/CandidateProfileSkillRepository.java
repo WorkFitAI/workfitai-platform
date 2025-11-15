@@ -9,11 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface CandidateProfileSkillRepository extends JpaRepository<CandidateProfileSkillEntity, UUID> {
-
-  List<CandidateProfileSkillEntity> findByCandidate_UserId(UUID candidateId);
-
   boolean existsByCandidate_UserIdAndSkillId(UUID candidateId, UUID skillId);
 
-  void deleteByCandidate_UserIdAndSkillId(UUID candidateId, UUID skillId);
-
+  List<CandidateProfileSkillEntity> findAllByCandidate_UserId(UUID candidateId);
 }
