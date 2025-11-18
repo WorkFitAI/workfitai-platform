@@ -1,6 +1,10 @@
 package org.workfitai.userservice.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.workfitai.userservice.enums.EUserRole;
 import org.workfitai.userservice.enums.EUserStatus;
 
@@ -11,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class UserBaseResponse {
   private UUID userId;
   private String fullName;

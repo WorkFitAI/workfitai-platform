@@ -1,15 +1,12 @@
 package org.workfitai.userservice.mapper;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import org.workfitai.userservice.dto.request.HRCreateRequest;
 import org.workfitai.userservice.dto.request.HRUpdateRequest;
 import org.workfitai.userservice.dto.response.HRResponse;
 import org.workfitai.userservice.model.HREntity;
 
-@Mapper(componentModel = "spring")
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = "spring")
 public interface HRMapper
     extends BaseMapper<HRCreateRequest, HREntity, HRResponse> {
 

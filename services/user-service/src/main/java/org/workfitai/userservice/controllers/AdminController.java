@@ -15,7 +15,7 @@ import org.workfitai.userservice.services.AdminService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/admins")
+@RequestMapping("/admins")
 @RequiredArgsConstructor
 public class AdminController {
 

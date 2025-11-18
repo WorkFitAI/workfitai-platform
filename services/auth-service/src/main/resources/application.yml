@@ -5,6 +5,26 @@ server:
 spring:
   application:
     name: auth
+  config:
+    import: "optional:consul:"
+  cloud:
+    consul:
+      enabled: true
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}-${server.port}
+        deregister: true
+        health-check-critical-timeout: 1m
+      config:
+        enabled: false
+        import-check:
+          enabled: false
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -14,8 +34,19 @@ spring:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb://auth-mongo:27017/auth-db}
     redis:
-      host: ${SPRING_REDIS_HOST:auth-redis}
-      port: ${SPRING_REDIS_PORT:6379}
+      host: ${REDIS_AUTH_HOST:auth-redis}
+      port: ${REDIS_AUTH_PORT:6379}
+      
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      
+app:
+  kafka:
+    topics:
+      user-registration: user-registration
 
   cloud:
     consul:

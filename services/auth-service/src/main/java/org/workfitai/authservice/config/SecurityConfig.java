@@ -37,7 +37,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/register", "/login", "/refresh",
                                 "/actuator/**", "/error",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                            "/api/v1/auth/**",
+                            "/api/v1/keys/public",
+                            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
                         .requestMatchers("/logout").authenticated() // Require authentication for logout
                         .anyRequest().authenticated())

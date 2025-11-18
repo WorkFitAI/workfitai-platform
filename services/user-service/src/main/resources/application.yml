@@ -1,15 +1,11 @@
 server:
-  port: 8082
+  port: ${SERVER_PORT:8080}
 
-jwt:
-  secret: ${AUTH_JWT_SECRET}
+auth:
+  jwt:
+    issuer: auth-service
 
 spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          secret-key: ${AUTH_JWT_SECRET}
   config:
     import: "optional:classpath:/"
   main:
@@ -35,9 +31,9 @@ spring:
         deregister: true
         health-check-critical-timeout: 1m
   datasource:
-    url: jdbc:postgresql://${USER_HOST}:${USER_DB_PORT}/${USER_DB_NAME}
-    username: ${USER_DB_USER}
-    password: ${USER_DB_PASS}
+    url: jdbc:postgresql://${USER_HOST:localhost}:${USER_DB_PORT:5432}/${USER_DB_NAME:user_db}
+    username: ${USER_DB_USER:postgres}
+    password: ${USER_DB_PASS:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -46,6 +42,33 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: user-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: "org.workfitai.userservice.dto.kafka.UserRegistrationEvent"
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    retry:
+      topic: 
+        attempts: 3
+        delay: 1000
+        max-delay: 10000
+        multiplier: 2.0
+    dlt:
+      enabled: true
+      suffix: "-dlt"
+      
+app:
+  kafka:
+    topics:
+      user-registration: user-registration
+      user-registration-dlt: user-registration-dlt
 
 management:
   endpoints:
@@ -59,3 +82,7 @@ management:
 logging:
   level:
     org.springframework.cloud.config: DEBUG
+
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}

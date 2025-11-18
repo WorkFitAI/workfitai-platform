@@ -22,7 +22,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public abstract class UserEntity extends AbstractAuditingEntity {
+public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Id
   @GeneratedValue
   @UuidGenerator
@@ -30,8 +30,7 @@ public abstract class UserEntity extends AbstractAuditingEntity {
   private UUID userId;
 
   @NotBlank(message = "Full name is required")
-  @Pattern(regexp = "^[a-zA-Z\\s]{3,255}$",
-      message = "Full name must be at least 3 characters long and can contain letters and spaces only")
+  @Pattern(regexp = "^[a-zA-Z\\s]{3,255}$", message = "Full name must be at least 3 characters long and can contain letters and spaces only")
   @Column(name = "full_name", nullable = false)
   private String fullName;
 
@@ -42,8 +41,7 @@ public abstract class UserEntity extends AbstractAuditingEntity {
   private String email;
 
   @NotBlank(message = "Phone number is required")
-  @Pattern(regexp = "^(\\+84)?\\d{10}$",
-      message = "Phone number must be 10 digits long and can optionally start with a '+84' country code")
+  @Pattern(regexp = "^(\\+84)?\\d{10}$", message = "Phone number must be 10 digits long and can optionally start with a '+84' country code")
   @Column(name = "phone_number", unique = true, nullable = false)
   private String phoneNumber;
 
@@ -73,4 +71,3 @@ public abstract class UserEntity extends AbstractAuditingEntity {
     return this.userId;
   }
 }
-

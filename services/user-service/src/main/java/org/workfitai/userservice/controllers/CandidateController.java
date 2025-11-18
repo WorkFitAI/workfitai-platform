@@ -15,7 +15,7 @@ import org.workfitai.userservice.services.CandidateService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/candidates")
+@RequestMapping("/candidates")
 @RequiredArgsConstructor
 public class CandidateController {
 

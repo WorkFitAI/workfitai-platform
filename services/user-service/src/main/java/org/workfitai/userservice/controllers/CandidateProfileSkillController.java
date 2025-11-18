@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/candidate-skills")
+@RequestMapping("/candidate-skills")
 @RequiredArgsConstructor
 public class CandidateProfileSkillController {
 
