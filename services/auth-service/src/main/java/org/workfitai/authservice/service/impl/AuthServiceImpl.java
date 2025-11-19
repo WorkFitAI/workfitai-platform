@@ -2,6 +2,7 @@ package org.workfitai.authservice.service.impl;
 
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +22,9 @@ import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.RefreshTokenService;
+import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
+import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,7 @@ public class AuthServiceImpl implements iAuthService {
     private final AuthenticationManager authManager;
     private final JwtService jwt;
     private final RefreshTokenService refreshStore;
+    private final UserRegistrationProducer userRegistrationProducer;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -54,7 +58,24 @@ public class AuthServiceImpl implements iAuthService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        users.save(user);
+        User savedUser = users.save(user);
+
+        // Publish user registration event to Kafka
+        UserRegistrationEvent event = UserRegistrationEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("USER_REGISTERED")
+                .timestamp(Instant.now())
+                .userData(UserRegistrationEvent.UserData.builder()
+                        .userId(savedUser.getId())
+                        .username(savedUser.getUsername())
+                        .email(savedUser.getEmail())
+                        .fullName(req.getFullName())
+                        .phoneNumber(req.getPhoneNumber())
+                        .passwordHash(savedUser.getPassword())
+                        .build())
+                .build();
+
+        userRegistrationProducer.publishUserRegistrationEvent(event);
 
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
@@ -82,7 +103,8 @@ public class AuthServiceImpl implements iAuthService {
 
             // Look up the user id by username
             String userId = users.findByUsername(ud.getUsername())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
+                    .orElseThrow(
+                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
                     .getId();
 
             String access = jwt.generateAccessToken(ud);

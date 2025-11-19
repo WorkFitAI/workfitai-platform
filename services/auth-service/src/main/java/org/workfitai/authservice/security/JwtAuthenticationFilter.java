@@ -27,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // Endpoints that never require a token
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/",                 // health on root (your controller)
+            "/", // health on root (your controller)
             "/register",
             "/login",
             "/refresh",
@@ -35,27 +35,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/error",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
-    );
+            "/swagger-ui.html");
 
     private final JwtService jwtService;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // Skip all preflight requests
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod()))
+            return true;
 
         String path = request.getRequestURI();
         for (String p : PUBLIC_PATHS) {
-            if (PATHS.match(p, path)) return true;
+            if (PATHS.match(p, path))
+                return true;
         }
         return false;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req,
-                                    HttpServletResponse res,
-                                    FilterChain chain)
+            HttpServletResponse res,
+            FilterChain chain)
             throws ServletException, IOException {
 
         System.out.println("Filtering request: " + req.getRequestURI());
@@ -63,6 +64,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = req.getHeader("Authorization");
         if (StringUtils.hasText(header)) {
             String token = header;
+
+            // Extract JWT from "Bearer <jwt>" format
+            if (header.toLowerCase().startsWith("bearer ")) {
+                token = header.substring(7); // Remove "Bearer " prefix
+            }
+
+            System.out.println("Extracted token: " + token.substring(0, Math.min(20, token.length())) + "...");
+
             if (jwtService.validateToken(token)) {
                 Claims claims = jwtService.getClaims(token);
                 String username = claims.getSubject();

@@ -1,0 +1,59 @@
+package org.workfitai.userservice.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serializable;
+import java.time.Instant;
+
+/**
+ * Base abstract class for entities which will hold definitions for created, last modified, created by,
+ * last modified by attributes.
+ */
+@MappedSuperclass
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(value = {"createdBy", "createdDate",
+    "lastModifiedBy", "lastModifiedDate", "isDeleted"}, allowGetters = true)
+public abstract class AbstractAuditingEntity<T> implements Serializable {
+
+  @CreatedBy
+  @Column(name = "created_by", nullable = false, length = 50, updatable = false)
+  private String createdBy;
+  @CreatedDate
+  @Column(name = "created_date", updatable = false)
+  private Instant createdDate;
+  @LastModifiedBy
+  @Column(name = "last_modified_by", length = 50)
+  private String lastModifiedBy;
+  @LastModifiedDate
+  @Column(name = "last_modified_date")
+  private Instant lastModifiedDate;
+  @Column(name = "is_deleted", nullable = false)
+  private boolean isDeleted = false;
+
+  public abstract T getId();
+
+  @PrePersist
+  public void prePersist() {
+    this.lastModifiedBy = null;
+    this.lastModifiedDate = null;
+  }
+}

@@ -4,6 +4,7 @@ package org.workfitai.apigateway.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.workfitai.apigateway.service.IOpaqueTokenService;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RedisOpaqueTokenService implements IOpaqueTokenService {
 
   private final ReactiveStringRedisTemplate redis;
@@ -27,7 +29,12 @@ public class RedisOpaqueTokenService implements IOpaqueTokenService {
     String opaque = UUID.randomUUID().toString().replace("-", "");
     Duration ttl = ttlFromJwt(jwt).orElse(Duration.ofMinutes(15));
     String key = key(kind, opaque);
-    return redis.opsForValue().set(key, jwt, ttl).thenReturn(opaque);
+
+    return redis.opsForValue()
+        .set(key, jwt, ttl)
+        .doOnSuccess(result -> log.info("[RedisOpaque] stored key={} (ttl={}m)", key, ttl.toMinutes()))
+        .doOnError(err -> log.error("[RedisOpaque] failed to store {} -> {}", key, err.getMessage()))
+        .thenReturn(opaque);
   }
 
   @Override

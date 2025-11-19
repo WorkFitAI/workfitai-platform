@@ -27,17 +27,10 @@ spring:
   data:
     redis:
       host: ${REDIS_GATEWAY_HOST:api-redis}
-      port: ${REDIS_GATEWAY_PORT:6380}
+      port: ${REDIS_GATEWAY_PORT:6379}
   main:
     allow-bean-definition-overriding: true
     web-application-type: reactive
-
-# RSA public key for JWT verification (RS256)
-auth:
-  jwt:
-    issuer: auth-service
-    rsa:
-      public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:keys/public_key.pem}
 
 management:
   endpoint:
@@ -51,11 +44,21 @@ management:
     tags:
       application: ${spring.application.name}
 
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+auth:
+  jwt:
+    issuer: auth-service
+
 logging:
   level:
     root: INFO
-    org.springframework.web: INFO
-    org.springframework.cloud: INFO
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.consul: DEBUG
-    com.workfitai: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+    reactor.netty.http.client.HttpClient: WARN
+    org.workfitai.apigateway.filter.OpaqueToJwtPreFilter: DEBUG
+    org.workfitai.apigateway.service.impl.RedisOpaqueTokenService: DEBUG
