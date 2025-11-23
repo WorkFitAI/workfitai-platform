@@ -238,6 +238,7 @@ services:
       - consul
       - job-postgres
       - kafka
+      - monitoring-service
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
