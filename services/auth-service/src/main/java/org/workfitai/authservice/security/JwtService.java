@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -31,7 +30,6 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @Component
-@EnableConfigurationProperties(RsaKeyProperties.class)
 @RequiredArgsConstructor
 public class JwtService {
 

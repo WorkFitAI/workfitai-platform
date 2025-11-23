@@ -104,11 +104,22 @@ cd workfitai-platform
 git checkout feature/user-service
 ```
 
-### Bước 2: Environment Setup
+### Bước 2: Quick Start (Recommended)
 ```bash
 # Tạo network (nếu chưa có)
 docker network create workfitai-network
 
+# Build và start TẤT CẢ services với một lệnh
+docker-compose --profile full up --build -d
+
+# Hoặc start từng nhóm theo profile:
+docker-compose --profile infra up -d     # Infrastructure only
+docker-compose --profile services up -d  # Services only  
+docker-compose --profile full up -d      # Everything
+```
+
+### Bước 3: Manual Step-by-step Setup (Alternative)
+```bash
 # Build tất cả services
 docker-compose build
 
@@ -117,10 +128,7 @@ docker-compose up -d consul vault prometheus grafana zookeeper kafka kafka-ui
 
 # Chờ 30 giây để infrastructure khởi tạo
 sleep 30
-```
 
-### Bước 3: Start Database Services
-```bash
 # Start databases
 docker-compose up -d auth-mongo cv-mongo application-mongo user-postgres job-postgres
 
@@ -129,10 +137,7 @@ docker-compose up -d auth-redis api-redis cv-redis
 
 # Chờ databases ready
 sleep 20
-```
 
-### Bước 4: Start Application Services
-```bash
 # Start monitoring service TRƯỚC (quan trọng cho Vault initialization)
 docker-compose up -d monitoring-service
 
@@ -143,12 +148,12 @@ docker-compose logs monitoring-service | grep "Vault secrets initialization comp
 docker-compose up -d auth-service user-service cv-service job-service application-service api-gateway
 ```
 
-### Bước 5: Verification
+### Bước 4: Verification
 ```bash
 # Check tất cả services
 docker-compose ps
 
-# Verify health endpoints
+# Quick health check all services
 curl http://localhost:9085/actuator/health  # API Gateway
 curl http://localhost:9080/actuator/health  # Auth Service  
 curl http://localhost:9081/actuator/health  # User Service
@@ -158,7 +163,61 @@ curl http://localhost:9084/actuator/health  # Application Service
 curl http://localhost:9086/actuator/health  # Monitoring Service
 ```
 
+## ⚡ Quick Commands
+
+### Essential Docker Commands
+```bash
+# Start everything with one command
+docker-compose --profile full up --build -d
+
+# Stop everything  
+docker-compose --profile full down
+
+# Restart all services
+docker-compose --profile full restart
+
+# View all logs
+docker-compose --profile full logs -f
+
+# Rebuild and restart specific service
+docker-compose build <service-name>
+docker-compose up -d <service-name>
+
+# Check service status
+docker-compose ps
+```
+
 ## 🔐 Vault Management
+
+### 🎯 Tóm tắt vai trò Vault
+**Vault = Thay thế hoàn toàn environment variables bằng centralized secret management**
+
+#### **Trước Vault (UNSAFE):**
+```bash
+# Secrets exposed trong docker-compose.yml
+environment:
+  - SPRING_DATASOURCE_PASSWORD=secret123
+  - JWT_SECRET=my-secret-key
+  - REDIS_PASSWORD=redis123
+```
+
+#### **Sau Vault (SAFE):**
+```bash
+# No secrets in docker-compose.yml
+environment:
+  - SPRING_PROFILES_ACTIVE=docker
+# Tất cả secrets tự động fetch từ Vault
+```
+
+#### **3 vai trở chính:**
+- 🗄️ **Secret Storage**: Database passwords, JWT keys, API credentials
+- 🔄 **Config Injection**: Services auto-fetch configuration khi startup  
+- 🛡️ **Security**: No plaintext secrets, audit trail, centralized rotation
+
+#### **Simple Flow:**
+```
+Service Start → vault://secret/{service} → All Configs Loaded → DB Connected
+```
 
 ### Truy cập Vault UI
 ```bash
