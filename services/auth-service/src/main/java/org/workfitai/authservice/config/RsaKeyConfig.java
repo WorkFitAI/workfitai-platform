@@ -28,55 +28,55 @@ public class RsaKeyConfig {
         try {
             // Ensure keys exist
             KeyGenerator.generateKeysIfNotExist();
-            
+
             // Load keys
             RSAPublicKey publicKey = loadPublicKey();
             RSAPrivateKey privateKey = loadPrivateKey();
-            
+
             return new RsaKeyProperties(publicKey, privateKey);
-            
+
         } catch (Exception e) {
             logger.error("Failed to load RSA keys", e);
             throw new RuntimeException("Could not load RSA keys", e);
         }
     }
-    
+
     private RSAPublicKey loadPublicKey() throws Exception {
         Path keyPath = getKeyPath("public_key.pem");
         String content = Files.readString(keyPath);
-        
+
         // Remove PEM headers and whitespace
         String publicKeyPEM = content
                 .replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
                 .replaceAll("\\s", "");
-        
+
         byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
-        
+
         logger.info("✅ Loaded RSA public key from: {}", keyPath);
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
-    
+
     private RSAPrivateKey loadPrivateKey() throws Exception {
         Path keyPath = getKeyPath("private_key_pkcs8.pem");
         String content = Files.readString(keyPath);
-        
-        // Remove PEM headers and whitespace  
+
+        // Remove PEM headers and whitespace
         String privateKeyPEM = content
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s", "");
-        
+
         byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-        
+
         logger.info("✅ Loaded RSA private key from: {}", keyPath);
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
     }
-    
+
     private Path getKeyPath(String filename) {
         // Check if running in Docker container
         String javaClassPath = System.getProperty("java.class.path");

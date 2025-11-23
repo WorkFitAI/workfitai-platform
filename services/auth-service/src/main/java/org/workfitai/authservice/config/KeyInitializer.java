@@ -15,7 +15,7 @@ import jakarta.annotation.PostConstruct;
 public class KeyInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyInitializer.class);
-    
+
     // Static block ensures keys are generated VERY early in application lifecycle
     static {
         try {
