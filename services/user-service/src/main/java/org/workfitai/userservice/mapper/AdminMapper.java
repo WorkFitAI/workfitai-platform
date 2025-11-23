@@ -16,6 +16,10 @@ public interface AdminMapper
   @Override
   AdminResponse toResponse(AdminEntity entity);
 
+  @Override
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateEntity(AdminCreateRequest dto, @MappingTarget AdminEntity entity);
+
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   void updateEntityFromUpdateRequest(AdminUpdateRequest dto, @MappingTarget AdminEntity entity);
 }

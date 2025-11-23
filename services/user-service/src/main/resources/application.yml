@@ -1,88 +1,120 @@
-server:
-  port: ${SERVER_PORT:8080}
-
-auth:
-  jwt:
-    issuer: auth-service
-
+# =============================================================================
+# user-service Configuration (Unified Approach)
+# =============================================================================
 spring:
-  config:
-    import: "optional:classpath:/"
-  main:
-    allow-bean-definition-overriding: true
-  jackson:
-    time-zone: Asia/Ho_Chi_Minh
   application:
-    name: user
+    name: user-service
+  profiles:
+    active: docker  # Default profile cho containers
+  config:
+    import: optional:vault://secret/user-service
   cloud:
-    config:
-      enabled: false
-    consul:
-      host: ${CONSUL_HOST:consul}
-      port: ${CONSUL_PORT:8500}
-      config:
-        enabled: false
-      discovery:
-        register: true
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 10s
-        instance-id: ${spring.application.name}-${server.port}
-        deregister: true
-        health-check-critical-timeout: 1m
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
   datasource:
-    url: jdbc:postgresql://${USER_HOST:localhost}:${USER_DB_PORT:5432}/${USER_DB_NAME:user_db}
-    username: ${USER_DB_USER:postgres}
-    password: ${USER_DB_PASS:password}
+    url: ${datasource.url:jdbc:postgresql://user-postgres:5432/user_db}
+    username: ${datasource.username:user}
+    password: ${datasource.password:pass}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
-        
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${redis.host:auth-redis}
+      port: ${redis.port:6379}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka:29092}
     consumer:
       group-id: user-service
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.value.default.type: "org.workfitai.userservice.dto.kafka.UserRegistrationEvent"
-      enable-auto-commit: false
       auto-offset-reset: earliest
-    retry:
-      topic: 
-        attempts: 3
-        delay: 1000
-        max-delay: 10000
-        multiplier: 2.0
-    dlt:
-      enabled: true
-      suffix: "-dlt"
-      
-app:
-  kafka:
-    topics:
-      user-registration: user-registration
-      user-registration-dlt: user-registration-dlt
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+server:
+  port: ${SERVER_PORT:8080}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
-  metrics:
-    tags:
-      application: ${spring.application.name}
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
 
-logging:
-  level:
-    org.springframework.cloud.config: DEBUG
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: user
+        health-check-path: /actuator/health
 
+# Service URLs for Docker environment
 service:
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: ${VAULT_URL_LOCAL:http://localhost:8200}
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+  datasource:
+    url: ${USER_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5432/user_db}
+    username: ${USER_DB_USER:user}
+    password: ${USER_DB_PASS:pass}
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+
+# Service URLs for Local environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+
+server:
+  port: ${SERVER_PORT:9005}
+
+logging:
+  level:
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+

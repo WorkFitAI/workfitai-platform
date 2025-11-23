@@ -8,6 +8,7 @@ services:
       - "8500:8500" # HTTP UI/API
       - "8600:8600/udp" # DNS
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Zookeeper (for Kafka) ###
   zookeeper:
@@ -23,6 +24,7 @@ services:
       timeout: 5s
       retries: 3
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Kafka ###
   kafka:
@@ -52,6 +54,7 @@ services:
       retries: 5
       start_period: 30s
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Kafka UI for Monitoring ###
   kafka-ui:
@@ -68,6 +71,7 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       DYNAMIC_CONFIG_ENABLED: "true"
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Databases & infra ###
   auth-mongo:
@@ -78,32 +82,50 @@ services:
     ports:
       - "27017:27017" # mở cổng ra máy Mac
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   auth-redis:
     image: redis:6-alpine
     container_name: auth-redis
+    ports:
+      - "6379:6379"
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
+  cv-redis:
+    image: redis:6-alpine
+    container_name: cv-redis
+    ports:
+      - "6381:6379"
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   cv-mongo:
     image: mongo:6.0
     container_name: cv-mongo
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${CV_INIT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${CV_INIT_PASS}
-      MONGO_INITDB_DATABASE: cv-db
+      MONGO_INITDB_ROOT_USERNAME: ${CV_INIT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${CV_INIT_PASS:-root}
+      MONGO_INITDB_DATABASE: ${CV_DB_NAME:-cv-db}
     volumes:
       - ./initialize/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - cv-mongo-data:/data/db
     ports:
       - "27018:27017"
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   application-mongo:
     image: mongo:6.0
     container_name: application-mongo
     environment:
       MONGO_INITDB_DATABASE: app-db
+    ports:
+      - "27019:27017"
+    volumes:
+      - application-mongo-data:/data/db
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   user-postgres:
     image: postgres:15
@@ -119,6 +141,7 @@ services:
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   job-postgres:
     image: postgres:15
@@ -128,12 +151,13 @@ services:
     env_file:
       - .env.local
     environment:
-      POSTGRES_DB: ${JOB_DB_NAME}
-      POSTGRES_USER: ${JOB_DB_USER}
-      POSTGRES_PASSWORD: ${JOB_DB_PASS}
+      POSTGRES_DB: ${JOB_DB_NAME:-job_db}
+      POSTGRES_USER: ${JOB_DB_USER:-user}
+      POSTGRES_PASSWORD: ${JOB_DB_PASS:-job@123}
     volumes:
       - job-postgres-data:/var/lib/postgresql/data
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Spring-Boot Services ###
   auth-service:
@@ -142,8 +166,9 @@ services:
     env_file:
       - .env.local
     ports:
-      - "9081:9005"
+      - "9080:9005"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=auth
       - SERVER_PORT=9005
       - CONSUL_HOST=consul
@@ -170,6 +195,7 @@ services:
       retries: 5
       start_period: 10s
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   user-service:
     build:
@@ -177,8 +203,10 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8082:9005"
+      - "9081:9005"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     depends_on:
       consul:
@@ -192,6 +220,7 @@ services:
       kafka:
         condition: service_healthy
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   job-service:
     build:
@@ -199,15 +228,18 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8083:8080"
+      - "9082:9005"
       - "5003:5005"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       - consul
       - job-postgres
       - kafka
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   cv-service:
     build:
@@ -215,15 +247,21 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8084:8080"
+      - "9083:9005"
       - "5004:5005"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - SPRING_DATA_MONGODB_URI=mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
+      - SPRING_DATA_REDIS_HOST=cv-redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       - consul
       - cv-mongo
+      - cv-redis
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   application-service:
     build:
@@ -231,11 +269,15 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8085:8080"
+      - "9084:9005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
     depends_on:
       - consul
       - application-mongo
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   api-gateway:
     build:
@@ -243,8 +285,9 @@ services:
     env_file:
       - .env.local
     ports:
-      - "8088:9005"
+      - "9085:9005"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - SPRING_CLOUD_CONFIG_ENABLED=false
@@ -255,6 +298,7 @@ services:
       auth-service:
         condition: service_healthy
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   api-redis:
     image: redis:6-alpine
@@ -262,6 +306,7 @@ services:
     ports:
       - "6380:6379"
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   monitoring-service:
     build:
@@ -269,10 +314,31 @@ services:
     env_file:
       - .env.local
     ports:
-      - "9080:8080"
+      - "9086:9005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - VAULT_HOST=vault
+      - VAULT_PORT=8200
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - REDIS_HOST=api-redis
+      - REDIS_PORT=6379
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     depends_on:
-      - consul
+      consul:
+        condition: service_started
+      vault:
+        condition: service_started
+      api-redis:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9005/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   vault:
     image: vault:1.13.3
@@ -282,10 +348,12 @@ services:
     cap_add:
       - IPC_LOCK
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN:-dev-token}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     command: vault server -dev
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   prometheus:
     image: prom/prometheus:v2.53.0
@@ -298,6 +366,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -312,11 +381,13 @@ services:
     depends_on:
       - prometheus
     networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
 volumes:
   user-postgres-data:
   job-postgres-data:
   cv-mongo-data:
+  application-mongo-data:
   prometheus-data:
 
 

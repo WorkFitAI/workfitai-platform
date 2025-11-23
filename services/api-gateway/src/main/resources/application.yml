@@ -1,64 +1,92 @@
-server:
-  port: ${API_GATEWAY_PORT_DOCKER:8088}
-
+# =============================================================================
+# api-gateway Configuration (Unified Approach)
+# =============================================================================
 spring:
   application:
     name: api-gateway
+  profiles:
+    active: docker  # Default profile cho containers
+  config:
+    import: optional:vault://secret/api-gateway
   cloud:
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
     gateway:
-      # ✅ new key path for Discovery Locator on Spring Cloud Gateway (server-webflux)
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-    consul:
-      host: ${CONSUL_HOST:consul}
-      port: ${CONSUL_PORT:8500}
       discovery:
-        register: true
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 10s
-        instance-id: ${spring.application.name}-${server.port}
-        deregister: true
-        health-check-critical-timeout: 1m
+        locator:
+          enabled: true
+          lower-case-service-id: true
   data:
     redis:
-      host: ${REDIS_GATEWAY_HOST:api-redis}
-      port: ${REDIS_GATEWAY_PORT:6379}
-  main:
-    allow-bean-definition-overriding: true
-    web-application-type: reactive
+      host: ${redis.host:api-redis}
+      port: ${redis.port:6379}
+
+server:
+  port: ${SERVER_PORT:9005}
 
 management:
-  endpoint:
-    gateway:
-      access: read_only
   endpoints:
     web:
       exposure:
-        include: gateway,health,info,metrics,prometheus
-  metrics:
-    tags:
-      application: ${spring.application.name}
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
 
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: gateway
+        health-check-path: /actuator/health
+
+# Service URLs for Docker environment
 service:
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
 
-auth:
-  jwt:
-    issuer: auth-service
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+
+# Service URLs for Local environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
 
 logging:
   level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.cloud.consul: DEBUG
-    org.springframework.cloud.loadbalancer: DEBUG
-    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
-    reactor.netty.http.client.HttpClient: WARN
-    org.workfitai.apigateway.filter.OpaqueToJwtPreFilter: DEBUG
-    org.workfitai.apigateway.service.impl.RedisOpaqueTokenService: DEBUG
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+

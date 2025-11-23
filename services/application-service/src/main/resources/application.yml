@@ -1,17 +1,14 @@
 # =============================================================================
-# auth-service Configuration (Unified Approach)
+# application-service Configuration (Unified Approach)
 # =============================================================================
 spring:
   application:
-    name: auth-service
+    name: application-service
   profiles:
     active: docker  # Default profile cho containers
   config:
-    import: optional:vault://secret/auth-service
+    import: optional:vault://secret/application-service,optional:consul
   cloud:
-    consul:
-      config:
-        enabled: false
     vault:
       uri: ${VAULT_URI:http://vault:8200}
       token: ${VAULT_TOKEN:dev-token}
@@ -46,23 +43,9 @@ spring:
       discovery:
         enabled: true
         register: true
-        service-name: auth
         health-check-path: /actuator/health
-  data:
-    redis:
-      host: ${redis.host:auth-redis}
-      port: ${redis.port:6379}
-    mongodb:
-      uri: ${mongodb.uri:mongodb://auth-mongo:27017/auth-db}
 
-# JWT Configuration
-auth:
-  jwt:
-    secret: ${jwt.secret:CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX}
-    access:
-      expiration: ${jwt.access.expiration:900000}
-    refresh:
-      expiration: ${jwt.refresh.expiration:604800000}
+# Add service-specific docker configs here
 
 ---
 # =============================================================================

@@ -9,5 +9,4 @@ class MonitoringServiceApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
