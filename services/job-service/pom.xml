@@ -90,6 +90,11 @@
             <artifactId>lombok</artifactId>
             <version>1.18.38</version>
         </dependency>
+        <!-- Spring Cloud Vault for configuration management -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

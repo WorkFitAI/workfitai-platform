@@ -18,7 +18,7 @@ public class UserRegistrationConsumer {
 
     private final CandidateService candidateService;
 
-    @KafkaListener(topics = "${app.kafka.topics.user-registration:user-registration}", groupId = "${spring.kafka.consumer.group-id:user-service-group}", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "${app.kafka.topics.user-registration:user-registration}", groupId = "${spring.kafka.consumer.group-id:user-service-group}", containerFactory = "retryableKafkaListenerContainerFactory")
     public void handleUserRegistration(
             @Payload UserRegistrationEvent event,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,

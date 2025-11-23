@@ -1,13 +1,13 @@
 # =============================================================================
-# job-service Configuration (Unified Approach)
+# application-service Configuration (Unified Approach)
 # =============================================================================
 spring:
   application:
-    name: job-service
+    name: application-service
   profiles:
     active: docker  # Default profile cho containers
   config:
-    import: optional:vault://secret/job,optional:consul
+    import: optional:vault://secret/application-service,optional:consul
   cloud:
     vault:
       uri: ${VAULT_URI:http://vault:8200}
@@ -15,26 +15,6 @@ spring:
       kv:
         enabled: true
         backend: secret
-    consul:
-      config:
-        enabled: false
-      discovery:
-        service-name: job
-        instance-id: job:${random.int}
-        health-check-path: /actuator/health
-        prefer-ip-address: true
-  datasource:
-    url: ${datasource.url:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${datasource.username:user}
-    password: ${datasource.password:pass}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: ${SERVER_PORT:9005}
@@ -60,27 +40,12 @@ spring:
     consul:
       host: consul
       port: 8500
-      config:
-        enabled: false
       discovery:
         enabled: true
         register: true
-        service-name: job
-        instance-id: job:${random.int}
         health-check-path: /actuator/health
-        prefer-ip-address: true
-  datasource:
-    url: ${datasource.url:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${datasource.username:user}
-    password: ${datasource.password:pass}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Add service-specific docker configs here
 
 ---
 # =============================================================================

@@ -23,39 +23,42 @@ import java.security.interfaces.RSAPublicKey;
 @Slf4j
 public class SecurityConfig {
 
-    private final PublicKeyProvider publicKeyProvider;
+        private final PublicKeyProvider publicKeyProvider;
 
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        return http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .logout(ServerHttpSecurity.LogoutSpec::disable)
-                .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(
-                                "/actuator/**",
-                                "/auth/login",
-                                "/auth/register",
-                                "/auth/refresh",
-                                "/auth/logout",
-                                "/cv/**",
-                                "/debug/**", // Debug endpoints
-                                "/user/actuator/**" // User service health checks
-                        ).permitAll()
-                        .anyExchange().authenticated())
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint((swe, err) -> Mono
-                                .fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED)))
-                        .accessDeniedHandler((swe, err) -> Mono
-                                .fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN))))
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtDecoder(jwtDecoder())))
-                .build();
-    }
+        @Bean
+        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+                return http
+                                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                                .logout(ServerHttpSecurity.LogoutSpec::disable)
+                                .authorizeExchange(exchanges -> exchanges
+                                                .pathMatchers(
+                                                                "/actuator/**",
+                                                                "/auth/login",
+                                                                "/auth/register",
+                                                                "/auth/refresh",
+                                                                "/auth/logout",
+                                                                "/cv/**",
+                                                                "/monitoring-service/**",
+                                                                "/debug/**", // Debug endpoints
+                                                                "/user/actuator/**" // User service health checks
+                                                ).permitAll()
+                                                .anyExchange().authenticated())
+                                .exceptionHandling(e -> e
+                                                .authenticationEntryPoint((swe, err) -> Mono
+                                                                .fromRunnable(() -> swe.getResponse().setStatusCode(
+                                                                                HttpStatus.UNAUTHORIZED)))
+                                                .accessDeniedHandler((swe, err) -> Mono
+                                                                .fromRunnable(() -> swe.getResponse()
+                                                                                .setStatusCode(HttpStatus.FORBIDDEN))))
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(jwt -> jwt.jwtDecoder(jwtDecoder())))
+                                .build();
+        }
 
-    @Bean
-    public ReactiveJwtDecoder jwtDecoder() {
-        RSAPublicKey key = publicKeyProvider.getPublicKey();
-        log.info("🔐 Building JWT decoder using loaded public key...");
-        return NimbusReactiveJwtDecoder.withPublicKey(key).build();
-    }
+        @Bean
+        public ReactiveJwtDecoder jwtDecoder() {
+                RSAPublicKey key = publicKeyProvider.getPublicKey();
+                log.info("🔐 Building JWT decoder using loaded public key...");
+                return NimbusReactiveJwtDecoder.withPublicKey(key).build();
+        }
 }
