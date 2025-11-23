@@ -235,10 +235,14 @@ services:
       - SERVER_PORT=9005
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
-      - consul
-      - job-postgres
-      - kafka
-      - monitoring-service
+      consul:
+        condition: service_started
+      job-postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
