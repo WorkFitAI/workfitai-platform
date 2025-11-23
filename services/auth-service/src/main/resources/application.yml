@@ -54,6 +54,15 @@ spring:
       port: ${redis.port:6379}
     mongodb:
       uri: ${mongodb.uri:mongodb://auth-mongo:27017/auth-db}
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 
 # JWT Configuration
 auth:
@@ -83,6 +92,15 @@ spring:
         enabled: true
         register: true
         health-check-path: /actuator/health
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 
 # Add service-specific local configs here
 
