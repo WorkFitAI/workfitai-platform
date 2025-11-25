@@ -24,20 +24,20 @@ import static org.workfitai.jobservice.util.MessageConstant.*;
 @RestController
 @RequestMapping()
 @Transactional
-public class JobApi {
+public class JobController {
     private final iJobService jobService;
 
-    public JobApi(iJobService jobService) {
+    public JobController(iJobService jobService) {
         this.jobService = jobService;
     }
 
-    @PostMapping()
+    @PostMapping("/hr/jobs")
     @ApiMessage(JOB_CREATED_SUCCESSFULLY)
     public RestResponse<ResCreateJobDTO> create(@Valid @RequestBody ReqJobDTO jobDTO) {
         return RestResponse.created(jobService.createJob(jobDTO));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/public/jobs/{id}")
     @ApiMessage(JOB_DETAIL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResJobDTO> getJob(@PathVariable("id") UUID id) throws InvalidDataException {
         ResJobDTO currentJob = this.jobService.fetchJobById(id);
@@ -47,7 +47,7 @@ public class JobApi {
         return RestResponse.success(currentJob);
     }
 
-    @GetMapping()
+    @GetMapping("/public/jobs")
     @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO> getAllJob(
             @Filter Specification<Job> spec,
@@ -58,7 +58,7 @@ public class JobApi {
     }
 
 
-    @PutMapping()
+    @PutMapping("/hr/jobs")
     @ApiMessage(JOB_UPDATED_SUCCESSFULLY)
     public RestResponse<ResUpdateJobDTO> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO) throws InvalidDataException {
         Optional<Job> currentJob = this.jobService.getJobById(jobDTO.getJobId());
@@ -69,7 +69,7 @@ public class JobApi {
         return RestResponse.success(this.jobService.updateJob(jobDTO, currentJob.get()));
     }
 
-    @PutMapping("/{id}/{status}")
+    @PutMapping("/hr/jobs/{id}/{status}")
     @ApiMessage(JOB_STATUS_UPDATED_SUCCESSFULLY)
     public RestResponse<ResModifyStatus> updateStatus(
             @PathVariable("id") UUID id, @PathVariable("status") JobStatus status) throws InvalidDataException {
@@ -81,7 +81,7 @@ public class JobApi {
         return RestResponse.success(this.jobService.updateStatus(currentJob.get(), status));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/hr/jobs/{id}")
     @ApiMessage(JOB_DELETED_SUCCESSFULLY)
     public RestResponse<Void> delete(@PathVariable("id") UUID id) throws InvalidDataException {
         try {
