@@ -1,10 +1,10 @@
-package org.workfitai.userservice.security;
+package org.workfitai.jobservice.security;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.workfitai.userservice.client.AuthFeignClient;
+import org.workfitai.jobservice.client.AuthFeignClient;
 
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
@@ -24,9 +24,9 @@ public class PublicKeyProvider {
   public void init() {
     try {
       this.cachedKey = fetchPublicKey();
-      log.info("✅ Loaded public key from Auth Service");
+      log.info("Loaded public key from Auth Service");
     } catch (Exception e) {
-      log.warn("⚠️ Failed to load public key on startup, will retry later");
+      log.warn("Failed to load public key on startup, will retry later");
     }
   }
 

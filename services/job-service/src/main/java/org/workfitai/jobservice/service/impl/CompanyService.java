@@ -1,4 +1,78 @@
 package org.workfitai.jobservice.service.impl;
 
-public class CompanyService {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.workfitai.jobservice.model.Company;
+import org.workfitai.jobservice.model.dto.request.ReqCreateCompanyDTO;
+import org.workfitai.jobservice.model.dto.request.ReqUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.ResCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.ResUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.model.mapper.CompanyMapper;
+import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.service.iCompanyService;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CompanyService implements iCompanyService {
+    private final CompanyRepository companyRepository;
+    private final CompanyMapper companyMapper;
+
+    @Override
+    public ResCompanyDTO getById(String id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+        return companyMapper.toResDTO(company);
+    }
+
+    @Override
+    public ResultPaginationDTO fetchAll(Specification<Company> spec, Pageable pageable) {
+        Page<Company> pageCompany = companyRepository.findAll(spec, pageable);
+
+        Page<ResCompanyDTO> pageCompanyDTO = pageCompany.map(companyMapper::toResDTO);
+
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+        mt.setPages(pageCompany.getTotalPages());
+        mt.setTotal(pageCompany.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageCompanyDTO.getContent());
+
+        return rs;
+    }
+
+    @Override
+    public ResCompanyDTO create(ReqCreateCompanyDTO dto) {
+        Company company = companyMapper.toEntity(dto);
+        companyRepository.save(company);
+        return companyMapper.toResDTO(company);
+    }
+
+    @Override
+    public ResUpdateCompanyDTO update(ReqUpdateCompanyDTO dto) {
+        Company company = companyRepository.findById(dto.getCompanyNo())
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        companyMapper.updateEntityFromDTO(dto, company);
+        companyRepository.save(company);
+
+        return companyMapper.toResUpdateDTO(company);
+    }
+
+    @Override
+    public void delete(String id) {
+        if (!companyRepository.existsById(id)) {
+            throw new RuntimeException("Company not found");
+        }
+        companyRepository.deleteById(id);
+    }
 }

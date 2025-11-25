@@ -38,6 +38,7 @@ public class SecurityConfig {
                                                                 "/auth/refresh",
                                                                 "/auth/logout",
                                                                 "/cv/**",
+                                                                "/job/public/**",
                                                                 "/monitoring-service/**",
                                                                 "/debug/**", // Debug endpoints
                                                                 "/user/actuator/**" // User service health checks

@@ -1,4 +1,4 @@
-package org.workfitai.userservice.client;
+package org.workfitai.jobservice.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

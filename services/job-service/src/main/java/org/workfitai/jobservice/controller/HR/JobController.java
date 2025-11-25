@@ -1,10 +1,7 @@
-package org.workfitai.jobservice.controller;
+package org.workfitai.jobservice.controller.HR;
 
-import com.turkraft.springfilter.boot.Filter;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
@@ -21,8 +18,8 @@ import java.util.UUID;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
 
-@RestController
-@RequestMapping()
+@RestController("hrJobController")
+@RequestMapping("/hr/jobs")
 @Transactional
 public class JobController {
     private final iJobService jobService;
@@ -31,34 +28,13 @@ public class JobController {
         this.jobService = jobService;
     }
 
-    @PostMapping("/hr/jobs")
+    @PostMapping()
     @ApiMessage(JOB_CREATED_SUCCESSFULLY)
     public RestResponse<ResCreateJobDTO> create(@Valid @RequestBody ReqJobDTO jobDTO) {
         return RestResponse.created(jobService.createJob(jobDTO));
     }
 
-    @GetMapping("/public/jobs/{id}")
-    @ApiMessage(JOB_DETAIL_FETCHED_SUCCESSFULLY)
-    public RestResponse<ResJobDTO> getJob(@PathVariable("id") UUID id) throws InvalidDataException {
-        ResJobDTO currentJob = this.jobService.fetchJobById(id);
-        if (currentJob == null) {
-            throw new InvalidDataException(JOB_NOT_FOUND);
-        }
-        return RestResponse.success(currentJob);
-    }
-
-    @GetMapping("/public/jobs")
-    @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
-    public RestResponse<ResultPaginationDTO> getAllJob(
-            @Filter Specification<Job> spec,
-            Pageable pageable) {
-
-        ResultPaginationDTO result = this.jobService.fetchAll(spec, pageable);
-        return RestResponse.success(result);
-    }
-
-
-    @PutMapping("/hr/jobs")
+    @PutMapping()
     @ApiMessage(JOB_UPDATED_SUCCESSFULLY)
     public RestResponse<ResUpdateJobDTO> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO) throws InvalidDataException {
         Optional<Job> currentJob = this.jobService.getJobById(jobDTO.getJobId());
@@ -69,7 +45,7 @@ public class JobController {
         return RestResponse.success(this.jobService.updateJob(jobDTO, currentJob.get()));
     }
 
-    @PutMapping("/hr/jobs/{id}/{status}")
+    @PutMapping("/{id}/{status}")
     @ApiMessage(JOB_STATUS_UPDATED_SUCCESSFULLY)
     public RestResponse<ResModifyStatus> updateStatus(
             @PathVariable("id") UUID id, @PathVariable("status") JobStatus status) throws InvalidDataException {
@@ -81,7 +57,7 @@ public class JobController {
         return RestResponse.success(this.jobService.updateStatus(currentJob.get(), status));
     }
 
-    @DeleteMapping("/hr/jobs/{id}")
+    @DeleteMapping("/{id}")
     @ApiMessage(JOB_DELETED_SUCCESSFULLY)
     public RestResponse<Void> delete(@PathVariable("id") UUID id) throws InvalidDataException {
         try {
