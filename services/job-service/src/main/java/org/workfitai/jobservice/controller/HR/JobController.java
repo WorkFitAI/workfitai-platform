@@ -1,10 +1,7 @@
-package org.workfitai.jobservice.controller;
+package org.workfitai.jobservice.controller.HR;
 
-import com.turkraft.springfilter.boot.Filter;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
@@ -21,13 +18,13 @@ import java.util.UUID;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
 
-@RestController
-@RequestMapping()
+@RestController("hrJobController")
+@RequestMapping("/hr/jobs")
 @Transactional
-public class JobApi {
+public class JobController {
     private final iJobService jobService;
 
-    public JobApi(iJobService jobService) {
+    public JobController(iJobService jobService) {
         this.jobService = jobService;
     }
 
@@ -36,27 +33,6 @@ public class JobApi {
     public RestResponse<ResCreateJobDTO> create(@Valid @RequestBody ReqJobDTO jobDTO) {
         return RestResponse.created(jobService.createJob(jobDTO));
     }
-
-    @GetMapping("/{id}")
-    @ApiMessage(JOB_DETAIL_FETCHED_SUCCESSFULLY)
-    public RestResponse<ResJobDTO> getJob(@PathVariable("id") UUID id) throws InvalidDataException {
-        ResJobDTO currentJob = this.jobService.fetchJobById(id);
-        if (currentJob == null) {
-            throw new InvalidDataException(JOB_NOT_FOUND);
-        }
-        return RestResponse.success(currentJob);
-    }
-
-    @GetMapping()
-    @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
-    public RestResponse<ResultPaginationDTO> getAllJob(
-            @Filter Specification<Job> spec,
-            Pageable pageable) {
-
-        ResultPaginationDTO result = this.jobService.fetchAll(spec, pageable);
-        return RestResponse.success(result);
-    }
-
 
     @PutMapping()
     @ApiMessage(JOB_UPDATED_SUCCESSFULLY)

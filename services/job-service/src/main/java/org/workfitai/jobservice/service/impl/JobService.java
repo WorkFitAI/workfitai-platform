@@ -1,5 +1,7 @@
 package org.workfitai.jobservice.service.impl;
 
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,6 +11,7 @@ import org.workfitai.jobservice.config.errors.JobConflictException;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.kafka.JobRegistrationEvent;
 import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.*;
@@ -28,6 +31,7 @@ import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
 @Service
+@Slf4j
 public class JobService implements iJobService {
     private final JobRepository jobRepository;
     private final JobMapper jobMapper;
@@ -160,6 +164,62 @@ public class JobService implements iJobService {
             } else {
                 job.setSkills(dbSkills); // create skills
             }
+        }
+    }
+
+    @Transactional
+    public void createFromKafkaEvent(JobRegistrationEvent.JobData jobData) {
+        log.info("Creating job from Kafka event: jobId={}, title={}", jobData.getJobId(), jobData.getTitle());
+
+        try {
+            // Check if job already exists by jobId
+            if (jobRepository.existsByJobId(jobData.getJobId())) {
+                log.warn("Job with jobId {} already exists, skipping creation", jobData.getJobId());
+                return;
+            }
+
+            // Fetch company from DB
+            Company company = companyRepository.findById(jobData.getCompanyNo())
+                    .orElseThrow(() -> new RuntimeException("Company not found for id: " + jobData.getCompanyNo()));
+
+            // Fetch or create skills
+            List<Skill> skills = jobData.getSkills().stream()
+                    .map(name -> skillRepository.findByName(name)
+                            .orElseGet(() -> skillRepository.save(new Skill(name))))
+                    .collect(Collectors.toList());
+
+            // Create Job entity
+            Job job = Job.builder()
+                    .jobId(jobData.getJobId())
+                    .title(jobData.getTitle())
+                    .description(jobData.getDescription())
+                    .employmentType(jobData.getEmploymentType() != null ?
+                            Enum.valueOf(org.workfitai.jobservice.model.enums.EmploymentType.class, jobData.getEmploymentType())
+                            : null)
+                    .experienceLevel(jobData.getExperienceLevel() != null ?
+                            Enum.valueOf(org.workfitai.jobservice.model.enums.ExperienceLevel.class, jobData.getExperienceLevel())
+                            : null)
+                    .salaryMin(jobData.getSalaryMin())
+                    .salaryMax(jobData.getSalaryMax())
+                    .currency(jobData.getCurrency())
+                    .location(jobData.getLocation())
+                    .quantity(jobData.getQuantity())
+                    .expiresAt(jobData.getExpiresAt())
+                    .status(jobData.getStatus() != null ?
+                            Enum.valueOf(org.workfitai.jobservice.model.enums.JobStatus.class, jobData.getStatus())
+                            : null)
+                    .educationLevel(jobData.getEducationLevel())
+                    .company(company)
+                    .skills(skills)
+                    .build();
+
+            jobRepository.save(job);
+
+            log.info("Successfully created job: jobId={}, title={}", job.getJobId(), job.getTitle());
+
+        } catch (Exception ex) {
+            log.error("Error creating job from Kafka event: jobId={}, title={}", jobData.getJobId(), jobData.getTitle(), ex);
+            throw new RuntimeException("Failed to create job from Kafka event", ex);
         }
     }
 
