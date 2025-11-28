@@ -1,49 +1,107 @@
-server:
-  port: 8080
-
+# =============================================================================
+# cv-service Configuration (Unified Approach)
+# =============================================================================
 spring:
   application:
     name: cv
-
+  profiles:
+    active: docker  # Default profile cho containers
+  config:
+    import: optional:vault://secret/cv
   cloud:
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
     consul:
-      host: ${CONSUL_HOST:consul}
-      port: ${CONSUL_PORT:8500}
       config:
         enabled: false
       discovery:
-        register: true
-        prefer-ip-address: true
+        service-name: cv
+        instance-id: cv:${random.int}
         health-check-path: /actuator/health
-        health-check-interval: 10s
-        instance-id: ${spring.application.name}-${server.port}
-        deregister: true
-        health-check-critical-timeout: 1m
-
+        prefer-ip-address: true
   data:
     mongodb:
-      uri: mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
+      host: ${mongodb.host:cv-mongo}
+      port: ${mongodb.port:27017}
+      database: ${mongodb.database:cv-db}
+      username: ${mongodb.username:user}
+      password: ${mongodb.password:123456}
+      authentication-database: ${mongodb.auth-database:cv-db}
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:cv-redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
-auth:
-  jwt:
-    secret: ${AUTH_JWT_SECRET}
-    issuer: auth-service
+logging:
+  level:
+    org.springframework.boot.autoconfigure.mongo: DEBUG
+    org.springframework.data.mongodb: DEBUG
+
+server:
+  port: ${SERVER_PORT:9005}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: always
+  health:
+    redis:
+      enabled: false  # Disable Redis health check
 
-minio:
-  endpoint: ${MINIO_ENDPOINT}
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
-  bucket: ${MINIO_BUCKET}
-logging:
-  level:
-    org.springframework.cloud.config: DEBUG
-    org.springframework.boot.actuate.health: DEBUG
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+      config:
+        enabled: false
+      discovery:
+        enabled: true
+        register: true
+        service-name: cv
+        instance-id: cv:${random.int}
+        health-check-path: /actuator/health
+        prefer-ip-address: true
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+  data:
+    mongodb:
+      host: localhost
+      port: 27018
+      database: cv-db
+      username: user
+      password: "123456"
+      authentication-database: cv-db
+

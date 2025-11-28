@@ -9,26 +9,33 @@ import java.time.Duration;
 @Service
 public class RefreshTokenService {
 
-    private static final String REDIS_KEY_PREFIX = "refresh:";
-    private final StringRedisTemplate redisTemplate;
-    private final Duration refreshTokenTtl;
+    private static final String KEY_FMT = "auth:rt:%s:%s"; // userId, deviceId
 
-    public RefreshTokenService(StringRedisTemplate redisTemplate,
+    private final StringRedisTemplate redis;
+    private final Duration ttl;
+
+    public RefreshTokenService(StringRedisTemplate redis,
                                @Value("${auth.jwt.refresh-exp-ms}") long refreshExpMs) {
-        this.redisTemplate = redisTemplate;
-        this.refreshTokenTtl = Duration.ofMillis(refreshExpMs);
+        this.redis = redis;
+        this.ttl = Duration.ofMillis(refreshExpMs);
     }
 
-    public void store(String token, String userId) {
-        redisTemplate.opsForValue()
-                .set(REDIS_KEY_PREFIX + token, userId, refreshTokenTtl);
+    private String key(String userId, String deviceId) {
+        return String.format(KEY_FMT, userId, deviceId);
     }
 
-    public String getUserId(String token) {
-        return redisTemplate.opsForValue().get(REDIS_KEY_PREFIX + token);
+    /** Save/overwrite the active jti for this user+device */
+    public void saveJti(String userId, String deviceId, String jti) {
+        redis.opsForValue().set(key(userId, deviceId), jti, ttl);
     }
 
-    public void delete(String token) {
-        redisTemplate.delete(REDIS_KEY_PREFIX + token);
+    /** Get the currently active jti for this user+device */
+    public String getJti(String userId, String deviceId) {
+        return redis.opsForValue().get(key(userId, deviceId));
+    }
+
+    /** Remove the device binding (used by logout later) */
+    public void delete(String userId, String deviceId) {
+        redis.delete(String.format(KEY_FMT, userId, deviceId));
     }
 }

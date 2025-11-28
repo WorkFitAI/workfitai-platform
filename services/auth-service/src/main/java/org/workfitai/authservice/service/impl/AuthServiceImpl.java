@@ -1,22 +1,33 @@
 package org.workfitai.authservice.service.impl;
 
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.util.Set;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.workfitai.authservice.dto.*;
+import org.workfitai.authservice.constants.Messages;
+import org.workfitai.authservice.dto.IssuedTokens;
+import org.workfitai.authservice.dto.LoginRequest;
+import org.workfitai.authservice.dto.RegisterRequest;
+import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
-import org.workfitai.authservice.response.*;
 import org.workfitai.authservice.security.JwtService;
-import org.workfitai.authservice.service.*;
+import org.workfitai.authservice.service.RefreshTokenService;
+import org.workfitai.authservice.service.UserRegistrationProducer;
+import org.workfitai.authservice.service.iAuthService;
+import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
-import java.time.Instant;
-import java.util.Set;
+import io.jsonwebtoken.JwtException;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -27,80 +38,125 @@ public class AuthServiceImpl implements iAuthService {
     private final AuthenticationManager authManager;
     private final JwtService jwt;
     private final RefreshTokenService refreshStore;
+    private final UserRegistrationProducer userRegistrationProducer;
+
+    private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
     @Override
-    public AuthResponse register(RegisterRequest req) {
+    public IssuedTokens register(RegisterRequest req, String deviceId) {
         if (users.existsByUsername(req.getUsername()) ||
                 users.existsByEmail(req.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Username or email already in use");
+                    Messages.Error.USERNAME_EMAIL_ALREADY_IN_USE);
         }
 
         var user = User.builder()
                 .username(req.getUsername())
                 .email(req.getEmail())
                 .password(encoder.encode(req.getPassword()))
-                .roles(Set.of("USER"))
+                .roles(Set.of(UserRole.ADMIN.getRoleName()))
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        users.save(user);
+        User savedUser = users.save(user);
+
+        // Publish user registration event to Kafka
+        UserRegistrationEvent event = UserRegistrationEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("USER_REGISTERED")
+                .timestamp(Instant.now())
+                .userData(UserRegistrationEvent.UserData.builder()
+                        .userId(savedUser.getId())
+                        .username(savedUser.getUsername())
+                        .email(savedUser.getEmail())
+                        .fullName(req.getFullName())
+                        .phoneNumber(req.getPhoneNumber())
+                        .passwordHash(savedUser.getPassword())
+                        .build())
+                .build();
+
+        userRegistrationProducer.publishUserRegistrationEvent(event);
 
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .authorities("USER")
+                .authorities(UserRole.ADMIN.getRoleName())
                 .build();
 
-        String access  = jwt.generateAccessToken(ud);
-        String refresh = jwt.generateRefreshToken(ud);
-        refreshStore.store(refresh, user.getId());
+        String access = jwt.generateAccessToken(ud);
+        String jti = jwt.newJti();
+        String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
 
-        return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
+        String dev = normalizeDevice(deviceId);
+        refreshStore.saveJti(user.getId(), dev, jti); // device-bound jti
+
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
     }
 
     @Override
-    public AuthResponse login(LoginRequest req) {
+    public IssuedTokens login(LoginRequest req, String deviceId) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            req.getUsernameOrEmail(),
-                            req.getPassword()
-                    )
-            );
+                            req.getUsernameOrEmail(), req.getPassword()));
             UserDetails ud = (UserDetails) authentication.getPrincipal();
-            String access  = jwt.generateAccessToken(ud);
-            String refresh = jwt.generateRefreshToken(ud);
 
-            // find the user's id
+            // Look up the user id by username
             String userId = users.findByUsername(ud.getUsername())
-                    .orElseThrow()
+                    .orElseThrow(
+                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
                     .getId();
-            refreshStore.store(refresh, userId);
 
-            return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
+            String access = jwt.generateAccessToken(ud);
+            String jti = jwt.newJti();
+            String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+
+            String dev = normalizeDevice(deviceId);
+            refreshStore.saveJti(userId, dev, jti); // overwrite any previous jti for this device
+
+            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
 
         } catch (BadCredentialsException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
         }
     }
 
     @Override
-    public AuthResponse refresh(RefreshRequest req) {
-        String oldToken = req.getRefreshToken();
-        String userId   = refreshStore.getUserId(oldToken);
-        if (userId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Invalid or expired refresh token");
+    public void logout(String deviceId, String username) {
+        String userId = users.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
+                .getId();
+        refreshStore.delete(userId, normalizeDevice(deviceId));
+    }
+
+    @Override
+    public IssuedTokens refresh(String refreshTokenFromCookie, String deviceId) {
+        String dev = normalizeDevice(deviceId);
+
+        // Parse claims (throws on bad signature/expiry)
+        final String username;
+        final String jti;
+        try {
+            username = jwt.extractUsername(refreshTokenFromCookie);
+            jti = jwt.extractJti(refreshTokenFromCookie);
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
         }
 
-        // rotate
-        refreshStore.delete(oldToken);
+        String userId = users.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
+                .getId();
 
+        // Check device-scoped JTI in Redis
+        String activeJti = refreshStore.getJti(userId, dev);
+        if (activeJti == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_EXPIRED);
+        if (!activeJti.equals(jti))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
+
+        // Rotate
         User user = users.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
@@ -108,10 +164,16 @@ public class AuthServiceImpl implements iAuthService {
                 .authorities(user.getRoles().toArray(new String[0]))
                 .build();
 
-        String access  = jwt.generateAccessToken(ud);
-        String refresh = jwt.generateRefreshToken(ud);
-        refreshStore.store(refresh, userId);
+        String access = jwt.generateAccessToken(ud);
+        String newJti = jwt.newJti();
+        String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
-        return AuthResponse.of(access, refresh, jwt.getAccessExpMs());
+        refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
+
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
+    }
+
+    private String normalizeDevice(String deviceId) {
+        return (deviceId == null || deviceId.isBlank()) ? DEFAULT_DEVICE : deviceId.trim();
     }
 }

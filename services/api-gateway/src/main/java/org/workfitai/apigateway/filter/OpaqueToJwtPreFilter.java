@@ -24,10 +24,11 @@ public class OpaqueToJwtPreFilter {
 
   private final IOpaqueTokenService opaqueTokenService;
 
-  @Bean
-  public GlobalFilter opaqueToJwtFilter() {
-    return new OpaqueToJwtFilterImpl(opaqueTokenService);
-  }
+  // @Bean - DISABLED: Using OpaqueToJwtWebFilter instead which runs before
+  // Security
+  // public GlobalFilter opaqueToJwtFilter() {
+  // return new OpaqueToJwtFilterImpl(opaqueTokenService);
+  // }
 
   static final class OpaqueToJwtFilterImpl implements GlobalFilter, Ordered {
     private final IOpaqueTokenService service;
@@ -42,37 +43,67 @@ public class OpaqueToJwtPreFilter {
     } // chạy trước security
 
     @Override
+    @SuppressWarnings("null")
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
       String auth = exchange.getRequest().getHeaders().getFirst("Authorization");
-      if (!StringUtils.hasText(auth) || !auth.startsWith("Bearer ")) {
-        return chain.filter(exchange);
-      }
-      String token = auth.substring(7).trim();
-
-      // Nếu là JWT (có 2 dấu chấm) → bỏ qua
-      if (token.chars().filter(ch -> ch == '.').count() == 2) {
+      if (!StringUtils.hasText(auth)) {
+        log.debug("[OpaqueToJwtPre] ❌ No Authorization header");
         return chain.filter(exchange);
       }
 
-      // Lưu opaque để post filter revoke sau khi /auth/logout thành công
+      // Extract token from "Bearer token" format
+      final String token;
+      if (auth.toLowerCase().startsWith("bearer ")) {
+        token = auth.substring(7);
+      } else {
+        token = auth;
+      }
+
+      if (!StringUtils.hasText(token)) {
+        log.debug("[OpaqueToJwtPre] ❌ Empty token after processing");
+        return chain.filter(exchange);
+      }
+
+      // Check if it's already a JWT (has 2 dots and reasonable length)
+      if (token.chars().filter(ch -> ch == '.').count() == 2 && token.length() > 50) {
+        log.debug("[OpaqueToJwtPre] 🟢 Already JWT token, skip convert");
+        return chain.filter(exchange);
+      }
+
+      // Store the opaque token for post-filter usage
       exchange.getAttributes().put(ATTR_OPAQUE_USED, token);
+      log.info("[OpaqueToJwtPre] 🔄 Converting opaque -> jwt for token={}",
+          token.substring(0, Math.min(8, token.length())));
 
-      // Đổi opaque → jwt
       return service.toJwt(token)
+          .doOnNext(jwt -> log.info("[OpaqueToJwtPre] ✅ Found JWT for opaque={}, jwt_prefix={}",
+              token.substring(0, Math.min(8, token.length())), jwt.substring(0, Math.min(20, jwt.length()))))
           .defaultIfEmpty("")
           .flatMap(jwt -> {
             if (!StringUtils.hasText(jwt)) {
-              log.debug("[OpaqueToJwtPre] opaque not found, pass-through");
+              log.warn("[OpaqueToJwtPre] ⚠️ No JWT found in Redis for opaque={}",
+                  token.substring(0, Math.min(8, token.length())));
               return chain.filter(exchange);
             }
+
             ServerHttpRequest mutated = exchange.getRequest().mutate()
                 .headers(h -> {
                   h.set("Authorization", "Bearer " + jwt);
-                  h.set("X-Token-Source", "opaque"); // optional
+                  h.set("X-Token-Source", "opaque");
+                  h.set("X-Original-Token", token); // Keep original for debugging
                 })
                 .build();
+
+            log.info("[OpaqueToJwtPre] 🧩 Injected JWT with Bearer prefix for downstream");
             return chain.filter(exchange.mutate().request(mutated).build());
+          })
+          .doOnError(err -> log.error("[OpaqueToJwtPre] 💥 Error converting opaque={}: {}",
+              token.substring(0, Math.min(8, token.length())), err.getMessage()))
+          .onErrorResume(err -> {
+            log.error("[OpaqueToJwtPre] 🚨 Fallback: proceeding without conversion due to error");
+            return chain.filter(exchange);
           });
     }
+
   }
 }
