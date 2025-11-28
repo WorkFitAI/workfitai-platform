@@ -101,20 +101,20 @@ public class AuthServiceImpl implements iAuthService {
                             req.getUsernameOrEmail(), req.getPassword()));
             UserDetails ud = (UserDetails) authentication.getPrincipal();
 
-            // Look up the user id by username
-            String userId = users.findByUsername(ud.getUsername())
+            // Look up the user to fetch id and roles
+            User user = users.findByUsername(ud.getUsername())
                     .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
-                    .getId();
+                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
             String access = jwt.generateAccessToken(ud);
             String jti = jwt.newJti();
             String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
 
             String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(userId, dev, jti); // overwrite any previous jti for this device
+            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
 
-            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
+            Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
@@ -170,7 +170,8 @@ public class AuthServiceImpl implements iAuthService {
 
         refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
 
-        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 
     private String normalizeDevice(String deviceId) {
