@@ -11,6 +11,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.workfitai.apigateway.security.PublicKeyProvider;
 import reactor.core.publisher.Mono;
 
@@ -24,10 +25,12 @@ import java.security.interfaces.RSAPublicKey;
 public class SecurityConfig {
 
         private final PublicKeyProvider publicKeyProvider;
+        private final CorsConfigurationSource corsConfigurationSource;
 
         @Bean
         public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
                 return http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .logout(ServerHttpSecurity.LogoutSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
