@@ -14,4 +14,6 @@ public class ReqCvUploadDTO {
     private MultipartFile file;
 
     private String pdfUrl;
+
+    private String objectName;
 }

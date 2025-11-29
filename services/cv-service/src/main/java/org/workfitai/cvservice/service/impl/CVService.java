@@ -10,7 +10,11 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.cvservice.constant.CVConst;
@@ -26,6 +30,7 @@ import org.workfitai.cvservice.repository.CVRepository;
 import org.workfitai.cvservice.service.factory.CvCreationFactory;
 import org.workfitai.cvservice.service.iCVService;
 import org.workfitai.cvservice.service.shared.FileService;
+import org.workfitai.cvservice.service.shared.UserServiceClient;
 import org.workfitai.cvservice.service.strategy.CvCreationStrategy;
 import org.workfitai.cvservice.validation.FileValidator;
 
@@ -33,7 +38,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.workfitai.cvservice.constant.ErrorConst.*;
 
@@ -44,10 +48,12 @@ public class CVService implements iCVService {
     private final MongoTemplate mongoTemplate;
     private final CvCreationFactory cvCreationFactory;
     private final FileService fileService;
+    private final UserServiceClient userServiceClient;
 
     // ---------------- Create & Upload ----------------
 
     @Override
+    @Transactional
     public <T> ResCvDTO createCv(String type, T dto) throws InvalidDataException {
         if ("upload".equalsIgnoreCase(type) && dto instanceof ReqCvUploadDTO) {
             MultipartFile file = ((ReqCvUploadDTO) dto).getFile();
@@ -59,11 +65,13 @@ public class CVService implements iCVService {
         // strategy build CV
         CV cv = strategy.createCv(dto);
 
-        // get user id
-        String userId = UUID.randomUUID().toString();
-        cv.setBelongTo(userId);
-        cv.setUpdatedAt(null);
-        cv.setCreatedAt(null);
+        // Lấy userId từ token qua UserServiceClient
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String username = jwt.getClaimAsString("sub");
+//        String userId = userServiceClient.getUserId(username);
+        // Tạm thời lưu username đi
+        cv.setBelongTo(username);
 
         // lưu DB
         CV saved = repository.save(cv);

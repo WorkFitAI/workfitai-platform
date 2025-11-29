@@ -26,18 +26,18 @@ import static org.workfitai.cvservice.constant.MessageConst.*;
 @RestController
 @RequestMapping()
 @AllArgsConstructor
-public class CVApi {
+public class CVController {
     private final iCVService service;
 
     // ---------------- Create ----------------
-    @PostMapping("/shared")
+    @PostMapping("/candidate")
     @ApiMessage(CV_CREATED_SUCCESSFULLY)
     public RestResponse<ResCvDTO> createCV(@Valid @RequestBody ReqCvTemplateDTO cv) throws InvalidDataException {
         var created = service.createCv("template", cv);
         return RestResponse.created(created);
     }
 
-    @PostMapping(value = "/shared/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/candidate/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiMessage(CV_UPLOADED_SUCCESSFULLY)
     public ResponseEntity<ResCvDTO> createFromUpload(
             @Valid @ModelAttribute ReqCvUploadDTO dto
@@ -46,7 +46,7 @@ public class CVApi {
     }
 
     // ---------------- Read by ID ----------------
-    @GetMapping("/shared/{cvId}")
+    @GetMapping("/candidate/{cvId}")
     @ApiMessage(CV_FETCHED_SUCCESSFULLY)
     public ResponseEntity<ResCvDTO> getCV(@PathVariable String cvId) {
         ResCvDTO res = service.getById(cvId);
@@ -54,7 +54,7 @@ public class CVApi {
     }
 
     // ---------------- Read by User ----------------
-    @GetMapping("/shared")
+    @GetMapping("/candidate")
     @ApiMessage(CV_DETAIL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO<ResCvDTO>> getCVsByUserWithFilter(
             @RequestParam Map<String, Object> allParams
@@ -72,7 +72,7 @@ public class CVApi {
     }
 
     // ---------------- Update ----------------
-    @PutMapping("/shared/{cvId}")
+    @PutMapping("/candidate/{cvId}")
     @ApiMessage(CV_UPDATED_SUCCESSFULLY)
     public RestResponse<ResCvDTO> updateCV(
             @PathVariable String cvId,
@@ -84,7 +84,7 @@ public class CVApi {
     }
 
     // ---------------- Delete (soft delete) ----------------
-    @DeleteMapping("/shared/{cvId}")
+    @DeleteMapping("/candidate/{cvId}")
     @ApiMessage(CV_DELETED_SUCCESSFULLY)
     public RestResponse<Void> deleteCV(@PathVariable String cvId) throws InvalidDataException, CVConflictException {
         service.delete(cvId);
@@ -92,7 +92,7 @@ public class CVApi {
     }
 
     // ---------------- DOWNLOAD ----------------
-    @GetMapping("/shared/download/{objectName}")
+    @GetMapping("/candidate/download/{objectName}")
     public ResponseEntity<InputStreamResource> downloadCv(@PathVariable String objectName) throws Exception {
         InputStream inputStream = service.downloadCV(objectName);
 

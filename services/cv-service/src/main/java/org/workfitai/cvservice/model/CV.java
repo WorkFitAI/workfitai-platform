@@ -36,6 +36,8 @@ public class CV {
     @Pattern(regexp = CVConst.URL_PATTERN, message = "pdfUrl must be a valid URL")
     private String pdfUrl;
 
+    private String objectName; // Thêm để download CV
+
     @NotNull(message = "belongTo cannot be null")
     @Indexed
     private String belongTo;

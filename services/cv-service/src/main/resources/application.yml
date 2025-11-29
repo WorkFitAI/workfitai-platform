@@ -76,6 +76,10 @@ spring:
         instance-id: cv:${random.int}
         health-check-path: /actuator/health
         prefer-ip-address: true
+# Service URLs for Docker environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
 
 ---
 # =============================================================================

@@ -21,6 +21,7 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             String fileUrl = fileService.generateFileUrl(objectName);
 
             dto.setPdfUrl(fileUrl);
+            dto.setObjectName(objectName); // Dùng cho việc download CV
 
             return CVMapper.INSTANCE.toEntityFromUpload(dto);
 
