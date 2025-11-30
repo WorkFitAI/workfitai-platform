@@ -17,6 +17,7 @@ import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.IssuedTokens;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.RegisterRequest;
+import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
@@ -24,7 +25,6 @@ import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
-import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,8 @@ public class AuthServiceImpl implements iAuthService {
         String dev = normalizeDevice(deviceId);
         refreshStore.saveJti(user.getId(), dev, jti); // device-bound jti
 
-        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 
     @Override
