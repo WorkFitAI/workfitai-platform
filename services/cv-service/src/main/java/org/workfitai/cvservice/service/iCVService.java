@@ -7,12 +7,13 @@ import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
 import org.workfitai.cvservice.model.dto.response.ResCvDTO;
 import org.workfitai.cvservice.model.dto.response.ResultPaginationDTO;
 
+import java.io.InputStream;
 import java.util.Map;
 
 public interface iCVService {
 
     // ---------------- Create ----------------
-    ResCvDTO create(@Valid ReqCvDTO req);
+    <T> ResCvDTO createCv(String type, T dto) throws InvalidDataException;
 
     // ---------------- Read ----------------
     ResCvDTO getById(String cvId);
@@ -31,4 +32,6 @@ public interface iCVService {
             int page,
             int size
     );
+
+    InputStream downloadCV(String objectName) throws Exception;
 }
