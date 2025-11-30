@@ -17,6 +17,7 @@ import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.IssuedTokens;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.RegisterRequest;
+import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
@@ -24,7 +25,6 @@ import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
-import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,8 @@ public class AuthServiceImpl implements iAuthService {
         String dev = normalizeDevice(deviceId);
         refreshStore.saveJti(user.getId(), dev, jti); // device-bound jti
 
-        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 
     @Override
@@ -101,20 +102,20 @@ public class AuthServiceImpl implements iAuthService {
                             req.getUsernameOrEmail(), req.getPassword()));
             UserDetails ud = (UserDetails) authentication.getPrincipal();
 
-            // Look up the user id by username
-            String userId = users.findByUsername(ud.getUsername())
+            // Look up the user to fetch id and roles
+            User user = users.findByUsername(ud.getUsername())
                     .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
-                    .getId();
+                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
             String access = jwt.generateAccessToken(ud);
             String jti = jwt.newJti();
             String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
 
             String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(userId, dev, jti); // overwrite any previous jti for this device
+            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
 
-            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
+            Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
@@ -170,7 +171,8 @@ public class AuthServiceImpl implements iAuthService {
 
         refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
 
-        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 
     private String normalizeDevice(String deviceId) {
