@@ -1,11 +1,12 @@
 # =============================================================================
-# application-service Configuration (Unified Approach)
+# application-service Configuration
+# Handles job applications (Candidate → Job with CV)
 # =============================================================================
 spring:
   application:
-    name: application-service
+    name: application # Service name for Consul discovery
   profiles:
-    active: docker  # Default profile cho containers
+    active: docker # Default profile for containers
   config:
     import: optional:vault://secret/application-service,optional:consul
   cloud:
@@ -15,10 +16,27 @@ spring:
       kv:
         enabled: true
         backend: secret
+    # OpenFeign configuration
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: BASIC
+
+  # MongoDB configuration (Vault provides uri)
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/application_db}
+      auto-index-creation: true # Auto-create indexes from @Indexed annotations
 
 server:
-  port: ${SERVER_PORT:9005}
+  port: ${SERVER_PORT:9084}
 
+# =============================================================================
+# Actuator & Metrics
+# =============================================================================
 management:
   endpoints:
     web:
@@ -27,6 +45,25 @@ management:
   endpoint:
     health:
       show-details: always
+
+# =============================================================================
+# OpenAPI / Swagger Configuration
+# =============================================================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
+
+# =============================================================================
+# Feign Client Logging (DEBUG mode)
+# =============================================================================
+logging:
+  level:
+    org.workfitai.applicationservice.client: DEBUG
 
 ---
 # =============================================================================
@@ -43,13 +80,21 @@ spring:
       discovery:
         enabled: true
         register: true
+        service-name: application # Short name for Consul
+        instance-id: ${spring.application.name}:${random.uuid}
         health-check-path: /actuator/health
+        health-check-interval: 10s
+  data:
+    mongodb:
+      # Container uses Docker network hostname
+      uri: ${MONGODB_URI:mongodb://application-mongo:27017/application_db}
 
-# Add service-specific docker configs here
+# Feign uses Consul service names in Docker
+# e.g., job → job-service container
 
 ---
 # =============================================================================
-# LOCAL PROFILE (for IDE development)
+# LOCAL PROFILE (for IDE development with Docker infra)
 # =============================================================================
 spring:
   config:
@@ -65,12 +110,18 @@ spring:
       discovery:
         enabled: true
         register: true
+        service-name: application
         health-check-path: /actuator/health
+        health-check-interval: 10s
+  data:
+    mongodb:
+      # Local profile connects to MongoDB on localhost
+      uri: ${MONGODB_URI:mongodb://localhost:27019/application_db}
 
-# Add service-specific local configs here
-
+# Override logging for local development
 logging:
   level:
     org.workfitai: DEBUG
     org.springframework.cloud.vault: DEBUG
-
+    org.springframework.cloud.openfeign: DEBUG
+    org.springframework.security: DEBUG
