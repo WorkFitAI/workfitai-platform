@@ -13,4 +13,6 @@ import java.util.UUID;
 @Repository
 public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificationExecutor<Job> {
     List<Job> findBySkillsIn(List<Skill> skills);
+
+    boolean existsByJobId(UUID jobId);
 }

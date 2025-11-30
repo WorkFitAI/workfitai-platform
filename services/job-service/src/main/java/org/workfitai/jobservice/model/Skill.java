@@ -10,11 +10,11 @@ import java.util.UUID;
 @Table(name = "skills")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Skill extends AbstractAuditingEntity<UUID> {
     @Id
+    @GeneratedValue
     private UUID skillId;
 
     private String name;
@@ -28,5 +28,11 @@ public class Skill extends AbstractAuditingEntity<UUID> {
     @Override
     public UUID getId() {
         return this.skillId;
+    }
+
+    public Skill() {}
+
+    public Skill(String name) {
+        this.name = name;
     }
 }

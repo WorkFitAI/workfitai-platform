@@ -1,36 +1,44 @@
 package org.workfitai.cvservice.converter;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.HashSet;
 
 @Configuration
-public class JwtAuthConverter {
+public class JwtAuthConverter extends JwtAuthenticationConverter {
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter());
-        return converter;
+    public JwtAuthConverter() {
+        this.setJwtGrantedAuthoritiesConverter(new CombinedAuthoritiesConverter());
     }
 
-    private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
-        return jwt -> {
-            Collection<String> roles = jwt.getClaimAsStringList("roles");
-            if (roles == null) {
-                return Collections.emptyList();
-            }
-            return roles.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-        };
+    private static class CombinedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+
+        private final JwtGrantedAuthoritiesConverter rolesConverter;
+        private final JwtGrantedAuthoritiesConverter permsConverter;
+
+        public CombinedAuthoritiesConverter() {
+            // Converter cho roles
+            rolesConverter = new JwtGrantedAuthoritiesConverter();
+            rolesConverter.setAuthoritiesClaimName("roles");
+            rolesConverter.setAuthorityPrefix("ROLE_");
+
+            // Converter cho perms
+            permsConverter = new JwtGrantedAuthoritiesConverter();
+            permsConverter.setAuthoritiesClaimName("perms");
+            permsConverter.setAuthorityPrefix("");
+        }
+
+        @Override
+        public Collection<GrantedAuthority> convert(Jwt jwt) {
+            var authorities = new HashSet<>(rolesConverter.convert(jwt));
+            authorities.addAll(permsConverter.convert(jwt));
+            return authorities;
+        }
     }
 }
