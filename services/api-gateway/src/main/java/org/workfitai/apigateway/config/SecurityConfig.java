@@ -11,6 +11,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.workfitai.apigateway.security.PublicKeyProvider;
 import reactor.core.publisher.Mono;
 
@@ -23,43 +24,46 @@ import java.security.interfaces.RSAPublicKey;
 @Slf4j
 public class SecurityConfig {
 
-        private final PublicKeyProvider publicKeyProvider;
+    private final PublicKeyProvider publicKeyProvider;
 
-        @Bean
-        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-                return http
-                                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                                .logout(ServerHttpSecurity.LogoutSpec::disable)
-                                .authorizeExchange(exchanges -> exchanges
-                                                .pathMatchers(
-                                                                "/actuator/**",
-                                                                "/auth/login",
-                                                                "/auth/register",
-                                                                "/auth/refresh",
-                                                                "/auth/logout",
-                                                                "/cv/**",
-                                                                "/job/public/**",
-                                                                "/monitoring-service/**",
-                                                                "/debug/**", // Debug endpoints
-                                                                "/user/actuator/**" // User service health checks
-                                                ).permitAll()
-                                                .anyExchange().authenticated())
-                                .exceptionHandling(e -> e
-                                                .authenticationEntryPoint((swe, err) -> Mono
-                                                                .fromRunnable(() -> swe.getResponse().setStatusCode(
-                                                                                HttpStatus.UNAUTHORIZED)))
-                                                .accessDeniedHandler((swe, err) -> Mono
-                                                                .fromRunnable(() -> swe.getResponse()
-                                                                                .setStatusCode(HttpStatus.FORBIDDEN))))
-                                .oauth2ResourceServer(oauth2 -> oauth2
-                                                .jwt(jwt -> jwt.jwtDecoder(jwtDecoder())))
-                                .build();
-        }
+    private final CorsConfigurationSource corsConfigurationSource;
 
-        @Bean
-        public ReactiveJwtDecoder jwtDecoder() {
-                RSAPublicKey key = publicKeyProvider.getPublicKey();
-                log.info("🔐 Building JWT decoder using loaded public key...");
-                return NimbusReactiveJwtDecoder.withPublicKey(key).build();
-        }
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .logout(ServerHttpSecurity.LogoutSpec::disable)
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(
+                                "/actuator/**",
+                                "/auth/login",
+                                "/auth/register",
+                                "/auth/refresh",
+                                "/auth/logout",
+                                "/cv/public/**",
+                                "/job/public/**",
+                                "/monitoring-service/**",
+                                "/debug/**", // Debug endpoints
+                                "/user/actuator/**" // User service health checks
+                        ).permitAll()
+                        .anyExchange().authenticated())
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((swe, err) -> Mono
+                                .fromRunnable(() -> swe.getResponse().setStatusCode(
+                                        HttpStatus.UNAUTHORIZED)))
+                        .accessDeniedHandler((swe, err) -> Mono
+                                .fromRunnable(() -> swe.getResponse()
+                                        .setStatusCode(HttpStatus.FORBIDDEN))))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtDecoder(jwtDecoder())))
+                .build();
+    }
+
+    @Bean
+    public ReactiveJwtDecoder jwtDecoder() {
+        RSAPublicKey key = publicKeyProvider.getPublicKey();
+        log.info("🔐 Building JWT decoder using loaded public key...");
+        return NimbusReactiveJwtDecoder.withPublicKey(key).build();
+    }
 }

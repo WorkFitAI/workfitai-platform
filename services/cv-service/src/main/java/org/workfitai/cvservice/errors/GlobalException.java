@@ -21,10 +21,10 @@ public class GlobalException {
                 .body(RestResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidDataException.class)
-    public ResponseEntity<RestResponse<Object>> handleInvalidData(InvalidDataException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(RestResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<RestResponse<Object>> handleBusinessException(BusinessException ex) {
+        return ResponseEntity.status(ex.getStatus())
+                .body(RestResponse.error(ex.getStatus().value(), ex.getMessage()));
     }
 
     @ExceptionHandler(CVConflictException.class)
@@ -46,5 +46,19 @@ public class GlobalException {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(RestResponse.error(HttpStatus.BAD_REQUEST.value(), message));
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<RestResponse<Object>> handleUnsupportedMediaType(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(RestResponse.error(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                        "Unsupported Media Type. Please check Content-Type header."));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<RestResponse<Object>> handleMaxSizeExceeded(Exception ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(RestResponse.error(HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                        "Uploaded file is too large!"));
     }
 }

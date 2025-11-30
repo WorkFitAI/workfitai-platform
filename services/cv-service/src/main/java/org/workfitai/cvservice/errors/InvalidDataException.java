@@ -1,7 +1,9 @@
 package org.workfitai.cvservice.errors;
 
-public class InvalidDataException extends Exception {
-    public InvalidDataException(String message) {
-        super(message);
+import org.springframework.http.HttpStatus;
+
+public class InvalidDataException extends BusinessException {
+    public InvalidDataException(String message, HttpStatus status) {
+        super(message, status);
     }
 }
