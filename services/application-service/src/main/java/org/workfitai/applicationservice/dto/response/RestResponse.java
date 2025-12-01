@@ -53,9 +53,6 @@ public class RestResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
-    /**
-     * Constructor for responses with data (success).
-     */
     public RestResponse(int status, String message, T data) {
         this.status = status;
         this.message = message;
@@ -63,56 +60,24 @@ public class RestResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
-    // ==================== Static Factory Methods ====================
+    // Factory methods
 
-    /**
-     * Creates a successful response with HTTP 200 OK.
-     * 
-     * @param data The response payload
-     * @return RestResponse with status 200 and the provided data
-     */
     public static <T> RestResponse<T> success(T data) {
         return new RestResponse<>(200, "Success", data);
     }
 
-    /**
-     * Creates a successful response with HTTP 200 OK and custom message.
-     * 
-     * @param message Custom success message
-     * @param data    The response payload
-     * @return RestResponse with status 200, custom message, and data
-     */
     public static <T> RestResponse<T> success(String message, T data) {
         return new RestResponse<>(200, message, data);
     }
 
-    /**
-     * Creates a response for newly created resource (HTTP 201 Created).
-     * Used after successful POST operations.
-     * 
-     * @param data The created resource
-     * @return RestResponse with status 201 and the created data
-     */
     public static <T> RestResponse<T> created(T data) {
         return new RestResponse<>(201, "Created", data);
     }
 
-    /**
-     * Creates a response for successful deletion (HTTP 200 OK).
-     * 
-     * @return RestResponse with status 200 and deletion confirmation message
-     */
     public static <T> RestResponse<T> deleted() {
         return new RestResponse<>(200, "Deleted");
     }
 
-    /**
-     * Creates an error response without data.
-     * 
-     * @param code    HTTP status code
-     * @param message Error message
-     * @return RestResponse with the error status and message
-     */
     public static <T> RestResponse<T> error(int code, String message) {
         return new RestResponse<>(code, message);
     }

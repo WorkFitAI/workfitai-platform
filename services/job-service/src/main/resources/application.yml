@@ -74,7 +74,7 @@ spring:
         enabled: true
         register: true
         service-name: job
-        instance-id: job:${random.int}
+        # instance-id: job:${random.int}
         health-check-path: /actuator/health
         prefer-ip-address: true
   datasource:
@@ -123,7 +123,7 @@ spring:
         register: true
         health-check-path: /actuator/health
   datasource:
-    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5432/job_db}
+    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5433/job_db}
     username: ${JOB_DB_USER:user}
     password: ${JOB_DB_PASS:pass}
     driver-class-name: org.postgresql.Driver

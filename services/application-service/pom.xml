@@ -76,12 +76,12 @@
         </dependency>
 
         <!-- ==================== Spring Cloud - Service Discovery & Communication ==================== -->
-        <!-- Consul for service discovery - finds job-service and cv-service -->
+        <!-- Consul for service discovery -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
         </dependency>
-        <!-- OpenFeign for declarative REST clients to call other services -->
+        <!-- OpenFeign for declarative REST client (only used for AuthServiceClient to fetch JWT public key) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
@@ -90,6 +90,13 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- ==================== Kafka - Async Messaging ==================== -->
+        <!-- For publishing application events (status changes, new applications) -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
 
         <!-- ==================== MapStruct - DTO/Entity Mapping ==================== -->

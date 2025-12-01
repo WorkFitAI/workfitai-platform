@@ -29,6 +29,8 @@ import static org.assertj.core.api.Assertions.*;
  * - Custom query methods
  * - Index behavior
  * - Pagination
+ * 
+ * Note: Uses username (from JWT sub claim) instead of userId
  */
 @DataMongoTest
 @Testcontainers
@@ -46,9 +48,9 @@ class ApplicationRepositoryTest {
     @Autowired
     private ApplicationRepository applicationRepository;
 
-    // Test data
-    private static final String USER_1 = "user-1";
-    private static final String USER_2 = "user-2";
+    // Test data - using usernames instead of userIds
+    private static final String USER_1 = "john.doe";
+    private static final String USER_2 = "jane.smith";
     private static final String JOB_1 = UUID.randomUUID().toString();
     private static final String JOB_2 = UUID.randomUUID().toString();
     private static final String CV_1 = UUID.randomUUID().toString();
@@ -58,13 +60,9 @@ class ApplicationRepositoryTest {
         applicationRepository.deleteAll();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 EXISTS BY USER AND JOB TESTS
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Nested
-    @DisplayName("existsByUserIdAndJobId()")
-    class ExistsByUserIdAndJobIdTests {
+    @DisplayName("existsByUsernameAndJobId()")
+    class ExistsByUsernameAndJobIdTests {
 
         @Test
         @DisplayName("Should return true when application exists")
@@ -74,7 +72,7 @@ class ApplicationRepositoryTest {
             applicationRepository.save(app);
 
             // When
-            boolean exists = applicationRepository.existsByUserIdAndJobId(USER_1, JOB_1);
+            boolean exists = applicationRepository.existsByUsernameAndJobId(USER_1, JOB_1);
 
             // Then
             assertThat(exists).isTrue();
@@ -84,7 +82,7 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return false when application doesn't exist")
         void shouldReturnFalseWhenNotExists() {
             // When
-            boolean exists = applicationRepository.existsByUserIdAndJobId(USER_1, JOB_1);
+            boolean exists = applicationRepository.existsByUsernameAndJobId(USER_1, JOB_1);
 
             // Then
             assertThat(exists).isFalse();
@@ -97,20 +95,16 @@ class ApplicationRepositoryTest {
             applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
 
             // Then: Same user, different job = not exists
-            assertThat(applicationRepository.existsByUserIdAndJobId(USER_1, JOB_2)).isFalse();
+            assertThat(applicationRepository.existsByUsernameAndJobId(USER_1, JOB_2)).isFalse();
 
             // Different user, same job = not exists
-            assertThat(applicationRepository.existsByUserIdAndJobId(USER_2, JOB_1)).isFalse();
+            assertThat(applicationRepository.existsByUsernameAndJobId(USER_2, JOB_1)).isFalse();
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 FIND BY USER TESTS
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Nested
-    @DisplayName("findByUserId()")
-    class FindByUserIdTests {
+    @DisplayName("findByUsername()")
+    class FindByUsernameTests {
 
         @Test
         @DisplayName("Should return paginated applications for user")
@@ -123,20 +117,20 @@ class ApplicationRepositoryTest {
             applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.APPLIED));
 
             // When
-            Page<Application> page = applicationRepository.findByUserId(
+            Page<Application> page = applicationRepository.findByUsername(
                     USER_1,
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
 
             // Then
             assertThat(page.getTotalElements()).isEqualTo(3);
-            assertThat(page.getContent()).allMatch(app -> app.getUserId().equals(USER_1));
+            assertThat(page.getContent()).allMatch(app -> app.getUsername().equals(USER_1));
         }
 
         @Test
         @DisplayName("Should return empty page when no applications")
         void shouldReturnEmptyPageWhenNoApplications() {
             // When
-            Page<Application> page = applicationRepository.findByUserId(USER_1, PageRequest.of(0, 10));
+            Page<Application> page = applicationRepository.findByUsername(USER_1, PageRequest.of(0, 10));
 
             // Then
             assertThat(page.getTotalElements()).isZero();
@@ -144,13 +138,9 @@ class ApplicationRepositoryTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 FIND BY USER AND STATUS TESTS
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Nested
-    @DisplayName("findByUserIdAndStatus()")
-    class FindByUserIdAndStatusTests {
+    @DisplayName("findByUsernameAndStatus()")
+    class FindByUsernameAndStatusTests {
 
         @Test
         @DisplayName("Should filter by status")
@@ -160,9 +150,9 @@ class ApplicationRepositoryTest {
             applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.INTERVIEW));
 
             // When
-            Page<Application> applied = applicationRepository.findByUserIdAndStatus(
+            Page<Application> applied = applicationRepository.findByUsernameAndStatus(
                     USER_1, ApplicationStatus.APPLIED, PageRequest.of(0, 10));
-            Page<Application> interview = applicationRepository.findByUserIdAndStatus(
+            Page<Application> interview = applicationRepository.findByUsernameAndStatus(
                     USER_1, ApplicationStatus.INTERVIEW, PageRequest.of(0, 10));
 
             // Then
@@ -173,10 +163,6 @@ class ApplicationRepositoryTest {
             assertThat(interview.getContent().get(0).getStatus()).isEqualTo(ApplicationStatus.INTERVIEW);
         }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 FIND BY JOB TESTS
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("findByJobId()")
@@ -200,25 +186,21 @@ class ApplicationRepositoryTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 COUNT TESTS
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Nested
     @DisplayName("Count Methods")
     class CountTests {
 
         @Test
-        @DisplayName("Should count by user correctly")
-        void shouldCountByUser() {
+        @DisplayName("Should count by username correctly")
+        void shouldCountByUsername() {
             // Given
             applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
             applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.APPLIED));
             applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.APPLIED));
 
             // When/Then
-            assertThat(applicationRepository.countByUserId(USER_1)).isEqualTo(2);
-            assertThat(applicationRepository.countByUserId(USER_2)).isEqualTo(1);
+            assertThat(applicationRepository.countByUsername(USER_1)).isEqualTo(2);
+            assertThat(applicationRepository.countByUsername(USER_2)).isEqualTo(1);
         }
 
         @Test
@@ -247,13 +229,9 @@ class ApplicationRepositoryTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 FIND BY USER AND JOB TESTS
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Nested
-    @DisplayName("findByUserIdAndJobId()")
-    class FindByUserIdAndJobIdTests {
+    @DisplayName("findByUsernameAndJobId()")
+    class FindByUsernameAndJobIdTests {
 
         @Test
         @DisplayName("Should return application when exists")
@@ -263,11 +241,11 @@ class ApplicationRepositoryTest {
             applicationRepository.save(app);
 
             // When
-            Optional<Application> result = applicationRepository.findByUserIdAndJobId(USER_1, JOB_1);
+            Optional<Application> result = applicationRepository.findByUsernameAndJobId(USER_1, JOB_1);
 
             // Then
             assertThat(result).isPresent();
-            assertThat(result.get().getUserId()).isEqualTo(USER_1);
+            assertThat(result.get().getUsername()).isEqualTo(USER_1);
             assertThat(result.get().getJobId()).isEqualTo(JOB_1);
         }
 
@@ -275,16 +253,12 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return empty when not exists")
         void shouldReturnEmptyWhenNotExists() {
             // When
-            Optional<Application> result = applicationRepository.findByUserIdAndJobId(USER_1, JOB_1);
+            Optional<Application> result = applicationRepository.findByUsernameAndJobId(USER_1, JOB_1);
 
             // Then
             assertThat(result).isEmpty();
         }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 FIND BY CV TESTS
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("findByCvId()")
@@ -309,13 +283,9 @@ class ApplicationRepositoryTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // 🔸 HELPER METHODS
-    // ═══════════════════════════════════════════════════════════════════════
-
-    private Application createApplication(String userId, String jobId, String cvId, ApplicationStatus status) {
+    private Application createApplication(String username, String jobId, String cvId, ApplicationStatus status) {
         return Application.builder()
-                .userId(userId)
+                .username(username)
                 .jobId(jobId)
                 .cvId(cvId)
                 .status(status)

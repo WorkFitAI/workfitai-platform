@@ -11,10 +11,12 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,14 +28,15 @@ import lombok.NoArgsConstructor;
  * An application links a User (candidate) to a Job with a specific CV.
  * 
  * Business constraints:
- * - One active application per (userId, jobId) pair (enforced by unique
+ * - One active application per (username, jobId) pair (enforced by unique
  * compound index)
- * - userId must match the CV owner (validated in service layer)
+ * - username must match the CV owner (validated in service layer)
  * - Job must be in PUBLISHED status (validated via Feign call)
  * 
  * Indexes:
- * - Compound unique index on (userId, jobId) to prevent duplicate applications
- * - Individual indexes on userId and jobId for efficient queries
+ * - Compound unique index on (username, jobId) to prevent duplicate
+ * applications
+ * - Individual indexes on username and jobId for efficient queries
  */
 @Document(collection = "applications")
 @Data
@@ -41,7 +44,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @CompoundIndexes({
-        @CompoundIndex(name = "unique_user_job", def = "{'userId': 1, 'jobId': 1}", unique = true)
+        @CompoundIndex(name = "unique_user_job", def = "{'username': 1, 'jobId': 1}", unique = true)
 })
 public class Application {
 
@@ -53,28 +56,31 @@ public class Application {
     private String id;
 
     /**
-     * ID of the user (candidate) who submitted the application.
-     * Must match the owner of the CV being submitted.
+     * Username of the candidate who submitted the application.
+     * This is the JWT "sub" claim (e.g., "candidate_john").
      * Indexed for efficient queries like "get all applications by user".
      */
-    @NotBlank(message = "userId is required")
+    @NotBlank(message = Messages.Validation.USERNAME_REQUIRED)
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Indexed
-    private String userId;
+    private String username;
 
     /**
      * ID of the job being applied to.
      * Must reference a job in PUBLISHED status.
      * Indexed for efficient queries like "get all applications for a job".
      */
-    @NotBlank(message = "jobId is required")
+    @NotBlank(message = Messages.Validation.JOB_ID_REQUIRED)
+    @Size(max = 100, message = "Job ID cannot exceed 100 characters")
     @Indexed
     private String jobId;
 
     /**
      * ID of the CV submitted with this application.
-     * Must belong to the userId (validated in service layer).
+     * Must belong to the username (validated in service layer).
      */
-    @NotBlank(message = "cvId is required")
+    @NotBlank(message = Messages.Validation.CV_ID_REQUIRED)
+    @Size(max = 100, message = "CV ID cannot exceed 100 characters")
     private String cvId;
 
     /**
@@ -83,7 +89,7 @@ public class Application {
      * 
      * @see ApplicationStatus for status flow documentation
      */
-    @NotNull(message = "status is required")
+    @NotNull(message = Messages.Validation.STATUS_REQUIRED)
     @Builder.Default
     private ApplicationStatus status = ApplicationStatus.APPLIED;
 
@@ -91,29 +97,17 @@ public class Application {
      * Optional note or cover letter from the applicant.
      * Can be used for additional context or motivation.
      */
+    @Size(max = 2000, message = Messages.Validation.NOTE_MAX_LENGTH)
     private String note;
 
-    // ==================== Audit Fields ====================
-    // These fields are automatically populated by Spring Data MongoDB auditing
+    // Audit fields (populated by Spring Data MongoDB auditing)
 
-    /**
-     * Timestamp when the application was first created.
-     * Set automatically by @EnableMongoAuditing.
-     */
     @CreatedDate
     private Instant createdAt;
 
-    /**
-     * Timestamp of the last modification.
-     * Updated automatically by @EnableMongoAuditing.
-     */
     @LastModifiedDate
     private Instant updatedAt;
 
-    /**
-     * User ID of who created this application.
-     * Typically same as userId for self-applications.
-     */
     @CreatedBy
     private String createdBy;
 

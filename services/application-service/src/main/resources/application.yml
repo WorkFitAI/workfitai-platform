@@ -16,20 +16,33 @@ spring:
       kv:
         enabled: true
         backend: secret
-    # OpenFeign configuration
-    openfeign:
-      client:
-        config:
-          default:
-            connect-timeout: 5000
-            read-timeout: 10000
-            logger-level: BASIC
-
-  # MongoDB configuration (Vault provides uri)
+  # MongoDB configuration (Vault provides uri via mongodb.uri)
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/application_db}
+      uri: ${mongodb.uri:mongodb://localhost:27017/application_db}
       auto-index-creation: true # Auto-create indexes from @Indexed annotations
+
+  # Kafka temporarily disabled - events are logged but not sent
+  # TODO: Re-enable when other services have Kafka consumers ready
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  # kafka:
+  #   bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+  #   producer:
+  #     key-serializer: org.apache.kafka.common.serialization.StringSerializer
+  #     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  #     acks: all
+  #     retries: 3
+  #     properties:
+  #       enable.idempotence: true
+
+# Application-specific Kafka topics (used for logging when Kafka is disabled)
+app:
+  kafka:
+    topics:
+      application-events: application-events
+      application-status: application-status
 
 server:
   port: ${SERVER_PORT:9084}
@@ -59,11 +72,11 @@ springdoc:
   show-actuator: false
 
 # =============================================================================
-# Feign Client Logging (DEBUG mode)
+# Kafka Event Logging (DEBUG mode)
 # =============================================================================
 logging:
   level:
-    org.workfitai.applicationservice.client: DEBUG
+    org.workfitai.applicationservice.messaging: DEBUG
 
 ---
 # =============================================================================
@@ -81,16 +94,12 @@ spring:
         enabled: true
         register: true
         service-name: application # Short name for Consul
-        instance-id: ${spring.application.name}:${random.uuid}
+        # instance-id: ${spring.application.name}:${random.uuid}
         health-check-path: /actuator/health
         health-check-interval: 10s
   data:
     mongodb:
-      # Container uses Docker network hostname
-      uri: ${MONGODB_URI:mongodb://application-mongo:27017/application_db}
-
-# Feign uses Consul service names in Docker
-# e.g., job → job-service container
+      uri: ${mongodb.uri:mongodb://application-mongo:27017/application_db}
 
 ---
 # =============================================================================
@@ -115,13 +124,15 @@ spring:
         health-check-interval: 10s
   data:
     mongodb:
-      # Local profile connects to MongoDB on localhost
-      uri: ${MONGODB_URI:mongodb://localhost:27019/application_db}
+      uri: ${mongodb.uri:mongodb://localhost:27019/application_db}
+  # Kafka disabled - see main config
+  # kafka:
+  #   bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
 
 # Override logging for local development
 logging:
   level:
     org.workfitai: DEBUG
     org.springframework.cloud.vault: DEBUG
-    org.springframework.cloud.openfeign: DEBUG
+    org.springframework.kafka: DEBUG
     org.springframework.security: DEBUG
