@@ -8,7 +8,6 @@ import org.workfitai.cvservice.model.enums.TemplateType;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -23,7 +22,7 @@ public class ResCvDTO {
 
     private String pdfUrl;
 
-    private UUID belongTo;
+    private String belongTo;
 
     private TemplateType templateType;
 

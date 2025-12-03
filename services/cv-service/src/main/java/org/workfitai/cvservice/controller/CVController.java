@@ -23,11 +23,13 @@ import java.util.Map;
 
 import static org.workfitai.cvservice.constant.MessageConst.*;
 
+
 @RestController
 @RequestMapping()
 @AllArgsConstructor
 public class CVController {
     private final iCVService service;
+
 
     // ---------------- Create ----------------
     @PostMapping("/candidate")
@@ -37,6 +39,7 @@ public class CVController {
         return RestResponse.created(created);
     }
 
+
     @PostMapping(value = "/candidate/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiMessage(CV_UPLOADED_SUCCESSFULLY)
     public ResponseEntity<ResCvDTO> createFromUpload(
@@ -45,34 +48,49 @@ public class CVController {
         return ResponseEntity.ok(service.createCv("upload", dto));
     }
 
+
     // ---------------- Read by ID ----------------
-    @GetMapping("/candidate/{cvId}")
+    @GetMapping("/candidate/id/{cvId}")
     @ApiMessage(CV_FETCHED_SUCCESSFULLY)
     public ResponseEntity<ResCvDTO> getCV(@PathVariable String cvId) {
         ResCvDTO res = service.getById(cvId);
         return ResponseEntity.ok(res);
     }
 
+
     // ---------------- Read by User ----------------
-    @GetMapping("/candidate")
+    @GetMapping("/candidate/{username}")
     @ApiMessage(CV_DETAIL_FETCHED_SUCCESSFULLY)
-    public RestResponse<ResultPaginationDTO<ResCvDTO>> getCVsByUserWithFilter(
+    public RestResponse<ResultPaginationDTO<ResCvDTO>> getCVsByUsernameWithFilter(
+            @PathVariable String username,
             @RequestParam Map<String, Object> allParams
     ) {
-        // Bóc userId, page, size ra khỏi map
-        String userId = (String) allParams.remove("userId");
-        int page = allParams.containsKey("page") ? Integer.parseInt(allParams.remove("page").toString()) : 0;
-        int size = allParams.containsKey("size") ? Integer.parseInt(allParams.remove("size").toString()) : 10;
 
-        // Phần còn lại là filters
+
+        int page = allParams.containsKey("page")
+                ? Integer.parseInt(allParams.remove("page").toString())
+                : 0;
+
+
+        int size = allParams.containsKey("size")
+                ? Integer.parseInt(allParams.remove("size").toString())
+                : 10;
+
+
+        // Những param còn lại là filter
         Map<String, Object> filters = allParams;
 
-        ResultPaginationDTO<ResCvDTO> res = service.getByUserWithFilter(userId, filters, page, size);
+
+        ResultPaginationDTO<ResCvDTO> res =
+                service.getCVByBelongToWithFilter(username, filters, page, size);
+
+
         return RestResponse.success(res);
     }
 
+
     // ---------------- Update ----------------
-    @PutMapping("/candidate/{cvId}")
+    @PatchMapping("/candidate/{cvId}")
     @ApiMessage(CV_UPDATED_SUCCESSFULLY)
     public RestResponse<ResCvDTO> updateCV(
             @PathVariable String cvId,
@@ -83,6 +101,7 @@ public class CVController {
         return RestResponse.success(updated);
     }
 
+
     // ---------------- Delete (soft delete) ----------------
     @DeleteMapping("/candidate/{cvId}")
     @ApiMessage(CV_DELETED_SUCCESSFULLY)
@@ -91,10 +110,12 @@ public class CVController {
         return RestResponse.deleted();
     }
 
+
     // ---------------- DOWNLOAD ----------------
     @GetMapping("/candidate/download/{objectName}")
     public ResponseEntity<InputStreamResource> downloadCv(@PathVariable String objectName) throws Exception {
         InputStream inputStream = service.downloadCV(objectName);
+
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + objectName)
@@ -102,3 +123,4 @@ public class CVController {
                 .body(new InputStreamResource(inputStream));
     }
 }
+
