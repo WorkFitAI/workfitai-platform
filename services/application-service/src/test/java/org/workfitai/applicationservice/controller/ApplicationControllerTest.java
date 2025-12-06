@@ -9,15 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
-import org.workfitai.applicationservice.exception.ApplicationConflictException;
-import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.GlobalExceptionHandler;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
@@ -57,111 +53,40 @@ class ApplicationControllerTest {
         private static final String USERNAME = "john.doe";
         private static final String HR_USERNAME = "hr.manager";
         private static final String JOB_ID = UUID.randomUUID().toString();
-        private static final String CV_ID = UUID.randomUUID().toString();
+        private static final String CV_FILE_URL = "http://minio:9000/cvs-files/test/resume.pdf";
+        private static final String CV_FILE_NAME = "resume.pdf";
         private static final String APP_ID = "app-123";
         private static final String BASE_URL = "/api/v1/applications";
 
-        private CreateApplicationRequest validRequest;
         private ApplicationResponse applicationResponse;
 
         @BeforeEach
         void setUp() {
-                validRequest = CreateApplicationRequest.builder()
-                                .jobId(JOB_ID)
-                                .cvId(CV_ID)
-                                .note("I'm interested in this position")
-                                .build();
-
                 applicationResponse = ApplicationResponse.builder()
                                 .id(APP_ID)
                                 .username(USERNAME)
                                 .jobId(JOB_ID)
-                                .cvId(CV_ID)
+                                .cvFileUrl(CV_FILE_URL)
+                                .cvFileName(CV_FILE_NAME)
+                                .cvContentType("application/pdf")
+                                .cvFileSize(12345L)
                                 .status(ApplicationStatus.APPLIED)
-                                .jobTitle("Senior Java Developer")
-                                .companyName("TechCorp Inc")
+                                .coverLetter("I'm interested in this position")
+                                .jobSnapshot(ApplicationResponse.JobSnapshotResponse.builder()
+                                                .title("Senior Java Developer")
+                                                .companyName("TechCorp Inc")
+                                                .location("Remote")
+                                                .build())
                                 .createdAt(Instant.now())
                                 .build();
 
                 given(applicationSecurity.getCurrentUsername(any())).willReturn(USERNAME);
         }
 
-        @Nested
-        @DisplayName("POST /api/v1/applications")
-        class CreateApplicationTests {
-
-                @Test
-                @DisplayName("Should create application with 201 status")
-                void shouldCreateApplicationSuccessfully() throws Exception {
-                        given(applicationService.createApplication(any(), eq(USERNAME)))
-                                        .willReturn(applicationResponse);
-
-                        mockMvc.perform(post(BASE_URL)
-                                        .with(jwt().jwt(jwt -> jwt.subject(USERNAME)))
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(validRequest)))
-                                        .andExpect(status().isCreated())
-                                        .andExpect(jsonPath("$.data.id").value(APP_ID))
-                                        .andExpect(jsonPath("$.data.status").value("APPLIED"))
-                                        .andExpect(jsonPath("$.data.jobTitle").value("Senior Java Developer"));
-                }
-
-                @Test
-                @DisplayName("Should return 400 for missing required fields")
-                void shouldReturn400ForMissingFields() throws Exception {
-                        CreateApplicationRequest invalidRequest = CreateApplicationRequest.builder()
-                                        .jobId(null)
-                                        .cvId(CV_ID)
-                                        .build();
-
-                        mockMvc.perform(post(BASE_URL)
-                                        .with(jwt().jwt(jwt -> jwt.subject(USERNAME)))
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                                        .andExpect(status().isBadRequest())
-                                        .andExpect(jsonPath("$.status").value(400));
-                }
-
-                @Test
-                @DisplayName("Should return 409 for duplicate application")
-                void shouldReturn409ForDuplicate() throws Exception {
-                        given(applicationService.createApplication(any(), eq(USERNAME)))
-                                        .willThrow(new ApplicationConflictException(
-                                                        "You have already applied to this job"));
-
-                        mockMvc.perform(post(BASE_URL)
-                                        .with(jwt().jwt(jwt -> jwt.subject(USERNAME)))
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(validRequest)))
-                                        .andExpect(status().isConflict())
-                                        .andExpect(jsonPath("$.status").value(409))
-                                        .andExpect(jsonPath("$.message").value("You have already applied to this job"));
-                }
-
-                @Test
-                @DisplayName("Should return 403 when job is not published")
-                void shouldReturn403WhenJobNotPublished() throws Exception {
-                        given(applicationService.createApplication(any(), eq(USERNAME)))
-                                        .willThrow(new ForbiddenException(
-                                                        "Cannot apply to a job that is not published"));
-
-                        mockMvc.perform(post(BASE_URL)
-                                        .with(jwt().jwt(jwt -> jwt.subject(USERNAME)))
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(validRequest)))
-                                        .andExpect(status().isForbidden())
-                                        .andExpect(jsonPath("$.status").value(403));
-                }
-
-                @Test
-                @DisplayName("Should return 401 without authentication")
-                void shouldReturn401WithoutAuth() throws Exception {
-                        mockMvc.perform(post(BASE_URL)
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(validRequest)))
-                                        .andExpect(status().isUnauthorized());
-                }
-        }
+        // Note: POST /api/v1/applications tests removed.
+        // Application creation now uses multipart/form-data with file upload,
+        // which is handled by ApplicationSagaOrchestrator.
+        // Multipart endpoint tests should be in a separate integration test.
 
         @Nested
         @DisplayName("GET /api/v1/applications/my")

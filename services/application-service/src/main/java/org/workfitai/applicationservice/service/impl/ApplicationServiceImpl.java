@@ -8,19 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.constants.Messages;
-import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
-import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
-import org.workfitai.applicationservice.exception.ApplicationConflictException;
 import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
-import org.workfitai.applicationservice.messaging.ApplicationEventProducer;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
+import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
 import org.workfitai.applicationservice.service.IApplicationService;
 
@@ -28,9 +25,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Application service implementation using event-driven architecture.
- * Publishes events to Kafka for cross-service communication instead of
- * synchronous REST calls.
+ * Application service implementation.
+ * 
+ * Note: Application creation is handled by ApplicationSagaOrchestrator.
+ * This service handles read operations and status updates.
+ * 
+ * Uses EventPublisherPort (Hexagonal Architecture) for fire-and-forget event
+ * publishing.
  */
 @Service
 @RequiredArgsConstructor
@@ -39,32 +40,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
-    private final ApplicationEventProducer eventProducer;
-
-    @Override
-    @Transactional
-    public ApplicationResponse createApplication(CreateApplicationRequest request, String username) {
-        log.info(Messages.Log.CREATING_APPLICATION, username, request.getJobId());
-
-        // Check for duplicate application (only local validation needed)
-        if (applicationRepository.existsByUsernameAndJobId(username, request.getJobId())) {
-            log.warn(Messages.Log.DUPLICATE_APPLICATION, username, request.getJobId());
-            throw new ApplicationConflictException(Messages.Error.APPLICATION_ALREADY_EXISTS);
-        }
-
-        // Create application entity
-        Application application = applicationMapper.toEntity(request);
-        application.setUsername(username);
-        application.setStatus(ApplicationStatus.APPLIED);
-
-        // Save to database
-        Application savedApplication = applicationRepository.save(application);
-        log.info(Messages.Log.APPLICATION_CREATED, savedApplication.getId());
-
-        publishApplicationCreatedEvent(savedApplication);
-
-        return applicationMapper.toResponse(savedApplication);
-    }
+    private final EventPublisherPort eventPublisher;
 
     @Override
     public ApplicationResponse getApplicationById(String id) {
@@ -172,55 +148,48 @@ public class ApplicationServiceImpl implements IApplicationService {
         return applicationRepository.countByJobId(jobId);
     }
 
-    private void publishApplicationCreatedEvent(Application application) {
-        eventProducer.publishApplicationCreatedEvent(
-                ApplicationCreatedEvent.builder()
-                        .eventId(UUID.randomUUID().toString())
-                        .eventType(Messages.Kafka.EVENT_APPLICATION_CREATED)
-                        .timestamp(Instant.now())
-                        .data(ApplicationCreatedEvent.ApplicationData.builder()
-                                .applicationId(application.getId())
-                                .username(application.getUsername())
-                                .jobId(application.getJobId())
-                                .cvId(application.getCvId())
-                                .status(application.getStatus())
-                                .appliedAt(Instant.now())
-                                .build())
-                        .build());
-    }
-
     private void publishStatusChangedEvent(Application application, ApplicationStatus previousStatus,
             String updatedBy) {
-        eventProducer.publishStatusChangedEvent(
-                ApplicationStatusChangedEvent.builder()
-                        .eventId(UUID.randomUUID().toString())
-                        .eventType(Messages.Kafka.EVENT_STATUS_CHANGED)
-                        .timestamp(Instant.now())
-                        .data(ApplicationStatusChangedEvent.StatusChangeData.builder()
-                                .applicationId(application.getId())
-                                .username(application.getUsername())
-                                .jobId(application.getJobId())
-                                .previousStatus(previousStatus)
-                                .newStatus(application.getStatus())
-                                .changedBy(updatedBy)
-                                .changedAt(Instant.now())
-                                .build())
-                        .build());
+        try {
+            eventPublisher.publishStatusChanged(
+                    ApplicationStatusChangedEvent.builder()
+                            .eventId(UUID.randomUUID().toString())
+                            .eventType("STATUS_CHANGED")
+                            .timestamp(Instant.now())
+                            .data(ApplicationStatusChangedEvent.StatusChangeData.builder()
+                                    .applicationId(application.getId())
+                                    .username(application.getUsername())
+                                    .jobId(application.getJobId())
+                                    .previousStatus(previousStatus)
+                                    .newStatus(application.getStatus())
+                                    .changedBy(updatedBy)
+                                    .changedAt(Instant.now())
+                                    .build())
+                            .build());
+        } catch (Exception e) {
+            // Fire-and-forget: log but don't fail the operation
+            log.warn("Failed to publish status changed event (non-critical): {}", e.getMessage());
+        }
     }
 
     private void publishApplicationWithdrawnEvent(String applicationId, String username, String jobId) {
-        eventProducer.publishApplicationWithdrawnEvent(
-                ApplicationWithdrawnEvent.builder()
-                        .eventId(UUID.randomUUID().toString())
-                        .eventType(Messages.Kafka.EVENT_APPLICATION_WITHDRAWN)
-                        .timestamp(Instant.now())
-                        .data(ApplicationWithdrawnEvent.WithdrawalData.builder()
-                                .applicationId(applicationId)
-                                .username(username)
-                                .jobId(jobId)
-                                .withdrawnAt(Instant.now())
-                                .build())
-                        .build());
+        try {
+            eventPublisher.publishApplicationWithdrawn(
+                    ApplicationWithdrawnEvent.builder()
+                            .eventId(UUID.randomUUID().toString())
+                            .eventType("APPLICATION_WITHDRAWN")
+                            .timestamp(Instant.now())
+                            .data(ApplicationWithdrawnEvent.WithdrawalData.builder()
+                                    .applicationId(applicationId)
+                                    .username(username)
+                                    .jobId(jobId)
+                                    .withdrawnAt(Instant.now())
+                                    .build())
+                            .build());
+        } catch (Exception e) {
+            // Fire-and-forget: log but don't fail the operation
+            log.warn("Failed to publish application withdrawn event (non-critical): {}", e.getMessage());
+        }
     }
 
     private ResultPaginationDTO<ApplicationResponse> buildPaginatedResponse(Page<Application> page) {
@@ -238,5 +207,6 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     private void validateStatusTransition(ApplicationStatus currentStatus, ApplicationStatus newStatus) {
         log.debug("Status transition: {} → {}", currentStatus, newStatus);
+        // TODO: Add actual status transition validation logic
     }
 }

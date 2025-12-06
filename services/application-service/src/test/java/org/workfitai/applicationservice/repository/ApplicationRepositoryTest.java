@@ -15,7 +15,6 @@ import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,7 +52,8 @@ class ApplicationRepositoryTest {
     private static final String USER_2 = "jane.smith";
     private static final String JOB_1 = UUID.randomUUID().toString();
     private static final String JOB_2 = UUID.randomUUID().toString();
-    private static final String CV_1 = UUID.randomUUID().toString();
+    private static final String CV_FILE_URL = "http://minio:9000/cvs-files/test/resume.pdf";
+    private static final String CV_FILE_NAME = "resume.pdf";
 
     @BeforeEach
     void setUp() {
@@ -68,7 +68,7 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return true when application exists")
         void shouldReturnTrueWhenExists() {
             // Given
-            Application app = createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED);
+            Application app = createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED);
             applicationRepository.save(app);
 
             // When
@@ -92,7 +92,7 @@ class ApplicationRepositoryTest {
         @DisplayName("Should distinguish between different user/job combinations")
         void shouldDistinguishCombinations() {
             // Given: User1 applied to Job1
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
 
             // Then: Same user, different job = not exists
             assertThat(applicationRepository.existsByUsernameAndJobId(USER_1, JOB_2)).isFalse();
@@ -110,11 +110,11 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return paginated applications for user")
         void shouldReturnPaginatedApplications() {
             // Given: 3 applications for user1, 1 for user2
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.REVIEWING));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_2, ApplicationStatus.REVIEWING));
             applicationRepository
-                    .save(createApplication(USER_1, UUID.randomUUID().toString(), CV_1, ApplicationStatus.INTERVIEW));
-            applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.APPLIED));
+                    .save(createApplication(USER_1, UUID.randomUUID().toString(), ApplicationStatus.INTERVIEW));
+            applicationRepository.save(createApplication(USER_2, JOB_1, ApplicationStatus.APPLIED));
 
             // When
             Page<Application> page = applicationRepository.findByUsername(
@@ -146,8 +146,8 @@ class ApplicationRepositoryTest {
         @DisplayName("Should filter by status")
         void shouldFilterByStatus() {
             // Given
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.INTERVIEW));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_2, ApplicationStatus.INTERVIEW));
 
             // When
             Page<Application> applied = applicationRepository.findByUsernameAndStatus(
@@ -172,10 +172,10 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return all applicants for a job")
         void shouldReturnAllApplicants() {
             // Given: 2 applicants for job1
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.REVIEWING));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.APPLIED)); // different
-                                                                                                           // job
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_2, JOB_1, ApplicationStatus.REVIEWING));
+            applicationRepository.save(createApplication(USER_1, JOB_2, ApplicationStatus.APPLIED)); // different
+                                                                                                     // job
 
             // When
             Page<Application> page = applicationRepository.findByJobId(JOB_1, PageRequest.of(0, 10));
@@ -194,9 +194,9 @@ class ApplicationRepositoryTest {
         @DisplayName("Should count by username correctly")
         void shouldCountByUsername() {
             // Given
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_2, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_2, JOB_1, ApplicationStatus.APPLIED));
 
             // When/Then
             assertThat(applicationRepository.countByUsername(USER_1)).isEqualTo(2);
@@ -207,8 +207,8 @@ class ApplicationRepositoryTest {
         @DisplayName("Should count by job correctly")
         void shouldCountByJob() {
             // Given
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_2, JOB_1, ApplicationStatus.APPLIED));
 
             // When/Then
             assertThat(applicationRepository.countByJobId(JOB_1)).isEqualTo(2);
@@ -219,9 +219,9 @@ class ApplicationRepositoryTest {
         @DisplayName("Should count by status correctly")
         void shouldCountByStatus() {
             // Given
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_2, JOB_1, CV_1, ApplicationStatus.INTERVIEW));
+            applicationRepository.save(createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_1, JOB_2, ApplicationStatus.APPLIED));
+            applicationRepository.save(createApplication(USER_2, JOB_1, ApplicationStatus.INTERVIEW));
 
             // When/Then
             assertThat(applicationRepository.countByStatus(ApplicationStatus.APPLIED)).isEqualTo(2);
@@ -237,7 +237,7 @@ class ApplicationRepositoryTest {
         @DisplayName("Should return application when exists")
         void shouldReturnApplicationWhenExists() {
             // Given
-            Application app = createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED);
+            Application app = createApplication(USER_1, JOB_1, ApplicationStatus.APPLIED);
             applicationRepository.save(app);
 
             // When
@@ -260,36 +260,25 @@ class ApplicationRepositoryTest {
         }
     }
 
-    @Nested
-    @DisplayName("findByCvId()")
-    class FindByCvIdTests {
+    // Note: findByCvId tests removed as cvId field no longer exists.
+    // CV file info is now stored as cvFileUrl, cvFileName, cvContentType,
+    // cvFileSize.
 
-        @Test
-        @DisplayName("Should return all applications using a CV")
-        void shouldReturnApplicationsUsingCv() {
-            // Given
-            String cv2 = UUID.randomUUID().toString();
-            applicationRepository.save(createApplication(USER_1, JOB_1, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository.save(createApplication(USER_1, JOB_2, CV_1, ApplicationStatus.APPLIED));
-            applicationRepository
-                    .save(createApplication(USER_1, UUID.randomUUID().toString(), cv2, ApplicationStatus.APPLIED));
-
-            // When
-            List<Application> result = applicationRepository.findByCvId(CV_1);
-
-            // Then
-            assertThat(result).hasSize(2);
-            assertThat(result).allMatch(app -> app.getCvId().equals(CV_1));
-        }
-    }
-
-    private Application createApplication(String username, String jobId, String cvId, ApplicationStatus status) {
+    private Application createApplication(String username, String jobId, ApplicationStatus status) {
         return Application.builder()
                 .username(username)
                 .jobId(jobId)
-                .cvId(cvId)
+                .cvFileUrl(CV_FILE_URL)
+                .cvFileName(CV_FILE_NAME)
+                .cvContentType("application/pdf")
+                .cvFileSize(12345L)
                 .status(status)
-                .note("Test application")
+                .coverLetter("Test application")
+                .jobSnapshot(Application.JobSnapshot.builder()
+                        .title("Test Job")
+                        .companyName("Test Company")
+                        .location("Remote")
+                        .build())
                 .createdAt(Instant.now())
                 .build();
     }

@@ -1,5 +1,9 @@
 package org.workfitai.jobservice.config;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.Company;
@@ -11,11 +15,6 @@ import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class DatabaseSeeder implements CommandLineRunner {
@@ -61,14 +60,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         if (countSkills == 0) {
+            // Don't manually set UUID - let JPA generate it
             List<Skill> arr = List.of(
-                    Skill.builder().skillId(UUID.randomUUID()).name("Java").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("Spring Boot").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("MySQL").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("ReactJS").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("Docker").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name(".NET").build()
-            );
+                    new Skill("Java"),
+                    new Skill("Spring Boot"),
+                    new Skill("MySQL"),
+                    new Skill("ReactJS"),
+                    new Skill("Docker"),
+                    new Skill(".NET"));
             this.skillRepository.saveAll(arr);
         }
 
@@ -77,16 +76,17 @@ public class DatabaseSeeder implements CommandLineRunner {
             Company fpt = companyRepository.findById("C001_FPT").orElseThrow(IllegalStateException::new);
             Company kms = companyRepository.findById("C002_KMS").orElseThrow(IllegalStateException::new);
 
-            // Lấy vài skill từ DB
+            // Re-fetch skills from DB to get managed entities with correct IDs
             List<Skill> allSkills = skillRepository.findAll();
 
             if (allSkills.isEmpty()) {
-                new Throwable().printStackTrace();
+                throw new IllegalStateException("Skills not found in database");
             }
 
             Job job1 = Job.builder()
                     .title("Java Backend Developer")
-                    .description("Tham gia phát triển các hệ thống tuyển dụng quy mô lớn, sử dụng Spring Boot và Microservices.")
+                    .description(
+                            "Tham gia phát triển các hệ thống tuyển dụng quy mô lớn, sử dụng Spring Boot và Microservices.")
                     .employmentType(EmploymentType.FULL_TIME)
                     .experienceLevel(ExperienceLevel.MID)
                     .salaryMin(new BigDecimal("1500"))
@@ -103,7 +103,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             Job job2 = Job.builder()
                     .title("Frontend ReactJS Developer")
-                    .description("Phát triển giao diện web tương tác cao cho ứng dụng tuyển dụng, sử dụng ReactJS và RESTful API.")
+                    .description(
+                            "Phát triển giao diện web tương tác cao cho ứng dụng tuyển dụng, sử dụng ReactJS và RESTful API.")
                     .employmentType(EmploymentType.FULL_TIME)
                     .experienceLevel(ExperienceLevel.JUNIOR)
                     .salaryMin(new BigDecimal("1000"))
@@ -112,7 +113,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .location("TP. Hồ Chí Minh, Việt Nam")
                     .quantity(2)
                     .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * 45)) // +45 ngày
-                    .status(JobStatus.DRAFT)
+                    .status(JobStatus.PUBLISHED)
                     .educationLevel("Cao đẳng/Đại học CNTT")
                     .company(kms)
                     .skills(allSkills.subList(2, 5)) // ví dụ gán 3 skill khác
@@ -120,7 +121,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             jobRepository.saveAll(List.of(job1, job2));
         }
-
 
         if (countCompanies > 0 && countJobs > 0 && countSkills > 0) {
             System.out.println(">>> SKIP INIT SAMPLE DATA ~ ALREADY HAVE DATA...");

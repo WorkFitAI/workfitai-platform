@@ -1,4 +1,41 @@
-# WorkFitAI Platform - Setup Guide
+# WorkFitAI Platform
+
+## 📋 Overview
+
+WorkFitAI is an AI-powered recruitment and job matching platform built on a modern microservices architecture using Spring Boot and Spring Cloud. The platform connects job seekers with employers through intelligent matching, streamlined application workflows, and comprehensive candidate management.
+
+**Technology Stack**: Java 17 | Spring Boot 3.5.4 | Spring Cloud 2025.0.0 | PostgreSQL | MongoDB | Redis | Kafka | Consul | MinIO
+
+---
+
+## 📚 Documentation
+
+- **[Project Overview & PDR](docs/project-overview-pdr.md)** - Product vision, features, and requirements
+- **[System Architecture](docs/system-architecture.md)** - Microservices design, data flows, and infrastructure
+- **[Codebase Summary](docs/codebase-summary.md)** - Service structure and API endpoints
+- **[Code Standards](docs/code-standards.md)** - Java/Spring Boot coding conventions and best practices
+
+---
+
+## 🏗️ Architecture
+
+### Microservices
+- **auth-service** (9080) - Authentication & JWT token management
+- **user-service** (9081) - User profile management
+- **job-service** (9082) - Job posting & company management
+- **application-service** (9084) - Job applications with Saga pattern
+- **cv-service** (9083) - CV storage & management
+- **api-gateway** (9085) - Routing & load balancing
+- **monitoring-service** (9086) - Configuration & observability
+
+### Infrastructure
+- **Consul** (8500) - Service discovery
+- **Kafka** (9092) - Event streaming
+- **Vault** (8200) - Secrets management
+- **MinIO** (9000) - Object storage for CVs
+- **Prometheus** (9090) + **Grafana** (3001) - Monitoring
+
+---
 
 ## 🚀 Quick Start
 
@@ -162,6 +199,56 @@ export VAULT_TOKEN=dev-token
 
 - **Vault UI**: http://localhost:8200 (token: `dev-token`)
 - **Kafka UI**: http://localhost:8080
-- **Consul UI**: http://localhost:8500  
+- **Consul UI**: http://localhost:8500
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3001
+- **MinIO Console**: http://localhost:9001 (user: `minioadmin` / pass: `minioadmin`)
+
+---
+
+## 🎯 Key Features
+
+- **Hexagonal Architecture** in application-service for clean separation of concerns
+- **Saga Pattern** for distributed transactions in job application workflow
+- **Event-Driven** communication via Kafka for decoupled microservices
+- **JWT Authentication** with RSA-2048 signatures for secure inter-service communication
+- **Service Discovery** with Consul for dynamic service registration
+- **Secrets Management** with Vault for centralized configuration
+- **CV File Storage** with MinIO (S3-compatible object storage)
+- **Monitoring & Observability** with Prometheus and Grafana
+
+---
+
+## 🛠️ Tech Highlights
+
+- **Spring Boot 3.5.4** - Latest enterprise Java framework
+- **Spring Cloud 2025.0.0** - Cloud-native patterns
+- **Hexagonal Architecture** - Clean architecture in application-service
+- **MapStruct** - Type-safe DTO mapping
+- **OpenAPI/Swagger** - API documentation
+- **Testcontainers** - Integration testing (planned)
+
+---
+
+## 📖 Learn More
+
+Visit the [docs](docs/) directory for comprehensive documentation:
+- Architecture diagrams and data flows
+- API endpoint specifications
+- Coding standards and conventions
+- Development workflows and best practices
+
+---
+
+## 🤝 Contributing
+
+1. Follow the [Code Standards](docs/code-standards.md)
+2. Use [Conventional Commits](docs/code-standards.md#git--commit-standards)
+3. Write tests for new features (>80% coverage)
+4. Update documentation for significant changes
+
+---
+
+**Version**: 0.0.1-SNAPSHOT
+**License**: Proprietary
+**Last Updated**: 2025-12-06

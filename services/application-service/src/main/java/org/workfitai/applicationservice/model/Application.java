@@ -25,13 +25,14 @@ import lombok.NoArgsConstructor;
 /**
  * MongoDB document representing a job application.
  * 
- * An application links a User (candidate) to a Job with a specific CV.
+ * An application links a User (candidate) to a Job with an uploaded CV file.
+ * Job info is snapshotted at application time to preserve historical context.
  * 
  * Business constraints:
  * - One active application per (username, jobId) pair (enforced by unique
  * compound index)
- * - username must match the CV owner (validated in service layer)
- * - Job must be in PUBLISHED status (validated via Feign call)
+ * - CV file is stored in MinIO, URL stored here
+ * - Job must be in PUBLISHED status (validated via Saga validation step)
  * 
  * Indexes:
  * - Compound unique index on (username, jobId) to prevent duplicate
@@ -75,13 +76,43 @@ public class Application {
     @Indexed
     private String jobId;
 
+    // ==================== Job Snapshot (captured at application time)
+    // ====================
+
     /**
-     * ID of the CV submitted with this application.
-     * Must belong to the username (validated in service layer).
+     * Snapshot of job info at time of application.
+     * Preserved even if job is later modified or deleted.
      */
-    @NotBlank(message = Messages.Validation.CV_ID_REQUIRED)
-    @Size(max = 100, message = "CV ID cannot exceed 100 characters")
-    private String cvId;
+    private JobSnapshot jobSnapshot;
+
+    // ==================== CV File Info (stored in MinIO) ====================
+
+    /**
+     * URL to the CV file in MinIO storage.
+     * Format: http://minio:9000/cvs-files/{username}/{applicationId}/{filename}
+     */
+    @NotBlank(message = "CV file URL is required")
+    private String cvFileUrl;
+
+    /**
+     * Original filename of the uploaded CV.
+     * Preserved for display and download purposes.
+     */
+    @NotBlank(message = "CV filename is required")
+    @Size(max = 255, message = "CV filename cannot exceed 255 characters")
+    private String cvFileName;
+
+    /**
+     * Content type of the CV file (e.g., "application/pdf").
+     */
+    private String cvContentType;
+
+    /**
+     * Size of the CV file in bytes.
+     */
+    private Long cvFileSize;
+
+    // ==================== Application Content ====================
 
     /**
      * Current status of the application in the hiring pipeline.
@@ -94,13 +125,13 @@ public class Application {
     private ApplicationStatus status = ApplicationStatus.APPLIED;
 
     /**
-     * Optional note or cover letter from the applicant.
-     * Can be used for additional context or motivation.
+     * Cover letter from the applicant.
+     * Explains motivation and fit for the position.
      */
-    @Size(max = 2000, message = Messages.Validation.NOTE_MAX_LENGTH)
-    private String note;
+    @Size(max = 5000, message = "Cover letter cannot exceed 5000 characters")
+    private String coverLetter;
 
-    // Audit fields (populated by Spring Data MongoDB auditing)
+    // ==================== Audit Fields ====================
 
     @CreatedDate
     private Instant createdAt;
@@ -117,4 +148,23 @@ public class Application {
      */
     @LastModifiedBy
     private String updatedBy;
+
+    // ==================== Embedded Document for Job Snapshot ====================
+
+    /**
+     * Embedded document containing job information at application time.
+     * This is a point-in-time snapshot - the actual job may have changed.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class JobSnapshot {
+        private String title;
+        private String companyName;
+        private String location;
+        private String employmentType;
+        private String experienceLevel;
+        private Instant snapshotAt;
+    }
 }

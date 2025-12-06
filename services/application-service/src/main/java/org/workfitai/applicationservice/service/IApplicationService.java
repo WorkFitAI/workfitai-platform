@@ -1,17 +1,18 @@
 package org.workfitai.applicationservice.service;
 
 import org.springframework.data.domain.Pageable;
-import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 
 /**
  * Service interface for Application business operations.
+ * 
+ * Note: Application creation is handled by ApplicationSagaOrchestrator
+ * which orchestrates the multi-step workflow (validation → upload → save →
+ * events).
  */
 public interface IApplicationService {
-
-        ApplicationResponse createApplication(CreateApplicationRequest request, String username);
 
         ApplicationResponse getApplicationById(String id);
 

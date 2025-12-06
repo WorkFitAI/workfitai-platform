@@ -1,9 +1,11 @@
 package org.workfitai.applicationservice.dto.request;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.applicationservice.constants.Messages;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,30 +13,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for creating a new job application.
+ * Request DTO for creating a new job application with CV file upload.
+ * 
+ * This request uses multipart/form-data to accept:
+ * - jobId: ID of the job to apply for
+ * - cvPdfFile: The CV document (PDF only, max 5MB)
+ * - coverLetter: Optional cover letter text
  * 
  * Validation rules:
- * - jobId and cvId are required (NotBlank)
- * - note is optional but limited to 2000 characters
+ * - jobId is required (NotBlank)
+ * - cvPdfFile is required (NotNull), must be PDF, max 5MB
+ * - coverLetter is optional but limited to 5000 characters
  * - username is extracted from JWT sub claim (not in request body)
- * - jobId must reference a PUBLISHED job (validated in service via Feign)
- * - cvId must belong to username (validated in service via Feign)
  * 
- * Example request body:
- * 
- * <pre>
- * {
- *   "jobId": "job-456",
- *   "cvId": "cv-789",
- *   "note": "I'm excited about this opportunity..."
- * }
- * </pre>
+ * The Saga orchestrator will:
+ * 1. Validate job exists via HTTP call to job-service
+ * 2. Upload CV to MinIO
+ * 3. Save application with job snapshot
+ * 4. Publish Kafka events
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request payload for submitting a job application")
+@Schema(description = "Request payload for submitting a job application with CV upload")
 public class CreateApplicationRequest {
 
     /**
@@ -47,19 +49,19 @@ public class CreateApplicationRequest {
     private String jobId;
 
     /**
-     * ID of the CV to submit with this application.
-     * The CV must belong to the authenticated user.
+     * CV file to upload (PDF only).
+     * Max file size: 5MB
+     * Accepted types: application/pdf
      */
-    @NotBlank(message = Messages.Validation.CV_ID_REQUIRED)
-    @Size(max = 100, message = "CV ID cannot exceed 100 characters")
-    @Schema(description = "ID of the CV to submit (must belong to the applicant)", example = "cv-abc-123", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String cvId;
+    @NotNull(message = "CV file is required")
+    @Schema(description = "CV document file (PDF only, max 5MB)", type = "string", format = "binary", requiredMode = Schema.RequiredMode.REQUIRED)
+    private MultipartFile cvPdfFile;
 
     /**
-     * Optional cover letter or additional notes.
-     * Can be used to provide context or express motivation.
+     * Cover letter explaining motivation and fit for the position.
+     * Optional but recommended for better application quality.
      */
-    @Size(max = 2000, message = Messages.Validation.NOTE_MAX_LENGTH)
-    @Schema(description = "Optional cover letter or additional notes (max 2000 characters)", example = "I am excited about this opportunity because...", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    private String note;
+    @Size(max = 5000, message = "Cover letter cannot exceed 5000 characters")
+    @Schema(description = "Cover letter explaining your motivation (max 5000 characters)", example = "I am excited about this opportunity because...", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String coverLetter;
 }

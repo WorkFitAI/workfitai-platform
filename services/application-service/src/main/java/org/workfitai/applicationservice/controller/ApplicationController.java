@@ -6,16 +6,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.constants.Messages;
@@ -25,6 +25,7 @@ import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
+import org.workfitai.applicationservice.saga.ApplicationSagaOrchestrator;
 import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.IApplicationService;
 
@@ -42,7 +43,12 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * REST Controller for job application operations.
- * All state changes publish events to Kafka for cross-service communication.
+ * 
+ * Uses Saga Orchestrator pattern for application creation:
+ * 1. Validate (duplicate check, file validation, job exists)
+ * 2. Upload CV to MinIO
+ * 3. Save application with job snapshot
+ * 4. Publish Kafka events (fire-and-forget)
  */
 @RestController
 @RequiredArgsConstructor
@@ -52,9 +58,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ApplicationController {
 
     private final IApplicationService applicationService;
+    private final ApplicationSagaOrchestrator sagaOrchestrator;
     private final ApplicationSecurity applicationSecurity;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('application:create')")
     @Operation(summary = Messages.Api.CREATE_SUMMARY, description = Messages.Api.CREATE_DESCRIPTION)
     @ApiResponses({
@@ -63,13 +70,14 @@ public class ApplicationController {
             @ApiResponse(responseCode = "409", description = Messages.Api.CREATE_409, content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<RestResponse<ApplicationResponse>> createApplication(
-            @Valid @RequestBody CreateApplicationRequest request,
+            @Valid @ModelAttribute CreateApplicationRequest request,
             Authentication authentication) {
 
         String username = applicationSecurity.getCurrentUsername(authentication);
         log.info(Messages.Log.CREATING_APPLICATION, username, request.getJobId());
 
-        ApplicationResponse response = applicationService.createApplication(request, username);
+        // Use Saga Orchestrator for the multi-step workflow
+        ApplicationResponse response = sagaOrchestrator.createApplication(request, username);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

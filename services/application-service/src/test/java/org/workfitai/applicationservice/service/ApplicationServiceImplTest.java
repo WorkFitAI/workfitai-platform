@@ -14,19 +14,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
-import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
-import org.workfitai.applicationservice.exception.ApplicationConflictException;
 import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
-import org.workfitai.applicationservice.messaging.ApplicationEventProducer;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
+import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
 import org.workfitai.applicationservice.service.impl.ApplicationServiceImpl;
 
@@ -50,13 +47,10 @@ class ApplicationServiceImplTest {
     private ApplicationMapper applicationMapper;
 
     @Mock
-    private ApplicationEventProducer eventProducer;
+    private EventPublisherPort eventPublisher;
 
     @InjectMocks
     private ApplicationServiceImpl applicationService;
-
-    @Captor
-    private ArgumentCaptor<ApplicationCreatedEvent> createdEventCaptor;
 
     @Captor
     private ArgumentCaptor<ApplicationStatusChangedEvent> statusEventCaptor;
@@ -66,28 +60,30 @@ class ApplicationServiceImplTest {
 
     private static final String USERNAME = "john.doe";
     private static final String JOB_ID = UUID.randomUUID().toString();
-    private static final String CV_ID = UUID.randomUUID().toString();
+    private static final String CV_FILE_URL = "http://minio:9000/cvs-files/test/resume.pdf";
+    private static final String CV_FILE_NAME = "resume.pdf";
     private static final String APP_ID = "app-123";
 
-    private CreateApplicationRequest validRequest;
     private Application savedApplication;
     private ApplicationResponse applicationResponse;
 
     @BeforeEach
     void setUp() {
-        validRequest = CreateApplicationRequest.builder()
-                .jobId(JOB_ID)
-                .cvId(CV_ID)
-                .note("I'm very interested in this position")
-                .build();
-
         savedApplication = Application.builder()
                 .id(APP_ID)
                 .username(USERNAME)
                 .jobId(JOB_ID)
-                .cvId(CV_ID)
+                .cvFileUrl(CV_FILE_URL)
+                .cvFileName(CV_FILE_NAME)
+                .cvContentType("application/pdf")
+                .cvFileSize(12345L)
                 .status(ApplicationStatus.APPLIED)
-                .note("I'm very interested in this position")
+                .coverLetter("I'm very interested in this position")
+                .jobSnapshot(Application.JobSnapshot.builder()
+                        .title("Senior Java Developer")
+                        .companyName("TechCorp Inc")
+                        .location("Remote")
+                        .build())
                 .createdAt(Instant.now())
                 .build();
 
@@ -95,55 +91,22 @@ class ApplicationServiceImplTest {
                 .id(APP_ID)
                 .username(USERNAME)
                 .jobId(JOB_ID)
-                .cvId(CV_ID)
+                .cvFileUrl(CV_FILE_URL)
+                .cvFileName(CV_FILE_NAME)
+                .cvContentType("application/pdf")
+                .cvFileSize(12345L)
                 .status(ApplicationStatus.APPLIED)
-                .note("I'm very interested in this position")
+                .coverLetter("I'm very interested in this position")
+                .jobSnapshot(ApplicationResponse.JobSnapshotResponse.builder()
+                        .title("Senior Java Developer")
+                        .companyName("TechCorp Inc")
+                        .location("Remote")
+                        .build())
                 .build();
     }
 
-    @Nested
-    @DisplayName("createApplication()")
-    class CreateApplicationTests {
-
-        @Test
-        @DisplayName("Should create application successfully and publish Kafka event")
-        void shouldCreateApplicationSuccessfully() {
-            given(applicationRepository.existsByUsernameAndJobId(USERNAME, JOB_ID)).willReturn(false);
-            given(applicationMapper.toEntity(validRequest)).willReturn(new Application());
-            given(applicationRepository.save(any(Application.class))).willReturn(savedApplication);
-            given(applicationMapper.toResponse(savedApplication)).willReturn(applicationResponse);
-
-            ApplicationResponse result = applicationService.createApplication(validRequest, USERNAME);
-
-            assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(APP_ID);
-            assertThat(result.getStatus()).isEqualTo(ApplicationStatus.APPLIED);
-
-            then(applicationRepository).should().existsByUsernameAndJobId(USERNAME, JOB_ID);
-            then(applicationRepository).should().save(any(Application.class));
-
-            then(eventProducer).should().publishApplicationCreatedEvent(createdEventCaptor.capture());
-            ApplicationCreatedEvent event = createdEventCaptor.getValue();
-            assertThat(event.getEventType()).isEqualTo("APPLICATION_CREATED");
-            assertThat(event.getData().getApplicationId()).isEqualTo(APP_ID);
-            assertThat(event.getData().getUsername()).isEqualTo(USERNAME);
-            assertThat(event.getData().getJobId()).isEqualTo(JOB_ID);
-            assertThat(event.getData().getCvId()).isEqualTo(CV_ID);
-        }
-
-        @Test
-        @DisplayName("Should throw ApplicationConflictException when user already applied")
-        void shouldThrowConflictWhenAlreadyApplied() {
-            given(applicationRepository.existsByUsernameAndJobId(USERNAME, JOB_ID)).willReturn(true);
-
-            assertThatThrownBy(() -> applicationService.createApplication(validRequest, USERNAME))
-                    .isInstanceOf(ApplicationConflictException.class)
-                    .hasMessageContaining("already applied");
-
-            then(applicationRepository).should(never()).save(any());
-            then(eventProducer).should(never()).publishApplicationCreatedEvent(any());
-        }
-    }
+    // Note: createApplication() is now handled by ApplicationSagaOrchestrator
+    // Tests for application creation should be in ApplicationSagaOrchestratorTest
 
     @Nested
     @DisplayName("getApplicationById()")
@@ -227,7 +190,7 @@ class ApplicationServiceImplTest {
             assertThat(result).isNotNull();
             then(applicationRepository).should().save(any(Application.class));
 
-            then(eventProducer).should().publishStatusChangedEvent(statusEventCaptor.capture());
+            then(eventPublisher).should().publishStatusChanged(statusEventCaptor.capture());
             ApplicationStatusChangedEvent event = statusEventCaptor.getValue();
             assertThat(event.getEventType()).isEqualTo("STATUS_CHANGED");
             assertThat(event.getData().getApplicationId()).isEqualTo(APP_ID);
@@ -243,7 +206,7 @@ class ApplicationServiceImplTest {
             assertThatThrownBy(() -> applicationService.updateStatus(APP_ID, ApplicationStatus.REVIEWING, "hr"))
                     .isInstanceOf(NotFoundException.class);
 
-            then(eventProducer).should(never()).publishStatusChangedEvent(any());
+            then(eventPublisher).should(never()).publishStatusChanged(any());
         }
     }
 
@@ -260,7 +223,7 @@ class ApplicationServiceImplTest {
 
             then(applicationRepository).should().delete(savedApplication);
 
-            then(eventProducer).should().publishApplicationWithdrawnEvent(withdrawnEventCaptor.capture());
+            then(eventPublisher).should().publishApplicationWithdrawn(withdrawnEventCaptor.capture());
             ApplicationWithdrawnEvent event = withdrawnEventCaptor.getValue();
             assertThat(event.getEventType()).isEqualTo("APPLICATION_WITHDRAWN");
             assertThat(event.getData().getApplicationId()).isEqualTo(APP_ID);
@@ -277,7 +240,7 @@ class ApplicationServiceImplTest {
                     .isInstanceOf(ForbiddenException.class);
 
             then(applicationRepository).should(never()).delete(any());
-            then(eventProducer).should(never()).publishApplicationWithdrawnEvent(any());
+            then(eventPublisher).should(never()).publishApplicationWithdrawn(any());
         }
 
         @Test
@@ -288,7 +251,7 @@ class ApplicationServiceImplTest {
             assertThatThrownBy(() -> applicationService.withdrawApplication(APP_ID, USERNAME))
                     .isInstanceOf(NotFoundException.class);
 
-            then(eventProducer).should(never()).publishApplicationWithdrawnEvent(any());
+            then(eventPublisher).should(never()).publishApplicationWithdrawn(any());
         }
     }
 

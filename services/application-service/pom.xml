@@ -99,6 +99,14 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- ==================== MinIO - Object Storage ==================== -->
+        <!-- For storing CV PDF files -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.13</version>
+        </dependency>
+
         <!-- ==================== MapStruct - DTO/Entity Mapping ==================== -->
         <!-- Compile-time code generation for type-safe mapping -->
         <dependency>

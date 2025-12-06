@@ -271,6 +271,7 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       - consul
+      - auth-service
       - cv-mongo
       - cv-redis
     networks: [workfitai-net]
@@ -290,6 +291,8 @@ services:
       consul:
         condition: service_started
       application-mongo:
+        condition: service_healthy
+      auth-service:
         condition: service_healthy
     networks: [workfitai-net]
     profiles: ["services", "full"]

@@ -64,9 +64,8 @@ public class ApplicationCreatedEvent {
         @JsonProperty("jobId")
         private String jobId;
 
-        @NotBlank
-        @JsonProperty("cvId")
-        private String cvId;
+        @JsonProperty("cvFileUrl")
+        private String cvFileUrl;
 
         @NotNull
         @JsonProperty("status")
