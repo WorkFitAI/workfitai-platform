@@ -1,0 +1,381 @@
+{
+	"info": {
+		"_postman_id": "83f3b504-1ffe-4c0c-a801-0fe0e71d4a59",
+		"name": "3. WorkFitAI - Job Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38440076",
+		"_collection_link": "https://workfitai.postman.co/workspace/WorkFit-AI~f1b6c347-e526-40d0-9b57-4ca5401dba54/collection/38440076-83f3b504-1ffe-4c0c-a801-0fe0e71d4a59?action=share&source=collection_link&creator=38440076"
+	},
+	"item": [
+		{
+			"name": "Public",
+			"item": [
+				{
+					"name": "get a job",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/job/public/jobs/{{jobId}}",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"jobs",
+								"{{jobId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete a job",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "${{vault:baseURL}}}/job/hr/${{jobId}}",
+							"host": [
+								"${{vault:baseURL}}}"
+							],
+							"path": [
+								"job",
+								"hr",
+								"${{jobId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get jobs",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/job/public/jobs?page=0&size=12&filter=experienceLevel : 'MID' or experienceLevel : 'SENIOR' and salaryMin >: 800&sort=createdDate,desc",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "12"
+								},
+								{
+									"key": "filter",
+									"value": "experienceLevel : 'MID' or experienceLevel : 'SENIOR' and salaryMin >: 800"
+								},
+								{
+									"key": "sort",
+									"value": "createdDate,desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{vault:baseURL}}/job/hr/{{obId}}/PUBLISHED",
+							"host": [
+								"{{vault:baseURL}}"
+							],
+							"path": [
+								"job",
+								"hr",
+								"{{obId}}",
+								"PUBLISHED"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "get companies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/job/public/companies",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"companies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create companies",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"companyNo\": \"C001\",\r\n    \"name\": \"TechCorp\",\r\n    \"logoUrl\": \"https://logo.com/logo.png\",\r\n    \"websiteUrl\": \"https://techcorp.com\",\r\n    \"description\": \"Công ty công nghệ\",\r\n    \"address\": \"123 Nguyen Trai, HCM\",\r\n    \"size\": \"50-100\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/public/companies",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"companies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update company",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"companyNo\": \"C001\",\r\n    \"name\": \"TechCorp\",\r\n    \"size\": \"100-200\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/public/companies",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"companies"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SKill",
+			"item": [
+				{
+					"name": "get skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/job/public/skills",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create skill",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Golang\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/public/skills",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update skills",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"skillId\": \"014f8d5a-a45f-4b29-b965-533f17ca9991\",\r\n    \"name\": \"Go\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/public/skills",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"public",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HR",
+			"item": [
+				{
+					"name": "get a job",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{gateway_url}}/job/hr/jobs/{{jobId}}",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"hr",
+								"jobs",
+								"{{jobId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update a job",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"jobId\": \"eb2e67b7-c878-4e56-ac77-15c605886ec0\",\r\n  \"title\": \"Java Backend Developer\",\r\n  \"description\": \"We are looking for a Java Backend Developer with strong experience in Spring Boot and Microservices.\",\r\n  \"employmentType\": \"FULL_TIME\",\r\n  \"experienceLevel\": \"MID\",\r\n  \"salaryMin\": 1500.00,\r\n  \"salaryMax\": 3000.00,\r\n  \"currency\": \"VND\",\r\n  \"location\": \"Ho Chi Minh City\",\r\n  \"quantity\": 3,\r\n  \"expiresAt\": \"2025-12-31T23:59:59Z\",\r\n  \"status\": \"PUBLISHED\",\r\n  \"educationLevel\": \"Bachelor Degree in Computer Science\",\r\n  \"companyNo\": \"C002_KMS\", \r\n  \"skillIds\": [\r\n    \"5ca251bc-ca89-4ac8-a67a-2509fcb5fe74\",\r\n    \"a98c4869-5d71-4835-afcf-1a5e8e297c2d\"\r\n  ]\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/hr/jobs",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"hr",
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create new job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Java Backend Developer\",\r\n  \"description\": \"We are looking for a Java Backend Developer with strong experience in Spring Boot and Microservices.\",\r\n  \"employmentType\": \"FULL_TIME\",\r\n  \"experienceLevel\": \"FRESHER\",\r\n  \"salaryMin\": 500.00,\r\n  \"salaryMax\": 800.00,\r\n  \"currency\": \"USD\",\r\n  \"location\": \"Ha Noi City\",\r\n  \"quantity\": 4,\r\n  \"expiresAt\": \"2025-12-31T23:59:59Z\",\r\n  \"status\": \"PUBLISHED\",\r\n  \"educationLevel\": \"Bachelor Degree in Computer Science\",\r\n  \"companyNo\": \"C002_KMS\", \r\n  \"skillIds\": [\r\n    \"5ca251bc-ca89-4ac8-a67a-2509fcb5fe74\",\r\n    \"a98c4869-5d71-4835-afcf-1a5e8e297c2d\"\r\n  ]\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway_url}}/job/hr/jobs",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"job",
+								"hr",
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "gateway_url",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

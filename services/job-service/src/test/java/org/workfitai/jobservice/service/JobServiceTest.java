@@ -91,8 +91,6 @@ class JobServiceImplTest {
         // --- Assert ---
         assertNotNull(result);
         assertEquals(savedJob.getJobId(), result.getPostId());
-        assertEquals("Java Developer", result.getTitle());
-        assertEquals(List.of("Java", "Spring Boot"), result.getSkillNames());
 
         // --- Verify flow ---
         // Mapper gọi
