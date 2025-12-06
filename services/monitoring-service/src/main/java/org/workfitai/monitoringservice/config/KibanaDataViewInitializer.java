@@ -61,13 +61,13 @@ public class KibanaDataViewInitializer {
                 return;
             }
 
-            // Check if data view already exists
+            // Delete existing data view to recreate with new format
             if (dataViewExists(kibanaUrl)) {
-                log.info("✅ Kibana Data View 'workfitai-logs' already exists");
-                return;
+                log.info("🔄 Deleting existing Data View to apply new formatters...");
+                deleteDataView(kibanaUrl);
             }
 
-            // Create data view
+            // Create data view with color formatters
             createDataView(kibanaUrl);
 
         } catch (Exception e) {
@@ -108,9 +108,86 @@ public class KibanaDataViewInitializer {
         }
     }
 
+    private void deleteDataView(String kibanaUrl) {
+        try {
+            HttpHeaders headers = createHeaders();
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            restTemplate.exchange(
+                    kibanaUrl + "/api/data_views/data_view/workfitai-logs",
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class);
+            log.info("🗑️ Deleted existing Data View 'workfitai-logs'");
+
+            // Also delete saved search if exists
+            try {
+                restTemplate.exchange(
+                        kibanaUrl + "/api/saved_objects/search/workfitai-logs-search",
+                        HttpMethod.DELETE,
+                        entity,
+                        String.class);
+            } catch (Exception ignored) {
+            }
+
+        } catch (Exception e) {
+            log.debug("Could not delete data view: {}", e.getMessage());
+        }
+    }
+
     private void createDataView(String kibanaUrl) {
         try {
             HttpHeaders headers = createHeaders();
+
+            // Create Data View with field formatters for colored display
+            // Using field names that match Fluent Bit output
+            String fieldFormatMap = """
+                    {
+                        "log_level": {
+                            "id": "color",
+                            "params": {
+                                "fieldType": "string",
+                                "colors": [
+                                    {"range": "-Infinity:Infinity", "regex": "ERROR", "text": "#ffffff", "background": "#bd271e"},
+                                    {"range": "-Infinity:Infinity", "regex": "WARN", "text": "#000000", "background": "#f5a700"},
+                                    {"range": "-Infinity:Infinity", "regex": "INFO", "text": "#ffffff", "background": "#006bb4"},
+                                    {"range": "-Infinity:Infinity", "regex": "DEBUG", "text": "#ffffff", "background": "#017d73"},
+                                    {"range": "-Infinity:Infinity", "regex": "TRACE", "text": "#ffffff", "background": "#69707d"}
+                                ]
+                            }
+                        },
+                        "service_name": {
+                            "id": "color",
+                            "params": {
+                                "fieldType": "string",
+                                "colors": [
+                                    {"range": "-Infinity:Infinity", "regex": "auth-service", "text": "#ffffff", "background": "#6092c0"},
+                                    {"range": "-Infinity:Infinity", "regex": "user-service", "text": "#ffffff", "background": "#d36086"},
+                                    {"range": "-Infinity:Infinity", "regex": "job-service", "text": "#ffffff", "background": "#9170b8"},
+                                    {"range": "-Infinity:Infinity", "regex": "notification-service", "text": "#ffffff", "background": "#ca8eae"},
+                                    {"range": "-Infinity:Infinity", "regex": "cv-service", "text": "#ffffff", "background": "#d6bf57"},
+                                    {"range": "-Infinity:Infinity", "regex": "application-service", "text": "#ffffff", "background": "#54b399"},
+                                    {"range": "-Infinity:Infinity", "regex": "api-gateway", "text": "#ffffff", "background": "#b9a888"},
+                                    {"range": "-Infinity:Infinity", "regex": "monitoring-service", "text": "#ffffff", "background": "#da8b45"}
+                                ]
+                            }
+                        },
+                        "http_method": {
+                            "id": "color",
+                            "params": {
+                                "fieldType": "string",
+                                "colors": [
+                                    {"range": "-Infinity:Infinity", "regex": "GET", "text": "#ffffff", "background": "#006bb4"},
+                                    {"range": "-Infinity:Infinity", "regex": "POST", "text": "#ffffff", "background": "#017d73"},
+                                    {"range": "-Infinity:Infinity", "regex": "PUT", "text": "#000000", "background": "#f5a700"},
+                                    {"range": "-Infinity:Infinity", "regex": "DELETE", "text": "#ffffff", "background": "#bd271e"},
+                                    {"range": "-Infinity:Infinity", "regex": "PATCH", "text": "#ffffff", "background": "#9170b8"}
+                                ]
+                            }
+                        }
+                    }
+                    """
+                    .replace("\n", "").replace("    ", "");
 
             String requestBody = """
                     {
@@ -119,10 +196,11 @@ public class KibanaDataViewInitializer {
                             "title": "%s-*",
                             "name": "WorkFitAI Logs",
                             "timeFieldName": "@timestamp",
-                            "allowNoIndex": true
+                            "allowNoIndex": true,
+                            "fieldFormats": %s
                         }
                     }
-                    """.formatted(indexPrefix);
+                    """.formatted(indexPrefix, fieldFormatMap);
 
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
@@ -133,16 +211,65 @@ public class KibanaDataViewInitializer {
                     String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("✅ Successfully created Kibana Data View 'WorkFitAI Logs'");
+                log.info("✅ Successfully created Kibana Data View 'WorkFitAI Logs' with color formatters");
 
                 // Set as default data view
                 setAsDefaultDataView(kibanaUrl);
+
+                // Create saved search with predefined columns
+                createSavedSearch(kibanaUrl);
             } else {
                 log.warn("⚠️ Failed to create Kibana Data View: {}", response.getBody());
             }
 
         } catch (Exception e) {
             log.warn("⚠️ Error creating Kibana Data View: {}", e.getMessage());
+        }
+    }
+
+    private void createSavedSearch(String kibanaUrl) {
+        try {
+            HttpHeaders headers = createHeaders();
+
+            // Use correct field names matching Fluent Bit output:
+            // service_name, log_level, log_message, logger, request_id, user, http_method, http_path
+            String requestBody = """
+                    {
+                        "attributes": {
+                            "title": "WorkFitAI Logs - Formatted",
+                            "description": "Pre-configured log view with colored fields and organized columns",
+                            "columns": ["service_name", "log_level", "log_message", "logger_class", "request_id", "user", "http_method", "http_path"],
+                            "sort": [["@timestamp", "desc"]],
+                            "kibanaSavedObjectMeta": {
+                                "searchSourceJSON": "{\\"query\\":{\\"query\\":\\"\\",\\"language\\":\\"kuery\\"},\\"filter\\":[],\\"indexRefName\\":\\"kibanaSavedObjectMeta.searchSourceJSON.index\\"}"
+                            }
+                        },
+                        "references": [
+                            {
+                                "id": "workfitai-logs",
+                                "name": "kibanaSavedObjectMeta.searchSourceJSON.index",
+                                "type": "index-pattern"
+                            }
+                        ]
+                    }
+                    """;
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    kibanaUrl + "/api/saved_objects/search/workfitai-logs-search",
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("✅ Successfully created Kibana Saved Search 'WorkFitAI Logs - Formatted'");
+            } else {
+                log.debug("Saved Search creation response: {}", response.getBody());
+            }
+
+        } catch (Exception e) {
+            log.debug("Could not create saved search: {}", e.getMessage());
         }
     }
 

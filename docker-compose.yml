@@ -163,6 +163,16 @@ services:
   auth-service:
     build:
       context: ./services/auth-service
+    container_name: auth-service
+    labels:
+      - "workfitai.service=auth-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/auth-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -200,6 +210,16 @@ services:
   user-service:
     build:
       context: ./services/user-service
+    container_name: user-service
+    labels:
+      - "workfitai.service=user-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/user-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -225,6 +245,16 @@ services:
   job-service:
     build:
       context: ./services/job-service
+    container_name: job-service
+    labels:
+      - "workfitai.service=job-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/job-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -250,6 +280,16 @@ services:
   cv-service:
     build:
       context: ./services/cv-service
+    container_name: cv-service
+    labels:
+      - "workfitai.service=cv-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/cv-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -272,6 +312,16 @@ services:
   application-service:
     build:
       context: ./services/application-service
+    container_name: application-service
+    labels:
+      - "workfitai.service=application-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/application-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -288,6 +338,16 @@ services:
   api-gateway:
     build:
       context: ./services/api-gateway
+    container_name: api-gateway
+    labels:
+      - "workfitai.service=api-gateway"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/api-gateway"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -317,6 +377,16 @@ services:
   monitoring-service:
     build:
       context: ./services/monitoring-service
+    container_name: monitoring-service
+    labels:
+      - "workfitai.service=monitoring-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/monitoring-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:
@@ -355,6 +425,16 @@ services:
   notification-service:
     build:
       context: ./services/notification-service
+    container_name: notification-service
+    labels:
+      - "workfitai.service=notification-service"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/notification-service"
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.local
     ports:

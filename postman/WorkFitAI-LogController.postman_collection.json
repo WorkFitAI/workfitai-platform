@@ -1,0 +1,788 @@
+{
+    "info": {
+        "_postman_id": "log-controller-collection",
+        "name": "WorkFitAI - Log Controller API",
+        "description": "API endpoints for centralized log search and analysis in WorkFitAI platform.\n\n## Features:\n- Full-text log search with filters\n- Log statistics for dashboards\n- Distributed tracing by trace/request ID\n- Service-specific log queries\n- User activity tracking\n- Recent error monitoring\n\n## Authentication:\nRequests go through API Gateway with JWT authentication.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string",
+            "description": "API Gateway URL"
+        },
+        {
+            "key": "monitoringServiceUrl",
+            "value": "http://localhost:9086",
+            "type": "string",
+            "description": "Direct Monitoring Service URL (for testing)"
+        },
+        {
+            "key": "accessToken",
+            "value": "",
+            "type": "string",
+            "description": "JWT Access Token"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Log Search",
+            "description": "Endpoints for searching and filtering logs",
+            "item": [
+                {
+                    "name": "Search Logs (POST)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"login\",\n  \"service\": \"auth-service\",\n  \"levels\": [\"INFO\", \"WARN\", \"ERROR\"],\n  \"from\": \"2025-12-06T00:00:00Z\",\n  \"to\": \"2025-12-06T23:59:59Z\",\n  \"traceId\": null,\n  \"requestId\": null,\n  \"username\": null,\n  \"page\": 0,\n  \"size\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "search"
+                            ]
+                        },
+                        "description": "Search logs with flexible filtering using POST body.\n\n**Request Body:**\n- `query`: Free text search in log message\n- `service`: Filter by service name (auth-service, user-service, etc.)\n- `levels`: Array of log levels [DEBUG, INFO, WARN, ERROR]\n- `from`/`to`: Time range in ISO 8601 format\n- `traceId`: Filter by distributed trace ID\n- `requestId`: Filter by request correlation ID\n- `username`: Filter by user who made the request\n- `page`/`size`: Pagination"
+                    },
+                    "response": [
+                        {
+                            "name": "Success - Logs Found",
+                            "originalRequest": {
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"query\": \"login\",\n  \"service\": \"auth-service\",\n  \"levels\": [\"INFO\"],\n  \"page\": 0,\n  \"size\": 10\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/logs/search"
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "body": "{\n  \"logs\": [\n    {\n      \"id\": \"abc123\",\n      \"timestamp\": \"2025-12-06T14:30:00Z\",\n      \"level\": \"INFO\",\n      \"service\": \"auth-service\",\n      \"logger\": \"o.w.a.s.AuthService\",\n      \"message\": \"User login successful\",\n      \"requestId\": \"a1b2c3d4\",\n      \"username\": \"john_doe\",\n      \"method\": \"POST\",\n      \"path\": \"/api/auth/login\"\n    }\n  ],\n  \"totalHits\": 150,\n  \"page\": 0,\n  \"size\": 10,\n  \"totalPages\": 15\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Search Logs (GET)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/search?query=error&service=user-service&levels=ERROR,WARN&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "error",
+                                    "description": "Free text search"
+                                },
+                                {
+                                    "key": "service",
+                                    "value": "user-service",
+                                    "description": "Service name filter"
+                                },
+                                {
+                                    "key": "levels",
+                                    "value": "ERROR,WARN",
+                                    "description": "Log levels (comma-separated)"
+                                },
+                                {
+                                    "key": "from",
+                                    "value": "2025-12-06T00:00:00Z",
+                                    "description": "Start time (ISO 8601)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2025-12-06T23:59:59Z",
+                                    "description": "End time (ISO 8601)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "traceId",
+                                    "value": "",
+                                    "description": "Trace ID for distributed tracing",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-indexed)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20",
+                                    "description": "Page size"
+                                }
+                            ]
+                        },
+                        "description": "Simple GET endpoint for log search using query parameters."
+                    }
+                },
+                {
+                    "name": "Search All Logs (No Filter)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"page\": 0,\n  \"size\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "search"
+                            ]
+                        },
+                        "description": "Get all recent logs without any filters."
+                    }
+                },
+                {
+                    "name": "Search ERROR Logs Only",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"levels\": [\"ERROR\"],\n  \"page\": 0,\n  \"size\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "search"
+                            ]
+                        },
+                        "description": "Get all ERROR level logs across all services."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Statistics",
+            "description": "Log statistics for dashboards and monitoring",
+            "item": [
+                {
+                    "name": "Get Statistics (Last 24 Hours)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/statistics?hours=24",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "statistics"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "24",
+                                    "description": "Time range in hours"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics for dashboard display.\n\n**Response includes:**\n- Total log count\n- Count by log level (DEBUG, INFO, WARN, ERROR)\n- Count by service\n- Error rate percentage\n- Top error messages"
+                    },
+                    "response": [
+                        {
+                            "name": "Success - Statistics",
+                            "status": "OK",
+                            "code": 200,
+                            "body": "{\n  \"totalLogs\": 15420,\n  \"byLevel\": {\n    \"DEBUG\": 5000,\n    \"INFO\": 8500,\n    \"WARN\": 1500,\n    \"ERROR\": 420\n  },\n  \"byService\": {\n    \"auth-service\": 3200,\n    \"user-service\": 4100,\n    \"job-service\": 3800,\n    \"api-gateway\": 4320\n  },\n  \"errorRate\": 2.7,\n  \"timeRange\": {\n    \"from\": \"2025-12-05T14:00:00Z\",\n    \"to\": \"2025-12-06T14:00:00Z\"\n  }\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Statistics (Last 1 Hour)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/statistics?hours=1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "statistics"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics for the last hour - useful for real-time monitoring."
+                    }
+                },
+                {
+                    "name": "Get Statistics (Last 7 Days)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/statistics?hours=168",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "statistics"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "168",
+                                    "description": "168 hours = 7 days"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics for the last 7 days."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Distributed Tracing",
+            "description": "Trace requests across multiple services",
+            "item": [
+                {
+                    "name": "Get Logs by Trace ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/trace/a1b2c3d4",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "trace",
+                                "a1b2c3d4"
+                            ]
+                        },
+                        "description": "Get all logs associated with a specific trace/request ID.\n\nUseful for:\n- Debugging request flow across services\n- Understanding the complete journey of a user request\n- Identifying which service caused an error\n\n**Note:** Replace `a1b2c3d4` with actual trace ID from X-Request-Id header."
+                    },
+                    "response": [
+                        {
+                            "name": "Success - Trace Logs",
+                            "status": "OK",
+                            "code": 200,
+                            "body": "[\n  {\n    \"timestamp\": \"2025-12-06T14:30:00.100Z\",\n    \"service\": \"api-gateway\",\n    \"level\": \"INFO\",\n    \"message\": \"🚀 POST /api/auth/login started [requestId=a1b2c3d4]\"\n  },\n  {\n    \"timestamp\": \"2025-12-06T14:30:00.150Z\",\n    \"service\": \"auth-service\",\n    \"level\": \"INFO\",\n    \"message\": \"Processing login request\"\n  },\n  {\n    \"timestamp\": \"2025-12-06T14:30:00.300Z\",\n    \"service\": \"auth-service\",\n    \"level\": \"INFO\",\n    \"message\": \"Login successful for user: john_doe\"\n  },\n  {\n    \"timestamp\": \"2025-12-06T14:30:00.350Z\",\n    \"service\": \"api-gateway\",\n    \"level\": \"INFO\",\n    \"message\": \"✅ POST /api/auth/login completed [requestId=a1b2c3d4]\"\n  }\n]"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Error Monitoring",
+            "description": "Monitor and alert on errors",
+            "item": [
+                {
+                    "name": "Get Recent Errors (Last 15 min)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/errors/recent?minutes=15",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "errors",
+                                "recent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "15",
+                                    "description": "Time range in minutes"
+                                }
+                            ]
+                        },
+                        "description": "Get ERROR level logs from the last N minutes.\n\nUseful for:\n- Real-time error alerting\n- Quick health checks\n- Incident response"
+                    }
+                },
+                {
+                    "name": "Get Recent Errors (Last 5 min)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/errors/recent?minutes=5",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "errors",
+                                "recent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "description": "Get errors from the last 5 minutes - for immediate incident detection."
+                    }
+                },
+                {
+                    "name": "Get Recent Errors (Last 1 Hour)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/errors/recent?minutes=60",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "errors",
+                                "recent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "60"
+                                }
+                            ]
+                        },
+                        "description": "Get errors from the last hour."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Service-Specific Logs",
+            "description": "Get logs for individual services",
+            "item": [
+                {
+                    "name": "Get Auth Service Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/auth-service?levels=INFO,WARN,ERROR&page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "auth-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "levels",
+                                    "value": "INFO,WARN,ERROR",
+                                    "description": "Log levels to include"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from auth-service only."
+                    }
+                },
+                {
+                    "name": "Get User Service Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/user-service?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "user-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from user-service."
+                    }
+                },
+                {
+                    "name": "Get Job Service Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/job-service?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "job-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from job-service."
+                    }
+                },
+                {
+                    "name": "Get API Gateway Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/api-gateway?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "api-gateway"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from api-gateway."
+                    }
+                },
+                {
+                    "name": "Get Notification Service Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/notification-service?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "notification-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from notification-service."
+                    }
+                },
+                {
+                    "name": "Get CV Service Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/cv-service?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "cv-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from cv-service."
+                    }
+                },
+                {
+                    "name": "Get Service Errors Only",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/service/auth-service?levels=ERROR&page=0&size=100",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "service",
+                                "auth-service"
+                            ],
+                            "query": [
+                                {
+                                    "key": "levels",
+                                    "value": "ERROR"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "100"
+                                }
+                            ]
+                        },
+                        "description": "Get only ERROR logs from a specific service."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "User Activity Logs",
+            "description": "Track user activity across services",
+            "item": [
+                {
+                    "name": "Get Logs by Username",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/user/john_doe?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "user",
+                                "john_doe"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get all logs associated with a specific user.\n\nUseful for:\n- Debugging user-specific issues\n- Audit trails\n- User activity analysis\n\n**Note:** Replace `john_doe` with actual username."
+                    }
+                },
+                {
+                    "name": "Get Anonymous User Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/logs/user/anonymous?page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "user",
+                                "anonymous"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get logs from unauthenticated requests."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Direct Service Access (Testing)",
+            "description": "Direct access to monitoring-service without API Gateway (for development/testing)",
+            "item": [
+                {
+                    "name": "[Direct] Search Logs",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"page\": 0,\n  \"size\": 20\n}"
+                        },
+                        "url": {
+                            "raw": "{{monitoringServiceUrl}}/api/logs/search",
+                            "host": [
+                                "{{monitoringServiceUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "search"
+                            ]
+                        },
+                        "description": "Direct call to monitoring-service for testing (bypasses API Gateway)."
+                    }
+                },
+                {
+                    "name": "[Direct] Get Statistics",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{monitoringServiceUrl}}/api/logs/statistics?hours=24",
+                            "host": [
+                                "{{monitoringServiceUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "statistics"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "24"
+                                }
+                            ]
+                        },
+                        "description": "Direct call to get statistics without API Gateway."
+                    }
+                },
+                {
+                    "name": "[Direct] Get Recent Errors",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{monitoringServiceUrl}}/api/logs/errors/recent?minutes=60",
+                            "host": [
+                                "{{monitoringServiceUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logs",
+                                "errors",
+                                "recent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "60"
+                                }
+                            ]
+                        },
+                        "description": "Direct call to get recent errors without API Gateway."
+                    }
+                }
+            ]
+        }
+    ]
+}
