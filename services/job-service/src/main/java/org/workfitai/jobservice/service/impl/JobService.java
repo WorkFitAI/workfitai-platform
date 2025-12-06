@@ -1,5 +1,7 @@
 package org.workfitai.jobservice.service.impl;
 
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -28,6 +30,7 @@ import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
 @Service
+@Slf4j
 public class JobService implements iJobService {
     private final JobRepository jobRepository;
     private final JobMapper jobMapper;
@@ -65,10 +68,19 @@ public class JobService implements iJobService {
     }
 
     @Override
-    public ResJobDTO fetchJobById(UUID id) {
-        Optional jobOptional = this.jobRepository.findById(id);
+    public ResJobDetailsDTO fetchJobById(UUID id) {
+        Optional jobOptional = getJobById(id);
         if (jobOptional.isPresent()) {
-            return jobMapper.toResJobDTO((Job) jobOptional.get());
+            return jobMapper.toResJobDetailsDTO((Job) jobOptional.get());
+        }
+        return null;
+    }
+
+    @Override
+    public ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id) {
+        Optional jobOptional = getJobById(id);
+        if (jobOptional.isPresent()) {
+            return jobMapper.toResJobDetailsForHrDTO((Job) jobOptional.get());
         }
         return null;
     }
@@ -163,4 +175,32 @@ public class JobService implements iJobService {
         }
     }
 
+    @Transactional
+    public void updateStats(UUID jobId, int applyCount) {
+        if (jobId == null || applyCount <= 0) {
+            log.warn("Invalid jobId or applyCount, skipping update");
+            return;
+        }
+
+        // Lock row để tránh race condition khi nhiều người apply cùng lúc
+        Optional<Job> optionalJob = jobRepository.findByIdForUpdate(jobId);
+        if (optionalJob.isEmpty()) {
+            log.warn("Job not found with jobId: {}", jobId);
+            return;
+        }
+
+        Job job = optionalJob.get();
+
+        int currentTotal = job.getTotalApplications();
+
+        job.setTotalApplications(currentTotal + applyCount);
+
+        if (job.getTotalApplications() == job.getQuantity()) {
+            job.setStatus(JobStatus.CLOSED);
+        }
+
+        jobRepository.save(job);
+
+        log.info("Updated totalApplications for jobId {}: {}", jobId, job.getTotalApplications());
+    }
 }

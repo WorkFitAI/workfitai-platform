@@ -28,8 +28,9 @@ public class ResUpdateJobDTO {
     private Instant expiresAt;
     private JobStatus status;
     private String educationLevel;
+    private Integer quantity;
+    private Integer totalApplications;
     @JsonIgnoreProperties(value = {"jobs"})
     private List<String> skillNames;
-    private Instant lastModifiedDate;
-    private String lastModifiedBy;
+    private Instant createdDate;
 }

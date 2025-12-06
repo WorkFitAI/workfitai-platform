@@ -52,6 +52,8 @@ public class ReqJobDTO {
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
 
+    private Integer totalApplications = 0;
+
     @NotNull(message = "ExpiresAt must not be null")
     @Future(message = "ExpiresAt must be a future date")
     private Instant expiresAt;

@@ -69,7 +69,11 @@ public class AuthController {
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
                                                 Messages.Success.TOKENS_ISSUED,
-                                                new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
+                                                TokensResponse.withUserInfo(
+                                                                issued.getAccessToken(),
+                                                                issued.getExpiresIn(),
+                                                                issued.getUsername(),
+                                                                issued.getRoles())));
         }
 
         @PostMapping("/logout")
@@ -108,6 +112,10 @@ public class AuthController {
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
                                                 Messages.Success.TOKENS_REFRESHED,
-                                                new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
+                                                TokensResponse.withUserInfo(
+                                                                issued.getAccessToken(),
+                                                                issued.getExpiresIn(),
+                                                                issued.getUsername(),
+                                                                issued.getRoles())));
         }
 }

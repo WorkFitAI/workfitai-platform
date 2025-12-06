@@ -9,9 +9,7 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResCreateJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.*;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 
@@ -28,13 +26,20 @@ public interface JobMapper {
 
     @Mapping(target = "company", source = "companyNo")
     @Mapping(target = "skills", source = "skillIds")
+    @Mapping(target = "totalApplications", ignore = true)
     Job toEntity(ReqUpdateJobDTO jobDTO, @Context CompanyRepository companyRepo, @Context SkillRepository skillRepo);
 
-    @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
     ResCreateJobDTO toResCreateJobDTO(Job job);
 
     @Mapping(target = "skillNames", source = "skills")
+    @Mapping(target = "postId", source = "jobId")
+    ResJobDetailsDTO toResJobDetailsDTO(Job job);
+
+    @Mapping(target = "skillNames", source = "skills")
+    @Mapping(target = "postId", source = "jobId")
+    ResJobDetailsForHrDTO toResJobDetailsForHrDTO(Job job);
+
     @Mapping(target = "postId", source = "jobId")
     ResJobDTO toResJobDTO(Job job);
 

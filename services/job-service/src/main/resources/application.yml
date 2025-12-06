@@ -35,6 +35,22 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 server:
   port: ${SERVER_PORT:9005}
@@ -81,6 +97,27 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+# Service URLs for Docker environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
 
 ---
 # =============================================================================
@@ -101,11 +138,42 @@ spring:
         enabled: true
         register: true
         health-check-path: /actuator/health
+  datasource:
+    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5432/job_db}
+    username: ${JOB_DB_USER:user}
+    password: ${JOB_DB_PASS:pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-# Add service-specific local configs here
+# Service URLs for Docker/local environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
 
 logging:
   level:
     org.workfitai: DEBUG
     org.springframework.cloud.vault: DEBUG
-
+    com.turkraft.springfilter: DEBUG

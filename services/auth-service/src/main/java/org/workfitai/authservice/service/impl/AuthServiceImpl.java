@@ -224,8 +224,10 @@ public class AuthServiceImpl implements iAuthService {
 
             String dev = normalizeDevice(deviceId);
             refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
+            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
 
-            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs());
+            Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
