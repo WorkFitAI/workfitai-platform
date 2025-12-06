@@ -60,6 +60,24 @@ management:
     prometheus:
       enabled: true
 
+# Elasticsearch configuration for log querying
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:localhost}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:}
+  index-pattern: ${ELASTICSEARCH_INDEX_PATTERN:workfitai-logs-*}
+  index-prefix: ${ELASTICSEARCH_INDEX_PREFIX:workfitai-logs}
+
+# Kibana configuration for Data View initialization
+kibana:
+  host: ${KIBANA_HOST:localhost}
+  port: ${KIBANA_PORT:5601}
+  scheme: ${KIBANA_SCHEME:http}
+  username: ${KIBANA_USERNAME:elastic}
+  password: ${KIBANA_PASSWORD:}
+
 logging:
   level:
     org.workfitai.monitoringservice: DEBUG
@@ -89,3 +107,14 @@ spring:
     redis:
       host: api-redis
 
+elasticsearch:
+  host: elasticsearch
+  port: 9200
+  username: elastic
+  password: workfitai123
+
+kibana:
+  host: kibana
+  port: 5601
+  username: elastic
+  password: workfitai123
