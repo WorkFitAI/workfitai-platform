@@ -28,6 +28,16 @@ public class JobController {
         this.jobService = jobService;
     }
 
+    @GetMapping("/{id}")
+    @ApiMessage(JOB_DETAIL_FETCHED_SUCCESSFULLY)
+    public RestResponse<ResJobDetailsForHrDTO> getJob(@PathVariable("id") UUID id) throws InvalidDataException {
+        ResJobDetailsForHrDTO currentJob = this.jobService.fetchJobByIdForHr(id);
+        if (currentJob == null) {
+            throw new InvalidDataException(JOB_NOT_FOUND);
+        }
+        return RestResponse.success(currentJob);
+    }
+
     @PostMapping()
     @ApiMessage(JOB_CREATED_SUCCESSFULLY)
     public RestResponse<ResCreateJobDTO> create(@Valid @RequestBody ReqJobDTO jobDTO) {

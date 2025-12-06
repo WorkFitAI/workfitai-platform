@@ -1,5 +1,6 @@
 package org.workfitai.jobservice.config;
 
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.Company;
@@ -14,15 +15,19 @@ import org.workfitai.jobservice.repository.SkillRepository;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Random;
+
 
 @Service
 public class DatabaseSeeder implements CommandLineRunner {
 
+
     private final CompanyRepository companyRepository;
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
+
 
     public DatabaseSeeder(
             CompanyRepository companyRepository,
@@ -33,13 +38,16 @@ public class DatabaseSeeder implements CommandLineRunner {
         this.skillRepository = skillRepository;
     }
 
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println(">>> START INIT SAMPLE DATA");
 
+
         long countCompanies = this.companyRepository.count();
         long countJobs = this.jobRepository.count();
         long countSkills = this.skillRepository.count();
+
 
         if (countCompanies == 0) {
             Company fpt = Company.builder()
@@ -49,6 +57,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .address("Hà Nội, Việt Nam")
                     .build();
 
+
             Company kms = Company.builder()
                     .companyNo("C002_KMS")
                     .name("KMS Technology")
@@ -56,69 +65,109 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .address("TP. Hồ Chí Minh, Việt Nam")
                     .build();
 
-            companyRepository.save(fpt);
-            companyRepository.save(kms);
+
+            Company vng = Company.builder()
+                    .companyNo("C003_VNG")
+                    .name("VNG Corporation")
+                    .description("Công ty công nghệ nổi tiếng về game và các dịch vụ online.")
+                    .address("Hà Nội, Việt Nam")
+                    .build();
+
+
+            Company tma = Company.builder()
+                    .companyNo("C004_TMA")
+                    .name("TMA Solutions")
+                    .description("Công ty cung cấp dịch vụ gia công phần mềm cho thị trường quốc tế.")
+                    .address("Đà Nẵng, Việt Nam")
+                    .build();
+
+
+            Company vnpt = Company.builder()
+                    .companyNo("C005_VNPT")
+                    .name("VNPT")
+                    .description("Tập đoàn viễn thông hàng đầu Việt Nam.")
+                    .address("Hà Nội, Việt Nam")
+                    .build();
+
+
+            companyRepository.saveAll(List.of(fpt, kms, vng, tma, vnpt));
         }
+
 
         if (countSkills == 0) {
-            List<Skill> arr = List.of(
-                    Skill.builder().skillId(UUID.randomUUID()).name("Java").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("Spring Boot").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("MySQL").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("ReactJS").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name("Docker").build(),
-                    Skill.builder().skillId(UUID.randomUUID()).name(".NET").build()
+            List<Skill> skills = List.of(
+                    new Skill("Java"),
+                    new Skill("Spring Boot"),
+                    new Skill("MySQL"),
+                    new Skill("ReactJS"),
+                    new Skill("Docker"),
+                    new Skill(".NET"),
+                    new Skill("Python"),
+                    new Skill("AWS"),
+                    new Skill("Angular"),
+                    new Skill("Kubernetes")
             );
-            this.skillRepository.saveAll(arr);
+            skillRepository.saveAll(skills);
         }
 
+
         if (countJobs == 0) {
-            // Lấy company FPT và KMS từ DB
-            Company fpt = companyRepository.findById("C001_FPT").orElseThrow(IllegalStateException::new);
-            Company kms = companyRepository.findById("C002_KMS").orElseThrow(IllegalStateException::new);
-
-            // Lấy vài skill từ DB
+            List<Company> companies = companyRepository.findAll();
             List<Skill> allSkills = skillRepository.findAll();
+            if (allSkills.isEmpty()) throw new IllegalStateException("Skills not found in database");
 
-            if (allSkills.isEmpty()) {
-                new Throwable().printStackTrace();
+
+            Random rand = new Random();
+            List<Job> jobs = new ArrayList<>();
+
+
+            for (int i = 1; i <= 24; i++) {
+                // Chọn công ty ngẫu nhiên
+                Company company = companies.get(rand.nextInt(companies.size()));
+
+
+                EmploymentType employmentType = (i % 3 == 0) ? EmploymentType.PART_TIME : EmploymentType.FULL_TIME;
+                ExperienceLevel expLevel;
+                if (i % 3 == 0) expLevel = ExperienceLevel.JUNIOR;
+                else if (i % 3 == 1) expLevel = ExperienceLevel.MID;
+                else expLevel = ExperienceLevel.SENIOR;
+
+
+                BigDecimal salaryMin = BigDecimal.valueOf(1000 + rand.nextInt(1000));
+                BigDecimal salaryMax = salaryMin.add(BigDecimal.valueOf(500 + rand.nextInt(1000)));
+
+
+                List<Skill> jobSkills = new ArrayList<>();
+                for (int j = 0; j < 3; j++) {
+                    jobSkills.add(allSkills.get(rand.nextInt(allSkills.size())));
+                }
+
+
+                Job job = Job.builder()
+                        .title((expLevel == ExperienceLevel.JUNIOR ? "Junior" : expLevel == ExperienceLevel.MID ? "Mid" : "Senior") +
+                                " " + (i % 2 == 0 ? "Backend" : "Frontend") + " Developer #" + i)
+                        .description("Mô tả công việc cho job #" + i)
+                        .employmentType(employmentType)
+                        .experienceLevel(expLevel)
+                        .salaryMin(salaryMin)
+                        .salaryMax(salaryMax)
+                        .currency("USD")
+                        .location(company.getAddress())
+                        .quantity(1 + rand.nextInt(5))
+                        .totalApplications(0)
+                        .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * (15 + rand.nextInt(30)))) // 15-45 ngày
+                        .status(JobStatus.PUBLISHED)
+                        .educationLevel("Đại học CNTT")
+                        .company(company)
+                        .skills(jobSkills)
+                        .build();
+
+
+                jobs.add(job);
             }
 
-            Job job1 = Job.builder()
-                    .title("Java Backend Developer")
-                    .description("Tham gia phát triển các hệ thống tuyển dụng quy mô lớn, sử dụng Spring Boot và Microservices.")
-                    .employmentType(EmploymentType.FULL_TIME)
-                    .experienceLevel(ExperienceLevel.MID)
-                    .salaryMin(new BigDecimal("1500"))
-                    .salaryMax(new BigDecimal("2500"))
-                    .currency("USD")
-                    .location("Hà Nội, Việt Nam")
-                    .quantity(3)
-                    .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * 30)) // +30 ngày
-                    .status(JobStatus.PUBLISHED)
-                    .educationLevel("Đại học CNTT")
-                    .company(fpt)
-                    .skills(allSkills.subList(0, 3)) // ví dụ gán 3 skill đầu
-                    .build();
 
-            Job job2 = Job.builder()
-                    .title("Frontend ReactJS Developer")
-                    .description("Phát triển giao diện web tương tác cao cho ứng dụng tuyển dụng, sử dụng ReactJS và RESTful API.")
-                    .employmentType(EmploymentType.FULL_TIME)
-                    .experienceLevel(ExperienceLevel.JUNIOR)
-                    .salaryMin(new BigDecimal("1000"))
-                    .salaryMax(new BigDecimal("1800"))
-                    .currency("USD")
-                    .location("TP. Hồ Chí Minh, Việt Nam")
-                    .quantity(2)
-                    .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * 45)) // +45 ngày
-                    .status(JobStatus.DRAFT)
-                    .educationLevel("Cao đẳng/Đại học CNTT")
-                    .company(kms)
-                    .skills(allSkills.subList(2, 5)) // ví dụ gán 3 skill khác
-                    .build();
-
-            jobRepository.saveAll(List.of(job1, job2));
+            jobRepository.saveAll(jobs);
         }
 
 
@@ -129,3 +178,4 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
     }
 }
+

@@ -14,7 +14,9 @@ import java.util.UUID;
 public interface iJobService {
     ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable);
 
-    ResJobDTO fetchJobById(UUID id);
+    ResJobDetailsDTO fetchJobById(UUID id);
+
+    ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id);
 
     Optional<Job> getJobById(UUID id);
 

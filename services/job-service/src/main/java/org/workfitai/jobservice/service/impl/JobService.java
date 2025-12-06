@@ -11,7 +11,6 @@ import org.workfitai.jobservice.config.errors.JobConflictException;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
-import org.workfitai.jobservice.model.dto.kafka.JobRegistrationEvent;
 import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.*;
@@ -69,10 +68,19 @@ public class JobService implements iJobService {
     }
 
     @Override
-    public ResJobDTO fetchJobById(UUID id) {
-        Optional jobOptional = this.jobRepository.findById(id);
+    public ResJobDetailsDTO fetchJobById(UUID id) {
+        Optional jobOptional = getJobById(id);
         if (jobOptional.isPresent()) {
-            return jobMapper.toResJobDTO((Job) jobOptional.get());
+            return jobMapper.toResJobDetailsDTO((Job) jobOptional.get());
+        }
+        return null;
+    }
+
+    @Override
+    public ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id) {
+        Optional jobOptional = getJobById(id);
+        if (jobOptional.isPresent()) {
+            return jobMapper.toResJobDetailsForHrDTO((Job) jobOptional.get());
         }
         return null;
     }
@@ -168,59 +176,31 @@ public class JobService implements iJobService {
     }
 
     @Transactional
-    public void createFromKafkaEvent(JobRegistrationEvent.JobData jobData) {
-        log.info("Creating job from Kafka event: jobId={}, title={}", jobData.getJobId(), jobData.getTitle());
-
-        try {
-            // Check if job already exists by jobId
-            if (jobRepository.existsByJobId(jobData.getJobId())) {
-                log.warn("Job with jobId {} already exists, skipping creation", jobData.getJobId());
-                return;
-            }
-
-            // Fetch company from DB
-            Company company = companyRepository.findById(jobData.getCompanyNo())
-                    .orElseThrow(() -> new RuntimeException("Company not found for id: " + jobData.getCompanyNo()));
-
-            // Fetch or create skills
-            List<Skill> skills = jobData.getSkills().stream()
-                    .map(name -> skillRepository.findByName(name)
-                            .orElseGet(() -> skillRepository.save(new Skill(name))))
-                    .collect(Collectors.toList());
-
-            // Create Job entity
-            Job job = Job.builder()
-                    .jobId(jobData.getJobId())
-                    .title(jobData.getTitle())
-                    .description(jobData.getDescription())
-                    .employmentType(jobData.getEmploymentType() != null ?
-                            Enum.valueOf(org.workfitai.jobservice.model.enums.EmploymentType.class, jobData.getEmploymentType())
-                            : null)
-                    .experienceLevel(jobData.getExperienceLevel() != null ?
-                            Enum.valueOf(org.workfitai.jobservice.model.enums.ExperienceLevel.class, jobData.getExperienceLevel())
-                            : null)
-                    .salaryMin(jobData.getSalaryMin())
-                    .salaryMax(jobData.getSalaryMax())
-                    .currency(jobData.getCurrency())
-                    .location(jobData.getLocation())
-                    .quantity(jobData.getQuantity())
-                    .expiresAt(jobData.getExpiresAt())
-                    .status(jobData.getStatus() != null ?
-                            Enum.valueOf(org.workfitai.jobservice.model.enums.JobStatus.class, jobData.getStatus())
-                            : null)
-                    .educationLevel(jobData.getEducationLevel())
-                    .company(company)
-                    .skills(skills)
-                    .build();
-
-            jobRepository.save(job);
-
-            log.info("Successfully created job: jobId={}, title={}", job.getJobId(), job.getTitle());
-
-        } catch (Exception ex) {
-            log.error("Error creating job from Kafka event: jobId={}, title={}", jobData.getJobId(), jobData.getTitle(), ex);
-            throw new RuntimeException("Failed to create job from Kafka event", ex);
+    public void updateStats(UUID jobId, int applyCount) {
+        if (jobId == null || applyCount <= 0) {
+            log.warn("Invalid jobId or applyCount, skipping update");
+            return;
         }
-    }
 
+        // Lock row để tránh race condition khi nhiều người apply cùng lúc
+        Optional<Job> optionalJob = jobRepository.findByIdForUpdate(jobId);
+        if (optionalJob.isEmpty()) {
+            log.warn("Job not found with jobId: {}", jobId);
+            return;
+        }
+
+        Job job = optionalJob.get();
+
+        int currentTotal = job.getTotalApplications();
+
+        job.setTotalApplications(currentTotal + applyCount);
+
+        if (job.getTotalApplications() == job.getQuantity()) {
+            job.setStatus(JobStatus.CLOSED);
+        }
+
+        jobRepository.save(job);
+
+        log.info("Updated totalApplications for jobId {}: {}", jobId, job.getTotalApplications());
+    }
 }
