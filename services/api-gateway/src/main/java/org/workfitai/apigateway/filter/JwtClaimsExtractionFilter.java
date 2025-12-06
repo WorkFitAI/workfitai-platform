@@ -37,13 +37,13 @@ public class JwtClaimsExtractionFilter implements GlobalFilter, Ordered {
                     // JWT structure: subject = username, roles = list of roles, perms = permissions
                     String username = jwt.getSubject();
                     var roles = jwt.getClaimAsStringList("roles");
-                    
-                    log.debug("[JwtClaimsFilter] 🎫 Extracted claims - username: {}, roles: {}", 
+
+                    log.debug("[JwtClaimsFilter] 🎫 Extracted claims - username: {}, roles: {}",
                             username, roles);
 
                     // Build mutated request with additional headers
                     ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-                    
+
                     if (username != null) {
                         requestBuilder.header("X-Username", username);
                     }

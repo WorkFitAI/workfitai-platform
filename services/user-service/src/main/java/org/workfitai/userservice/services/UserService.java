@@ -38,7 +38,8 @@ public interface UserService {
      * Get current user profile by username extracted from JWT token.
      *
      * @param username the username from JWT token (sub claim)
-     * @return user profile based on their role (CandidateResponse, HRResponse, or AdminResponse)
+     * @return user profile based on their role (CandidateResponse, HRResponse, or
+     *         AdminResponse)
      */
     Object getCurrentUserProfileByUsername(String username);
 

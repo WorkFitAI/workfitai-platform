@@ -12,7 +12,8 @@ import org.workfitai.userservice.services.UserService;
  * Controller for user-related operations.
  * Provides endpoints for user lookup and validation.
  * 
- * Note: Profile operations (get/update own profile) are in UserProfileController.
+ * Note: Profile operations (get/update own profile) are in
+ * UserProfileController.
  */
 @RestController
 @RequiredArgsConstructor
