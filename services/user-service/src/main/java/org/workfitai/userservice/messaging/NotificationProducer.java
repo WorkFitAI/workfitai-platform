@@ -22,8 +22,12 @@ public class NotificationProducer {
 
   public void send(NotificationEvent event) {
     try {
-      CompletableFuture<SendResult<String, Object>> future =
-          kafkaTemplate.send(notificationTopic, event.getRecipientEmail(), event);
+      // Set source service for traceability
+      if (event.getSourceService() == null) {
+        event.setSourceService("user-service");
+      }
+      CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(notificationTopic,
+          event.getRecipientEmail(), event);
       future.whenComplete((result, throwable) -> {
         if (throwable != null) {
           log.error("Failed to send notification event {}", event.getEventId(), throwable);

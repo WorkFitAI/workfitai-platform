@@ -3,6 +3,7 @@ package org.workfitai.authservice.service.impl;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,6 +36,7 @@ import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
 import org.workfitai.authservice.dto.kafka.NotificationEvent;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
+import org.workfitai.authservice.client.UserServiceClient;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,7 @@ public class AuthServiceImpl implements iAuthService {
     private final UserRegistrationProducer userRegistrationProducer;
     private final OtpService otpService;
     private final NotificationProducer notificationProducer;
+    private final UserServiceClient userServiceClient;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -87,9 +90,32 @@ public class AuthServiceImpl implements iAuthService {
             validateHRManagerUniqueness(req.getCompany().getName());
         }
 
-        // Check if email already exists
-        if (users.existsByEmail(req.getEmail())) {
+        // Check if email already exists in auth-service
+        Optional<User> existingUser = users.findByEmail(req.getEmail());
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            // If user is PENDING (not verified OTP yet), resend OTP
+            if (user.getStatus() == UserStatus.PENDING) {
+                log.info("Resending OTP for pending user: {}", req.getEmail());
+                resendOtpForPendingUser(user, req);
+                return; // Exit early - OTP resent
+            }
+            // User already active or in other status
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already in use");
+        }
+
+        // Check if email already exists in user-service (cross-service validation)
+        try {
+            Boolean existsInUserService = userServiceClient.existsByEmail(req.getEmail());
+            if (Boolean.TRUE.equals(existsInUserService)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Email is already registered in the system");
+            }
+        } catch (ResponseStatusException e) {
+            throw e; // Re-throw our validation errors
+        } catch (Exception e) {
+            log.warn("Could not validate email with user-service: {}. Proceeding with registration.", e.getMessage());
+            // Continue with registration - will be caught by Kafka consumer if duplicate
         }
 
         // Generate unique username from email (part before @)
@@ -130,6 +156,42 @@ public class AuthServiceImpl implements iAuthService {
 
         // Send OTP email
         sendOtpEmail(req.getEmail(), otp, req.getFullName());
+    }
+
+    /**
+     * Resend OTP for a pending user (user who registered but didn't verify OTP).
+     * Updates user info if changed and sends new OTP.
+     */
+    private void resendOtpForPendingUser(User existingUser, RegisterRequest req) {
+        UserRole role = req.getRole() == null ? UserRole.CANDIDATE : req.getRole();
+
+        // Update user info if they provided new data
+        String newPasswordHash = encoder.encode(req.getPassword());
+        existingUser.setPassword(newPasswordHash); // User model uses 'password' field
+        existingUser.setUpdatedAt(Instant.now());
+        users.save(existingUser);
+
+        // Generate new OTP
+        String otp = otpService.generateOtp();
+        otpService.saveOtp(req.getEmail(), otp);
+
+        // Update pending registration data
+        PendingRegistration pendingData = PendingRegistration.builder()
+                .email(req.getEmail())
+                .username(existingUser.getUsername())
+                .fullName(req.getFullName())
+                .phoneNumber(req.getPhoneNumber())
+                .passwordHash(newPasswordHash)
+                .role(role)
+                .hrProfile(req.getHrProfile())
+                .company(req.getCompany())
+                .build();
+        otpService.savePendingRegistration(req.getEmail(), pendingData);
+
+        // Send OTP email
+        sendOtpEmail(req.getEmail(), otp, req.getFullName());
+
+        log.info("OTP resent for pending user: {}", req.getEmail());
     }
 
     @Override
@@ -409,35 +471,61 @@ public class AuthServiceImpl implements iAuthService {
 
     /**
      * Generate unique username from email.
-     * Takes the part before @ and ensures uniqueness by adding a number suffix if needed.
-     * Example: "john.doe@example.com" -> "john.doe" or "john.doe1" if already exists
+     * Takes the part before @ and ensures uniqueness by adding a number suffix if
+     * needed.
+     * Example: "john.doe@example.com" -> "john.doe" or "john.doe1" if already
+     * exists
      */
     private String generateUniqueUsername(String email) {
         // Extract part before @
         String baseUsername = email.split("@")[0].toLowerCase().trim();
-        
+
         // Remove invalid characters (keep only alphanumeric, dot, underscore, hyphen)
         baseUsername = baseUsername.replaceAll("[^a-z0-9._-]", "");
-        
+
         // Ensure minimum length
         if (baseUsername.length() < 3) {
             baseUsername = baseUsername + "user";
         }
-        
-        // Check if username already exists
-        if (!users.existsByUsername(baseUsername)) {
+
+        // Check if username already exists in auth-service or user-service
+        if (!usernameExistsAnywhere(baseUsername)) {
             return baseUsername;
         }
-        
+
         // If exists, add number suffix
         int suffix = 1;
         String candidateUsername = baseUsername + suffix;
-        while (users.existsByUsername(candidateUsername)) {
+        while (usernameExistsAnywhere(candidateUsername)) {
             suffix++;
             candidateUsername = baseUsername + suffix;
+            // Safety limit to prevent infinite loop
+            if (suffix > 1000) {
+                candidateUsername = baseUsername + "_" + UUID.randomUUID().toString().substring(0, 8);
+                break;
+            }
         }
-        
+
         return candidateUsername;
+    }
+
+    /**
+     * Check if username exists in either auth-service or user-service.
+     */
+    private boolean usernameExistsAnywhere(String username) {
+        // Check auth-service first
+        if (users.existsByUsername(username)) {
+            return true;
+        }
+
+        // Check user-service
+        try {
+            Boolean existsInUserService = userServiceClient.existsByUsername(username);
+            return Boolean.TRUE.equals(existsInUserService);
+        } catch (Exception e) {
+            log.warn("Could not validate username with user-service: {}. Assuming not exists.", e.getMessage());
+            return false;
+        }
     }
 
     private String normalizeDevice(String deviceId) {

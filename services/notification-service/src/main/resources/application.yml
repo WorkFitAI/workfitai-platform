@@ -1,6 +1,6 @@
 spring:
   application:
-    name: notification-service
+    name: notification
   config:
     import: optional:vault://secret/notification-service, optional:consul
   kafka:

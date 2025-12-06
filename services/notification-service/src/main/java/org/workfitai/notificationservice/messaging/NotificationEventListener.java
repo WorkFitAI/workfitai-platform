@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -39,11 +38,38 @@ public class NotificationEventListener {
             log.warn("Received null notification event");
             return;
         }
-        log.info("[Notification] type={}, to={}, subject={} metadata={}",
-                event.getEventType(), event.getRecipientEmail(), event.getSubject(), event.getMetadata());
 
-        boolean delivered = sendEmail(event);
-        persistenceService.save(event, delivered, delivered ? null : "email_delivery_failed");
+        log.info("[Notification] type={}, to={}, subject={}, source={}, sendEmail={}, createInApp={}",
+                event.getEventType(),
+                event.getRecipientEmail(),
+                event.getSubject(),
+                event.getSourceService(),
+                event.getSendEmail(),
+                event.getCreateInAppNotification());
+
+        // Handle email sending
+        boolean emailDelivered = false;
+        String emailError = null;
+
+        if (Boolean.TRUE.equals(event.getSendEmail()) || event.getSendEmail() == null) {
+            emailDelivered = sendEmail(event);
+            if (!emailDelivered) {
+                emailError = "email_delivery_failed";
+            }
+            // Save email log
+            persistenceService.saveEmailLog(event, emailDelivered, emailError);
+        }
+
+        // Handle in-app notification creation
+        if (Boolean.TRUE.equals(event.getCreateInAppNotification())) {
+            try {
+                persistenceService.createNotification(event);
+                log.info("In-app notification created for user: {}",
+                        event.getRecipientUserId() != null ? event.getRecipientUserId() : event.getRecipientEmail());
+            } catch (Exception e) {
+                log.error("Failed to create in-app notification: {}", e.getMessage());
+            }
+        }
     }
 
     private boolean sendEmail(NotificationEvent event) {
@@ -79,7 +105,8 @@ public class NotificationEventListener {
             }
 
             mailSender.send(message);
-            log.info("Email sent to {} (template: {})", event.getRecipientEmail(), templateType);
+            log.info("Email sent to {} (template: {}, source: {})",
+                    event.getRecipientEmail(), templateType, event.getSourceService());
             return true;
         } catch (Exception ex) {
             log.error("Failed to send email to {}: {}", event.getRecipientEmail(), ex.getMessage(), ex);
