@@ -112,6 +112,18 @@ public class LogSearchService {
                                 .minimumShouldMatch("1"))));
             }
 
+            // Filter by request ID
+            if (request.getRequestId() != null && !request.getRequestId().isBlank()) {
+                String requestId = request.getRequestId();
+                boolQuery.filter(Query.of(q -> q
+                        .bool(b -> b
+                                .should(Query.of(sq -> sq.term(t -> t.field("request_id.keyword").value(requestId))))
+                                .should(Query.of(sq -> sq.term(t -> t.field("request_id").value(requestId))))
+                                .should(Query.of(sq -> sq.term(t -> t.field("requestId.keyword").value(requestId))))
+                                .should(Query.of(sq -> sq.term(t -> t.field("requestId").value(requestId))))
+                                .minimumShouldMatch("1"))));
+            }
+
             // Time range filter
             Instant from = request.getFrom() != null ? request.getFrom() : Instant.now().minus(24, ChronoUnit.HOURS);
             Instant to = request.getTo() != null ? request.getTo() : Instant.now();

@@ -8,6 +8,10 @@ import org.workfitai.monitoringservice.dto.*;
 import org.workfitai.monitoringservice.service.LogSearchService;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
@@ -36,24 +40,41 @@ public class LogController {
 
     /**
      * Search logs using query parameters (simpler GET endpoint).
+     * Supports both Instant format (2024-01-01T00:00:00Z) and LocalDateTime
+     * (2024-01-01T00:00:00).
      */
     @GetMapping("/search")
     public ResponseEntity<LogSearchResponse> searchLogsGet(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String service,
+            @RequestParam(required = false) String level,
             @RequestParam(required = false) List<String> levels,
-            @RequestParam(required = false) Instant from,
-            @RequestParam(required = false) Instant to,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String requestId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
             @RequestParam(required = false) String traceId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
 
+        // Merge single level into levels list
+        List<String> allLevels = levels != null ? new java.util.ArrayList<>(levels) : new java.util.ArrayList<>();
+        if (level != null && !level.isBlank() && !allLevels.contains(level.toUpperCase())) {
+            allLevels.add(level.toUpperCase());
+        }
+
+        // Use keyword as query if query is empty
+        String searchQuery = (query != null && !query.isBlank()) ? query : keyword;
+
         LogSearchRequest request = LogSearchRequest.builder()
-                .query(query)
+                .query(searchQuery)
                 .service(service)
-                .levels(levels)
-                .from(from)
-                .to(to)
+                .levels(allLevels.isEmpty() ? null : allLevels)
+                .username(username)
+                .requestId(requestId)
+                .from(parseDateTime(from))
+                .to(parseDateTime(to))
                 .traceId(traceId)
                 .page(page)
                 .size(size)
@@ -68,7 +89,7 @@ public class LogController {
      * @param hours Time range in hours (default 24)
      * @return Log statistics
      */
-    @GetMapping("/statistics")
+    @GetMapping({ "/statistics", "/stats" })
     public ResponseEntity<LogStatistics> getStatistics(
             @RequestParam(defaultValue = "24") int hours) {
         log.debug("Getting log statistics for last {} hours", hours);
@@ -162,8 +183,8 @@ public class LogController {
     public ResponseEntity<UserActivityResponse> getUserActivity(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String service,
-            @RequestParam(required = false) Instant from,
-            @RequestParam(required = false) Instant to,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
             @RequestParam(defaultValue = "true") boolean includeSummary,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
@@ -174,8 +195,8 @@ public class LogController {
         LogSearchRequest request = LogSearchRequest.builder()
                 .username(username)
                 .service(service)
-                .from(from)
-                .to(to)
+                .from(parseDateTime(from))
+                .to(parseDateTime(to))
                 .page(page)
                 .size(size)
                 .build();
@@ -188,7 +209,9 @@ public class LogController {
      * actions).
      *
      * @param username Username to get activity for
-     * @param hours    Time range in hours (default 24)
+     * @param from     Start time (optional)
+     * @param to       End time (optional)
+     * @param hours    Time range in hours (default 24, ignored if from/to provided)
      * @param page     Page number
      * @param size     Page size
      * @return User's activity
@@ -196,16 +219,29 @@ public class LogController {
     @GetMapping("/activity/user/{username}")
     public ResponseEntity<UserActivityResponse> getUserActivityByUsername(
             @PathVariable String username,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
             @RequestParam(defaultValue = "24") int hours,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
 
         log.debug("Getting activity for user: {} for last {} hours", username, hours);
 
+        Instant fromInstant = parseDateTime(from);
+        Instant toInstant = parseDateTime(to);
+
+        // Use hours if from/to not provided
+        if (fromInstant == null) {
+            fromInstant = Instant.now().minusSeconds(hours * 3600L);
+        }
+        if (toInstant == null) {
+            toInstant = Instant.now();
+        }
+
         LogSearchRequest request = LogSearchRequest.builder()
                 .username(username)
-                .from(Instant.now().minusSeconds(hours * 3600L))
-                .to(Instant.now())
+                .from(fromInstant)
+                .to(toInstant)
                 .page(page)
                 .size(size)
                 .build();
@@ -233,5 +269,43 @@ public class LogController {
                 .build();
 
         return ResponseEntity.ok(logSearchService.getUserActivity(request, true));
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Parse datetime string to Instant.
+     * Supports both ISO Instant format (with Z) and LocalDateTime format (without
+     * Z).
+     * Examples:
+     * - 2024-01-01T00:00:00Z (Instant format)
+     * - 2024-01-01T00:00:00 (LocalDateTime, assumed UTC)
+     * - 2024-01-01 (Date only, assumed start of day UTC)
+     */
+    private Instant parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isBlank()) {
+            return null;
+        }
+
+        try {
+            // Try parsing as Instant first (has 'Z' timezone)
+            if (dateTimeStr.endsWith("Z")) {
+                return Instant.parse(dateTimeStr);
+            }
+
+            // Try parsing as LocalDateTime (no timezone - assume UTC)
+            if (dateTimeStr.contains("T")) {
+                LocalDateTime ldt = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                return ldt.toInstant(ZoneOffset.UTC);
+            }
+
+            // Try parsing as date only (assume start of day UTC)
+            LocalDateTime ldt = LocalDateTime.parse(dateTimeStr + "T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return ldt.toInstant(ZoneOffset.UTC);
+
+        } catch (DateTimeParseException e) {
+            log.warn("Failed to parse datetime string: {}", dateTimeStr, e);
+            return null;
+        }
     }
 }

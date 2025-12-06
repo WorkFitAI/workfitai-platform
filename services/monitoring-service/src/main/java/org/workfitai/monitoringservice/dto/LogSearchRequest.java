@@ -58,6 +58,11 @@ public class LogSearchRequest {
     private String username;
 
     /**
+     * Filter by request ID
+     */
+    private String requestId;
+
+    /**
      * Page number (0-indexed)
      */
     @Builder.Default
