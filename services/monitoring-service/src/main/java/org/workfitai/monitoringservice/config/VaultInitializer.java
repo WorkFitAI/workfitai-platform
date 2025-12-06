@@ -112,6 +112,8 @@ public class VaultInitializer implements CommandLineRunner {
                 environment.getProperty("ELASTICSEARCH_PASSWORD", "workfitai123"));
         monitoringConfig.put("kibana.host", environment.getProperty("KIBANA_HOST", "kibana"));
         monitoringConfig.put("kibana.port", environment.getProperty("KIBANA_PORT", "5601"));
+        monitoringConfig.put("kibana.system.password",
+                environment.getProperty("KIBANA_SYSTEM_PASSWORD", "workfitai123"));
         configurationService.initializeServiceConfig("monitoring-service", monitoringConfig);
 
         // Initialize notification-service secrets

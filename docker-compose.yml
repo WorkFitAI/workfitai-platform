@@ -470,19 +470,46 @@ services:
     networks: [ workfitai-net ]
     profiles: [ "logging", "infra", "full" ]
 
+  # Setup kibana_system user password
+  elasticsearch-setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch-setup
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
+      - KIBANA_PASSWORD=${KIBANA_SYSTEM_PASSWORD:-kibana123}
+    command: >
+      bash -c '
+        echo "Setting kibana_system user password...";
+        until curl -s -u elastic:$${ELASTIC_PASSWORD} http://elasticsearch:9200/_cluster/health | grep -q "status"; do
+          sleep 2;
+        done;
+        curl -s -X POST -u elastic:$${ELASTIC_PASSWORD} \
+          -H "Content-Type: application/json" \
+          http://elasticsearch:9200/_security/user/kibana_system/_password \
+          -d "{\"password\": \"$${KIBANA_PASSWORD}\"}" | grep -q "^{}" && echo "Password set successfully" || echo "Password already set or error";
+        echo "Setup complete!";
+      '
+    networks: [ workfitai-net ]
+    profiles: [ "logging", "infra", "full" ]
+
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://${ELASTICSEARCH_HOST:-elasticsearch}:${ELASTICSEARCH_PORT:-9200}
-      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME:-elastic}
-      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD:-kibana123}
       - xpack.security.enabled=true
     ports:
       - "5601:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
+      elasticsearch-setup:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1" ]
       interval: 10s
