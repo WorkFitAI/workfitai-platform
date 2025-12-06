@@ -232,7 +232,8 @@ public class KibanaDataViewInitializer {
             HttpHeaders headers = createHeaders();
 
             // Use correct field names matching Fluent Bit output:
-            // service_name, log_level, log_message, logger, request_id, user, http_method, http_path
+            // service_name, log_level, log_message, logger, request_id, user, http_method,
+            // http_path
             String requestBody = """
                     {
                         "attributes": {
