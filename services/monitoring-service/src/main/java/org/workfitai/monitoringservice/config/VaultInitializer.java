@@ -105,6 +105,15 @@ public class VaultInitializer implements CommandLineRunner {
         Map<String, Object> monitoringConfig = new HashMap<>();
         monitoringConfig.put("redis.host", environment.getProperty("REDIS_GATEWAY_HOST", "api-redis"));
         monitoringConfig.put("redis.port", environment.getProperty("REDIS_GATEWAY_PORT", "6379"));
+        monitoringConfig.put("elasticsearch.host", environment.getProperty("ELASTICSEARCH_HOST", "elasticsearch"));
+        monitoringConfig.put("elasticsearch.port", environment.getProperty("ELASTICSEARCH_PORT", "9200"));
+        monitoringConfig.put("elasticsearch.username", environment.getProperty("ELASTICSEARCH_USERNAME", "elastic"));
+        monitoringConfig.put("elasticsearch.password",
+                environment.getProperty("ELASTICSEARCH_PASSWORD", "workfitai123"));
+        monitoringConfig.put("kibana.host", environment.getProperty("KIBANA_HOST", "kibana"));
+        monitoringConfig.put("kibana.port", environment.getProperty("KIBANA_PORT", "5601"));
+        monitoringConfig.put("kibana.system.password",
+                environment.getProperty("KIBANA_SYSTEM_PASSWORD", "workfitai123"));
         configurationService.initializeServiceConfig("monitoring-service", monitoringConfig);
 
         // Initialize notification-service secrets
