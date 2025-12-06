@@ -1,9 +1,10 @@
 {
     "info": {
         "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "name": "WorkFitAI - Auth Service",
-        "description": "# Auth Service API Collection\n\nThis collection contains all endpoints for the WorkFitAI Authentication Service.\n\n## Overview\n- **Base URL**: `{{base_url}}`\n- **Authentication**: JWT Bearer Token (opaque token via API Gateway)\n- **Roles**: ADMIN, HR, CANDIDATE\n\n## Environment Variables Required\n- `base_url`: API Gateway URL (default: http://localhost:9085)\n- `access_token`: Current access token\n- `refresh_token`: Current refresh token\n- Role-specific credentials (adminEmail, hrEmail, candidateEmail, etc.)\n\n## Quick Start\n1. Run \"Register\" or \"Login\" request for desired role\n2. Access token is automatically saved to environment\n3. Use protected endpoints with auto-injected Bearer token\n\n## Token Flow\n1. Clients send opaque tokens to API Gateway\n2. Gateway converts opaque → JWT internally\n3. Refresh token stored in httpOnly cookie",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+        "name": "1. WorkFitAI - Auth Service",
+        "description": "Complete API collection for WorkFitAI Auth Service - Authentication, Authorization, Role Management & Approval Workflows",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "12345678"
     },
     "item": [
         {
@@ -15,81 +16,60 @@
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/auth",
+                            "raw": "{{baseUrl}}/auth",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth"
                             ]
                         },
-                        "description": "Check if the auth service is running and healthy."
+                        "description": "Check if auth-service is running"
                     },
                     "response": []
                 },
                 {
-                    "name": "Get Public Key",
+                    "name": "Get RSA Public Key",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/auth/api/v1/keys/public",
+                            "raw": "{{baseUrl}}/api/v1/keys/public",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
-                                "auth",
                                 "api",
                                 "v1",
                                 "keys",
                                 "public"
                             ]
                         },
-                        "description": "Retrieve the RSA public key used for JWT verification. Used by other services to validate tokens."
+                        "description": "Retrieve RSA-2048 public key for JWT signature verification"
                     },
                     "response": []
                 }
             ],
-            "description": "Public endpoints that don't require authentication."
+            "description": "Endpoints accessible without authentication"
         },
         {
-            "name": "Candidate Authentication",
+            "name": "Authentication",
             "item": [
                 {
-                    "name": "Register Candidate",
+                    "name": "Register CANDIDATE",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('candidateAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Candidate access token saved');",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('candidateUserId', response.data.id);",
+                                    "        pm.environment.set('candidateEmail', pm.variables.get('candidateEmail'));",
+                                    "        console.log('CANDIDATE registered successfully. Please verify OTP.');",
                                     "    }",
-                                    "    ",
-                                    "    // Extract refresh token from Set-Cookie header",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('candidateRefreshToken', match[1]);",
-                                    "            console.log('Candidate refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -101,231 +81,26 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}",
-                                "description": "Optional device identifier for session management"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"{{candidateUsername}}\",\n    \"email\": \"{{candidateEmail}}\",\n    \"password\": \"{{candidatePassword}}\",\n    \"fullName\": \"{{candidateFullName}}\",\n    \"phoneNumber\": \"{{candidatePhone}}\"\n}"
+                            "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\",\n  \"role\": \"CANDIDATE\",\n  \"fullName\": \"{{candidateFullName}}\",\n  \"phoneNumber\": \"{{candidatePhone}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/register",
+                            "raw": "{{baseUrl}}/auth/register",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
                                 "register"
                             ]
                         },
-                        "description": "Register a new candidate account. New users are assigned the CANDIDATE role by default.\n\n**Request Body:**\n- `username`: Unique username (required)\n- `email`: Valid email address (required)\n- `password`: 8-128 characters (required)\n- `fullName`: 3-255 characters (required)\n- `phoneNumber`: 10 digits or +84 format (required)"
+                        "description": "Register new CANDIDATE user (auto-activated after OTP verification)"
                     },
                     "response": []
                 },
-                {
-                    "name": "Login Candidate",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('candidateAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Candidate access token saved');",
-                                    "    }",
-                                    "    ",
-                                    "    // Extract refresh token from Set-Cookie header",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('candidateRefreshToken', match[1]);",
-                                    "            console.log('Candidate refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has user info', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('username');",
-                                    "    pm.expect(jsonData.data).to.have.property('roles');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}",
-                                "description": "Optional device identifier for session management"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"usernameOrEmail\": \"{{candidateEmail}}\",\n    \"password\": \"{{candidatePassword}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/auth/login",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "login"
-                            ]
-                        },
-                        "description": "Authenticate a candidate user.\n\n**Request Body:**\n- `usernameOrEmail`: Username or email address\n- `password`: User password (8-64 characters)"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Logout Candidate",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    pm.environment.unset('candidateAccessToken');",
-                                    "    pm.environment.unset('candidateRefreshToken');",
-                                    "    console.log('Candidate tokens cleared');",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        },
-                        {
-                            "listen": "prerequest",
-                            "script": {
-                                "exec": [
-                                    "// Use candidate token for this request",
-                                    "pm.environment.set('access_token', pm.environment.get('candidateAccessToken'));"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}",
-                                "description": "Optional device identifier"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/logout",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "logout"
-                            ]
-                        },
-                        "description": "Logout the current candidate user. Invalidates the refresh token and clears the cookie."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Refresh Candidate Token",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('candidateAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Candidate access token refreshed');",
-                                    "    }",
-                                    "    ",
-                                    "    // Extract new refresh token from Set-Cookie header (rotation)",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('candidateRefreshToken', match[1]);",
-                                    "            console.log('Candidate refresh token rotated');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}",
-                                "description": "Optional device identifier"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/refresh",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "refresh"
-                            ]
-                        },
-                        "description": "Refresh the access token using the refresh token cookie. Implements token rotation for security."
-                    },
-                    "response": []
-                }
-            ],
-            "description": "Authentication endpoints for Candidate users."
-        },
-        {
-            "name": "HR Authentication",
-            "item": [
                 {
                     "name": "Register HR",
                     "event": [
@@ -333,33 +108,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('hrAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('HR access token saved');",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrUserId', response.data.id);",
+                                    "        pm.environment.set('hrEmail', pm.variables.get('hrEmail'));",
+                                    "        console.log('HR registered successfully. Status: WAIT_APPROVED - Requires HR_MANAGER approval');",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('hrRefreshToken', match[1]);",
-                                    "            console.log('HR refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -371,69 +127,41 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"{{hrUsername}}\",\n    \"email\": \"{{hrEmail}}\",\n    \"password\": \"{{hrPassword}}\",\n    \"fullName\": \"{{hrFullName}}\",\n    \"phoneNumber\": \"{{hrPhone}}\"\n}"
+                            "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hrFullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmailForApproval}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/register",
+                            "raw": "{{baseUrl}}/auth/register",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
                                 "register"
                             ]
                         },
-                        "description": "Register a new HR account. Note: HR role must be granted by an admin after registration."
+                        "description": "Register new HR user (requires HR_MANAGER approval after OTP verification)"
                     },
                     "response": []
                 },
                 {
-                    "name": "Login HR",
+                    "name": "Register HR_MANAGER",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('hrAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('HR access token saved');",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrManagerUserId', response.data.id);",
+                                    "        pm.environment.set('hrManagerEmail', pm.variables.get('hrManagerEmail'));",
+                                    "        console.log('HR_MANAGER registered successfully. Status: WAIT_APPROVED - Requires ADMIN approval');",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('hrRefreshToken', match[1]);",
-                                    "            console.log('HR refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});",
-                                    "",
-                                    "pm.test('User has HR role', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data.roles).to.include('HR');",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -445,46 +173,39 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"usernameOrEmail\": \"{{hrEmail}}\",\n    \"password\": \"{{hrPassword}}\"\n}"
+                            "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"role\": \"HR_MANAGER\",\n  \"fullName\": \"{{hrManagerFullName}}\",\n  \"phoneNumber\": \"{{hrManagerPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrManagerDepartment}}\",\n    \"address\": \"{{hrManagerAddress}}\"\n  },\n  \"company\": {\n    \"companyId\": \"{{companyId}}\",\n    \"name\": \"{{companyName}}\",\n    \"logoUrl\": \"{{companyLogoUrl}}\",\n    \"websiteUrl\": \"{{companyWebsiteUrl}}\",\n    \"description\": \"{{companyDescription}}\",\n    \"address\": \"{{companyAddress}}\",\n    \"size\": \"{{companySize}}\"\n  }\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/login",
+                            "raw": "{{baseUrl}}/auth/register",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
-                                "login"
+                                "register"
                             ]
                         },
-                        "description": "Authenticate an HR user."
+                        "description": "Register new HR_MANAGER user with company (requires ADMIN approval after OTP verification)"
                     },
                     "response": []
                 },
                 {
-                    "name": "Logout HR",
+                    "name": "Verify OTP - CANDIDATE",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    pm.environment.unset('hrAccessToken');",
-                                    "    pm.environment.unset('hrRefreshToken');",
-                                    "    console.log('HR tokens cleared');",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('CANDIDATE OTP verified successfully. Status: ACTIVE - Can login now');",
+                                    "    }",
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -494,58 +215,363 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
+                                "key": "Content-Type",
+                                "value": "application/json"
                             }
                         ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"123456\"\n}"
+                        },
                         "url": {
-                            "raw": "{{base_url}}/auth/logout",
+                            "raw": "{{baseUrl}}/auth/verify-otp",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
-                                "logout"
+                                "verify-otp"
                             ]
                         },
-                        "description": "Logout the current HR user."
+                        "description": "Verify OTP for CANDIDATE registration (auto-activates account)"
                     },
                     "response": []
                 },
                 {
-                    "name": "Refresh HR Token",
+                    "name": "Verify OTP - HR",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('hrAccessToken', jsonData.data.accessToken);",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('HR OTP verified. Status: WAIT_APPROVED - Waiting for HR_MANAGER approval');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "Verify OTP for HR registration (remains in WAIT_APPROVED status)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify OTP - HR_MANAGER",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('HR_MANAGER OTP verified. Status: WAIT_APPROVED - Waiting for ADMIN approval');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "Verify OTP for HR_MANAGER registration (remains in WAIT_APPROVED status)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - CANDIDATE",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('candidateAccessToken', response.data.accessToken);",
+                                    "        pm.environment.set('candidateRefreshToken', response.data.refreshToken);",
+                                    "        console.log('CANDIDATE logged in successfully');",
+                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as CANDIDATE (returns JWT access token + refresh token in cookie)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - HR",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrAccessToken', response.data.accessToken);",
+                                    "        pm.environment.set('hrRefreshToken', response.data.refreshToken);",
+                                    "        console.log('HR logged in successfully');",
+                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as HR (only works after HR_MANAGER approval)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - HR_MANAGER",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+                                    "        pm.environment.set('hrManagerRefreshToken', response.data.refreshToken);",
+                                    "        console.log('HR_MANAGER logged in successfully');",
+                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as HR_MANAGER (only works after ADMIN approval)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - ADMIN",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('adminAccessToken', response.data.accessToken);",
+                                    "        pm.environment.set('adminRefreshToken', response.data.refreshToken);",
+                                    "        console.log('ADMIN logged in successfully');",
+                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as ADMIN (full system access)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token - CANDIDATE",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('candidateAccessToken', response.data.accessToken);",
+                                    "        console.log('CANDIDATE access token refreshed');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refreshToken\": \"{{candidateRefreshToken}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/refresh",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "refresh"
+                            ]
+                        },
+                        "description": "Get new access token using refresh token"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token - HR",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrAccessToken', response.data.accessToken);",
                                     "        console.log('HR access token refreshed');",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('hrRefreshToken', match[1]);",
-                                    "            console.log('HR refresh token rotated');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -555,64 +581,42 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
+                                "key": "Content-Type",
+                                "value": "application/json"
                             }
                         ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refreshToken\": \"{{hrRefreshToken}}\"\n}"
+                        },
                         "url": {
-                            "raw": "{{base_url}}/auth/refresh",
+                            "raw": "{{baseUrl}}/auth/refresh",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
                                 "refresh"
                             ]
                         },
-                        "description": "Refresh the HR access token."
+                        "description": "Get new access token using refresh token"
                     },
                     "response": []
-                }
-            ],
-            "description": "Authentication endpoints for HR users."
-        },
-        {
-            "name": "Admin Authentication",
-            "item": [
+                },
                 {
-                    "name": "Register Admin",
+                    "name": "Refresh Token - HR_MANAGER",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('adminAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Admin access token saved');",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+                                    "        console.log('HR_MANAGER access token refreshed');",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('adminRefreshToken', match[1]);",
-                                    "            console.log('Admin refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -624,69 +628,40 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"{{adminUsername}}\",\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\",\n    \"fullName\": \"{{adminFullName}}\",\n    \"phoneNumber\": \"{{adminPhone}}\"\n}"
+                            "raw": "{\n  \"refreshToken\": \"{{hrManagerRefreshToken}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/register",
+                            "raw": "{{baseUrl}}/auth/refresh",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
-                                "register"
+                                "refresh"
                             ]
                         },
-                        "description": "Register a new admin account. Note: Admin role must be granted by an existing admin or via database seeding."
+                        "description": "Get new access token using refresh token"
                     },
                     "response": []
                 },
                 {
-                    "name": "Login Admin",
+                    "name": "Refresh Token - ADMIN",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('adminAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Admin access token saved');",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('adminAccessToken', response.data.accessToken);",
+                                    "        console.log('ADMIN access token refreshed');",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('adminRefreshToken', match[1]);",
-                                    "            console.log('Admin refresh token saved');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has access token', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                    "});",
-                                    "",
-                                    "pm.test('User has ADMIN role', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data.roles).to.include('ADMIN');",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -698,183 +673,257 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"usernameOrEmail\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\"\n}"
+                            "raw": "{\n  \"refreshToken\": \"{{adminRefreshToken}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/login",
+                            "raw": "{{baseUrl}}/auth/refresh",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
-                                "login"
+                                "refresh"
                             ]
                         },
-                        "description": "Authenticate an admin user."
+                        "description": "Get new access token using refresh token"
                     },
                     "response": []
                 },
                 {
-                    "name": "Logout Admin",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    pm.environment.unset('adminAccessToken');",
-                                    "    pm.environment.unset('adminRefreshToken');",
-                                    "    console.log('Admin tokens cleared');",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
+                    "name": "Logout",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
-                            }
-                        ],
+                        "header": [],
                         "url": {
-                            "raw": "{{base_url}}/auth/logout",
+                            "raw": "{{baseUrl}}/auth/logout",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
                                 "auth",
                                 "logout"
                             ]
                         },
-                        "description": "Logout the current admin user."
+                        "description": "Logout current user (invalidates refresh token)"
                     },
                     "response": []
-                },
+                }
+            ],
+            "description": "Authentication endpoints - Register, OTP verification, Login, Token refresh, Logout"
+        },
+        {
+            "name": "Approval Management",
+            "item": [
                 {
-                    "name": "Refresh Admin Token",
+                    "name": "Get Pending Approvals",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    if (jsonData.data && jsonData.data.accessToken) {",
-                                    "        pm.environment.set('access_token', jsonData.data.accessToken);",
-                                    "        pm.environment.set('adminAccessToken', jsonData.data.accessToken);",
-                                    "        console.log('Admin access token refreshed');",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data && response.data.length > 0) {",
+                                    "        // Save first pending user ID for approval/rejection tests",
+                                    "        pm.environment.set('pendingUserId', response.data[0].id);",
+                                    "        console.log('Found ' + response.data.length + ' pending approvals');",
+                                    "        console.log('First pending user ID: ' + response.data[0].id);",
                                     "    }",
-                                    "    ",
-                                    "    const cookies = pm.response.headers.get('Set-Cookie');",
-                                    "    if (cookies) {",
-                                    "        const match = cookies.match(/refresh_token=([^;]+)/);",
-                                    "        if (match) {",
-                                    "            pm.environment.set('refresh_token', match[1]);",
-                                    "            pm.environment.set('adminRefreshToken', match[1]);",
-                                    "            console.log('Admin refresh token rotated');",
-                                    "        }",
-                                    "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
                         }
                     ],
                     "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "X-Device-Id",
-                                "value": "{{deviceId}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/refresh",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "refresh"
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
                             ]
                         },
-                        "description": "Refresh the admin access token."
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/pending-approvals",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "pending-approvals"
+                            ]
+                        },
+                        "description": "Get list of users waiting for approval (HR_MANAGER or ADMIN only)"
                     },
                     "response": []
-                }
-            ],
-            "description": "Authentication endpoints for Admin users."
-        },
-        {
-            "name": "Admin - Role Management",
-            "item": [
+                },
                 {
-                    "name": "List All Roles",
+                    "name": "Approve HR_MANAGER",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has roles array', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.be.an('array');",
-                                    "});"
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('HR_MANAGER approved successfully');",
+                                    "        console.log('Status changed from WAIT_APPROVED to ACTIVE');",
+                                    "        console.log('Company created via Kafka event');",
+                                    "    }",
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
                         }
                     ],
                     "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/roles",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "roles"
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
                             ]
                         },
-                        "description": "Get all available roles in the system.\n\n**Required Permission:** `role:read`\n**Required Role:** `ADMIN`"
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/approve-hr-manager/{{hrManagerUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "approve-hr-manager",
+                                "{{hrManagerUserId}}"
+                            ]
+                        },
+                        "description": "Approve HR_MANAGER registration (ADMIN only) - triggers company creation via Kafka"
                     },
                     "response": []
                 },
+                {
+                    "name": "Approve HR",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('HR approved successfully');",
+                                    "        console.log('Status changed from WAIT_APPROVED to ACTIVE');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrManagerAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/approve-hr/{{hrUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "approve-hr",
+                                "{{hrUserId}}"
+                            ]
+                        },
+                        "description": "Approve HR registration (HR_MANAGER or ADMIN)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reject User Registration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success) {",
+                                    "        console.log('User registration rejected');",
+                                    "        console.log('Status changed to REJECTED');",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/reject/{{pendingUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "reject",
+                                "{{pendingUserId}}"
+                            ]
+                        },
+                        "description": "Reject user registration (HR_MANAGER or ADMIN)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "User approval workflow management - Get pending users, approve/reject registrations"
+        },
+        {
+            "name": "Role Management",
+            "item": [
                 {
                     "name": "Create Role",
                     "event": [
@@ -882,27 +931,31 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Role created successfully', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('name');",
-                                    "});"
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('roleId', response.data.id);",
+                                    "        console.log('Role created with ID: ' + response.data.id);",
+                                    "    }",
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
                         }
                     ],
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -910,317 +963,156 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"{{newRoleName}}\",\n    \"description\": \"{{newRoleDescription}}\",\n    \"permissions\": []\n}"
+                            "raw": "{\n  \"name\": \"CUSTOM_ROLE\",\n  \"description\": \"Custom role for testing\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/roles",
+                            "raw": "{{baseUrl}}/admin/roles",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
-                                "auth",
+                                "admin",
                                 "roles"
                             ]
                         },
-                        "description": "Create a new role.\n\n**Required Permission:** `role:create`\n**Required Role:** `ADMIN`\n\n**Request Body:**\n- `name`: Role name (max 64 chars, required)\n- `description`: Role description (max 255 chars, optional)\n- `permissions`: Array of permission names (optional)"
+                        "description": "Create new role (ADMIN only)"
                     },
                     "response": []
                 },
                 {
-                    "name": "Add Permission to Role",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Permission added successfully', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.success).to.be.true;",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
+                    "name": "Get All Roles",
                     "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"permission\": \"{{permissionName}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/auth/roles/{{roleName}}/permissions",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "roles",
-                                "{{roleName}}",
-                                "permissions"
-                            ]
-                        },
-                        "description": "Add a permission to an existing role.\n\n**Required Permission:** `role:update`\n**Required Role:** `ADMIN`\n\n**Path Parameters:**\n- `roleName`: Name of the role to update\n\n**Request Body:**\n- `permission`: Permission name to add"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Grant Role to User",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Role granted successfully', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.success).to.be.true;",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles?role={{roleToGrant}}",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "users",
-                                "{{targetUsername}}",
-                                "roles"
-                            ],
-                            "query": [
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
                                 {
-                                    "key": "role",
-                                    "value": "{{roleToGrant}}",
-                                    "description": "Role name to grant"
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
                                 }
                             ]
                         },
-                        "description": "Grant a role to a user.\n\n**Required Permission:** `role:grant`\n**Required Role:** `ADMIN`\n\n**Path Parameters:**\n- `username`: Username of the target user\n\n**Query Parameters:**\n- `role`: Role name to grant"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Revoke Role from User",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Role revoked successfully', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.success).to.be.true;",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles?role={{roleToRevoke}}",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "users",
-                                "{{targetUsername}}",
-                                "roles"
-                            ],
-                            "query": [
-                                {
-                                    "key": "role",
-                                    "value": "{{roleToRevoke}}",
-                                    "description": "Role name to revoke"
-                                }
-                            ]
-                        },
-                        "description": "Revoke a role from a user.\n\n**Required Permission:** `role:revoke`\n**Required Role:** `ADMIN`\n\n**Path Parameters:**\n- `username`: Username of the target user\n\n**Query Parameters:**\n- `role`: Role name to revoke"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get User Roles",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has roles', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.be.an('array');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
+                        "header": [],
                         "url": {
-                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles",
+                            "raw": "{{baseUrl}}/admin/roles",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
-                                "auth",
-                                "users",
-                                "{{targetUsername}}",
+                                "admin",
                                 "roles"
                             ]
                         },
-                        "description": "Get all roles assigned to a user.\n\n**Required Permission:** `role:read`\n**Required Role:** `ADMIN`\n\n**Path Parameters:**\n- `username`: Username to check"
+                        "description": "Get all roles (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Role by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/roles/{{roleId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "roles",
+                                "{{roleId}}"
+                            ]
+                        },
+                        "description": "Get role details by ID (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Role",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"UPDATED_ROLE\",\n  \"description\": \"Updated role description\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/roles/{{roleId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "roles",
+                                "{{roleId}}"
+                            ]
+                        },
+                        "description": "Update role (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Role",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/roles/{{roleId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "roles",
+                                "{{roleId}}"
+                            ]
+                        },
+                        "description": "Delete role (ADMIN only)"
                     },
                     "response": []
                 }
             ],
-            "description": "Role management endpoints. Requires ADMIN role."
+            "description": "Role CRUD operations (ADMIN only)"
         },
         {
-            "name": "Admin - Permission Management",
+            "name": "Permission Management",
             "item": [
-                {
-                    "name": "List All Permissions",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has permissions array', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.be.an('array');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/permissions",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "permissions"
-                            ]
-                        },
-                        "description": "Get all available permissions in the system.\n\n**Required Permission:** `perm:read`\n**Required Role:** `ADMIN`"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Permission by Name",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Response has permission data', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('name');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/auth/permissions/{{permissionName}}",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "permissions",
-                                "{{permissionName}}"
-                            ]
-                        },
-                        "description": "Get a specific permission by name.\n\n**Required Permission:** `perm:read`\n**Required Role:** `ADMIN`\n\n**Path Parameters:**\n- `name`: Permission name (e.g., `job:create`)"
-                    },
-                    "response": []
-                },
                 {
                     "name": "Create Permission",
                     "event": [
@@ -1228,27 +1120,31 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Permission created successfully', function () {",
-                                    "    const jsonData = pm.response.json();",
-                                    "    pm.expect(jsonData.data).to.have.property('name');",
-                                    "});"
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        pm.environment.set('permissionId', response.data.id);",
+                                    "        console.log('Permission created with ID: ' + response.data.id);",
+                                    "    }",
+                                    "}"
                                 ],
                                 "type": "text/javascript"
                             }
                         }
                     ],
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}",
-                                "description": "Bearer token for authentication"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -1256,24 +1152,252 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"{{newPermissionName}}\",\n    \"description\": \"{{newPermissionDescription}}\"\n}"
+                            "raw": "{\n  \"name\": \"custom:test\",\n  \"description\": \"Custom test permission\",\n  \"resource\": \"custom\",\n  \"action\": \"test\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/auth/permissions",
+                            "raw": "{{baseUrl}}/admin/permissions",
                             "host": [
-                                "{{base_url}}"
+                                "{{baseUrl}}"
                             ],
                             "path": [
-                                "auth",
+                                "admin",
                                 "permissions"
                             ]
                         },
-                        "description": "Create a new permission.\n\n**Required Permission:** `perm:create`\n**Required Role:** `ADMIN`\n\n**Request Body:**\n- `name`: Permission name in format `resource:action` (max 64 chars, required)\n- `description`: Permission description (max 255 chars, optional)\n\n**Name Format Examples:**\n- `job:create`\n- `user:read`\n- `cv:upload`"
+                        "description": "Create new permission (ADMIN only) - Format: resource:action"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Permissions",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/permissions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "permissions"
+                            ]
+                        },
+                        "description": "Get all permissions (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Permission by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/permissions/{{permissionId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "permissions",
+                                "{{permissionId}}"
+                            ]
+                        },
+                        "description": "Get permission details by ID (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Permission",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"custom:updated\",\n  \"description\": \"Updated permission description\",\n  \"resource\": \"custom\",\n  \"action\": \"updated\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/permissions/{{permissionId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "permissions",
+                                "{{permissionId}}"
+                            ]
+                        },
+                        "description": "Update permission (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Permission",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/permissions/{{permissionId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "permissions",
+                                "{{permissionId}}"
+                            ]
+                        },
+                        "description": "Delete permission (ADMIN only)"
                     },
                     "response": []
                 }
             ],
-            "description": "Permission management endpoints. Requires ADMIN role."
+            "description": "Permission CRUD operations (ADMIN only)"
+        },
+        {
+            "name": "User Role Assignment",
+            "item": [
+                {
+                    "name": "Grant Role to User",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/user-roles/{{candidateUserId}}/roles/{{roleId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "user-roles",
+                                "{{candidateUserId}}",
+                                "roles",
+                                "{{roleId}}"
+                            ]
+                        },
+                        "description": "Assign role to user (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Revoke Role from User",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/user-roles/{{candidateUserId}}/roles/{{roleId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "user-roles",
+                                "{{candidateUserId}}",
+                                "roles",
+                                "{{roleId}}"
+                            ]
+                        },
+                        "description": "Remove role from user (ADMIN only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get User Roles",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/user-roles/{{candidateUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "user-roles",
+                                "{{candidateUserId}}"
+                            ]
+                        },
+                        "description": "Get all roles for a specific user (ADMIN only)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "User role assignment operations (ADMIN only)"
         }
     ],
     "event": [
@@ -1282,11 +1406,7 @@
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "// Global pre-request script",
-                    "// Ensures device ID is set for all requests",
-                    "if (!pm.environment.get('deviceId')) {",
-                    "    pm.environment.set('deviceId', 'postman-' + pm.info.requestName.replace(/\\s+/g, '-').toLowerCase());",
-                    "}"
+                    ""
                 ]
             }
         },
@@ -1295,18 +1415,16 @@
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "// Global test script",
-                    "// Log response time for all requests",
-                    "console.log('Response time: ' + pm.response.responseTime + 'ms');"
+                    ""
                 ]
             }
         }
     ],
     "variable": [
         {
-            "key": "base_url",
+            "key": "baseUrl",
             "value": "http://localhost:9085",
-            "type": "default"
+            "type": "string"
         }
     ]
 }

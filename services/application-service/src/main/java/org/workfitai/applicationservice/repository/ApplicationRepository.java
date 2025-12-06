@@ -51,9 +51,6 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
     /** Finds specific application by user and job. */
     Optional<Application> findByUsernameAndJobId(String username, String jobId);
 
-    /** Finds all applications using a specific CV. */
-    List<Application> findByCvId(String cvId);
-
     /** Finds recent applications for a user (sorted by createdAt desc). */
     @Query(value = "{ 'username': ?0 }", sort = "{ 'createdAt': -1 }")
     List<Application> findRecentByUsername(String username, int limit);

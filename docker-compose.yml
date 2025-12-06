@@ -120,7 +120,7 @@ services:
     image: mongo:6.0
     container_name: application-mongo
     environment:
-      MONGO_INITDB_DATABASE: application_db
+      MONGO_INITDB_DATABASE: app-db
     ports:
       - "27019:27017"
     volumes:
@@ -249,7 +249,9 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
-      monitoring-service:
+      api-gateway:
+        condition: service_started
+      auth-service:
         condition: service_healthy
     networks: [workfitai-net]
     profiles: ["services", "full"]
@@ -270,10 +272,20 @@ services:
       - SPRING_DATA_REDIS_HOST=cv-redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      - consul
-      - auth-service
-      - cv-mongo
-      - cv-redis
+      consul:
+        condition: service_started
+      cv-mongo:
+        condition: service_started
+      cv-redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+      auth-service:
+        condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
     networks: [workfitai-net]
     profiles: ["services", "full"]
 
@@ -388,8 +400,8 @@ services:
         condition: service_started
       notif-mongo:
         condition: service_started
-    networks: [ workfitai-net ]
-    profiles: [ "services", "full" ]
+    networks: [workfitai-net]
+    profiles: ["services", "full"]
 
   notif-mongo:
     image: mongo:6.0
@@ -398,8 +410,8 @@ services:
       MONGO_INITDB_DATABASE: notification-db
     ports:
       - "27020:27017"
-    networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["infra", "full"]
 
   vault:
     image: vault:1.13.3
