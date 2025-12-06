@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Pending Approval - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .status-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .info-list {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏳ WorkFitAI</h1>
+            <p>Account Under Review</p>
+        </div>
+
+        <div class="content">
+            <h2>Hello <span th:text="${username}">User</span>,</h2>
+
+            <p>Thank you for verifying your email address! Your registration as <strong th:text="${role}">HR</strong>
+                has been
+                successfully submitted.</p>
+
+            <div class="status-box">
+                <strong>📋 Status: Pending Approval</strong>
+                <p style="margin: 10px 0 0 0;">Your account is currently being reviewed by our <span
+                        th:text="${approverType}">Administrator</span> team.
+                </p>
+            </div>
+
+            <div class="info-list">
+                <h3>What happens next:</h3>
+                <ul>
+                    <li>Our team will review your registration details</li>
+                    <li>You'll receive an email notification once approved</li>
+                    <li>After approval, you can log in and access all features</li>
+                    <li>The review process typically takes 1-2 business days</li>
+                </ul>
+            </div>
+
+            <p>Please note that you won't be able to log in until your account is approved. We appreciate your patience
+                during this process.</p>
+
+            <p>If you have any questions, please contact our support team.</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated email. Please do not reply.</p>
+            <p>&copy; 2025 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

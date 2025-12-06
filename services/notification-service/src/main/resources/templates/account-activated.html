@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Activated - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #10b981;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .success-box {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .login-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .features-list {
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 WorkFitAI</h1>
+            <p>Welcome to Your Career Journey!</p>
+        </div>
+
+        <div class="content">
+            <h2>Congratulations, <span th:text="${username}">User</span>!</h2>
+
+            <div class="success-box">
+                <strong>✅ Your account is now active!</strong>
+                <p style="margin: 10px 0 0 0;">You can now log in and start using WorkFitAI to advance your career.</p>
+            </div>
+
+            <div class="features-list">
+                <h3>What you can do now:</h3>
+                <ul>
+                    <li>Build and optimize your professional profile</li>
+                    <li>Search and apply for relevant job opportunities</li>
+                    <li>Connect with potential employers and colleagues</li>
+                    <li>Access career development resources</li>
+                    <li>Track your application progress</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center;">
+                <a th:href="${loginUrl}" href="#" class="login-button">Login to Your Account</a>
+            </div>
+
+            <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated email. Please do not reply.</p>
+            <p>&copy; 2025 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

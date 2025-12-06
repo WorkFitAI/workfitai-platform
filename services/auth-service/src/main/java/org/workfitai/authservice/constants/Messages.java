@@ -25,6 +25,13 @@ public final class Messages {
         public static final String DEFAULT_ERROR = "Error";
         public static final String UNEXPECTED_ERROR = "Unexpected error";
         public static final String INVALID_SECRET_PROVIDED = "Invalid secret provided";
+        public static final String OTP_INVALID = "Invalid or expired OTP";
+        public static final String ACCOUNT_NOT_ACTIVE = "Account is not active";
+        public static final String ACCOUNT_WAITING_APPROVAL = "Account is waiting for approval";
+        public static final String ADMIN_SELF_REGISTER_FORBIDDEN = "Admin accounts cannot be self-registered";
+        public static final String HR_PROFILE_REQUIRED = "HR profile is required for HR registrations";
+        public static final String COMPANY_DETAILS_REQUIRED = "Company details are required for HR manager registrations";
+        public static final String COMPANY_ID_MISMATCH = "Company ID on HR profile must match company details";
 
         // Role & permission domain errors
         public static final String ROLE_ALREADY_EXISTS = "Role already exists: %s";
@@ -53,6 +60,8 @@ public final class Messages {
         public static final String LOGGED_OUT = "Logged out";
         public static final String TOKENS_REFRESHED = "Tokens refreshed";
         public static final String USER_REGISTERED = "User registered";
+        public static final String OTP_SENT = "OTP sent";
+        public static final String ACCOUNT_VERIFIED = "Account verified";
     }
 
     public static final class Validation {

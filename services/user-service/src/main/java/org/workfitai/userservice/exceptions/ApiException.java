@@ -44,7 +44,14 @@ public class ApiException extends RuntimeException {
   }
 
   /**
-   * Create not found exception
+   * Create not found exception with custom message
+   */
+  public static ApiException notFound(String message) {
+    return new ApiException(message, HttpStatus.NOT_FOUND);
+  }
+
+  /**
+   * Create not found exception with resource and identifier
    */
   public static ApiException notFound(String resource, String identifier) {
     String message = String.format("%s with identifier '%s' not found", resource, identifier);

@@ -172,20 +172,31 @@ public class CandidateServiceImpl implements CandidateService {
     log.info("Creating candidate from Kafka event for user: {}", userData.getEmail());
 
     try {
+      if (userData.getRole() != null
+          && !EUserRole.CANDIDATE.name().equalsIgnoreCase(userData.getRole().replace(" ", "_"))) {
+        log.warn("Skipping candidate creation because role {} is not CANDIDATE", userData.getRole());
+        throw new ApiException("Invalid role for candidate creation", HttpStatus.BAD_REQUEST);
+      }
+
       // Check if candidate already exists by email
       if (candidateRepository.existsByEmail(userData.getEmail())) {
-        log.warn("Candidate with email {} already exists, skipping creation", userData.getEmail());
+        log.warn("Candidate with email {} already exists, skipping", userData.getEmail());
         return;
       }
+
+      // Map status from string to enum
+      EUserStatus status = userData.getStatus() != null ? EUserStatus.fromJson(userData.getStatus())
+          : EUserStatus.ACTIVE;
 
       // Create candidate entity from user data - let JPA handle ID generation
       CandidateEntity candidate = CandidateEntity.builder()
           .email(userData.getEmail())
+          .username(userData.getUsername())
           .fullName(userData.getFullName())
           .phoneNumber(userData.getPhoneNumber())
           .passwordHash(userData.getPasswordHash())
           .userRole(EUserRole.CANDIDATE) // Set required user role
-          .userStatus(EUserStatus.ACTIVE) // Set required user status
+          .userStatus(status) // Use status from event
           .isDeleted(false) // Set deleted flag to false
           .build();
 
@@ -196,9 +207,23 @@ public class CandidateServiceImpl implements CandidateService {
 
     } catch (Exception ex) {
       log.error("Error creating candidate from Kafka event for email: {}", userData.getEmail(), ex);
-      throw new ApiException("Failed to create candidate from user registration event",
+      throw new ApiException("Failed to create candidate from user registration event: " + ex.getMessage(),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @Override
+  @Transactional
+  public void updateStatus(String email, EUserStatus status) {
+    log.info("Updating candidate status for email: {} to status: {}", email, status);
+
+    CandidateEntity candidate = candidateRepository.findByEmail(email)
+        .orElseThrow(() -> new ApiException("Candidate not found with email: " + email, HttpStatus.NOT_FOUND));
+
+    candidate.setUserStatus(status);
+    candidateRepository.save(candidate);
+
+    log.info("Successfully updated candidate status for email: {} to status: {}", email, status);
   }
 
 }

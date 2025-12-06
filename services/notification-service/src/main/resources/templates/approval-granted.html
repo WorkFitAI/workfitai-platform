@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Approved - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #10b981;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .success-box {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .login-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .highlight {
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ WorkFitAI</h1>
+            <p>Account Approved!</p>
+        </div>
+
+        <div class="content">
+            <h2>Congratulations, <span th:text="${username}">User</span>!</h2>
+            <p>Great news! Your <span class="highlight" th:text="${role}">HR</span> account has been approved and is now
+                active.</p>
+
+            <div class="success-box">
+                <h3>🎉 Account Status: Approved</h3>
+                <p>You can now access all features available to your role. Welcome to the WorkFitAI platform!</p>
+            </div>
+
+            <p>You can now log in to your account and start exploring our platform:</p>
+
+            <div style="text-align: center;">
+                <a th:href="${loginUrl}" href="#" class="login-button">Log In to WorkFitAI</a>
+            </div>
+
+            <h3>What's next?</h3>
+            <ul>
+                <li><strong>Complete your profile</strong> - Add more information about yourself</li>
+                <li><strong>Explore features</strong> - Discover what WorkFitAI has to offer</li>
+                <li th:if="${isHRManager}"><strong>Set up your company</strong> - Your company profile has been created
+                </li>
+                <li th:if="${isHRManager}"><strong>Manage your team</strong> - Start adding HR staff and job postings
+                </li>
+                <li th:if="${isHR}"><strong>Review candidates</strong> - Start evaluating job applications</li>
+                <li th:if="${isHR}"><strong>Post jobs</strong> - Create new job opportunities</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2025 WorkFitAI. All rights reserved.</p>
+            <p>Need help? Contact our support team at support@workfitai.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,1582 @@
+{
+    "info": {
+        "_postman_id": "workfitai-platform-collection",
+        "name": "WorkFitAI Platform",
+        "description": "Complete API collection for WorkFitAI Platform.\n\nAll requests go through API Gateway with Consul service discovery.\n\n## URL Pattern\n`{{base_url}}/{service-name}/{endpoint}`\n\nService names on Consul:\n- `auth` - Auth Service\n- `user` - User Service\n- `notification` - Notification Service\n- `job` - Job Service\n- `cv` - CV Service\n\n## Setup\n1. Import this collection\n2. Import the environment file\n3. Set `base_url` to API Gateway URL (default: http://localhost:9005)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Auth Service",
+            "description": "Authentication and registration endpoints\nService: auth",
+            "item": [
+                {
+                    "name": "1.1 Registration",
+                    "item": [
+                        {
+                            "name": "Register Candidate",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200 or 201', function () {",
+                                            "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                                            "});",
+                                            "",
+                                            "var requestBody = JSON.parse(pm.request.body.raw);",
+                                            "pm.environment.set('candidate_email', requestBody.email);",
+                                            "pm.environment.set('candidate_password', requestBody.password);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"candidate@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test Candidate\",\n  \"phoneNumber\": \"+84901234567\",\n  \"role\": \"CANDIDATE\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                },
+                                "description": "Register a new candidate account. OTP will be sent to email."
+                            }
+                        },
+                        {
+                            "name": "Register HR Manager",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200 or 201', function () {",
+                                            "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                                            "});",
+                                            "",
+                                            "var requestBody = JSON.parse(pm.request.body.raw);",
+                                            "pm.environment.set('hr_manager_email', requestBody.email);",
+                                            "pm.environment.set('hr_manager_password', requestBody.password);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"hrmanager@newcompany.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Manager\",\n  \"phoneNumber\": \"+84912345678\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"123 Business Street, Ho Chi Minh City\"\n  },\n  \"company\": {\n    \"companyName\": \"New Company Ltd\",\n    \"industry\": \"Technology\",\n    \"companySize\": \"50-100\",\n    \"website\": \"https://newcompany.com\",\n    \"address\": \"123 Business Street, Ho Chi Minh City\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                },
+                                "description": "Register a new HR Manager. Requires company information. After OTP verification, account needs Admin approval."
+                            }
+                        },
+                        {
+                            "name": "Register HR Staff",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200 or 201', function () {",
+                                            "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                                            "});",
+                                            "",
+                                            "var requestBody = JSON.parse(pm.request.body.raw);",
+                                            "pm.environment.set('hr_email', requestBody.email);",
+                                            "pm.environment.set('hr_password', requestBody.password);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"hr@techcorp.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Staff\",\n  \"phoneNumber\": \"+84923456789\",\n  \"role\": \"HR\",\n  \"hrProfile\": {\n    \"department\": \"Recruitment\",\n    \"hrManagerEmail\": \"hrmanager@techcorp.com\",\n    \"address\": \"123 Tech Street, Ho Chi Minh City\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                },
+                                "description": "Register a new HR Staff. Requires HR Manager's email to be assigned to their company."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "1.2 Verification",
+                    "item": [
+                        {
+                            "name": "Verify OTP",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"{{candidate_email}}\",\n  \"otp\": \"123456\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/verify-otp",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "verify-otp"
+                                    ]
+                                },
+                                "description": "Verify OTP sent to email."
+                            }
+                        },
+                        {
+                            "name": "Resend OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"{{candidate_email}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/resend-otp",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "resend-otp"
+                                    ]
+                                },
+                                "description": "Resend OTP for PENDING accounts."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "1.3 Authentication",
+                    "item": [
+                        {
+                            "name": "Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data && jsonData.data.accessToken) {",
+                                            "    pm.environment.set('access_token', jsonData.data.accessToken);",
+                                            "    pm.environment.set('refresh_token', jsonData.data.refreshToken);",
+                                            "    pm.environment.set('user_id', jsonData.data.userId);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"{{candidate_email}}\",\n  \"password\": \"{{candidate_password}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                },
+                                "description": "Login with email/username and password."
+                            }
+                        },
+                        {
+                            "name": "Login as Admin",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data && jsonData.data.accessToken) {",
+                                            "    pm.environment.set('admin_access_token', jsonData.data.accessToken);",
+                                            "    pm.environment.set('admin_user_id', jsonData.data.userId);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"admin@workfitai.com\",\n  \"password\": \"admin123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                },
+                                "description": "Login as seeded admin account."
+                            }
+                        },
+                        {
+                            "name": "Login as HR Manager",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data && jsonData.data.accessToken) {",
+                                            "    pm.environment.set('hr_manager_access_token', jsonData.data.accessToken);",
+                                            "    pm.environment.set('hr_manager_user_id', jsonData.data.userId);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"hrmanager@techcorp.com\",\n  \"password\": \"hrmanager123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                },
+                                "description": "Login as seeded HR Manager account."
+                            }
+                        },
+                        {
+                            "name": "Refresh Token",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data && jsonData.data.accessToken) {",
+                                            "    pm.environment.set('access_token', jsonData.data.accessToken);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/refresh",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "refresh"
+                                    ]
+                                },
+                                "description": "Get new access token using refresh token."
+                            }
+                        },
+                        {
+                            "name": "Logout",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/logout",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "logout"
+                                    ]
+                                },
+                                "description": "Logout and invalidate tokens."
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "2. User Service",
+            "description": "User profile and management endpoints\nService: user",
+            "item": [
+                {
+                    "name": "2.1 Profile",
+                    "item": [
+                        {
+                            "name": "Get My Profile",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "pm.test('Profile data returned', function () {",
+                                            "    var jsonData = pm.response.json();",
+                                            "    pm.expect(jsonData.success).to.eql(true);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/profile/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "profile",
+                                        "me"
+                                    ]
+                                },
+                                "description": "Get current user's profile based on their role."
+                            }
+                        },
+                        {
+                            "name": "Update Candidate Profile",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"fullName\": \"Updated Candidate Name\",\n  \"phoneNumber\": \"+84901234567\",\n  \"careerObjective\": \"Full-stack developer with 5+ years experience\",\n  \"summary\": \"Experienced developer specializing in Java and React\",\n  \"totalExperience\": 5,\n  \"education\": \"Bachelor of Computer Science\",\n  \"certifications\": \"AWS Solutions Architect, Oracle Java SE 11\",\n  \"portfolioLink\": \"https://myportfolio.com\",\n  \"linkedinUrl\": \"https://linkedin.com/in/candidate\",\n  \"githubUrl\": \"https://github.com/candidate\",\n  \"expectedPosition\": \"Senior Software Engineer\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/user/profile/candidate",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "profile",
+                                        "candidate"
+                                    ]
+                                },
+                                "description": "Update candidate's own profile."
+                            }
+                        },
+                        {
+                            "name": "Update HR Profile",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{hr_manager_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"fullName\": \"Updated HR Manager Name\",\n  \"phoneNumber\": \"+84912345678\",\n  \"department\": \"Human Resources & Talent Acquisition\",\n  \"address\": \"456 New Business Street, Ho Chi Minh City\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/user/profile/hr",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "profile",
+                                        "hr"
+                                    ]
+                                },
+                                "description": "Update HR's own profile (for HR and HR_MANAGER roles)."
+                            }
+                        },
+                        {
+                            "name": "Update Admin Profile",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"fullName\": \"Updated Admin Name\",\n  \"phoneNumber\": \"+84901234567\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/user/profile/admin",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "profile",
+                                        "admin"
+                                    ]
+                                },
+                                "description": "Update admin's own profile."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "2.2 User Validation",
+                    "item": [
+                        {
+                            "name": "Check Email Exists",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/exists/email?email=admin@workfitai.com",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "exists",
+                                        "email"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "email",
+                                            "value": "admin@workfitai.com"
+                                        }
+                                    ]
+                                },
+                                "description": "Check if email exists in user-service."
+                            }
+                        },
+                        {
+                            "name": "Check Username Exists",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/exists/username?username=admin",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "exists",
+                                        "username"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "username",
+                                            "value": "admin"
+                                        }
+                                    ]
+                                },
+                                "description": "Check if username exists in user-service."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "2.3 Candidates",
+                    "item": [
+                        {
+                            "name": "Get All Candidates",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/candidates?page=0&size=10",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "candidates"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "10"
+                                        }
+                                    ]
+                                },
+                                "description": "Get paginated list of all candidates."
+                            }
+                        },
+                        {
+                            "name": "Get Candidate by ID",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/candidates/{{user_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "candidates",
+                                        "{{user_id}}"
+                                    ]
+                                },
+                                "description": "Get candidate by user ID."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "2.4 HR Management",
+                    "item": [
+                        {
+                            "name": "Get All HRs",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/hr?page=0&size=10",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "hr"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "10"
+                                        }
+                                    ]
+                                },
+                                "description": "Get paginated list of all HR accounts."
+                            }
+                        },
+                        {
+                            "name": "Get HR by Username",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/hr/username/hrmanager_techcorp",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "hr",
+                                        "username",
+                                        "hrmanager_techcorp"
+                                    ]
+                                },
+                                "description": "Get HR by username."
+                            }
+                        },
+                        {
+                            "name": "Approve HR Manager (Admin only)",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/hr/username/:username/approve-manager",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "hr",
+                                        "username",
+                                        ":username",
+                                        "approve-manager"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "username",
+                                            "value": "hrmanager_newcompany",
+                                            "description": "Username of HR Manager to approve"
+                                        }
+                                    ]
+                                },
+                                "description": "Admin approves an HR Manager account. Changes status from WAIT_APPROVED to ACTIVE."
+                            }
+                        },
+                        {
+                            "name": "Approve HR Staff (HR Manager only)",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Status code is 200', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{hr_manager_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/hr/username/:username/approve",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "hr",
+                                        "username",
+                                        ":username",
+                                        "approve"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "username",
+                                            "value": "hr_techcorp",
+                                            "description": "Username of HR Staff to approve"
+                                        }
+                                    ]
+                                },
+                                "description": "HR Manager approves an HR Staff account in their company."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "2.5 Admin Management",
+                    "item": [
+                        {
+                            "name": "Get All Admins",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/admins?page=0&size=10",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "admins"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "10"
+                                        }
+                                    ]
+                                },
+                                "description": "Get paginated list of all admin accounts."
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "3. Notification Service",
+            "description": "Notification and email endpoints\nService: notification",
+            "item": [
+                {
+                    "name": "3.1 Notifications",
+                    "item": [
+                        {
+                            "name": "Get My Notifications",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/notification/notifications?page=0&size=20",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification",
+                                        "notifications"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "Get current user's notifications."
+                            }
+                        },
+                        {
+                            "name": "Get Unread Count",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/notification/notifications/unread-count",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification",
+                                        "notifications",
+                                        "unread-count"
+                                    ]
+                                },
+                                "description": "Get count of unread notifications."
+                            }
+                        },
+                        {
+                            "name": "Mark as Read",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/notification/notifications/:notificationId/read",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification",
+                                        "notifications",
+                                        ":notificationId",
+                                        "read"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "notificationId",
+                                            "value": "notification-id-here"
+                                        }
+                                    ]
+                                },
+                                "description": "Mark a notification as read."
+                            }
+                        },
+                        {
+                            "name": "Mark All as Read",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/notification/notifications/mark-all-read",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification",
+                                        "notifications",
+                                        "mark-all-read"
+                                    ]
+                                },
+                                "description": "Mark all notifications as read."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "3.2 Email Logs (Admin)",
+                    "item": [
+                        {
+                            "name": "Get Email Logs",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/notification/emails?page=0&size=20",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification",
+                                        "emails"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "Get email logs (Admin only)."
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "4. Complete Workflows",
+            "description": "End-to-end workflow examples",
+            "item": [
+                {
+                    "name": "4.1 Candidate Registration Flow",
+                    "item": [
+                        {
+                            "name": "Step 1: Register Candidate",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Registration successful', function () {",
+                                            "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                                            "});",
+                                            "",
+                                            "var requestBody = JSON.parse(pm.request.body.raw);",
+                                            "pm.environment.set('test_candidate_email', requestBody.email);",
+                                            "pm.environment.set('test_candidate_password', requestBody.password);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                },
+                                {
+                                    "listen": "prerequest",
+                                    "script": {
+                                        "exec": [
+                                            "var timestamp = Date.now();",
+                                            "pm.environment.set('test_email_suffix', timestamp);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"candidate_{{test_email_suffix}}@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test Candidate {{test_email_suffix}}\",\n  \"phoneNumber\": \"+8490{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}\",\n  \"role\": \"CANDIDATE\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Step 2: Verify OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"{{test_candidate_email}}\",\n  \"otp\": \"123456\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/verify-otp",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "verify-otp"
+                                    ]
+                                },
+                                "description": "NOTE: Get OTP from email or check Redis"
+                            }
+                        },
+                        {
+                            "name": "Step 3: Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Login successful', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data) {",
+                                            "    pm.environment.set('test_access_token', jsonData.data.accessToken);",
+                                            "    pm.environment.set('test_user_id', jsonData.data.userId);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"{{test_candidate_email}}\",\n  \"password\": \"{{test_candidate_password}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Step 4: Get Profile",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{test_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/profile/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "profile",
+                                        "me"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "4.2 HR Manager Approval Flow",
+                    "item": [
+                        {
+                            "name": "Step 1: Register HR Manager",
+                            "event": [
+                                {
+                                    "listen": "prerequest",
+                                    "script": {
+                                        "exec": [
+                                            "var timestamp = Date.now();",
+                                            "pm.environment.set('hr_test_suffix', timestamp);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                },
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var requestBody = JSON.parse(pm.request.body.raw);",
+                                            "pm.environment.set('test_hr_manager_email', requestBody.email);",
+                                            "pm.environment.set('test_hr_manager_password', requestBody.password);"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"hrm_{{hr_test_suffix}}@newco.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Manager {{hr_test_suffix}}\",\n  \"phoneNumber\": \"+8491{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"Business Address\"\n  },\n  \"company\": {\n    \"companyName\": \"New Company {{hr_test_suffix}}\",\n    \"industry\": \"Technology\",\n    \"companySize\": \"50-100\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Step 2: Verify OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"{{test_hr_manager_email}}\",\n  \"otp\": \"123456\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/verify-otp",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "verify-otp"
+                                    ]
+                                },
+                                "description": "After OTP verification, HR_MANAGER status becomes WAIT_APPROVED"
+                            }
+                        },
+                        {
+                            "name": "Step 3: Login as Admin",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data) {",
+                                            "    pm.environment.set('admin_token_for_approval', jsonData.data.accessToken);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"admin@workfitai.com\",\n  \"password\": \"admin123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Step 4: Admin Approves HR Manager",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{admin_token_for_approval}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/user/hr/username/hrm_{{hr_test_suffix}}/approve-manager",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user",
+                                        "hr",
+                                        "username",
+                                        "hrm_{{hr_test_suffix}}",
+                                        "approve-manager"
+                                    ]
+                                },
+                                "description": "Admin approves HR Manager. Status changes to ACTIVE."
+                            }
+                        },
+                        {
+                            "name": "Step 5: HR Manager Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('HR Manager can now login', function () {",
+                                            "    pm.expect(pm.response.code).to.eql(200);",
+                                            "});",
+                                            "",
+                                            "var jsonData = pm.response.json();",
+                                            "if (jsonData.data) {",
+                                            "    pm.environment.set('test_hr_manager_token', jsonData.data.accessToken);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"usernameOrEmail\": \"{{test_hr_manager_email}}\",\n  \"password\": \"{{test_hr_manager_password}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "5. Health Checks",
+            "description": "Service health endpoints",
+            "item": [
+                {
+                    "name": "API Gateway Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/actuator/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "actuator",
+                                "health"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Auth Service Health (via Gateway)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/auth/actuator/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "actuator",
+                                "health"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "User Service Health (via Gateway)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/user/actuator/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "user",
+                                "actuator",
+                                "health"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Notification Service Health (via Gateway)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/notification/actuator/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "actuator",
+                                "health"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
