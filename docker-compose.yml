@@ -326,8 +326,8 @@ services:
         condition: service_healthy
       monitoring-service:
         condition: service_healthy
-    networks: [ workfitai-net ]
-    profiles: [ "services", "full" ]
+    networks: [workfitai-net]
+    profiles: ["services", "full"]
 
   application-service:
     build:
@@ -539,8 +539,8 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
-    networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["infra", "full"]
 
   ### ELK Stack for Centralized Logging ###
   elasticsearch:
@@ -566,13 +566,17 @@ services:
       - "9200:9200"
       - "9300:9300"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f -u elastic:${ELASTICSEARCH_PASSWORD:-workfitai123} http://localhost:9200/_cluster/health || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f -u elastic:${ELASTICSEARCH_PASSWORD:-workfitai123} http://localhost:9200/_cluster/health || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
-    networks: [ workfitai-net ]
-    profiles: [ "logging", "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["logging", "infra", "full"]
 
   # Setup kibana_system user password
   elasticsearch-setup:
@@ -596,8 +600,8 @@ services:
           -d "{\"password\": \"$${KIBANA_PASSWORD}\"}" | grep -q "^{}" && echo "Password set successfully" || echo "Password already set or error";
         echo "Setup complete!";
       '
-    networks: [ workfitai-net ]
-    profiles: [ "logging", "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["logging", "infra", "full"]
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
@@ -615,13 +619,13 @@ services:
       elasticsearch-setup:
         condition: service_completed_successfully
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1" ]
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
-    networks: [ workfitai-net ]
-    profiles: [ "logging", "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["logging", "infra", "full"]
 
   fluent-bit:
     image: fluent/fluent-bit:2.2
@@ -640,8 +644,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-    networks: [ workfitai-net ]
-    profiles: [ "logging", "infra", "full" ]
+    networks: [workfitai-net]
+    profiles: ["logging", "infra", "full"]
 
   ### MinIO ###
   minio:
@@ -679,9 +683,6 @@ services:
       "
     networks: [workfitai-net]
     profiles: ["infra", "full"]
-      /bin/sh -c " sleep 5 && mc alias set local $${MINIO_ENDPOINT} $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY} && mc mb -p local/$${MINIO_BUCKET} || true && tail -f /dev/null "
-    networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
 
 volumes:
   user-postgres-data:
@@ -691,7 +692,6 @@ volumes:
   prometheus-data:
   minio-data:
   elasticsearch-data:
-
 
 networks:
   workfitai-net:
