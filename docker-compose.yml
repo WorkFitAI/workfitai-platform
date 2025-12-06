@@ -346,6 +346,49 @@ services:
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
+  notification-service:
+    build:
+      context: ./services/notification-service
+    env_file:
+      - .env.local
+    ports:
+      - "9087:9005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT}
+      - EMAIL_ADDRESS=${EMAIL_ADDRESS}
+      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - AUTH_SERVICE_URL=http://auth-service:9005
+      - VAULT_URI=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - SPRING_DATA_MONGODB_URI=mongodb://notif-mongo:27017/notification-db
+    depends_on:
+      kafka:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      consul:
+        condition: service_started
+      notif-mongo:
+        condition: service_started
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
+
+  notif-mongo:
+    image: mongo:6.0
+    container_name: notif-mongo
+    environment:
+      MONGO_INITDB_DATABASE: notification-db
+    ports:
+      - "27020:27017"
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
   vault:
     image: vault:1.13.3
     container_name: vault

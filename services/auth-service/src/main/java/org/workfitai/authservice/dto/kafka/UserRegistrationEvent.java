@@ -48,5 +48,59 @@ public class UserRegistrationEvent {
 
         @JsonProperty("passwordHash")
         private String passwordHash;
+
+        @JsonProperty("role")
+        private String role;
+
+        @JsonProperty("status")
+        private String status;
+
+        @JsonProperty("hrProfile")
+        private HrProfile hrProfile;
+
+        @JsonProperty("company")
+        private CompanyData company;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HrProfile {
+        @JsonProperty("department")
+        private String department;
+
+        @JsonProperty("hrManagerEmail")
+        private String hrManagerEmail;
+
+        @JsonProperty("address")
+        private String address;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompanyData {
+        @JsonProperty("companyId")
+        private String companyId;
+
+        @JsonProperty("name")
+        private String name;
+
+        @JsonProperty("logoUrl")
+        private String logoUrl;
+
+        @JsonProperty("websiteUrl")
+        private String websiteUrl;
+
+        @JsonProperty("description")
+        private String description;
+
+        @JsonProperty("address")
+        private String address;
+
+        @JsonProperty("size")
+        private String size;
     }
 }

@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: notification
+  config:
+    import: optional:vault://secret/notification-service, optional:consul
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: org.workfitai.notificationservice.dto.kafka.NotificationEvent
+  mail:
+    host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
+    port: ${EMAIL_SMTP_PORT:587}
+    username: ${EMAIL_ADDRESS:}
+    password: ${EMAIL_APP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://notif-mongo:27017/notification-db}
+server:
+  port: ${SERVER_PORT:9005}
+
+app:
+  kafka:
+    topics:
+      notification: ${APP_KAFKA_TOPIC_NOTIFICATION:notification-events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,mail
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        service-name: notification
+        port: ${SERVER_PORT:9005}
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        fail-fast: false
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+    vault:
+      uri: ${VAULT_URL_LOCAL:http://localhost:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+
+server:
+  port: ${SERVER_PORT:9005}

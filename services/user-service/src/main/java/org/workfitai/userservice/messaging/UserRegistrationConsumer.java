@@ -10,6 +10,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.workfitai.userservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.userservice.services.CandidateService;
+import org.workfitai.userservice.services.HRService;
+import org.workfitai.userservice.enums.EUserRole;
+import org.workfitai.userservice.enums.EUserStatus;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +20,7 @@ import org.workfitai.userservice.services.CandidateService;
 public class UserRegistrationConsumer {
 
     private final CandidateService candidateService;
+    private final HRService hrService;
 
     @KafkaListener(topics = "${app.kafka.topics.user-registration:user-registration}", groupId = "${spring.kafka.consumer.group-id:user-service-group}", containerFactory = "retryableKafkaListenerContainerFactory")
     public void handleUserRegistration(
@@ -38,8 +42,17 @@ public class UserRegistrationConsumer {
                 return;
             }
 
-            if (!"USER_REGISTERED".equals(event.getEventType())) {
+            if (!"USER_REGISTERED".equals(event.getEventType()) &&
+                    !"HR_MANAGER_APPROVED".equals(event.getEventType()) &&
+                    !"HR_APPROVED".equals(event.getEventType())) {
                 log.warn("Unknown event type: {}, skipping", event.getEventType());
+                acknowledgment.acknowledge();
+                return;
+            }
+
+            // Handle approval events - update user status
+            if ("HR_MANAGER_APPROVED".equals(event.getEventType()) || "HR_APPROVED".equals(event.getEventType())) {
+                handleUserStatusUpdate(event.getUserData());
                 acknowledgment.acknowledge();
                 return;
             }
@@ -48,8 +61,18 @@ public class UserRegistrationConsumer {
             var userData = event.getUserData();
             log.info("Processing user registration for email: {}", userData.getEmail());
 
-            // Create candidate from Kafka event
-            candidateService.createFromKafkaEvent(userData);
+            if (userData.getRole() == null || userData.getRole().isBlank()) {
+                log.error("Missing role for user registration event: {}", userData);
+                acknowledgment.acknowledge();
+                return;
+            }
+
+            EUserRole role = EUserRole.fromJson(userData.getRole());
+            switch (role) {
+                case CANDIDATE -> candidateService.createFromKafkaEvent(userData);
+                case HR, HR_MANAGER -> hrService.createFromKafkaEvent(userData);
+                default -> log.warn("Unsupported role {} for user {}", userData.getRole(), userData.getEmail());
+            }
 
             log.info("Successfully processed user registration for email: {}", userData.getEmail());
 
@@ -61,6 +84,27 @@ public class UserRegistrationConsumer {
 
             // Don't acknowledge - let retry mechanism handle it
             throw new RuntimeException("Failed to process user registration event", ex);
+        }
+    }
+
+    private void handleUserStatusUpdate(UserRegistrationEvent.UserData userData) {
+        log.info("Updating user status for email: {} to status: {}", userData.getEmail(), userData.getStatus());
+
+        try {
+            EUserRole role = EUserRole.fromJson(userData.getRole());
+            EUserStatus status = EUserStatus.fromDisplayName(userData.getStatus());
+
+            switch (role) {
+                case CANDIDATE -> candidateService.updateStatus(userData.getEmail(), status);
+                case HR, HR_MANAGER -> hrService.updateStatus(userData.getEmail(), status);
+                default -> log.warn("Unsupported role {} for status update", userData.getRole());
+            }
+
+            log.info("Successfully updated user status for email: {}", userData.getEmail());
+
+        } catch (Exception ex) {
+            log.error("Error updating user status for email: {}", userData.getEmail(), ex);
+            throw new RuntimeException("Failed to update user status", ex);
         }
     }
 }

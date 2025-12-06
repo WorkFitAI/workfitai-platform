@@ -6,6 +6,7 @@ package org.workfitai.authservice.enums;
 public enum UserRole {
     CANDIDATE("CANDIDATE"),
     HR("HR"),
+    HR_MANAGER("HR_MANAGER"),
     ADMIN("ADMIN");
 
     private final String roleName;

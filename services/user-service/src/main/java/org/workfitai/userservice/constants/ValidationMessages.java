@@ -73,6 +73,41 @@ public final class ValidationMessages {
         }
     }
 
+    public static final class User {
+        public static final String USER_ID_REQUIRED = "User ID is required";
+        public static final String USER_ID_INVALID = "Invalid user ID format";
+        public static final String EMAIL_ALREADY_EXISTS = "Email already exists in the system";
+        public static final String USERNAME_ALREADY_EXISTS = "Username already exists in the system";
+        public static final String PHONE_ALREADY_EXISTS = "Phone number already exists in the system";
+
+        private User() {
+        }
+    }
+
+    public static final class Profile {
+        public static final String FULL_NAME_REQUIRED = "Full name is required";
+        public static final String FULL_NAME_SIZE = "Full name must be between 2 and 100 characters";
+        public static final String EMAIL_REQUIRED = "Email is required";
+        public static final String EMAIL_INVALID = "Email format is invalid";
+        public static final String PHONE_REQUIRED = "Phone number is required";
+        public static final String PHONE_INVALID = "Phone number format is invalid";
+        public static final String ROLE_MISMATCH = "Your account role does not match the requested profile type";
+
+        private Profile() {
+        }
+    }
+
+    public static final class HR {
+        public static final String DEPARTMENT_REQUIRED = "Department is required";
+        public static final String DEPARTMENT_SIZE = "Department must be between 2 and 100 characters";
+        public static final String ADDRESS_REQUIRED = "Address is required";
+        public static final String COMPANY_NOT_FOUND = "Company not found";
+        public static final String HR_MANAGER_NOT_FOUND = "HR Manager not found with provided email";
+
+        private HR() {
+        }
+    }
+
     // Test data constants for unit testing
     public static final String TEST_VALID_EMAIL = "test@example.com";
     public static final String TEST_INVALID_EMAIL = "invalid-email";

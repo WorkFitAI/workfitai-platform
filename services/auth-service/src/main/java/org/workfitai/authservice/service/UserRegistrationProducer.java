@@ -20,28 +20,55 @@ public class UserRegistrationProducer {
     @Value("${app.kafka.topics.user-registration:user-registration}")
     private String userRegistrationTopic;
 
+    /**
+     * Publish user registration event synchronously.
+     * Waits for Kafka confirmation before returning.
+     * Throws exception if sending fails - caller should handle rollback.
+     */
     public void publishUserRegistrationEvent(UserRegistrationEvent event) {
         log.info("Publishing user registration event for email: {}", event.getUserData().getEmail());
 
         try {
-            CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(userRegistrationTopic,
-                    event.getUserData().getEmail(), event);
+            // Send synchronously and wait for result (max 10 seconds)
+            SendResult<String, Object> result = kafkaTemplate.send(
+                    userRegistrationTopic,
+                    event.getUserData().getEmail(),
+                    event).get(10, java.util.concurrent.TimeUnit.SECONDS);
 
-            future.whenComplete((result, throwable) -> {
-                if (throwable != null) {
-                    log.error("Failed to send user registration event for email: {}. Error: {}",
-                            event.getUserData().getEmail(), throwable.getMessage(), throwable);
-                } else {
-                    log.info("Successfully sent user registration event for email: {} to topic: {} at offset: {}",
-                            event.getUserData().getEmail(),
-                            result.getRecordMetadata().topic(),
-                            result.getRecordMetadata().offset());
-                }
-            });
+            log.info("Successfully sent user registration event for email: {} to topic: {} at offset: {}",
+                    event.getUserData().getEmail(),
+                    result.getRecordMetadata().topic(),
+                    result.getRecordMetadata().offset());
 
         } catch (Exception ex) {
-            log.error("Error publishing user registration event for email: {}. Error: {}",
+            log.error("Failed to send user registration event for email: {}. Error: {}",
                     event.getUserData().getEmail(), ex.getMessage(), ex);
+            throw new RuntimeException("Failed to publish user registration event to Kafka", ex);
         }
+    }
+
+    /**
+     * Publish user registration event asynchronously (fire and forget).
+     * Use this for non-critical updates.
+     */
+    public void publishUserRegistrationEventAsync(UserRegistrationEvent event) {
+        log.info("Publishing user registration event (async) for email: {}", event.getUserData().getEmail());
+
+        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(
+                userRegistrationTopic,
+                event.getUserData().getEmail(),
+                event);
+
+        future.whenComplete((result, throwable) -> {
+            if (throwable != null) {
+                log.error("Failed to send user registration event for email: {}. Error: {}",
+                        event.getUserData().getEmail(), throwable.getMessage(), throwable);
+            } else {
+                log.info("Successfully sent user registration event for email: {} to topic: {} at offset: {}",
+                        event.getUserData().getEmail(),
+                        result.getRecordMetadata().topic(),
+                        result.getRecordMetadata().offset());
+            }
+        });
     }
 }

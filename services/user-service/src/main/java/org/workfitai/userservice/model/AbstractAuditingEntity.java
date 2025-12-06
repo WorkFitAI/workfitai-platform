@@ -20,7 +20,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * Base abstract class for entities which will hold definitions for created, last modified, created by,
+ * Base abstract class for entities which will hold definitions for created,
+ * last modified, created by,
  * last modified by attributes.
  */
 @MappedSuperclass
@@ -30,12 +31,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(value = {"createdBy", "createdDate",
-    "lastModifiedBy", "lastModifiedDate", "isDeleted"}, allowGetters = true)
+@JsonIgnoreProperties(value = { "createdBy", "createdDate",
+    "lastModifiedBy", "lastModifiedDate", "isDeleted" }, allowGetters = true)
 public abstract class AbstractAuditingEntity<T> implements Serializable {
 
   @CreatedBy
-  @Column(name = "created_by", nullable = false, length = 50, updatable = false)
+  @Column(name = "created_by", length = 50, updatable = false)
   private String createdBy;
   @CreatedDate
   @Column(name = "created_date", updatable = false)

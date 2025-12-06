@@ -47,3 +47,5 @@ replay_pid*
 source_dump.txt
 
 .vault/data/
+
+.github/

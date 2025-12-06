@@ -1,0 +1,735 @@
+{
+	"info": {
+		"_postman_id": "5caaeeef-76cf-4e94-80c2-2648ae365398",
+		"name": "WorkFitAI - Registration Workflow",
+		"description": "Complete test collection for role-based registration with OTP verification and approval workflow.\n\nAll requests go through API Gateway (port 8088) using Consul service discovery.\n\nWorkflow:\n- CANDIDATE: Register → Verify OTP → Login (auto-activated)\n- HR_MANAGER: Register → Verify OTP → Admin Approve → Login\n- HR: Register → Verify OTP → HR Manager Approve → Login",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39562729",
+		"_collection_link": "https://workfitai.postman.co/workspace/f1b6c347-e526-40d0-9b57-4ca5401dba54/collection/39562729-5caaeeef-76cf-4e94-80c2-2648ae365398?action=share&source=collection_link&creator=39562729"
+	},
+	"item": [
+		{
+			"name": "1. Seeded Accounts",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('admin_token', response.data.accessToken);",
+									"        console.log('Admin token saved');",
+									"    }",
+									"    pm.test('Admin login successful', function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"admin@workfitai.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login HR Manager (TechCorp)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('hr_manager_token', response.data.accessToken);",
+									"        console.log('HR Manager token saved');",
+									"    }",
+									"    pm.test('HR Manager login successful', function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"hrmanager@techcorp.com\",\n    \"password\": \"hrmanager123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login HR (TechCorp)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('hr_token', response.data.accessToken);",
+									"        console.log('HR token saved');",
+									"    }",
+									"    pm.test('HR login successful', function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"hr@techcorp.com\",\n    \"password\": \"hr123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Login with pre-seeded admin and HR accounts"
+		},
+		{
+			"name": "2. Candidate Registration Flow",
+			"item": [
+				{
+					"name": "Step 1: Register Candidate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"password\": \"password123\",\n    \"role\": \"CANDIDATE\",\n    \"fullName\": \"Test Candidate\",\n    \"phoneNumber\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2: Verify OTP (Candidate)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"otp\": \"{{otp_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: Login Candidate (Ready after OTP)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('candidate_token', response.data.accessToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"candidate@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "CANDIDATE workflow: Register → Verify OTP → Login (auto-activated after OTP)"
+		},
+		{
+			"name": "3. HR Manager Registration Flow",
+			"item": [
+				{
+					"name": "Step 1: Register HR Manager (with Company)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"hrmanager@newcorp.com\",\n    \"password\": \"password123\",\n    \"role\": \"HR_MANAGER\",\n    \"fullName\": \"New Corp HR Manager\",\n    \"phoneNumber\": \"0987654321\",\n    \"hrProfile\": {\n        \"department\": \"Human Resources\",\n        \"address\": \"123 Tech Street, HCM City\"\n    },\n    \"company\": {\n        \"companyId\": \"00000000-0000-0000-0000-000000000099\",\n        \"name\": \"New Tech Corp\",\n        \"description\": \"A leading technology company\",\n        \"address\": \"123 Tech Street, HCM City\",\n        \"websiteUrl\": \"https://newcorp.com\",\n        \"size\": \"50-100\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2: Verify OTP (HR Manager)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"killig.3110@gmail.com\",\n    \"otp\": \"{{otp_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: Admin Approve HR Manager",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"description": "Admin access token required"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/hr/{{hr_manager_id}}/approve-manager",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"hr",
+								"{{hr_manager_id}}",
+								"approve-manager"
+							]
+						},
+						"description": "Set hr_manager_id variable before running. Requires admin login first."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 4: Login HR Manager (After Approval)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('hr_manager_token', response.data.accessToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"killig.3110@gmail.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "HR_MANAGER workflow: Register → Verify OTP → Wait Admin Approve → Login"
+		},
+		{
+			"name": "4. HR Registration Flow",
+			"item": [
+				{
+					"name": "Step 1: Register HR (Under Company)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"22110196@student.hcmute.edu.vn\",\n    \"password\": \"password123\",\n    \"role\": \"HR\",\n    \"fullName\": \"New Corp HR Staff\",\n    \"phoneNumber\": \"0912345678\",\n    \"hrProfile\": {\n        \"department\": \"Recruitment\",\n        \"hrManagerEmail\": \"killig.3110@gmail.com\",\n        \"address\": \"123 Tech Street, HCM City\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Replace COMPANY_ID_HERE with actual company ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2: Verify OTP (HR)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"22110196@student.hcmute.edu.vn\",\n    \"otp\": \"{{otp_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: HR Manager Approve HR",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{hr_manager_token}}",
+								"description": "HR Manager access token required"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/hr/{{hr_id}}/approve",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"hr",
+								"{{hr_id}}",
+								"approve"
+							]
+						},
+						"description": "Set hr_id variable before running. Requires HR Manager login first."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 4: Login HR (After Approval)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('hr_token', response.data.accessToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"22110196@student.hcmute.edu.vn\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "HR workflow: Register → Verify OTP → Wait HR Manager Approve → Login"
+		},
+		{
+			"name": "6. Error Cases",
+			"item": [
+				{
+					"name": "Login - Wrong Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"admin@workfitai.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth-service/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth-service",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - User Not Found",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"nonexistent@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth-service/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth-service",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Account Not Approved (HR)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usernameOrEmail\": \"hrmanager@newcorp.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth-service/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth-service",
+								"login"
+							]
+						},
+						"description": "This should fail if HR Manager has not been approved yet"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP - Invalid Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"otp\": \"000000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth-service/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth-service",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Duplicate Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"duplicate_user\",\n    \"email\": \"admin@workfitai.com\",\n    \"password\": \"password123\",\n    \"role\": \"CANDIDATE\",\n    \"fullName\": \"Duplicate User\",\n    \"phoneNumber\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth-service/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth-service",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Test error scenarios"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8088",
+			"type": "string",
+			"description": {
+				"content": "API Gateway URL",
+				"type": "text/plain"
+			}
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hr_manager_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "candidate_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hr_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "otp_code",
+			"value": "",
+			"type": "string",
+			"description": {
+				"content": "OTP from email or console log",
+				"type": "text/plain"
+			}
+		},
+		{
+			"key": "hr_manager_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hr_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

@@ -8,11 +8,15 @@ import org.workfitai.userservice.model.CandidateEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface CandidateRepository extends JpaRepository<CandidateEntity, UUID>, JpaSpecificationExecutor<CandidateEntity> {
+public interface CandidateRepository
+    extends JpaRepository<CandidateEntity, UUID>, JpaSpecificationExecutor<CandidateEntity> {
   boolean existsByEmail(String email);
+
+  Optional<CandidateEntity> findByEmail(String email);
 
   boolean existsByPhoneNumber(String phoneNumber);
 
@@ -25,8 +29,8 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity, UUID
   Map<String, Long> countByEducation();
 
   @Query("""
-          SELECT 
-            CASE 
+          SELECT
+            CASE
               WHEN c.totalExperience < 2 THEN 'Junior'
               WHEN c.totalExperience BETWEEN 2 AND 5 THEN 'Mid-Level'
               ELSE 'Senior'
