@@ -40,6 +40,12 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "email", unique = true, nullable = false)
   private String email;
 
+  @NotBlank(message = "Username is required")
+  @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+  @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
+  @Column(name = "username", unique = true, nullable = false)
+  private String username;
+
   @NotBlank(message = "Phone number is required")
   @Pattern(regexp = "^(\\+84)?\\d{10}$", message = "Phone number must be 10 digits long and can optionally start with a '+84' country code")
   @Column(name = "phone_number", unique = true, nullable = false)

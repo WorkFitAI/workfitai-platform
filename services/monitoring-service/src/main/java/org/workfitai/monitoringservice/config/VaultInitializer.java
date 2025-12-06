@@ -62,7 +62,7 @@ public class VaultInitializer implements CommandLineRunner {
         userConfig.put("datasource.password", environment.getProperty("USER_DB_PASS", "pass"));
         userConfig.put("redis.host", environment.getProperty("REDIS_AUTH_HOST", "auth-redis"));
         userConfig.put("redis.port", environment.getProperty("REDIS_AUTH_PORT", "6379"));
-        userConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_URL_LOCAL", "kafka:29092"));
+        userConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"));
         configurationService.initializeServiceConfig("user", userConfig);
 
         // Initialize api-gateway secrets
@@ -80,7 +80,7 @@ public class VaultInitializer implements CommandLineRunner {
                         + environment.getProperty("JOB_DB_NAME", "job_db"));
         jobConfig.put("datasource.username", environment.getProperty("JOB_DB_USER", "user"));
         jobConfig.put("datasource.password", environment.getProperty("JOB_DB_PASS", "job@123"));
-        jobConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_URL_LOCAL", "kafka:29092"));
+        jobConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"));
         configurationService.initializeServiceConfig("job", jobConfig);
 
         // Initialize cv-service secrets
@@ -98,7 +98,7 @@ public class VaultInitializer implements CommandLineRunner {
         // Initialize application-service secrets
         Map<String, Object> appConfig = new HashMap<>();
         appConfig.put("mongodb.uri", "mongodb://application-mongo:27017/app-db");
-        appConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_URL_LOCAL", "kafka:29092"));
+        appConfig.put("kafka.bootstrap-servers", environment.getProperty("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"));
         configurationService.initializeServiceConfig("application-service", appConfig);
 
         // Initialize monitoring-service secrets (self)
@@ -106,5 +106,17 @@ public class VaultInitializer implements CommandLineRunner {
         monitoringConfig.put("redis.host", environment.getProperty("REDIS_GATEWAY_HOST", "api-redis"));
         monitoringConfig.put("redis.port", environment.getProperty("REDIS_GATEWAY_PORT", "6379"));
         configurationService.initializeServiceConfig("monitoring-service", monitoringConfig);
+
+        // Initialize notification-service secrets
+        Map<String, Object> notificationConfig = new HashMap<>();
+        notificationConfig.put("spring.mail.host", environment.getProperty("EMAIL_SMTP_HOST", "smtp.gmail.com"));
+        notificationConfig.put("spring.mail.port", environment.getProperty("EMAIL_SMTP_PORT", "587"));
+        notificationConfig.put("spring.mail.username", environment.getProperty("EMAIL_ADDRESS", ""));
+        notificationConfig.put("spring.mail.password", environment.getProperty("EMAIL_APP_PASSWORD", ""));
+        notificationConfig.put("spring.data.mongodb.uri",
+                environment.getProperty("SPRING_DATA_MONGODB_URI", "mongodb://notif-mongo:27017/notification-db"));
+        notificationConfig.put("spring.kafka.bootstrap-servers",
+                environment.getProperty("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"));
+        configurationService.initializeServiceConfig("notification-service", notificationConfig);
     }
 }

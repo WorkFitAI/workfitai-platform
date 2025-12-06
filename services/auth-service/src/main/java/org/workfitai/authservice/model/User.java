@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.workfitai.authservice.enums.UserStatus;
 
 import java.time.Instant;
 import java.util.Set;
@@ -28,9 +29,15 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    private String password;      // BCrypt-hashed
+    private String password; // BCrypt-hashed
 
-    private Set<String> roles;    // e.g. ["USER"]
+    private Set<String> roles; // e.g. ["USER"]
+
+    @Builder.Default
+    private UserStatus status = UserStatus.PENDING; // User status for registration flow
+
+    // Company name for HR_MANAGER role
+    private String company;
 
     @CreatedDate
     private Instant createdAt;

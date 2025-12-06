@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.RegisterRequest;
+import org.workfitai.authservice.dto.VerifyOtpRequest;
 import org.workfitai.authservice.dto.TokensResponse;
 import org.workfitai.authservice.response.ResponseData;
 import org.workfitai.authservice.security.JwtService;
@@ -41,20 +42,17 @@ public class AuthController {
         }
 
         @PostMapping("/register")
-        public ResponseEntity<ResponseData<TokensResponse>> register(
-                        @Valid @RequestBody RegisterRequest req,
-                        @RequestHeader(value = "X-Device-Id", required = false) String deviceId) {
-                var issued = authService.register(req, deviceId);
-                var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
-                                .httpOnly(true)
-                                .path("/")
-                                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
-                                .build();
-                return ResponseEntity.ok()
-                                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                                .body(ResponseData.success(
-                                                Messages.Success.USER_REGISTERED,
-                                                new TokensResponse(issued.getAccessToken(), issued.getExpiresIn())));
+        public ResponseEntity<ResponseData<String>> register(
+                        @Valid @RequestBody RegisterRequest req) {
+                authService.register(req);
+                return ResponseEntity.ok(ResponseData.success(Messages.Success.USER_REGISTERED,
+                                "OTP has been sent to your email for verification"));
+        }
+
+        @PostMapping("/verify-otp")
+        public ResponseEntity<ResponseData<Void>> verifyOtp(@Valid @RequestBody VerifyOtpRequest req) {
+                authService.verifyOtp(req);
+                return ResponseEntity.ok(ResponseData.success("Account verified"));
         }
 
         @PostMapping("/login")

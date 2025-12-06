@@ -11,6 +11,7 @@ import java.util.Optional;
 public enum EUserRole {
   CANDIDATE("CANDIDATE"),
   HR("HR"),
+  HR_MANAGER("HR MANAGER"),
   ADMIN("ADMIN");
 
   private final String displayName;

@@ -50,6 +50,7 @@ public final class Messages {
     public static final String DELETED = "HR deleted successfully.";
     public static final String FETCHED = "HR fetched successfully.";
     public static final String LIST_FETCHED = "HR list fetched successfully.";
+    public static final String APPROVED = "HR approval completed.";
   }
 
   public static final class Admin {

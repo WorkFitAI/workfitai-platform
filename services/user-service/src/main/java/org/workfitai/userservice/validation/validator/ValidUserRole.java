@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidUserRole {
-  String message() default "Invalid role, must be one of: Candidate, HR, Admin";
+  String message() default "Invalid role, must be one of: Candidate, HR, HR Manager, Admin";
 
   Class<?>[] groups() default {};
 

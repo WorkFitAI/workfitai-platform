@@ -37,6 +37,7 @@ public class SecurityConfig {
                                                                 "/auth/register",
                                                                 "/auth/refresh",
                                                                 "/auth/logout",
+                                                                "/auth/verify-otp",
                                                                 "/cv/**",
                                                                 "/monitoring-service/**",
                                                                 "/debug/**", // Debug endpoints
