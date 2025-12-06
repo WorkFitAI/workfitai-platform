@@ -25,7 +25,7 @@ import java.util.UUID;
 @RequestMapping("/profile")
 @RequiredArgsConstructor
 @Slf4j
-public class ProfileController {
+public class UserProfileController {
 
     private final UserService userService;
     private final CandidateService candidateService;
