@@ -3,36 +3,22 @@ package org.workfitai.userservice.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 import org.workfitai.userservice.services.UserService;
 
-import java.util.UUID;
-
 /**
  * Controller for user-related operations.
- * Provides endpoints for user profile and validation.
+ * Provides endpoints for user lookup and validation.
+ * 
+ * Note: Profile operations (get/update own profile) are in UserProfileController.
  */
 @RestController
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    /**
-     * Get current user profile based on user ID from JWT token.
-     * Returns role-specific profile (CandidateResponse, HRResponse, or
-     * AdminResponse).
-     *
-     * @param userId the user ID extracted from JWT token by API Gateway
-     * @return user profile based on their role
-     */
-    @GetMapping("/me")
-    public ResponseEntity<ResponseData<Object>> getCurrentUserProfile(
-            @RequestHeader("X-User-Id") UUID userId) {
-        Object profile = userService.getCurrentUserProfile(userId);
-        return ResponseEntity.ok(ResponseData.success("Profile retrieved successfully", profile));
-    }
 
     /**
      * Get user by email.
@@ -44,7 +30,7 @@ public class UserController {
     public ResponseEntity<ResponseData<UserBaseResponse>> getByEmail(
             @RequestParam("email") String email) {
         UserBaseResponse user = userService.getByEmail(email);
-        return ResponseEntity.ok(ResponseData.success("User retrieved successfully", user));
+        return ResponseEntity.ok(ResponseData.success(Messages.User.FETCHED, user));
     }
 
     /**
@@ -57,7 +43,7 @@ public class UserController {
     public ResponseEntity<ResponseData<UserBaseResponse>> getByUsername(
             @RequestParam("username") String username) {
         UserBaseResponse user = userService.getByUsername(username);
-        return ResponseEntity.ok(ResponseData.success("User retrieved successfully", user));
+        return ResponseEntity.ok(ResponseData.success(Messages.User.FETCHED, user));
     }
 
     /**

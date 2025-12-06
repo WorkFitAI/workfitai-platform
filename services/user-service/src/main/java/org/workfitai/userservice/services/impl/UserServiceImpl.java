@@ -65,6 +65,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Object getCurrentUserProfileByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
+
+        UUID userId = user.getId();
+        EUserRole role = user.getUserRole();
+        log.debug("Getting profile for user {} with role {}", username, role);
+
+        return switch (role) {
+            case CANDIDATE -> {
+                CandidateEntity candidate = candidateRepository.findById(userId)
+                        .orElseThrow(() -> ApiException.notFound(Messages.Profile.PROFILE_NOT_FOUND));
+                yield candidateMapper.toResponse(candidate);
+            }
+            case HR, HR_MANAGER -> {
+                HREntity hr = hrRepository.findById(userId)
+                        .orElseThrow(() -> ApiException.notFound(Messages.Profile.PROFILE_NOT_FOUND));
+                yield hrMapper.toResponse(hr);
+            }
+            case ADMIN -> {
+                AdminEntity admin = adminRepository.findById(userId)
+                        .orElseThrow(() -> ApiException.notFound(Messages.Profile.PROFILE_NOT_FOUND));
+                yield adminMapper.toResponse(admin);
+            }
+        };
+    }
+
+    @Override
     public UserBaseResponse getByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
@@ -86,6 +114,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public UUID findUserIdByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(UserEntity::getId)
+                .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
     }
 
     private UserBaseResponse mapToBaseResponse(UserEntity user) {

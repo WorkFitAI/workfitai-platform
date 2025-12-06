@@ -66,6 +66,7 @@ public final class Messages {
 
   public static final class User {
     public static final String PROFILE_FETCHED = "User profile fetched successfully.";
+    public static final String FETCHED = "User retrieved successfully.";
     public static final String NOT_FOUND = "User not found.";
     public static final String EMAIL_EXISTS = "Email already exists in the system.";
     public static final String USERNAME_EXISTS = "Username already exists in the system.";

@@ -35,6 +35,14 @@ public interface UserService {
     UserBaseResponse getByUsername(String username);
 
     /**
+     * Get current user profile by username extracted from JWT token.
+     *
+     * @param username the username from JWT token (sub claim)
+     * @return user profile based on their role (CandidateResponse, HRResponse, or AdminResponse)
+     */
+    Object getCurrentUserProfileByUsername(String username);
+
+    /**
      * Check if email exists.
      */
     boolean existsByEmail(String email);
@@ -43,4 +51,13 @@ public interface UserService {
      * Check if username exists.
      */
     boolean existsByUsername(String username);
+
+    /**
+     * Find user ID by username.
+     * Used to convert username from JWT to user ID for service operations.
+     *
+     * @param username the username
+     * @return the user's UUID
+     */
+    UUID findUserIdByUsername(String username);
 }

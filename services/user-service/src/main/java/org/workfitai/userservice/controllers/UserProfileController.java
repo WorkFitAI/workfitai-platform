@@ -37,29 +37,30 @@ public class UserProfileController {
      * Returns role-specific profile (CandidateResponse, HRResponse, or
      * AdminResponse).
      *
-     * @param userId the user ID extracted from JWT token by API Gateway
+     * @param username the username extracted from JWT token by API Gateway
      * @return user profile based on their role
      */
     @GetMapping("/me")
     public ResponseEntity<ResponseData<Object>> getMyProfile(
-            @RequestHeader("X-User-Id") UUID userId) {
-        log.info("Getting profile for user: {}", userId);
-        Object profile = userService.getCurrentUserProfile(userId);
+            @RequestHeader("X-Username") String username) {
+        log.info("Getting profile for user: {}", username);
+        Object profile = userService.getCurrentUserProfileByUsername(username);
         return ResponseEntity.ok(ResponseData.success(Messages.User.PROFILE_FETCHED, profile));
     }
 
     /**
      * Update candidate profile.
      *
-     * @param userId  the user ID extracted from JWT token by API Gateway
-     * @param request the update request
+     * @param username the username extracted from JWT token by API Gateway
+     * @param request  the update request
      * @return updated candidate profile
      */
     @PutMapping("/candidate")
     public ResponseEntity<ResponseData<CandidateResponse>> updateCandidateProfile(
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-Username") String username,
             @Valid @RequestBody CandidateUpdateRequest request) {
-        log.info("Updating candidate profile for user: {}", userId);
+        log.info("Updating candidate profile for user: {}", username);
+        UUID userId = userService.findUserIdByUsername(username);
         CandidateResponse updated = candidateService.update(userId, request);
         return ResponseEntity.ok(ResponseData.success(Messages.Profile.CANDIDATE_PROFILE_UPDATED, updated));
     }
@@ -67,15 +68,16 @@ public class UserProfileController {
     /**
      * Update HR profile.
      *
-     * @param userId  the user ID extracted from JWT token by API Gateway
-     * @param request the update request
+     * @param username the username extracted from JWT token by API Gateway
+     * @param request  the update request
      * @return updated HR profile
      */
     @PutMapping("/hr")
     public ResponseEntity<ResponseData<HRResponse>> updateHRProfile(
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-Username") String username,
             @Valid @RequestBody HRUpdateRequest request) {
-        log.info("Updating HR profile for user: {}", userId);
+        log.info("Updating HR profile for user: {}", username);
+        UUID userId = userService.findUserIdByUsername(username);
         HRResponse updated = hrService.update(userId, request);
         return ResponseEntity.ok(ResponseData.success(Messages.Profile.HR_PROFILE_UPDATED, updated));
     }
@@ -83,15 +85,16 @@ public class UserProfileController {
     /**
      * Update admin profile.
      *
-     * @param userId  the user ID extracted from JWT token by API Gateway
-     * @param request the update request
+     * @param username the username extracted from JWT token by API Gateway
+     * @param request  the update request
      * @return updated admin profile
      */
     @PutMapping("/admin")
     public ResponseEntity<ResponseData<AdminResponse>> updateAdminProfile(
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-Username") String username,
             @Valid @RequestBody AdminUpdateRequest request) {
-        log.info("Updating admin profile for user: {}", userId);
+        log.info("Updating admin profile for user: {}", username);
+        UUID userId = userService.findUserIdByUsername(username);
         AdminResponse updated = adminService.update(userId, request);
         return ResponseEntity.ok(ResponseData.success(Messages.Profile.ADMIN_PROFILE_UPDATED, updated));
     }

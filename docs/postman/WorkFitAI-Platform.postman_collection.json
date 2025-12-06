@@ -2,14 +2,13 @@
     "info": {
         "_postman_id": "workfitai-platform-collection",
         "name": "WorkFitAI Platform",
-        "description": "Complete API collection for WorkFitAI Platform including Auth, User, and Notification services.\n\nAll requests go through the API Gateway (port 8088).\n\n## Setup\n1. Import this collection\n2. Import the environment file\n3. Set `base_url` to your API Gateway URL (default: http://localhost:8088)\n\n## Authentication Flow\n1. Register a new account\n2. Verify OTP from email\n3. Login to get access token\n4. Token is auto-saved to environment variables",
+        "description": "Complete API collection for WorkFitAI Platform.\n\nAll requests go through API Gateway with Consul service discovery.\n\n## URL Pattern\n`{{base_url}}/{service-name}/{endpoint}`\n\nService names on Consul:\n- `auth` - Auth Service\n- `user` - User Service\n- `notification` - Notification Service\n- `job` - Job Service\n- `cv` - CV Service\n\n## Setup\n1. Import this collection\n2. Import the environment file\n3. Set `base_url` to API Gateway URL (default: http://localhost:9005)",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    "variable": [],
     "item": [
         {
             "name": "1. Auth Service",
-            "description": "Authentication and registration endpoints",
+            "description": "Authentication and registration endpoints\nService: auth",
             "item": [
                 {
                     "name": "1.1 Registration",
@@ -25,12 +24,6 @@
                                             "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
                                             "});",
                                             "",
-                                            "pm.test('Response has success status', function () {",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.success).to.eql(true);",
-                                            "});",
-                                            "",
-                                            "// Save email for OTP verification",
                                             "var requestBody = JSON.parse(pm.request.body.raw);",
                                             "pm.environment.set('candidate_email', requestBody.email);",
                                             "pm.environment.set('candidate_password', requestBody.password);"
@@ -52,20 +45,17 @@
                                     "raw": "{\n  \"email\": \"candidate@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test Candidate\",\n  \"phoneNumber\": \"+84901234567\",\n  \"role\": \"CANDIDATE\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/register",
+                                    "raw": "{{base_url}}/auth/register",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "register"
                                     ]
                                 },
                                 "description": "Register a new candidate account. OTP will be sent to email."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Register HR Manager",
@@ -99,20 +89,17 @@
                                     "raw": "{\n  \"email\": \"hrmanager@newcompany.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Manager\",\n  \"phoneNumber\": \"+84912345678\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"123 Business Street, Ho Chi Minh City\"\n  },\n  \"company\": {\n    \"companyName\": \"New Company Ltd\",\n    \"industry\": \"Technology\",\n    \"companySize\": \"50-100\",\n    \"website\": \"https://newcompany.com\",\n    \"address\": \"123 Business Street, Ho Chi Minh City\"\n  }\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/register",
+                                    "raw": "{{base_url}}/auth/register",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "register"
                                     ]
                                 },
                                 "description": "Register a new HR Manager. Requires company information. After OTP verification, account needs Admin approval."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Register HR Staff",
@@ -146,20 +133,17 @@
                                     "raw": "{\n  \"email\": \"hr@techcorp.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Staff\",\n  \"phoneNumber\": \"+84923456789\",\n  \"role\": \"HR\",\n  \"hrProfile\": {\n    \"department\": \"Recruitment\",\n    \"hrManagerEmail\": \"hrmanager@techcorp.com\",\n    \"address\": \"123 Tech Street, Ho Chi Minh City\"\n  }\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/register",
+                                    "raw": "{{base_url}}/auth/register",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "register"
                                     ]
                                 },
-                                "description": "Register a new HR Staff. Requires HR Manager's email to be assigned to their company. After OTP verification, account needs HR Manager approval."
-                            },
-                            "response": []
+                                "description": "Register a new HR Staff. Requires HR Manager's email to be assigned to their company."
+                            }
                         }
                     ]
                 },
@@ -175,11 +159,6 @@
                                         "exec": [
                                             "pm.test('Status code is 200', function () {",
                                             "    pm.expect(pm.response.code).to.eql(200);",
-                                            "});",
-                                            "",
-                                            "pm.test('OTP verified successfully', function () {",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.success).to.eql(true);",
                                             "});"
                                         ],
                                         "type": "text/javascript"
@@ -199,20 +178,17 @@
                                     "raw": "{\n  \"email\": \"{{candidate_email}}\",\n  \"otp\": \"123456\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                                    "raw": "{{base_url}}/auth/verify-otp",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "verify-otp"
                                     ]
                                 },
-                                "description": "Verify OTP sent to email. Get OTP from email or check Redis for testing."
-                            },
-                            "response": []
+                                "description": "Verify OTP sent to email."
+                            }
                         },
                         {
                             "name": "Resend OTP",
@@ -229,20 +205,17 @@
                                     "raw": "{\n  \"email\": \"{{candidate_email}}\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/resend-otp",
+                                    "raw": "{{base_url}}/auth/resend-otp",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "resend-otp"
                                     ]
                                 },
-                                "description": "Resend OTP for PENDING accounts that haven't verified yet."
-                            },
-                            "response": []
+                                "description": "Resend OTP for PENDING accounts."
+                            }
                         }
                     ]
                 },
@@ -260,13 +233,6 @@
                                             "    pm.expect(pm.response.code).to.eql(200);",
                                             "});",
                                             "",
-                                            "pm.test('Response has access token', function () {",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                                            "    pm.expect(jsonData.data).to.have.property('refreshToken');",
-                                            "});",
-                                            "",
-                                            "// Save tokens to environment",
                                             "var jsonData = pm.response.json();",
                                             "if (jsonData.data && jsonData.data.accessToken) {",
                                             "    pm.environment.set('access_token', jsonData.data.accessToken);",
@@ -291,20 +257,17 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"{{candidate_email}}\",\n  \"password\": \"{{candidate_password}}\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 },
-                                "description": "Login with email/username and password. Returns access and refresh tokens."
-                            },
-                            "response": []
+                                "description": "Login with email/username and password."
+                            }
                         },
                         {
                             "name": "Login as Admin",
@@ -340,20 +303,17 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"admin@workfitai.com\",\n  \"password\": \"admin123\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 },
                                 "description": "Login as seeded admin account."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Login as HR Manager",
@@ -389,20 +349,17 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"hrmanager@techcorp.com\",\n  \"password\": \"hrmanager123\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 },
                                 "description": "Login as seeded HR Manager account."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Refresh Token",
@@ -437,20 +394,17 @@
                                     "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/refresh-token",
+                                    "raw": "{{base_url}}/auth/refresh",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
-                                        "refresh-token"
+                                        "refresh"
                                     ]
                                 },
                                 "description": "Get new access token using refresh token."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Logout",
@@ -468,71 +422,17 @@
                                 "method": "POST",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/logout",
+                                    "raw": "{{base_url}}/auth/logout",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "logout"
                                     ]
                                 },
                                 "description": "Logout and invalidate tokens."
-                            },
-                            "response": []
-                        }
-                    ]
-                },
-                {
-                    "name": "1.4 Validation",
-                    "item": [
-                        {
-                            "name": "Check Email Exists (Auth)",
-                            "request": {
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/exists/email/{{candidate_email}}",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "v1",
-                                        "auth",
-                                        "exists",
-                                        "email",
-                                        "{{candidate_email}}"
-                                    ]
-                                },
-                                "description": "Check if email exists in auth-service."
-                            },
-                            "response": []
-                        },
-                        {
-                            "name": "Check Username Exists (Auth)",
-                            "request": {
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/exists/username/admin",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "v1",
-                                        "auth",
-                                        "exists",
-                                        "username",
-                                        "admin"
-                                    ]
-                                },
-                                "description": "Check if username exists in auth-service."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 }
@@ -540,7 +440,7 @@
         },
         {
             "name": "2. User Service",
-            "description": "User profile and management endpoints",
+            "description": "User profile and management endpoints\nService: user",
             "item": [
                 {
                     "name": "2.1 Profile",
@@ -559,7 +459,6 @@
                                             "pm.test('Profile data returned', function () {",
                                             "    var jsonData = pm.response.json();",
                                             "    pm.expect(jsonData.success).to.eql(true);",
-                                            "    pm.expect(jsonData.data).to.be.an('object');",
                                             "});"
                                         ],
                                         "type": "text/javascript"
@@ -580,20 +479,18 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/profile/me",
+                                    "raw": "{{base_url}}/user/profile/me",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "profile",
                                         "me"
                                     ]
                                 },
                                 "description": "Get current user's profile based on their role."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Update Candidate Profile",
@@ -620,20 +517,18 @@
                                     "raw": "{\n  \"fullName\": \"Updated Candidate Name\",\n  \"phoneNumber\": \"+84901234567\",\n  \"careerObjective\": \"Full-stack developer with 5+ years experience\",\n  \"summary\": \"Experienced developer specializing in Java and React\",\n  \"totalExperience\": 5,\n  \"education\": \"Bachelor of Computer Science\",\n  \"certifications\": \"AWS Solutions Architect, Oracle Java SE 11\",\n  \"portfolioLink\": \"https://myportfolio.com\",\n  \"linkedinUrl\": \"https://linkedin.com/in/candidate\",\n  \"githubUrl\": \"https://github.com/candidate\",\n  \"expectedPosition\": \"Senior Software Engineer\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/profile/candidate",
+                                    "raw": "{{base_url}}/user/profile/candidate",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "profile",
                                         "candidate"
                                     ]
                                 },
                                 "description": "Update candidate's own profile."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Update HR Profile",
@@ -660,20 +555,18 @@
                                     "raw": "{\n  \"fullName\": \"Updated HR Manager Name\",\n  \"phoneNumber\": \"+84912345678\",\n  \"department\": \"Human Resources & Talent Acquisition\",\n  \"address\": \"456 New Business Street, Ho Chi Minh City\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/profile/hr",
+                                    "raw": "{{base_url}}/user/profile/hr",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "profile",
                                         "hr"
                                     ]
                                 },
                                 "description": "Update HR's own profile (for HR and HR_MANAGER roles)."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Update Admin Profile",
@@ -700,20 +593,18 @@
                                     "raw": "{\n  \"fullName\": \"Updated Admin Name\",\n  \"phoneNumber\": \"+84901234567\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/profile/admin",
+                                    "raw": "{{base_url}}/user/profile/admin",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "profile",
                                         "admin"
                                     ]
                                 },
                                 "description": "Update admin's own profile."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -721,50 +612,54 @@
                     "name": "2.2 User Validation",
                     "item": [
                         {
-                            "name": "Check Email Exists (User)",
+                            "name": "Check Email Exists",
                             "request": {
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/user/exists/email/admin@workfitai.com",
+                                    "raw": "{{base_url}}/user/exists/email?email=admin@workfitai.com",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "user",
                                         "exists",
-                                        "email",
-                                        "admin@workfitai.com"
+                                        "email"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "email",
+                                            "value": "admin@workfitai.com"
+                                        }
                                     ]
                                 },
-                                "description": "Check if email exists in user-service. Used for cross-service validation."
-                            },
-                            "response": []
+                                "description": "Check if email exists in user-service."
+                            }
                         },
                         {
-                            "name": "Check Username Exists (User)",
+                            "name": "Check Username Exists",
                             "request": {
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/user/exists/username/admin",
+                                    "raw": "{{base_url}}/user/exists/username?username=admin",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "user",
                                         "exists",
-                                        "username",
-                                        "admin"
+                                        "username"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "username",
+                                            "value": "admin"
+                                        }
                                     ]
                                 },
                                 "description": "Check if username exists in user-service."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -787,13 +682,12 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/candidates?page=0&size=10",
+                                    "raw": "{{base_url}}/user/candidates?page=0&size=10",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "candidates"
                                     ],
                                     "query": [
@@ -808,8 +702,7 @@
                                     ]
                                 },
                                 "description": "Get paginated list of all candidates."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Get Candidate by ID",
@@ -827,20 +720,18 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/candidates/{{user_id}}",
+                                    "raw": "{{base_url}}/user/candidates/{{user_id}}",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "candidates",
                                         "{{user_id}}"
                                     ]
                                 },
                                 "description": "Get candidate by user ID."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -863,13 +754,12 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/hr?page=0&size=10",
+                                    "raw": "{{base_url}}/user/hr?page=0&size=10",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "hr"
                                     ],
                                     "query": [
@@ -884,8 +774,7 @@
                                     ]
                                 },
                                 "description": "Get paginated list of all HR accounts."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Get HR by Username",
@@ -903,21 +792,19 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/hr/username/hrmanager_techcorp",
+                                    "raw": "{{base_url}}/user/hr/username/hrmanager_techcorp",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "hr",
                                         "username",
                                         "hrmanager_techcorp"
                                     ]
                                 },
                                 "description": "Get HR by username."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Approve HR Manager (Admin only)",
@@ -928,11 +815,6 @@
                                         "exec": [
                                             "pm.test('Status code is 200', function () {",
                                             "    pm.expect(pm.response.code).to.eql(200);",
-                                            "});",
-                                            "",
-                                            "pm.test('HR Manager approved', function () {",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.success).to.eql(true);",
                                             "});"
                                         ],
                                         "type": "text/javascript"
@@ -953,13 +835,12 @@
                                 "method": "POST",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/hr/username/:username/approve-manager",
+                                    "raw": "{{base_url}}/user/hr/username/:username/approve-manager",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "hr",
                                         "username",
                                         ":username",
@@ -974,8 +855,7 @@
                                     ]
                                 },
                                 "description": "Admin approves an HR Manager account. Changes status from WAIT_APPROVED to ACTIVE."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Approve HR Staff (HR Manager only)",
@@ -986,11 +866,6 @@
                                         "exec": [
                                             "pm.test('Status code is 200', function () {",
                                             "    pm.expect(pm.response.code).to.eql(200);",
-                                            "});",
-                                            "",
-                                            "pm.test('HR Staff approved', function () {",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.success).to.eql(true);",
                                             "});"
                                         ],
                                         "type": "text/javascript"
@@ -1011,13 +886,12 @@
                                 "method": "POST",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/hr/username/:username/approve",
+                                    "raw": "{{base_url}}/user/hr/username/:username/approve",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "hr",
                                         "username",
                                         ":username",
@@ -1031,9 +905,8 @@
                                         }
                                     ]
                                 },
-                                "description": "HR Manager approves an HR Staff account in their company. Changes status from WAIT_APPROVED to ACTIVE."
-                            },
-                            "response": []
+                                "description": "HR Manager approves an HR Staff account in their company."
+                            }
                         }
                     ]
                 },
@@ -1056,13 +929,12 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/admins?page=0&size=10",
+                                    "raw": "{{base_url}}/user/admins?page=0&size=10",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "admins"
                                     ],
                                     "query": [
@@ -1077,8 +949,7 @@
                                     ]
                                 },
                                 "description": "Get paginated list of all admin accounts."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 }
@@ -1086,7 +957,7 @@
         },
         {
             "name": "3. Notification Service",
-            "description": "Notification and email endpoints",
+            "description": "Notification and email endpoints\nService: notification",
             "item": [
                 {
                     "name": "3.1 Notifications",
@@ -1107,13 +978,12 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications?page=0&size=20",
+                                    "raw": "{{base_url}}/notification/notifications?page=0&size=20",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "notification",
                                         "notifications"
                                     ],
                                     "query": [
@@ -1128,8 +998,7 @@
                                     ]
                                 },
                                 "description": "Get current user's notifications."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Get Unread Count",
@@ -1147,20 +1016,18 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications/unread-count",
+                                    "raw": "{{base_url}}/notification/notifications/unread-count",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "notification",
                                         "notifications",
                                         "unread-count"
                                     ]
                                 },
                                 "description": "Get count of unread notifications."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Mark as Read",
@@ -1178,13 +1045,12 @@
                                 "method": "PUT",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications/:notificationId/read",
+                                    "raw": "{{base_url}}/notification/notifications/:notificationId/read",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "notification",
                                         "notifications",
                                         ":notificationId",
                                         "read"
@@ -1197,8 +1063,7 @@
                                     ]
                                 },
                                 "description": "Mark a notification as read."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Mark All as Read",
@@ -1216,20 +1081,18 @@
                                 "method": "PUT",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications/mark-all-read",
+                                    "raw": "{{base_url}}/notification/notifications/mark-all-read",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "notification",
                                         "notifications",
                                         "mark-all-read"
                                     ]
                                 },
                                 "description": "Mark all notifications as read."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -1252,14 +1115,12 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications/emails?page=0&size=20",
+                                    "raw": "{{base_url}}/notification/emails?page=0&size=20",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
-                                        "notifications",
+                                        "notification",
                                         "emails"
                                     ],
                                     "query": [
@@ -1274,46 +1135,7 @@
                                     ]
                                 },
                                 "description": "Get email logs (Admin only)."
-                            },
-                            "response": []
-                        },
-                        {
-                            "name": "Get Email by ID",
-                            "request": {
-                                "auth": {
-                                    "type": "bearer",
-                                    "bearer": [
-                                        {
-                                            "key": "token",
-                                            "value": "{{admin_access_token}}",
-                                            "type": "string"
-                                        }
-                                    ]
-                                },
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{base_url}}/api/v1/notifications/emails/:emailId",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "v1",
-                                        "notifications",
-                                        "emails",
-                                        ":emailId"
-                                    ],
-                                    "variable": [
-                                        {
-                                            "key": "emailId",
-                                            "value": "email-id-here"
-                                        }
-                                    ]
-                                },
-                                "description": "Get email log by ID (Admin only)."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 }
@@ -1348,7 +1170,6 @@
                                     "listen": "prerequest",
                                     "script": {
                                         "exec": [
-                                            "// Generate unique email for test",
                                             "var timestamp = Date.now();",
                                             "pm.environment.set('test_email_suffix', timestamp);"
                                         ],
@@ -1369,35 +1190,19 @@
                                     "raw": "{\n  \"email\": \"candidate_{{test_email_suffix}}@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test Candidate {{test_email_suffix}}\",\n  \"phoneNumber\": \"+8490{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}\",\n  \"role\": \"CANDIDATE\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/register",
+                                    "raw": "{{base_url}}/auth/register",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "register"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Step 2: Verify OTP",
-                            "event": [
-                                {
-                                    "listen": "test",
-                                    "script": {
-                                        "exec": [
-                                            "pm.test('OTP verified', function () {",
-                                            "    pm.expect(pm.response.code).to.eql(200);",
-                                            "});"
-                                        ],
-                                        "type": "text/javascript"
-                                    }
-                                }
-                            ],
                             "request": {
                                 "method": "POST",
                                 "header": [
@@ -1411,20 +1216,17 @@
                                     "raw": "{\n  \"email\": \"{{test_candidate_email}}\",\n  \"otp\": \"123456\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                                    "raw": "{{base_url}}/auth/verify-otp",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "verify-otp"
                                     ]
                                 },
-                                "description": "NOTE: Get OTP from email or check Redis: HGET otp:email@example.com otp"
-                            },
-                            "response": []
+                                "description": "NOTE: Get OTP from email or check Redis"
+                            }
                         },
                         {
                             "name": "Step 3: Login",
@@ -1460,37 +1262,19 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"{{test_candidate_email}}\",\n  \"password\": \"{{test_candidate_password}}\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Step 4: Get Profile",
-                            "event": [
-                                {
-                                    "listen": "test",
-                                    "script": {
-                                        "exec": [
-                                            "pm.test('Profile retrieved', function () {",
-                                            "    pm.expect(pm.response.code).to.eql(200);",
-                                            "    var jsonData = pm.response.json();",
-                                            "    pm.expect(jsonData.data).to.be.an('object');",
-                                            "});"
-                                        ],
-                                        "type": "text/javascript"
-                                    }
-                                }
-                            ],
                             "request": {
                                 "auth": {
                                     "type": "bearer",
@@ -1505,19 +1289,17 @@
                                 "method": "GET",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/profile/me",
+                                    "raw": "{{base_url}}/user/profile/me",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "profile",
                                         "me"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -1562,22 +1344,19 @@
                                     "raw": "{\n  \"email\": \"hrm_{{hr_test_suffix}}@newco.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"HR Manager {{hr_test_suffix}}\",\n  \"phoneNumber\": \"+8491{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"Business Address\"\n  },\n  \"company\": {\n    \"companyName\": \"New Company {{hr_test_suffix}}\",\n    \"industry\": \"Technology\",\n    \"companySize\": \"50-100\"\n  }\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/register",
+                                    "raw": "{{base_url}}/auth/register",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "register"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         },
                         {
-                            "name": "Step 2: Verify OTP (Status -> WAIT_APPROVED)",
+                            "name": "Step 2: Verify OTP",
                             "request": {
                                 "method": "POST",
                                 "header": [
@@ -1591,20 +1370,17 @@
                                     "raw": "{\n  \"email\": \"{{test_hr_manager_email}}\",\n  \"otp\": \"123456\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                                    "raw": "{{base_url}}/auth/verify-otp",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "verify-otp"
                                     ]
                                 },
-                                "description": "After OTP verification, HR_MANAGER status becomes WAIT_APPROVED (needs Admin approval)"
-                            },
-                            "response": []
+                                "description": "After OTP verification, HR_MANAGER status becomes WAIT_APPROVED"
+                            }
                         },
                         {
                             "name": "Step 3: Login as Admin",
@@ -1635,19 +1411,16 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"admin@workfitai.com\",\n  \"password\": \"admin123\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Step 4: Admin Approves HR Manager",
@@ -1665,13 +1438,12 @@
                                 "method": "POST",
                                 "header": [],
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/hr/username/hrm_{{hr_test_suffix}}/approve-manager",
+                                    "raw": "{{base_url}}/user/hr/username/hrm_{{hr_test_suffix}}/approve-manager",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
+                                        "user",
                                         "hr",
                                         "username",
                                         "hrm_{{hr_test_suffix}}",
@@ -1679,8 +1451,7 @@
                                     ]
                                 },
                                 "description": "Admin approves HR Manager. Status changes to ACTIVE."
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Step 5: HR Manager Login",
@@ -1715,19 +1486,16 @@
                                     "raw": "{\n  \"usernameOrEmail\": \"{{test_hr_manager_email}}\",\n  \"password\": \"{{test_hr_manager_password}}\"\n}"
                                 },
                                 "url": {
-                                    "raw": "{{base_url}}/api/v1/auth/login",
+                                    "raw": "{{base_url}}/auth/login",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "api",
-                                        "v1",
                                         "auth",
                                         "login"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 }
@@ -1752,62 +1520,61 @@
                                 "health"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "Auth Service Health",
+                    "name": "Auth Service Health (via Gateway)",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "http://localhost:8081/actuator/health",
+                            "raw": "{{base_url}}/auth/actuator/health",
                             "host": [
-                                "http://localhost:8081"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "auth",
                                 "actuator",
                                 "health"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "User Service Health",
+                    "name": "User Service Health (via Gateway)",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "http://localhost:8082/actuator/health",
+                            "raw": "{{base_url}}/user/actuator/health",
                             "host": [
-                                "http://localhost:8082"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "user",
                                 "actuator",
                                 "health"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "Notification Service Health",
+                    "name": "Notification Service Health (via Gateway)",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "http://localhost:8086/actuator/health",
+                            "raw": "{{base_url}}/notification/actuator/health",
                             "host": [
-                                "http://localhost:8086"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "notification",
                                 "actuator",
                                 "health"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 }
             ]
         }
