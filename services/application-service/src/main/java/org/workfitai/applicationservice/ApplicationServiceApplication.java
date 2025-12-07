@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients(basePackages = "org.workfitai.applicationservice.client")
 @EnableMongoAuditing
 public class ApplicationServiceApplication {
 

@@ -1,7 +1,8 @@
 package org.workfitai.applicationservice.config;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.security.interfaces.RSAPublicKey;
+import java.util.HashSet;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,8 +17,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.workfitai.applicationservice.security.PublicKeyProvider;
 
-import java.security.interfaces.RSAPublicKey;
-import java.util.HashSet;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Security configuration for application-service.
@@ -150,6 +151,9 @@ public class SecurityConfig {
         JwtGrantedAuthoritiesConverter permsConverter = new JwtGrantedAuthoritiesConverter();
         permsConverter.setAuthoritiesClaimName("perms");
         permsConverter.setAuthorityPrefix("");
+
+        log.info("✅ JWT Authentication Converter configured for roles : " + rolesConverter + " , and permissions: "
+                + permsConverter);
 
         // Combine both converters
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();

@@ -1,6 +1,6 @@
 {
     "info": {
-        "name": "WorkFitAI - Application Service",
+        "name": "2. WorkFitAI - Application Service",
         "_postman_id": "application-service-collection",
         "description": "# Application Service API\n\nJob application management endpoints for WorkFitAI Platform.\n\n## Architecture\nThis service uses **event-driven architecture** with Kafka. All state changes publish events for downstream services.\n\n## Authentication\nAll endpoints require JWT authentication. The username is extracted from the JWT `sub` claim.\n\n## Roles & Permissions\n| Role | Permissions |\n|------|-------------|\n| CANDIDATE | Create, view own, withdraw applications |\n| HR | View job applications, update status |\n| ADMIN | Full access |\n\n## Status Flow\n```\nAPPLIED → REVIEWING → INTERVIEW → OFFER → HIRED\n                ↘ REJECTED (at any stage)\n```\n\n## Kafka Events\n| Event | Topic | Trigger |\n|-------|-------|--------|\n| APPLICATION_CREATED | application-events | New application |\n| STATUS_CHANGED | application-status | Status update |\n| APPLICATION_WITHDRAWN | application-events | Withdrawal |",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -19,7 +19,7 @@
     ],
     "item": [
         {
-            "name": "📋 Candidate Operations",
+            "name": "Candidate Operations",
             "description": "Endpoints for job seekers to manage their applications",
             "item": [
                 {
@@ -29,7 +29,7 @@
                         "header": [
                             {
                                 "key": "Content-Type",
-                                "value": "application/json"
+                                "value": "multipart/form-data"
                             },
                             {
                                 "key": "Authorization",
@@ -37,8 +37,27 @@
                             }
                         ],
                         "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"jobId\": \"{{jobId}}\",\n    \"cvId\": \"{{cvId}}\",\n    \"note\": \"I am excited about this opportunity and believe my skills align well with the requirements.\"\n}"
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "jobId",
+                                    "value": "{{jobId}}",
+                                    "type": "text",
+                                    "description": "Job ID to apply for"
+                                },
+                                {
+                                    "key": "cvFile",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "CV file (PDF format)"
+                                },
+                                {
+                                    "key": "note",
+                                    "value": "I am excited about this opportunity and believe my skills align well with the requirements.",
+                                    "type": "text",
+                                    "description": "Optional cover letter/note"
+                                }
+                            ]
                         },
                         "url": {
                             "raw": "{{service_base}}",
@@ -46,7 +65,7 @@
                                 "{{service_base}}"
                             ]
                         },
-                        "description": "Submit a new job application.\n\n**Permission**: `application:create`\n\n**Publishes**: `APPLICATION_CREATED` event to Kafka\n\n**Note**: Username is extracted from JWT `sub` claim - no need to send in request body."
+                        "description": "Submit a new job application with CV upload.\n\n**Permission**: `application:create`\n\n**Publishes**: `APPLICATION_CREATED` event to Kafka\n\n**Note**: Username is extracted from JWT `sub` claim - no need to send in request body.\n\n**File Upload**: Multipart form data with CV file (PDF format)"
                     },
                     "response": [],
                     "event": [
@@ -58,6 +77,7 @@
                                     "    const response = pm.response.json();",
                                     "    if (response.data && response.data.id) {",
                                     "        pm.environment.set('applicationId', response.data.id);",
+                                    "        console.log('Application created with ID: ' + response.data.id);",
                                     "    }",
                                     "}",
                                     "",
@@ -95,20 +115,23 @@
                             "query": [
                                 {
                                     "key": "page",
-                                    "value": "0"
+                                    "value": "0",
+                                    "description": "Page number (0-indexed)"
                                 },
                                 {
                                     "key": "size",
-                                    "value": "10"
+                                    "value": "10",
+                                    "description": "Page size (max 100)"
                                 },
                                 {
                                     "key": "status",
                                     "value": "APPLIED",
-                                    "disabled": true
+                                    "disabled": true,
+                                    "description": "Filter by status (APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED)"
                                 }
                             ]
                         },
-                        "description": "Get current user's applications with pagination.\n\n**Permission**: `application:list`"
+                        "description": "Get current user's applications with pagination.\n\n**Permission**: `application:list`\n\n**Sorting**: Descending by creation date"
                     },
                     "response": [],
                     "event": [
@@ -132,7 +155,7 @@
                     ]
                 },
                 {
-                    "name": "Get My Applications (filtered)",
+                    "name": "Get My Applications (filtered by status)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -152,7 +175,8 @@
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "APPLIED"
+                                    "value": "APPLIED",
+                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
                                 },
                                 {
                                     "key": "page",
@@ -228,7 +252,7 @@
                                 "{{applicationId}}"
                             ]
                         },
-                        "description": "Get single application by ID.\n\n**Authorization**: Owner, HR, or ADMIN can view"
+                        "description": "Get single application by ID.\n\n**Authorization**: Owner, HR, or ADMIN can view\n\n**Security**: Uses @applicationSecurity.canView() for authorization"
                     },
                     "response": [],
                     "event": [
@@ -273,11 +297,12 @@
                             "query": [
                                 {
                                     "key": "jobId",
-                                    "value": "{{jobId}}"
+                                    "value": "{{jobId}}",
+                                    "description": "Job ID to check"
                                 }
                             ]
                         },
-                        "description": "Check if current user has already applied to a job.\n\n**Use case**: Frontend checks before showing \"Apply\" button"
+                        "description": "Check if current user has already applied to a job.\n\n**Permission**: `application:read`\n\n**Use case**: Frontend checks before showing \"Apply\" button"
                     },
                     "response": [],
                     "event": [
@@ -317,7 +342,7 @@
                                 "{{applicationId}}"
                             ]
                         },
-                        "description": "Withdraw a job application.\n\n**Authorization**: Only the owner can withdraw\n\n**Publishes**: `APPLICATION_WITHDRAWN` event to Kafka"
+                        "description": "Withdraw a job application.\n\n**Authorization**: Only the owner can withdraw\n\n**Security**: Uses @applicationSecurity.isOwner() for authorization\n\n**Publishes**: `APPLICATION_WITHDRAWN` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -337,7 +362,7 @@
             ]
         },
         {
-            "name": "👔 HR Operations",
+            "name": "HR Operations",
             "description": "Endpoints for HR/Recruiters to manage job applications",
             "item": [
                 {
@@ -362,20 +387,23 @@
                             "query": [
                                 {
                                     "key": "page",
-                                    "value": "0"
+                                    "value": "0",
+                                    "description": "Page number (0-indexed)"
                                 },
                                 {
                                     "key": "size",
-                                    "value": "10"
+                                    "value": "10",
+                                    "description": "Page size (max 100)"
                                 },
                                 {
                                     "key": "status",
                                     "value": "APPLIED",
-                                    "disabled": true
+                                    "disabled": true,
+                                    "description": "Filter by status"
                                 }
                             ]
                         },
-                        "description": "Get all applications for a specific job.\n\n**Permission**: `application:review`"
+                        "description": "Get all applications for a specific job.\n\n**Permission**: `application:review`\n\n**Sorting**: Descending by creation date"
                     },
                     "response": [],
                     "event": [
@@ -397,7 +425,7 @@
                     ]
                 },
                 {
-                    "name": "Get Applications for Job (filtered)",
+                    "name": "Get Applications for Job (filtered by status)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -418,7 +446,8 @@
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "REVIEWING"
+                                    "value": "REVIEWING",
+                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
                                 },
                                 {
                                     "key": "page",
@@ -477,7 +506,7 @@
                     ]
                 },
                 {
-                    "name": "Update Status → REVIEWING",
+                    "name": "Update Status -> REVIEWING",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -498,11 +527,12 @@
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "REVIEWING"
+                                    "value": "REVIEWING",
+                                    "description": "New status"
                                 }
                             ]
                         },
-                        "description": "Move application to REVIEWING status.\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
+                        "description": "Move application to REVIEWING status.\n\n**Permission**: `application:review`\n\n**Security**: Uses @applicationSecurity.canUpdateStatus()\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -524,7 +554,7 @@
                     ]
                 },
                 {
-                    "name": "Update Status → INTERVIEW",
+                    "name": "Update Status -> INTERVIEW",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -549,7 +579,7 @@
                                 }
                             ]
                         },
-                        "description": "Move application to INTERVIEW status."
+                        "description": "Move application to INTERVIEW status.\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -571,7 +601,7 @@
                     ]
                 },
                 {
-                    "name": "Update Status → OFFER",
+                    "name": "Update Status -> OFFER",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -596,7 +626,7 @@
                                 }
                             ]
                         },
-                        "description": "Move application to OFFER status."
+                        "description": "Move application to OFFER status.\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -618,7 +648,7 @@
                     ]
                 },
                 {
-                    "name": "Update Status → HIRED",
+                    "name": "Update Status -> HIRED",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -643,7 +673,7 @@
                                 }
                             ]
                         },
-                        "description": "Move application to HIRED status (terminal)."
+                        "description": "Move application to HIRED status (terminal).\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -665,7 +695,7 @@
                     ]
                 },
                 {
-                    "name": "Update Status → REJECTED",
+                    "name": "Update Status -> REJECTED",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -690,7 +720,7 @@
                                 }
                             ]
                         },
-                        "description": "Reject an application (terminal status)."
+                        "description": "Reject an application (terminal status).\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
                     },
                     "response": [],
                     "event": [
@@ -714,7 +744,7 @@
             ]
         },
         {
-            "name": "🔧 Admin Operations",
+            "name": "Admin Operations",
             "description": "Full access endpoints for administrators",
             "item": [
                 {
@@ -736,7 +766,7 @@
                                 "{{applicationId}}"
                             ]
                         },
-                        "description": "Get any application with admin privileges."
+                        "description": "Get any application with admin privileges.\n\n**Permission**: ADMIN role bypasses ownership checks"
                     },
                     "response": []
                 },
@@ -770,7 +800,7 @@
                                 }
                             ]
                         },
-                        "description": "Get applications for any job with admin privileges."
+                        "description": "Get applications for any job with admin privileges.\n\n**Permission**: `application:review` or ADMIN role"
                     },
                     "response": []
                 },
@@ -796,11 +826,12 @@
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "REVIEWING"
+                                    "value": "REVIEWING",
+                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
                                 }
                             ]
                         },
-                        "description": "Update any application status with admin privileges."
+                        "description": "Update any application status with admin privileges.\n\n**Permission**: ADMIN role bypasses all authorization checks"
                     },
                     "response": []
                 }

@@ -5,34 +5,40 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Generic REST response wrapper used across all endpoints.
- * 
+ *
  * Provides consistent API response structure:
  * - status: HTTP status code
  * - message: Human-readable message
  * - data: Payload (null for errors)
  * - timestamp: When the response was generated
- * 
+ *
  * Usage patterns:
  * - RestResponse.success(data) → 200 with data
  * - RestResponse.created(data) → 201 with data
  * - RestResponse.error(code, msg) → Error with message, no data
- * 
+ *
  * This follows the same pattern as job-service and cv-service
  * for consistency across the platform.
+ *
+ * Note: @NoArgsConstructor required for Feign/Jackson deserialization
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Standard API response wrapper")
 public class RestResponse<T> {
 
     @Schema(description = "HTTP status code", example = "200")
-    private final int status;
+    private int status;
 
     @Schema(description = "Response message", example = "Success")
-    private final String message;
+    private String message;
 
     /**
      * Response payload. Excluded from JSON if null (for error responses).

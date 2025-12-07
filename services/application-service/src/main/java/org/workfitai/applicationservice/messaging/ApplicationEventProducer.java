@@ -1,31 +1,30 @@
 package org.workfitai.applicationservice.messaging;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
 import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Kafka producer for publishing application events.
  * Implements EventPublisherPort for Hexagonal Architecture.
- * 
- * NOTE: Kafka is temporarily disabled. Events are logged but not sent.
- * TODO: Re-enable Kafka when other services are ready to consume events.
- * 
+ *
  * Pattern: Fire-and-Forget
  * Events are published asynchronously. Failures are logged but don't
  * affect the main application flow.
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ApplicationEventProducer implements EventPublisherPort {
 
-    // Temporarily disabled - uncomment when Kafka consumers are available
-    // private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.kafka.topics.application-events:application-events}")
     private String applicationEventsTopic;
@@ -39,12 +38,13 @@ public class ApplicationEventProducer implements EventPublisherPort {
         log.info("Publishing APPLICATION_CREATED event: applicationId={}, jobId={}",
                 applicationId, event.getData().getJobId());
 
-        // TODO: Re-enable when Kafka consumers are available
-        // kafkaTemplate.send(applicationEventsTopic, applicationId, event);
-
-        log.info("[KAFKA-DISABLED] Would publish APPLICATION_CREATED to topic '{}' with key '{}'",
-                applicationEventsTopic, applicationId);
-        log.debug("[KAFKA-DISABLED] Event payload: {}", event);
+        try {
+            kafkaTemplate.send(applicationEventsTopic, applicationId, event);
+            log.debug("APPLICATION_CREATED event published to topic '{}' with key '{}'",
+                    applicationEventsTopic, applicationId);
+        } catch (Exception e) {
+            log.error("Failed to publish APPLICATION_CREATED event (non-critical): {}", e.getMessage());
+        }
     }
 
     @Override
@@ -53,12 +53,13 @@ public class ApplicationEventProducer implements EventPublisherPort {
         log.info("Publishing STATUS_CHANGED event: applicationId={}, {} → {}",
                 applicationId, event.getData().getPreviousStatus(), event.getData().getNewStatus());
 
-        // TODO: Re-enable when Kafka consumers are available
-        // kafkaTemplate.send(applicationStatusTopic, applicationId, event);
-
-        log.info("[KAFKA-DISABLED] Would publish STATUS_CHANGED to topic '{}' with key '{}'",
-                applicationStatusTopic, applicationId);
-        log.debug("[KAFKA-DISABLED] Event payload: {}", event);
+        try {
+            kafkaTemplate.send(applicationStatusTopic, applicationId, event);
+            log.debug("STATUS_CHANGED event published to topic '{}' with key '{}'",
+                    applicationStatusTopic, applicationId);
+        } catch (Exception e) {
+            log.error("Failed to publish STATUS_CHANGED event (non-critical): {}", e.getMessage());
+        }
     }
 
     @Override
@@ -67,12 +68,13 @@ public class ApplicationEventProducer implements EventPublisherPort {
         log.info("Publishing APPLICATION_WITHDRAWN event: applicationId={}, username={}",
                 applicationId, event.getData().getUsername());
 
-        // TODO: Re-enable when Kafka consumers are available
-        // kafkaTemplate.send(applicationEventsTopic, applicationId, event);
-
-        log.info("[KAFKA-DISABLED] Would publish APPLICATION_WITHDRAWN to topic '{}' with key '{}'",
-                applicationEventsTopic, applicationId);
-        log.debug("[KAFKA-DISABLED] Event payload: {}", event);
+        try {
+            kafkaTemplate.send(applicationEventsTopic, applicationId, event);
+            log.debug("APPLICATION_WITHDRAWN event published to topic '{}' with key '{}'",
+                    applicationEventsTopic, applicationId);
+        } catch (Exception e) {
+            log.error("Failed to publish APPLICATION_WITHDRAWN event (non-critical): {}", e.getMessage());
+        }
     }
 
     // Legacy methods for backward compatibility (delegate to port methods)

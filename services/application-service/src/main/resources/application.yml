@@ -28,20 +28,16 @@ spring:
       max-file-size: 5MB
       max-request-size: 10MB
 
-  # Kafka temporarily disabled - events are logged but not sent
-  # TODO: Re-enable when other services have Kafka consumers ready
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-  # kafka:
-  #   bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
-  #   producer:
-  #     key-serializer: org.apache.kafka.common.serialization.StringSerializer
-  #     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-  #     acks: all
-  #     retries: 3
-  #     properties:
-  #       enable.idempotence: true
+  # Kafka configuration for event publishing
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 
 # =============================================================================
 # MinIO Configuration (Object Storage for CV files)
@@ -140,9 +136,8 @@ spring:
   data:
     mongodb:
       uri: ${mongodb.uri:mongodb://localhost:27019/application_db}
-  # Kafka disabled - see main config
-  # kafka:
-  #   bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
 
 # Override logging for local development
 logging:

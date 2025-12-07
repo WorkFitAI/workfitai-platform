@@ -12,9 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Validates that the job exists and is in PUBLISHED status.
  * Order: 3 (runs after file validation - external call)
- * 
- * TODO: Currently using stub implementation that always succeeds.
- * Replace with actual HTTP call to job-service when available.
+ *
+ * Makes HTTP call to job-service via JobServicePort to validate job availability.
  */
 @Component
 @Order(3)
@@ -27,12 +26,13 @@ public class JobValidator implements ApplicationValidator {
     @Override
     public void validate(CreateApplicationRequest request, String username) {
         String jobId = request.getJobId();
-        log.debug("Validating job existence: {}", jobId);
+        log.debug("Validating job existence and status: {}", jobId);
 
-        // TODO: This currently uses stub that always returns true
-        // When job-service is available, this will make an actual HTTP call
+        // Make actual HTTP call to job-service
+        // This will throw NotFoundException if job doesn't exist or is not PUBLISHED
         if (!jobServicePort.jobExists(jobId)) {
-            throw new NotFoundException("Job not found: " + jobId);
+            log.error("Job validation failed - job not found or not published: {}", jobId);
+            throw new NotFoundException("Job not found or not available for applications: " + jobId);
         }
 
         log.debug("Job validation passed: {}", jobId);

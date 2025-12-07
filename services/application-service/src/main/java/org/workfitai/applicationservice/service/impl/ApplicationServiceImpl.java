@@ -20,6 +20,7 @@ import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
 import org.workfitai.applicationservice.service.IApplicationService;
+import org.workfitai.applicationservice.validation.StatusTransitionValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
     private final EventPublisherPort eventPublisher;
+    private final StatusTransitionValidator statusTransitionValidator;
 
     @Override
     public ApplicationResponse getApplicationById(String id) {
@@ -106,7 +108,7 @@ public class ApplicationServiceImpl implements IApplicationService {
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
         ApplicationStatus previousStatus = application.getStatus();
-        validateStatusTransition(previousStatus, newStatus);
+        statusTransitionValidator.validateTransition(previousStatus, newStatus);
 
         application.setStatus(newStatus);
         Application updated = applicationRepository.save(application);
@@ -205,8 +207,4 @@ public class ApplicationServiceImpl implements IApplicationService {
                 page.getTotalPages());
     }
 
-    private void validateStatusTransition(ApplicationStatus currentStatus, ApplicationStatus newStatus) {
-        log.debug("Status transition: {} → {}", currentStatus, newStatus);
-        // TODO: Add actual status transition validation logic
-    }
 }

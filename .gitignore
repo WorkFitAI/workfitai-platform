@@ -49,8 +49,9 @@ source_dump.txt
 .vault/data/
 
 .github/
-# ClaudeKit Engineer
+
 .claude/
 docs/
 plans/
 CLAUDE.md
+repomix-output.xml

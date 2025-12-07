@@ -324,8 +324,6 @@ services:
         condition: service_started
       auth-service:
         condition: service_healthy
-      monitoring-service:
-        condition: service_healthy
     networks: [workfitai-net]
     profiles: ["services", "full"]
 
@@ -349,12 +347,15 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     depends_on:
       consul:
         condition: service_started
       application-mongo:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     networks: [workfitai-net]
     profiles: ["services", "full"]
