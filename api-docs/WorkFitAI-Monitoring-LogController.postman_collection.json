@@ -1,0 +1,696 @@
+{
+    "info": {
+        "_postman_id": "workfitai-monitoring-logs-collection",
+        "name": "WorkFitAI - Monitoring Log Controller",
+        "description": "Log querying and user activity monitoring endpoints for WorkFitAI Platform.\n\nThis collection provides endpoints for:\n- Searching logs with filters\n- Getting log statistics\n- Viewing user activities (Admin dashboard)\n- Checking online users\n\n## URL Pattern\n`{{baseUrl}}/monitoring/api/logs/{endpoint}`\n\n## Authentication\nAll endpoints require Admin access token in header:\n`Authorization: Bearer {{admin_access_token}}`\n\n## Setup\n1. Import this collection\n2. Import the environment file\n3. Set `baseUrl` to API Gateway URL (default: http://localhost:9085)\n4. Set `admin_access_token` after admin login",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{admin_access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "1. Log Search",
+            "description": "Search and filter logs from Elasticsearch",
+            "item": [
+                {
+                    "name": "Search Logs (Basic)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-indexed)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20",
+                                    "description": "Number of items per page"
+                                }
+                            ]
+                        },
+                        "description": "Search logs with default parameters. Returns the most recent logs."
+                    }
+                },
+                {
+                    "name": "Search Logs by Service",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?service=auth-service&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "service",
+                                    "value": "auth-service",
+                                    "description": "Filter by service name (auth-service, user-service, job-service, cv-service, notification-service, application-service, api-gateway)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs filtered by a specific service."
+                    }
+                },
+                {
+                    "name": "Search Logs by Level",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?level=ERROR&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "level",
+                                    "value": "ERROR",
+                                    "description": "Filter by log level (DEBUG, INFO, WARN, ERROR)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs filtered by log level. Use this to find error logs."
+                    }
+                },
+                {
+                    "name": "Search Logs by Username",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?username=admin@workfitai.com&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "username",
+                                    "value": "admin@workfitai.com",
+                                    "description": "Filter by username (email)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs for a specific user's activities."
+                    }
+                },
+                {
+                    "name": "Search Logs by Request ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?requestId=abc-123-def&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "requestId",
+                                    "value": "abc-123-def",
+                                    "description": "Filter by request ID for tracing specific requests"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs by request ID. Useful for tracing a single request across services."
+                    }
+                },
+                {
+                    "name": "Search Logs with Time Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?from=2024-01-01T00:00:00&to=2024-12-31T23:59:59&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01T00:00:00",
+                                    "description": "Start time (ISO 8601 format)"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31T23:59:59",
+                                    "description": "End time (ISO 8601 format)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs within a specific time range."
+                    }
+                },
+                {
+                    "name": "Search Logs with Keyword",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?keyword=exception&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "keyword",
+                                    "value": "exception",
+                                    "description": "Full-text search in log message"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Search logs containing a specific keyword in the message."
+                    }
+                },
+                {
+                    "name": "Search Logs (Full Filters)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search?service=auth-service&level=INFO&username=admin@workfitai.com&from=2024-01-01T00:00:00&to=2024-12-31T23:59:59&keyword=login&page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "service",
+                                    "value": "auth-service"
+                                },
+                                {
+                                    "key": "level",
+                                    "value": "INFO"
+                                },
+                                {
+                                    "key": "username",
+                                    "value": "admin@workfitai.com"
+                                },
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01T00:00:00"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31T23:59:59"
+                                },
+                                {
+                                    "key": "keyword",
+                                    "value": "login"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Search logs with all available filters combined."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Log Statistics",
+            "description": "Get log statistics and aggregations",
+            "item": [
+                {
+                    "name": "Get Log Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/stats?hours=24",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "24",
+                                    "description": "Time range in hours (default: 24)"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics including counts by level and service for the specified time range."
+                    }
+                },
+                {
+                    "name": "Get Log Statistics (Last 1 Hour)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/stats?hours=1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics for the last hour."
+                    }
+                },
+                {
+                    "name": "Get Log Statistics (Last 7 Days)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/stats?hours=168",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "168",
+                                    "description": "7 days = 168 hours"
+                                }
+                            ]
+                        },
+                        "description": "Get log statistics for the last 7 days."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. User Activity (Admin Dashboard)",
+            "description": "User activity monitoring for Admin dashboard.\nShows user actions translated to Vietnamese.",
+            "item": [
+                {
+                    "name": "Get All User Activities",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?page=0&size=20&includeSummary=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-indexed)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20",
+                                    "description": "Number of items per page"
+                                },
+                                {
+                                    "key": "includeSummary",
+                                    "value": "true",
+                                    "description": "Include summary statistics (totalUsers, totalActivities, byService, byMethod)"
+                                }
+                            ]
+                        },
+                        "description": "Get all user activities with Vietnamese action descriptions.\n\nExample actions:\n- Đăng nhập hệ thống\n- Đăng ký tài khoản\n- Xem thông tin cá nhân\n- Xem CV\n- Đăng tin tuyển dụng\n- Nộp đơn ứng tuyển"
+                    }
+                },
+                {
+                    "name": "Get All User Activities (No Summary)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?page=0&size=50&includeSummary=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "includeSummary",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Get user activities without summary statistics for faster response."
+                    }
+                },
+                {
+                    "name": "Get User Activities with Time Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?from=2024-01-01T00:00:00&to=2024-12-31T23:59:59&page=0&size=20&includeSummary=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01T00:00:00",
+                                    "description": "Start time (ISO 8601 format)"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31T23:59:59",
+                                    "description": "End time (ISO 8601 format)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "includeSummary",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Get user activities within a specific time range."
+                    }
+                },
+                {
+                    "name": "Get Activities for Specific User",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity/user/admin@workfitai.com?page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity",
+                                "user",
+                                "admin@workfitai.com"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Get activities for a specific user by username (email)."
+                    }
+                },
+                {
+                    "name": "Get Activities for Specific User with Time Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity/user/candidate@example.com?from=2024-01-01T00:00:00&to=2024-12-31T23:59:59&page=0&size=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity",
+                                "user",
+                                "candidate@example.com"
+                            ],
+                            "query": [
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01T00:00:00"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31T23:59:59"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Get activities for a specific user within a time range."
+                    }
+                },
+                {
+                    "name": "Get Online Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity/online?minutes=15",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity",
+                                "online"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "15",
+                                    "description": "Time window in minutes (default: 15)"
+                                }
+                            ]
+                        },
+                        "description": "Get list of currently online users (users with activity in the specified time window)."
+                    }
+                },
+                {
+                    "name": "Get Online Users (Last 5 Minutes)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity/online?minutes=5",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity",
+                                "online"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "description": "Get users who were active in the last 5 minutes."
+                    }
+                },
+                {
+                    "name": "Get Online Users (Last 30 Minutes)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity/online?minutes=30",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity",
+                                "online"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minutes",
+                                    "value": "30"
+                                }
+                            ]
+                        },
+                        "description": "Get users who were active in the last 30 minutes."
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string",
+            "description": "API Gateway base URL"
+        }
+    ]
+}

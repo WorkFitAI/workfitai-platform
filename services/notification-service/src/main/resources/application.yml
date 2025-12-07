@@ -55,6 +55,7 @@ spring:
       discovery:
         enabled: true
         register: true
+        prefer-ip-address: true
         service-name: notification
         port: ${SERVER_PORT:9005}
         health-check-path: /actuator/health
