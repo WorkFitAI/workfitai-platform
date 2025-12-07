@@ -242,6 +242,10 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+      api-gateway:
+        condition: service_started
+      auth-service:
+        condition: service_healthy
       monitoring-service:
         condition: service_healthy
     networks: [ workfitai-net ]
@@ -263,9 +267,20 @@ services:
       - SPRING_DATA_REDIS_HOST=cv-redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      - consul
-      - cv-mongo
-      - cv-redis
+      consul:
+        condition: service_started
+      cv-mongo:
+        condition: service_started
+      cv-redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+      auth-service:
+        condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
@@ -476,7 +491,6 @@ volumes:
   application-mongo-data:
   prometheus-data:
   minio-data:
-
 
 networks:
   workfitai-net:
