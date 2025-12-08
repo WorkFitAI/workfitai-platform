@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,6 +48,15 @@ public class CreateApplicationRequest {
     @Size(max = 100, message = "Job ID cannot exceed 100 characters")
     @Schema(description = "ID of the job to apply for (must be PUBLISHED)", example = "550e8400-e29b-41d4-a716-446655440000", requiredMode = Schema.RequiredMode.REQUIRED)
     private String jobId;
+
+    /**
+     * Email of the candidate applying.
+     * Used for notifications without requiring Feign call to user-service.
+     */
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    @Schema(description = "Candidate's email for notifications", example = "candidate@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String email;
 
     /**
      * CV file to upload (PDF only).

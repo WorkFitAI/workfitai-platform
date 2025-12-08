@@ -1,7 +1,10 @@
 package org.workfitai.jobservice.service.impl;
 
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,21 +16,24 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.*;
+import org.workfitai.jobservice.model.dto.response.ResCreateJobDTO;
+import org.workfitai.jobservice.model.dto.response.ResJobDTO;
+import org.workfitai.jobservice.model.dto.response.ResJobDetailsDTO;
+import org.workfitai.jobservice.model.dto.response.ResJobDetailsForHrDTO;
+import org.workfitai.jobservice.model.dto.response.ResModifyStatus;
+import org.workfitai.jobservice.model.dto.response.ResUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.service.iJobService;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
+
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -40,7 +46,7 @@ public class JobService implements iJobService {
     private final CompanyRepository companyRepository;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-                      SkillRepository skillRepository, CompanyRepository companyRepository) {
+            SkillRepository skillRepository, CompanyRepository companyRepository) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -92,11 +98,20 @@ public class JobService implements iJobService {
 
     @Override
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
-        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
-        checkJobSkills(job, null);
-        checkCompany(job, null);
-        Job currentJob = this.jobRepository.save(job);
-        return jobMapper.toResCreateJobDTO(currentJob);
+        try {
+            log.debug("Creating job with DTO: {}", jobDTO);
+            Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
+            log.debug("Mapped job entity: {}", job);
+            checkJobSkills(job, null);
+            checkCompany(job, null);
+            log.debug("Saving job to database");
+            Job currentJob = this.jobRepository.save(job);
+            log.debug("Job saved successfully with ID: {}", currentJob.getJobId());
+            return jobMapper.toResCreateJobDTO(currentJob);
+        } catch (Exception e) {
+            log.error("Error creating job: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override

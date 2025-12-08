@@ -1,5 +1,6 @@
 package org.workfitai.userservice.controllers;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,20 @@ public class UserController {
             @RequestParam("username") String username) {
         UserBaseResponse user = userService.getByUsername(username);
         return ResponseEntity.ok(ResponseData.success(Messages.User.FETCHED, user));
+    }
+
+    /**
+     * Get users by list of usernames.
+     * Used for bulk user info retrieval.
+     *
+     * @param usernames comma-separated list of usernames
+     * @return list of user base responses
+     */
+    @GetMapping("/by-usernames")
+    public ResponseEntity<ResponseData<List<UserBaseResponse>>> getByUsernames(
+            @RequestParam("usernames") java.util.List<String> usernames) {
+        List<UserBaseResponse> users = userService.getUsersByUsernames(usernames);
+        return ResponseEntity.ok(ResponseData.success(Messages.User.FETCHED, users));
     }
 
     /**

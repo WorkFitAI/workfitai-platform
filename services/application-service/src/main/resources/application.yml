@@ -54,6 +54,8 @@ app:
     topics:
       application-events: application-events
       application-status: application-status
+      job-stats-update: job-stats-update
+      notification-events: notification-events
 
 server:
   port: ${SERVER_PORT:9084}

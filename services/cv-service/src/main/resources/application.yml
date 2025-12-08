@@ -5,7 +5,7 @@ spring:
   application:
     name: cv
   profiles:
-    active: docker  # Default profile cho containers
+    active: docker # Default profile cho containers
   config:
     import: optional:vault://secret/cv
   cloud:
@@ -20,9 +20,11 @@ spring:
         enabled: false
       discovery:
         service-name: cv
-        instance-id: cv:${random.int}
+        instance-id: ${spring.application.name}:${server.port}
         health-check-path: /actuator/health
         prefer-ip-address: true
+        deregister: true
+        health-check-critical-timeout: 1m
   data:
     mongodb:
       host: ${mongodb.host:cv-mongo}
@@ -37,8 +39,41 @@ spring:
 
 logging:
   level:
-    org.springframework.boot.autoconfigure.mongo: DEBUG
+    # Service-specific logging
+    org.workfitai: DEBUG
+    org.workfitai.cvservice: DEBUG
+
+    # Spring Framework
+    org.springframework: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+    # MongoDB
     org.springframework.data.mongodb: DEBUG
+    org.springframework.data.mongodb.core: DEBUG
+    org.springframework.boot.autoconfigure.mongo: DEBUG
+    org.mongodb.driver: DEBUG
+
+    # Redis
+    org.springframework.data.redis: DEBUG
+    io.lettuce: DEBUG
+
+    # Consul
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.client: DEBUG
+
+    # Vault
+    org.springframework.cloud.vault: DEBUG
+
+    # Feign & HTTP
+    feign: DEBUG
+    org.springframework.web.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 server:
   port: ${SERVER_PORT:9005}
@@ -53,7 +88,7 @@ management:
       show-details: always
   health:
     redis:
-      enabled: false  # Disable Redis health check
+      enabled: false # Disable Redis health check
 
 ---
 # =============================================================================
@@ -72,10 +107,8 @@ spring:
       discovery:
         enabled: true
         register: true
-        service-name: cv
-        # instance-id: cv:${random.int}
-        health-check-path: /actuator/health
-        prefer-ip-address: true
+        deregister: true
+        health-check-critical-timeout: 1m
 # Service URLs for Docker environment
 service:
   auth:
@@ -108,4 +141,3 @@ spring:
       username: user
       password: "123456"
       authentication-database: cv-db
-

@@ -1,182 +1,142 @@
-{
+﻿{
     "info": {
+        "_postman_id": "application-service-collection-2025",
         "name": "2. WorkFitAI - Application Service",
-        "_postman_id": "application-service-collection",
-        "description": "# Application Service API\n\nJob application management endpoints for WorkFitAI Platform.\n\n## Architecture\nThis service uses **event-driven architecture** with Kafka. All state changes publish events for downstream services.\n\n## Authentication\nAll endpoints require JWT authentication. The username is extracted from the JWT `sub` claim.\n\n## Roles & Permissions\n| Role | Permissions |\n|------|-------------|\n| CANDIDATE | Create, view own, withdraw applications |\n| HR | View job applications, update status |\n| ADMIN | Full access |\n\n## Status Flow\n```\nAPPLIED → REVIEWING → INTERVIEW → OFFER → HIRED\n                ↘ REJECTED (at any stage)\n```\n\n## Kafka Events\n| Event | Topic | Trigger |\n|-------|-------|--------|\n| APPLICATION_CREATED | application-events | New application |\n| STATUS_CHANGED | application-status | Status update |\n| APPLICATION_WITHDRAWN | application-events | Withdrawal |",
+        "description": "Job Application Management with CV Upload & Status Tracking\n\nBase URL: {{base_url}}/application\nPort: 9084 -> 9085 (gateway)\nConsul: application\nDB: MongoDB + MinIO\nEvents: Kafka\n\nStatus Flow: APPLIED -> REVIEWING -> INTERVIEW -> OFFER -> HIRED (or REJECTED)",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    "variable": [
-        {
-            "key": "baseUrl",
-            "value": "http://localhost:9085",
-            "description": "API Gateway URL"
-        },
-        {
-            "key": "service_base",
-            "value": "{{baseUrl}}/application",
-            "description": "Application service base URL"
-        }
-    ],
     "item": [
         {
             "name": "Candidate Operations",
-            "description": "Endpoints for job seekers to manage their applications",
             "item": [
                 {
-                    "name": "Create Application",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "multipart/form-data"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
+                    "name": "Create Application (with CV upload)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200 || pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data && response.data.id) {",
+                                    "        pm.environment.set('applicationId', response.data.id);",
+                                    "        console.log('Application created: ' + response.data.id);",
+                                    "        console.log('Status: ' + response.data.status);",
+                                    "    }",
+                                    "}"
+                                ]
                             }
-                        ],
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
                         "body": {
                             "mode": "formdata",
                             "formdata": [
                                 {
                                     "key": "jobId",
                                     "value": "{{jobId}}",
-                                    "type": "text",
-                                    "description": "Job ID to apply for"
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "coverLetter",
+                                    "value": "I am excited to apply for this position...",
+                                    "type": "text"
                                 },
                                 {
                                     "key": "cvFile",
                                     "type": "file",
-                                    "src": [],
-                                    "description": "CV file (PDF format)"
-                                },
-                                {
-                                    "key": "note",
-                                    "value": "I am excited about this opportunity and believe my skills align well with the requirements.",
-                                    "type": "text",
-                                    "description": "Optional cover letter/note"
+                                    "src": "{{cvFilePath}}"
                                 }
                             ]
                         },
                         "url": {
-                            "raw": "{{service_base}}",
+                            "raw": "{{base_url}}/application",
                             "host": [
-                                "{{service_base}}"
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application"
                             ]
-                        },
-                        "description": "Submit a new job application with CV upload.\n\n**Permission**: `application:create`\n\n**Publishes**: `APPLICATION_CREATED` event to Kafka\n\n**Note**: Username is extracted from JWT `sub` claim - no need to send in request body.\n\n**File Upload**: Multipart form data with CV file (PDF format)"
-                    },
-                    "response": [],
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Applications (All)",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 201) {",
+                                    "if (pm.response.code === 200) {",
                                     "    const response = pm.response.json();",
-                                    "    if (response.data && response.data.id) {",
-                                    "        pm.environment.set('applicationId', response.data.id);",
-                                    "        console.log('Application created with ID: ' + response.data.id);",
+                                    "    if (response.success && response.data) {",
+                                    "        console.log('Total applications: ' + (response.data.content ? response.data.content.length : response.data.length));",
                                     "    }",
-                                    "}",
-                                    "",
-                                    "pm.test('Application created (201)', function() {",
-                                    "    pm.response.to.have.status(201);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is APPLIED', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('APPLIED');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
+                                    "}"
+                                ]
                             }
                         }
-                    ]
-                },
-                {
-                    "name": "Get My Applications",
+                    ],
                     "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/my?page=0&size=10",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "my"
-                            ],
-                            "query": [
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
                                 {
-                                    "key": "page",
-                                    "value": "0",
-                                    "description": "Page number (0-indexed)"
-                                },
-                                {
-                                    "key": "size",
-                                    "value": "10",
-                                    "description": "Page size (max 100)"
-                                },
-                                {
-                                    "key": "status",
-                                    "value": "APPLIED",
-                                    "disabled": true,
-                                    "description": "Filter by status (APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED)"
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
                                 }
                             ]
                         },
-                        "description": "Get current user's applications with pagination.\n\n**Permission**: `application:list`\n\n**Sorting**: Descending by creation date"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has pagination', function() {",
-                                    "    const data = pm.response.json().data;",
-                                    "    pm.expect(data).to.have.property('items');",
-                                    "    pm.expect(data).to.have.property('meta');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Get My Applications (filtered by status)",
-                    "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
                         "url": {
-                            "raw": "{{service_base}}/my?status=APPLIED&page=0&size=10",
+                            "raw": "{{base_url}}/application/my",
                             "host": [
-                                "{{service_base}}"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "application",
+                                "my"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Applications (Filtered)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/my?status=APPLIED&page=0&size=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
                                 "my"
                             ],
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "APPLIED",
-                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
+                                    "value": "APPLIED"
                                 },
                                 {
                                     "key": "page",
@@ -187,609 +147,232 @@
                                     "value": "10"
                                 }
                             ]
-                        },
-                        "description": "Filter applications by status.\n\n**Statuses**: APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get My Application Count",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/my/count",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "my",
-                                "count"
-                            ]
-                        },
-                        "description": "Get total count of current user's applications.\n\n**Permission**: `application:list`"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has count', function() {",
-                                    "    pm.expect(pm.response.json().data).to.have.property('count');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
                         }
-                    ]
+                    }
                 },
                 {
                     "name": "Get Application by ID",
                     "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}"
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
                             ]
                         },
-                        "description": "Get single application by ID.\n\n**Authorization**: Owner, HR, or ADMIN can view\n\n**Security**: Uses @applicationSecurity.canView() for authorization"
-                    },
-                    "response": [],
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Check If Applied to Job",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has application data', function() {",
-                                    "    const data = pm.response.json().data;",
-                                    "    pm.expect(data).to.have.property('id');",
-                                    "    pm.expect(data).to.have.property('jobId');",
-                                    "    pm.expect(data).to.have.property('status');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        console.log('Already applied: ' + response.data.applied);",
+                                    "    }",
+                                    "}"
+                                ]
                             }
                         }
-                    ]
-                },
-                {
-                    "name": "Check if Applied to Job",
+                    ],
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
+                            ]
+                        },
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
                         "url": {
-                            "raw": "{{service_base}}/check?jobId={{jobId}}",
+                            "raw": "{{base_url}}/application/check?jobId={{jobId}}",
                             "host": [
-                                "{{service_base}}"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "application",
                                 "check"
                             ],
                             "query": [
                                 {
                                     "key": "jobId",
-                                    "value": "{{jobId}}",
-                                    "description": "Job ID to check"
+                                    "value": "{{jobId}}"
                                 }
                             ]
-                        },
-                        "description": "Check if current user has already applied to a job.\n\n**Permission**: `application:read`\n\n**Use case**: Frontend checks before showing \"Apply\" button"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has applied flag', function() {",
-                                    "    pm.expect(pm.response.json().data).to.have.property('applied');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
                         }
-                    ]
+                    }
                 },
                 {
                     "name": "Withdraw Application",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{candidateAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}"
-                            ]
-                        },
-                        "description": "Withdraw a job application.\n\n**Authorization**: Only the owner can withdraw\n\n**Security**: Uses @applicationSecurity.isOwner() for authorization\n\n**Publishes**: `APPLICATION_WITHDRAWN` event to Kafka"
-                    },
-                    "response": [],
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Withdrawn (204)', function() {",
-                                    "    pm.response.to.have.status(204);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
+                                    "if (pm.response.code === 200 || pm.response.code === 204) {",
+                                    "    console.log('Application withdrawn successfully');",
+                                    "}"
+                                ]
                             }
                         }
-                    ]
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Count My Applications",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        console.log('Total applications count: ' + response.data.count);",
+                                    "    }",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{candidateAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/my/count",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "my",
+                                "count"
+                            ]
+                        }
+                    }
                 }
             ]
         },
         {
             "name": "HR Operations",
-            "description": "Endpoints for HR/Recruiters to manage job applications",
             "item": [
                 {
-                    "name": "Get Applications for Job",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/job/{{jobId}}?page=0&size=10",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "job",
-                                "{{jobId}}"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "0",
-                                    "description": "Page number (0-indexed)"
-                                },
-                                {
-                                    "key": "size",
-                                    "value": "10",
-                                    "description": "Page size (max 100)"
-                                },
-                                {
-                                    "key": "status",
-                                    "value": "APPLIED",
-                                    "disabled": true,
-                                    "description": "Filter by status"
-                                }
-                            ]
-                        },
-                        "description": "Get all applications for a specific job.\n\n**Permission**: `application:review`\n\n**Sorting**: Descending by creation date"
-                    },
-                    "response": [],
+                    "name": "Get Applications for Job (All)",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has pagination', function() {",
-                                    "    pm.expect(pm.response.json().data).to.have.property('items');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        console.log('Applications for job: ' + (response.data.content ? response.data.content.length : response.data.length));",
+                                    "    }",
+                                    "}"
+                                ]
                             }
                         }
-                    ]
-                },
-                {
-                    "name": "Get Applications for Job (filtered by status)",
+                    ],
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
                         "url": {
-                            "raw": "{{service_base}}/job/{{jobId}}?status=REVIEWING&page=0&size=10",
+                            "raw": "{{base_url}}/application/job/{{jobId}}",
                             "host": [
-                                "{{service_base}}"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "application",
+                                "job",
+                                "{{jobId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Applications for Job (Filtered)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/job/{{jobId}}?status=REVIEWING&page=0&size=20",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
                                 "job",
                                 "{{jobId}}"
                             ],
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "REVIEWING",
-                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
+                                    "value": "REVIEWING"
                                 },
-                                {
-                                    "key": "page",
-                                    "value": "0"
-                                },
-                                {
-                                    "key": "size",
-                                    "value": "10"
-                                }
-                            ]
-                        },
-                        "description": "Filter job applications by status."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Job Application Count",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/job/{{jobId}}/count",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "job",
-                                "{{jobId}}",
-                                "count"
-                            ]
-                        },
-                        "description": "Get total applicant count for a job.\n\n**Permission**: `application:review`"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has count', function() {",
-                                    "    pm.expect(pm.response.json().data).to.have.property('count');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Update Status -> REVIEWING",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=REVIEWING",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}",
-                                "status"
-                            ],
-                            "query": [
-                                {
-                                    "key": "status",
-                                    "value": "REVIEWING",
-                                    "description": "New status"
-                                }
-                            ]
-                        },
-                        "description": "Move application to REVIEWING status.\n\n**Permission**: `application:review`\n\n**Security**: Uses @applicationSecurity.canUpdateStatus()\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is REVIEWING', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('REVIEWING');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Update Status -> INTERVIEW",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=INTERVIEW",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}",
-                                "status"
-                            ],
-                            "query": [
-                                {
-                                    "key": "status",
-                                    "value": "INTERVIEW"
-                                }
-                            ]
-                        },
-                        "description": "Move application to INTERVIEW status.\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is INTERVIEW', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('INTERVIEW');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Update Status -> OFFER",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=OFFER",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}",
-                                "status"
-                            ],
-                            "query": [
-                                {
-                                    "key": "status",
-                                    "value": "OFFER"
-                                }
-                            ]
-                        },
-                        "description": "Move application to OFFER status.\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is OFFER', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('OFFER');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Update Status -> HIRED",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=HIRED",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}",
-                                "status"
-                            ],
-                            "query": [
-                                {
-                                    "key": "status",
-                                    "value": "HIRED"
-                                }
-                            ]
-                        },
-                        "description": "Move application to HIRED status (terminal).\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is HIRED', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('HIRED');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Update Status -> REJECTED",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{hrAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=REJECTED",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}",
-                                "status"
-                            ],
-                            "query": [
-                                {
-                                    "key": "status",
-                                    "value": "REJECTED"
-                                }
-                            ]
-                        },
-                        "description": "Reject an application (terminal status).\n\n**Publishes**: `STATUS_CHANGED` event to Kafka"
-                    },
-                    "response": [],
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Success (200)', function() {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Status is REJECTED', function() {",
-                                    "    pm.expect(pm.response.json().data.status).to.eql('REJECTED');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Admin Operations",
-            "description": "Full access endpoints for administrators",
-            "item": [
-                {
-                    "name": "Get Any Application",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/{{applicationId}}",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "{{applicationId}}"
-                            ]
-                        },
-                        "description": "Get any application with admin privileges.\n\n**Permission**: ADMIN role bypasses ownership checks"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Applications for Any Job",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{service_base}}/job/{{jobId}}?page=0&size=20",
-                            "host": [
-                                "{{service_base}}"
-                            ],
-                            "path": [
-                                "job",
-                                "{{jobId}}"
-                            ],
-                            "query": [
                                 {
                                     "key": "page",
                                     "value": "0"
@@ -799,43 +382,365 @@
                                     "value": "20"
                                 }
                             ]
-                        },
-                        "description": "Get applications for any job with admin privileges.\n\n**Permission**: `application:review` or ADMIN role"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
-                    "name": "Update Any Application Status",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{adminAccessToken}}"
+                    "name": "Update Status to REVIEWING",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('Status updated to REVIEWING');",
+                                    "}"
+                                ]
                             }
-                        ],
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
                         "url": {
-                            "raw": "{{service_base}}/{{applicationId}}/status?status=REVIEWING",
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=REVIEWING",
                             "host": [
-                                "{{service_base}}"
+                                "{{base_url}}"
                             ],
                             "path": [
+                                "application",
                                 "{{applicationId}}",
                                 "status"
                             ],
                             "query": [
                                 {
                                     "key": "status",
-                                    "value": "REVIEWING",
-                                    "description": "APPLIED, REVIEWING, INTERVIEW, OFFER, HIRED, REJECTED"
+                                    "value": "REVIEWING"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Status to INTERVIEW",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('Status updated to INTERVIEW');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
                                 }
                             ]
                         },
-                        "description": "Update any application status with admin privileges.\n\n**Permission**: ADMIN role bypasses all authorization checks"
-                    },
-                    "response": []
+                        "method": "PUT",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=INTERVIEW",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "INTERVIEW"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Status to OFFER",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('Status updated to OFFER');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=OFFER",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "OFFER"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Status to HIRED",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('Status updated to HIRED');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=HIRED",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "HIRED"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Status to REJECTED",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('Status updated to REJECTED');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=REJECTED",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "REJECTED"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Count Applications for Job",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.success && response.data) {",
+                                    "        console.log('Applications count for job: ' + response.data.count);",
+                                    "    }",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{hrAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/job/{{jobId}}/count",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "job",
+                                "{{jobId}}",
+                                "count"
+                            ]
+                        }
+                    }
                 }
             ]
+        },
+        {
+            "name": "Admin Operations",
+            "item": [
+                {
+                    "name": "Get Any Application by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Any Application Status",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}/status?status=REJECTED",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "REJECTED"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Any Application",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminAccessToken}}"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/application/{{applicationId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "application",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "{{base_url}}"
         }
     ]
 }

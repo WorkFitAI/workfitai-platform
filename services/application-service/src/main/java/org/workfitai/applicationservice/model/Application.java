@@ -17,6 +17,7 @@ import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -65,6 +66,15 @@ public class Application {
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Indexed
     private String username;
+
+    /**
+     * Email of the candidate who submitted the application.
+     * Stored for notification purposes and quick access without Feign call.
+     */
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    @Indexed
+    private String email;
 
     /**
      * ID of the job being applied to.

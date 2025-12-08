@@ -53,6 +53,12 @@ public class JobInfo {
     private String status;
 
     /**
+     * Username of HR who created the job.
+     * Used for notification purposes.
+     */
+    private String createdBy;
+
+    /**
      * When the job info was fetched (for snapshot timestamp).
      */
     @Builder.Default

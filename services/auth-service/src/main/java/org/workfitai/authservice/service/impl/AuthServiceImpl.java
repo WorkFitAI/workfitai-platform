@@ -16,14 +16,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.workfitai.authservice.client.UserServiceClient;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.dto.CompanyRegisterRequest;
-import org.workfitai.authservice.dto.HRProfileRequest;
 import org.workfitai.authservice.dto.IssuedTokens;
 import org.workfitai.authservice.dto.LoginRequest;
 import org.workfitai.authservice.dto.PendingRegistration;
 import org.workfitai.authservice.dto.RegisterRequest;
 import org.workfitai.authservice.dto.VerifyOtpRequest;
+import org.workfitai.authservice.dto.kafka.NotificationEvent;
+import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
 import org.workfitai.authservice.model.User;
@@ -34,9 +35,6 @@ import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
-import org.workfitai.authservice.dto.kafka.NotificationEvent;
-import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
-import org.workfitai.authservice.client.UserServiceClient;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -376,7 +374,6 @@ public class AuthServiceImpl implements iAuthService {
         }
 
         return UserRegistrationEvent.CompanyData.builder()
-                .companyId(pendingData.getCompany().getCompanyId())
                 .name(pendingData.getCompany().getName())
                 .logoUrl(pendingData.getCompany().getLogoUrl())
                 .websiteUrl(pendingData.getCompany().getWebsiteUrl())
@@ -475,15 +472,18 @@ public class AuthServiceImpl implements iAuthService {
      * Generate unique username from email.
      * Takes the part before @ and ensures uniqueness by adding a number suffix if
      * needed.
-     * Example: "john.doe@example.com" -> "john.doe" or "john.doe1" if already
+     * Example: "john.doe@example.com" -> "johndoe" or "johndoe1" if already
      * exists
+     * Note: Only alphanumeric and underscores are allowed to match user-service
+     * validation
      */
     private String generateUniqueUsername(String email) {
         // Extract part before @
         String baseUsername = email.split("@")[0].toLowerCase().trim();
 
-        // Remove invalid characters (keep only alphanumeric, dot, underscore, hyphen)
-        baseUsername = baseUsername.replaceAll("[^a-z0-9._-]", "");
+        // Remove invalid characters (keep only alphanumeric and underscore)
+        // This matches the validation in user-service UserEntity: ^[a-zA-Z0-9_]+$
+        baseUsername = baseUsername.replaceAll("[^a-z0-9_]", "");
 
         // Ensure minimum length
         if (baseUsername.length() < 3) {

@@ -5,9 +5,11 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.workfitai.applicationservice.client.UserServiceClient;
 import org.workfitai.applicationservice.dto.FileUploadResult;
 import org.workfitai.applicationservice.dto.JobInfo;
 import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
+import org.workfitai.applicationservice.dto.kafka.JobStatsUpdateEvent;
 import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
@@ -52,6 +54,7 @@ public class ApplicationSagaOrchestrator {
     private final ApplicationRepository applicationRepository;
     private final EventPublisherPort eventPublisher;
     private final ApplicationMapper applicationMapper;
+    private final UserServiceClient userServiceClient;
 
     /**
      * Execute the full saga for creating an application.
@@ -68,6 +71,7 @@ public class ApplicationSagaOrchestrator {
         // Initialize saga context
         ApplicationSagaContext context = ApplicationSagaContext.builder()
                 .username(username)
+                .email(request.getEmail())
                 .jobId(request.getJobId())
                 .coverLetter(request.getCoverLetter())
                 .build();
@@ -154,6 +158,7 @@ public class ApplicationSagaOrchestrator {
         // Build application entity
         Application application = Application.builder()
                 .username(context.getUsername())
+                .email(context.getEmail())
                 .jobId(context.getJobId())
                 .jobSnapshot(snapshot)
                 .cvFileUrl(fileResult.getFileUrl())
@@ -177,6 +182,8 @@ public class ApplicationSagaOrchestrator {
         Application app = context.getSavedApplication();
 
         try {
+            // Publish APPLICATION_CREATED event for notifications
+            JobInfo jobInfo = context.getJobInfo();
             ApplicationCreatedEvent event = ApplicationCreatedEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("APPLICATION_CREATED")
@@ -187,16 +194,94 @@ public class ApplicationSagaOrchestrator {
                             .jobId(app.getJobId())
                             .cvFileUrl(app.getCvFileUrl())
                             .status(app.getStatus())
+                            .jobTitle(app.getJobSnapshot().getTitle())
+                            .companyName(app.getJobSnapshot().getCompanyName())
                             .appliedAt(Instant.now())
+                            .hrUsername(jobInfo.getCreatedBy())
+                            .candidateName(app.getUsername()) // Will be enhanced by notification-service
                             .build())
                     .build();
 
             eventPublisher.publishApplicationCreated(event);
             log.debug("Application created event published");
 
+            // Publish JOB_STATS_UPDATE event for job-service
+            long totalApplications = applicationRepository.countByJobId(app.getJobId());
+            JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .jobId(UUID.fromString(app.getJobId()))
+                    .totalApplications((int) totalApplications)
+                    .timestamp(Instant.now())
+                    .operation("INCREMENT")
+                    .build();
+
+            eventPublisher.publishJobStatsUpdate(statsEvent);
+            log.debug("Job stats update event published: jobId={}, totalApplications={}",
+                    app.getJobId(), totalApplications);
+
+            // Fetch user details and publish notification event
+            try {
+                String hrUsername = jobInfo.getCreatedBy();
+                if (hrUsername == null) {
+                    log.warn("Job createdBy is null, cannot send notification to HR");
+                } else {
+                    log.info("Fetching user details from user-service for: [candidate={}, hr={}]",
+                            app.getUsername(), hrUsername);
+
+                    var usersResponse = userServiceClient.getUsersByUsernames(
+                            java.util.Arrays.asList(app.getUsername(), hrUsername));
+
+                    if (usersResponse == null || usersResponse.getData() == null) {
+                        log.warn("Failed to fetch user details from user-service: response is null");
+                    } else {
+                        log.debug("Fetched {} users from user-service", usersResponse.getData().size());
+
+                        // Extract candidate info
+                        var candidateInfo = usersResponse.getData().stream()
+                                .filter(u -> app.getUsername().equals(u.username()))
+                                .findFirst()
+                                .orElse(null);
+
+                        // Extract HR info
+                        var hrInfo = usersResponse.getData().stream()
+                                .filter(u -> hrUsername.equals(u.username()))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (candidateInfo != null && hrInfo != null) {
+                            // Publish candidate notification
+                            eventPublisher.publishCandidateNotification(
+                                    app.getId(),
+                                    candidateInfo.email(),
+                                    candidateInfo.fullName(),
+                                    app.getJobSnapshot().getTitle(),
+                                    app.getJobSnapshot().getCompanyName(),
+                                    app.getCreatedAt());
+
+                            // Publish HR notification
+                            eventPublisher.publishHrNotification(
+                                    app.getId(),
+                                    hrInfo.email(),
+                                    hrInfo.fullName(),
+                                    candidateInfo.fullName(),
+                                    app.getJobSnapshot().getTitle(),
+                                    app.getJobSnapshot().getCompanyName(),
+                                    app.getCreatedAt());
+
+                            log.info("Notification events published successfully for application: {}", app.getId());
+                        } else {
+                            log.warn("Could not find user details: candidateFound={}, hrFound={}",
+                                    candidateInfo != null, hrInfo != null);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                log.error("Failed to publish notification event (non-critical): {}", ex.getMessage(), ex);
+            }
+
         } catch (Exception e) {
             // Fire-and-forget: log but don't fail the saga
-            log.warn("Failed to publish application created event (non-critical): {}", e.getMessage());
+            log.warn("Failed to publish events (non-critical): {}", e.getMessage());
         }
     }
 

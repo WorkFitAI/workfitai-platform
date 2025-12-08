@@ -1,10 +1,9 @@
-{
+﻿{
     "info": {
-        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "_postman_id": "auth-service-collection-2025",
         "name": "1. WorkFitAI - Auth Service",
-        "description": "Complete API collection for WorkFitAI Auth Service - Authentication, Authorization, Role Management & Approval Workflows",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-        "_exporter_id": "12345678"
+        "description": "Authentication, Authorization, Role Management & Approval Workflows\n\nBase URL: {{base_url}}/auth\nPort: 9080 -> 9085 (gateway)\nConsul: auth\nDB: MongoDB + Redis",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
@@ -15,15 +14,8 @@
                     "request": {
                         "method": "GET",
                         "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ]
-                        },
-                        "description": "Check if auth-service is running"
-                    },
-                    "response": []
+                        "url": "{{base_url}}/auth"
+                    }
                 },
                 {
                     "name": "Get RSA Public Key",
@@ -31,9 +23,9 @@
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/keys/public",
+                            "raw": "{{base_url}}/auth/api/v1/keys/public",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "api",
@@ -41,13 +33,10 @@
                                 "keys",
                                 "public"
                             ]
-                        },
-                        "description": "Retrieve RSA-2048 public key for JWT signature verification"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "Endpoints accessible without authentication"
+            ]
         },
         {
             "name": "Authentication",
@@ -60,14 +49,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        pm.environment.set('candidateEmail', pm.variables.get('candidateEmail'));",
-                                    "        console.log('CANDIDATE registered successfully. Please verify OTP.');",
-                                    "    }",
+                                    "    console.log('CANDIDATE registered. Next: Verify OTP (123456)');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -84,17 +68,15 @@
                             "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\",\n  \"role\": \"CANDIDATE\",\n  \"fullName\": \"{{candidateFullName}}\",\n  \"phoneNumber\": \"{{candidatePhone}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/register",
+                            "raw": "{{base_url}}/auth/register",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "register"
                             ]
-                        },
-                        "description": "Register new CANDIDATE user (auto-activated after OTP verification)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Register HR",
@@ -104,14 +86,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        pm.environment.set('hrEmail', pm.variables.get('hrEmail'));",
-                                    "        console.log('HR registered successfully. Status: WAIT_APPROVED - Requires HR_MANAGER approval');",
-                                    "    }",
+                                    "    console.log('HR registered. Next: Verify OTP, Wait for HR_MANAGER approval');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -125,20 +102,18 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hrFullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmailForApproval}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+                            "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hrFullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/register",
+                            "raw": "{{base_url}}/auth/register",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "register"
                             ]
-                        },
-                        "description": "Register new HR user (requires HR_MANAGER approval after OTP verification)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Register HR_MANAGER",
@@ -148,14 +123,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        pm.environment.set('hrManagerEmail', pm.variables.get('hrManagerEmail'));",
-                                    "        console.log('HR_MANAGER registered successfully. Status: WAIT_APPROVED - Requires ADMIN approval');",
-                                    "    }",
+                                    "    console.log('HR_MANAGER registered. Next: Verify OTP, Wait for ADMIN approval');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -172,17 +142,15 @@
                             "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"role\": \"HR_MANAGER\",\n  \"fullName\": \"{{hrManagerFullName}}\",\n  \"phoneNumber\": \"{{hrManagerPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrManagerDepartment}}\",\n    \"address\": \"{{hrManagerAddress}}\"\n  },\n  \"company\": {\n    \"companyId\": \"{{companyId}}\",\n    \"name\": \"{{companyName}}\",\n    \"logoUrl\": \"{{companyLogoUrl}}\",\n    \"websiteUrl\": \"{{companyWebsiteUrl}}\",\n    \"description\": \"{{companyDescription}}\",\n    \"address\": \"{{companyAddress}}\",\n    \"size\": \"{{companySize}}\"\n  }\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/register",
+                            "raw": "{{base_url}}/auth/register",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "register"
                             ]
-                        },
-                        "description": "Register new HR_MANAGER user with company (requires ADMIN approval after OTP verification)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Verify OTP - CANDIDATE",
@@ -192,13 +160,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('CANDIDATE OTP verified successfully. Status: ACTIVE - Can login now');",
-                                    "    }",
+                                    "    console.log('OTP verified. Status: ACTIVE. Can login now.');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -215,17 +179,15 @@
                             "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"123456\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/verify-otp",
+                            "raw": "{{base_url}}/auth/verify-otp",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "verify-otp"
                             ]
-                        },
-                        "description": "Verify OTP for CANDIDATE registration (auto-activates account)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Verify OTP - HR",
@@ -235,13 +197,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('HR OTP verified. Status: WAIT_APPROVED - Waiting for HR_MANAGER approval');",
-                                    "    }",
+                                    "    console.log('OTP verified. Status: WAIT_APPROVED');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -258,17 +216,15 @@
                             "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"otp\": \"123456\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/verify-otp",
+                            "raw": "{{base_url}}/auth/verify-otp",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "verify-otp"
                             ]
-                        },
-                        "description": "Verify OTP for HR registration (remains in WAIT_APPROVED status)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Verify OTP - HR_MANAGER",
@@ -278,13 +234,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('HR_MANAGER OTP verified. Status: WAIT_APPROVED - Waiting for ADMIN approval');",
-                                    "    }",
+                                    "    console.log('OTP verified. Status: WAIT_APPROVED');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -301,17 +253,15 @@
                             "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"otp\": \"123456\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/verify-otp",
+                            "raw": "{{base_url}}/auth/verify-otp",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "verify-otp"
                             ]
-                        },
-                        "description": "Verify OTP for HR_MANAGER registration (remains in WAIT_APPROVED status)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Login - CANDIDATE",
@@ -324,12 +274,14 @@
                                     "    const response = pm.response.json();",
                                     "    if (response.success && response.data) {",
                                     "        pm.environment.set('candidateAccessToken', response.data.accessToken);",
-                                    "        console.log('CANDIDATE logged in successfully');",
-                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "        pm.environment.set('candidateRefreshToken', response.data.refreshToken || '');",
+                                    "        pm.environment.set('candidateUsername', response.data.username);",
+                                    "        pm.environment.set('access_token', response.data.accessToken);",
+                                    "        console.log('CANDIDATE logged in: ' + response.data.username);",
+                                    "        console.log('Expires in: ' + response.data.expiresIn + 'ms');",
                                     "    }",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -342,8 +294,7 @@
                             },
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-candidate-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
@@ -351,17 +302,15 @@
                             "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/login",
+                            "raw": "{{base_url}}/auth/login",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "login"
                             ]
-                        },
-                        "description": "Login as CANDIDATE (returns JWT access token + refresh token in cookie)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Login - HR",
@@ -374,12 +323,12 @@
                                     "    const response = pm.response.json();",
                                     "    if (response.success && response.data) {",
                                     "        pm.environment.set('hrAccessToken', response.data.accessToken);",
-                                    "        console.log('HR logged in successfully');",
-                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "        pm.environment.set('hrRefreshToken', response.data.refreshToken || '');",
+                                    "        pm.environment.set('hrUsername', response.data.username);",
+                                    "        console.log('HR logged in: ' + response.data.username);",
                                     "    }",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -392,8 +341,7 @@
                             },
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-hr-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
@@ -401,17 +349,15 @@
                             "raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/login",
+                            "raw": "{{base_url}}/auth/login",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "login"
                             ]
-                        },
-                        "description": "Login as HR (only works after HR_MANAGER approval)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Login - HR_MANAGER",
@@ -424,12 +370,12 @@
                                     "    const response = pm.response.json();",
                                     "    if (response.success && response.data) {",
                                     "        pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
-                                    "        console.log('HR_MANAGER logged in successfully');",
-                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "        pm.environment.set('hrManagerRefreshToken', response.data.refreshToken || '');",
+                                    "        pm.environment.set('hrManagerUsername', response.data.username);",
+                                    "        console.log('HR_MANAGER logged in: ' + response.data.username);",
                                     "    }",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -442,8 +388,7 @@
                             },
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-hrmanager-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
@@ -451,17 +396,15 @@
                             "raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/login",
+                            "raw": "{{base_url}}/auth/login",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "login"
                             ]
-                        },
-                        "description": "Login as HR_MANAGER (only works after ADMIN approval)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Login - ADMIN",
@@ -474,12 +417,12 @@
                                     "    const response = pm.response.json();",
                                     "    if (response.success && response.data) {",
                                     "        pm.environment.set('adminAccessToken', response.data.accessToken);",
-                                    "        console.log('ADMIN logged in successfully');",
-                                    "        console.log('Access Token expires in: ' + response.data.expiresIn + 'ms');",
+                                    "        pm.environment.set('adminRefreshToken', response.data.refreshToken || '');",
+                                    "        pm.environment.set('adminUsername', response.data.username);",
+                                    "        console.log('ADMIN logged in: ' + response.data.username);",
                                     "    }",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -492,8 +435,7 @@
                             },
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-admin-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "body": {
@@ -501,20 +443,18 @@
                             "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/login",
+                            "raw": "{{base_url}}/auth/login",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "login"
                             ]
-                        },
-                        "description": "Login as ADMIN (full system access)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
-                    "name": "Refresh Token - Via Cookie",
+                    "name": "Refresh Token",
                     "event": [
                         {
                             "listen": "test",
@@ -523,12 +463,11 @@
                                     "if (pm.response.code === 200) {",
                                     "    const response = pm.response.json();",
                                     "    if (response.success && response.data) {",
-                                    "        pm.environment.set('candidateAccessToken', response.data.accessToken);",
-                                    "        console.log('Access token refreshed via cookie');",
+                                    "        pm.environment.set('access_token', response.data.accessToken);",
+                                    "        console.log('Token refreshed. Expires: ' + response.data.expiresIn + 'ms');",
                                     "    }",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -537,22 +476,19 @@
                         "header": [
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-candidate-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/refresh",
+                            "raw": "{{base_url}}/auth/refresh",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "refresh"
                             ]
-                        },
-                        "description": "Get new access token using refresh token from cookie (set-cookie from login)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Logout",
@@ -562,8 +498,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{candidateAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{candidateAccessToken}}"
                                 }
                             ]
                         },
@@ -571,25 +506,21 @@
                         "header": [
                             {
                                 "key": "X-Device-Id",
-                                "value": "postman-candidate-device",
-                                "description": "Optional device identifier for multi-device support"
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/logout",
+                            "raw": "{{base_url}}/auth/logout",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "logout"
                             ]
-                        },
-                        "description": "Logout current user (invalidates refresh token and clears cookie)"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "Authentication endpoints - Register, OTP verification, Login, Token refresh, Logout"
+            ]
         },
         {
             "name": "Approval Management",
@@ -601,14 +532,10 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success && response.data && response.data.length > 0) {",
-                                    "        console.log('Found ' + response.data.length + ' pending approvals');",
-                                    "    }",
+                                    "if (pm.response.code === 200 && pm.response.json().data) {",
+                                    "    console.log('Pending approvals: ' + pm.response.json().data.length);",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -618,26 +545,23 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/admin/pending-approvals",
+                            "raw": "{{base_url}}/auth/admin/pending-approvals",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "admin",
                                 "pending-approvals"
                             ]
-                        },
-                        "description": "Get list of users waiting for approval (HR_MANAGER or ADMIN only)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Approve HR_MANAGER",
@@ -647,15 +571,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('HR_MANAGER approved successfully');",
-                                    "        console.log('Status changed from WAIT_APPROVED to ACTIVE');",
-                                    "        console.log('Company created via Kafka event');",
-                                    "    }",
+                                    "    console.log('HR_MANAGER approved. Company created via Kafka.');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -665,8 +583,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
@@ -682,19 +599,17 @@
                             "raw": "{\n  \"approvedBy\": \"{{adminEmail}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/admin/approve-hr-manager/{{hrManagerUserId}}",
+                            "raw": "{{base_url}}/auth/admin/approve-hr-manager/{{hrManagerUserId}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "admin",
                                 "approve-hr-manager",
                                 "{{hrManagerUserId}}"
                             ]
-                        },
-                        "description": "Approve HR_MANAGER registration (ADMIN only) - triggers company creation via Kafka"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Approve HR",
@@ -704,14 +619,9 @@
                             "script": {
                                 "exec": [
                                     "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('HR approved successfully');",
-                                    "        console.log('Status changed from WAIT_APPROVED to ACTIVE');",
-                                    "    }",
+                                    "    console.log('HR approved successfully');",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -721,8 +631,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{hrManagerAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{hrManagerAccessToken}}"
                                 }
                             ]
                         },
@@ -738,47 +647,27 @@
                             "raw": "{\n  \"approvedBy\": \"{{hrManagerEmail}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/admin/approve-hr/{{hrUserId}}",
+                            "raw": "{{base_url}}/auth/admin/approve-hr/{{hrUserId}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "admin",
                                 "approve-hr",
                                 "{{hrUserId}}"
                             ]
-                        },
-                        "description": "Approve HR registration (HR_MANAGER or ADMIN)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
-                    "name": "Reject User Registration",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success) {",
-                                    "        console.log('User registration rejected');",
-                                    "        console.log('Status changed to REJECTED');",
-                                    "    }",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
+                    "name": "Reject User",
                     "request": {
                         "auth": {
                             "type": "bearer",
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
@@ -791,25 +680,22 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"rejectedBy\": \"{{adminEmail}}\",\n  \"reason\": \"Does not meet company requirements\"\n}"
+                            "raw": "{\n  \"rejectedBy\": \"{{adminEmail}}\",\n  \"reason\": \"Does not meet requirements\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/admin/reject/{{pendingUserId}}",
+                            "raw": "{{base_url}}/auth/admin/reject/{{pendingUserId}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "admin",
                                 "reject",
                                 "{{pendingUserId}}"
                             ]
-                        },
-                        "description": "Reject user registration (HR_MANAGER or ADMIN)"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "User approval workflow management - Get pending users, approve/reject registrations"
+            ]
         },
         {
             "name": "Permission Management",
@@ -822,25 +708,21 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/permissions",
+                            "raw": "{{base_url}}/auth/permissions",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "permissions"
                             ]
-                        },
-                        "description": "Get all permissions (ADMIN only, requires perm:read)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Create Permission",
@@ -849,15 +731,11 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success && response.data) {",
-                                    "        pm.environment.set('permissionName', response.data.name);",
-                                    "        console.log('Permission created: ' + response.data.name);",
-                                    "    }",
+                                    "if (pm.response.code === 200 && pm.response.json().data) {",
+                                    "    pm.environment.set('permissionName', pm.response.json().data.name);",
+                                    "    console.log('Permission created: ' + pm.response.json().data.name);",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -867,8 +745,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
@@ -881,20 +758,18 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"custom:test\",\n  \"description\": \"Custom test permission\",\n  \"resource\": \"custom\",\n  \"action\": \"test\"\n}"
+                            "raw": "{\n  \"name\": \"{{newPermissionName}}\",\n  \"description\": \"{{newPermissionDescription}}\",\n  \"resource\": \"report\",\n  \"action\": \"generate\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/permissions",
+                            "raw": "{{base_url}}/auth/permissions",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "permissions"
                             ]
-                        },
-                        "description": "Create new permission (ADMIN only, requires perm:create) - Format: resource:action"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Get Permission by Name",
@@ -904,29 +779,24 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/permissions/{{permissionName}}",
+                            "raw": "{{base_url}}/auth/permissions/{{permissionName}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "permissions",
                                 "{{permissionName}}"
                             ]
-                        },
-                        "description": "Get permission details by name (ADMIN only, requires perm:read)"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "Permission management operations (ADMIN only with specific permissions)"
+            ]
         },
         {
             "name": "Role Management",
@@ -939,25 +809,21 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/roles",
+                            "raw": "{{base_url}}/auth/roles",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "roles"
                             ]
-                        },
-                        "description": "Get all roles (ADMIN only, requires role:read)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Create Role",
@@ -966,15 +832,11 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    if (response.success && response.data) {",
-                                    "        pm.environment.set('roleName', response.data.name);",
-                                    "        console.log('Role created: ' + response.data.name);",
-                                    "    }",
+                                    "if (pm.response.code === 200 && pm.response.json().data) {",
+                                    "    pm.environment.set('roleName', pm.response.json().data.name);",
+                                    "    console.log('Role created: ' + pm.response.json().data.name);",
                                     "}"
-                                ],
-                                "type": "text/javascript"
+                                ]
                             }
                         }
                     ],
@@ -984,8 +846,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
@@ -998,20 +859,18 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"CUSTOM_ROLE\",\n  \"description\": \"Custom role for testing\"\n}"
+                            "raw": "{\n  \"name\": \"{{newRoleName}}\",\n  \"description\": \"{{newRoleDescription}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/roles",
+                            "raw": "{{base_url}}/auth/roles",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "roles"
                             ]
-                        },
-                        "description": "Create new role (ADMIN only, requires role:create)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Add Permission to Role",
@@ -1021,8 +880,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
@@ -1038,22 +896,19 @@
                             "raw": "{\n  \"permission\": \"{{permissionName}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/roles/{{roleName}}/permissions",
+                            "raw": "{{base_url}}/auth/roles/{{roleName}}/permissions",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "roles",
                                 "{{roleName}}",
                                 "permissions"
                             ]
-                        },
-                        "description": "Add permission to role (ADMIN only, requires role:update)"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "Role management operations (ADMIN only with specific permissions)"
+            ]
         },
         {
             "name": "User Role Assignment",
@@ -1066,33 +921,29 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "POST",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/users/{{candidateEmail}}/roles?role={{roleName}}",
+                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles?role={{roleToGrant}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "users",
-                                "{{candidateEmail}}",
+                                "{{targetUsername}}",
                                 "roles"
                             ],
                             "query": [
                                 {
                                     "key": "role",
-                                    "value": "{{roleName}}"
+                                    "value": "{{roleToGrant}}"
                                 }
                             ]
-                        },
-                        "description": "Assign role to user (ADMIN only, requires role:grant)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Revoke Role from User",
@@ -1102,33 +953,29 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "DELETE",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/users/{{candidateEmail}}/roles?role={{roleName}}",
+                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles?role={{roleToRevoke}}",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "users",
-                                "{{candidateEmail}}",
+                                "{{targetUsername}}",
                                 "roles"
                             ],
                             "query": [
                                 {
                                     "key": "role",
-                                    "value": "{{roleName}}"
+                                    "value": "{{roleToRevoke}}"
                                 }
                             ]
-                        },
-                        "description": "Remove role from user (ADMIN only, requires role:revoke)"
-                    },
-                    "response": []
+                        }
+                    }
                 },
                 {
                     "name": "Get User Roles",
@@ -1138,57 +985,31 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{adminAccessToken}}",
-                                    "type": "string"
+                                    "value": "{{adminAccessToken}}"
                                 }
                             ]
                         },
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/users/{{candidateEmail}}/roles",
+                            "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles",
                             "host": [
-                                "{{baseUrl}}"
+                                "{{base_url}}"
                             ],
                             "path": [
                                 "users",
-                                "{{candidateEmail}}",
+                                "{{targetUsername}}",
                                 "roles"
                             ]
-                        },
-                        "description": "Get all roles for a specific user (ADMIN only, requires role:read)"
-                    },
-                    "response": []
+                        }
+                    }
                 }
-            ],
-            "description": "User role assignment operations (ADMIN only with specific permissions)"
-        }
-    ],
-    "event": [
-        {
-            "listen": "prerequest",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    ""
-                ]
-            }
-        },
-        {
-            "listen": "test",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    ""
-                ]
-            }
+            ]
         }
     ],
     "variable": [
         {
-            "key": "baseUrl",
-            "value": "http://localhost:9085",
-            "type": "string"
+            "key": "base_url",
+            "value": "{{base_url}}"
         }
     ]
 }

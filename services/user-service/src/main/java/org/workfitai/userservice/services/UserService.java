@@ -1,5 +1,7 @@
 package org.workfitai.userservice.services;
 
+import java.util.List;
+
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 
 import java.util.UUID;
@@ -61,4 +63,13 @@ public interface UserService {
      * @return the user's UUID
      */
     UUID findUserIdByUsername(String username);
+
+    /**
+     * Get users by list of usernames.
+     * Used for bulk user info retrieval (e.g., for notifications).
+     *
+     * @param usernames list of usernames
+     * @return list of user base responses
+     */
+    List<UserBaseResponse> getUsersByUsernames(List<String> usernames);
 }

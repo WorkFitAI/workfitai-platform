@@ -1,12 +1,13 @@
 package org.workfitai.applicationservice.saga;
 
+import org.workfitai.applicationservice.dto.FileUploadResult;
+import org.workfitai.applicationservice.dto.JobInfo;
+import org.workfitai.applicationservice.model.Application;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.workfitai.applicationservice.dto.FileUploadResult;
-import org.workfitai.applicationservice.dto.JobInfo;
-import org.workfitai.applicationservice.model.Application;
 
 /**
  * Context object that holds state throughout the Saga execution.
@@ -20,6 +21,7 @@ public class ApplicationSagaContext {
 
     // Input data
     private String username;
+    private String email;
     private String jobId;
     private String coverLetter;
 

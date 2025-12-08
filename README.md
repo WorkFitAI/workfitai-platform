@@ -14,6 +14,9 @@ WorkFitAI is an AI-powered recruitment and job matching platform built on a mode
 - **[System Architecture](docs/system-architecture.md)** - Microservices design, data flows, and infrastructure
 - **[Codebase Summary](docs/codebase-summary.md)** - Service structure and API endpoints
 - **[Code Standards](docs/code-standards.md)** - Java/Spring Boot coding conventions and best practices
+- **[Application Flow](docs/APPLICATION_FLOW.md)** - Job application submission workflow with Saga pattern and Kafka events
+- **[Registration Flow](docs/REGISTRATION_FLOW.md)** - User registration and approval workflow
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, configuration, and troubleshooting
 
 ---
 
@@ -27,6 +30,7 @@ WorkFitAI is an AI-powered recruitment and job matching platform built on a mode
 - **cv-service** (9083) - CV storage & management
 - **api-gateway** (9085) - Routing & load balancing
 - **monitoring-service** (9086) - Configuration & observability
+- **notification-service** (Kafka consumer) - Email notifications via SMTP
 
 ### Infrastructure
 - **Consul** (8500) - Service discovery
@@ -251,4 +255,4 @@ Visit the [docs](docs/) directory for comprehensive documentation:
 
 **Version**: 0.0.1-SNAPSHOT
 **License**: Proprietary
-**Last Updated**: 2025-12-06
+**Last Updated**: 2025-12-08

@@ -64,6 +64,7 @@ public class JobServiceAdapter implements JobServicePort {
                     .experienceLevel(jobData.get("experienceLevel") != null ?
                             jobData.get("experienceLevel").toString() : null)
                     .status(status)
+                    .createdBy((String) jobData.get("createdBy"))
                     .fetchedAt(Instant.now())
                     .build();
 

@@ -163,6 +163,9 @@ public class SecurityConfig {
             return authorities;
         });
 
+        // ✅ Extract username from "sub" claim as principal
+        converter.setPrincipalClaimName("sub");
+
         return converter;
     }
 }
