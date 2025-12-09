@@ -272,6 +272,10 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+      api-gateway:
+        condition: service_started
+      auth-service:
+        condition: service_healthy
       monitoring-service:
         condition: service_healthy
     networks: [ workfitai-net ]
@@ -309,6 +313,12 @@ services:
         condition: service_started
       cv-redis:
         condition: service_started
+      kafka:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+      monitoring-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
     networks: [ workfitai-net ]
@@ -664,7 +674,6 @@ volumes:
   prometheus-data:
   minio-data:
   elasticsearch-data:
-
 
 networks:
   workfitai-net:

@@ -21,9 +21,6 @@ public interface iCVService {
     ResCvDTO getById(String cvId);
 
 
-    ResultPaginationDTO<ResCvDTO> getByUser(String userId, int page, int size);
-
-
     ResultPaginationDTO<ResCvDTO> getCVByBelongTo(String username, int page, int size);
 
 
@@ -31,14 +28,6 @@ public interface iCVService {
 
 
     void delete(String cvId) throws CVConflictException, InvalidDataException;
-
-
-    ResultPaginationDTO<ResCvDTO> getByUserWithFilter(
-            String userId,
-            Map<String, Object> filters,
-            int page,
-            int size
-    );
 
 
     ResultPaginationDTO<ResCvDTO> getCVByBelongToWithFilter(
