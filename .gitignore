@@ -49,3 +49,9 @@ source_dump.txt
 .vault/data/
 
 .github/
+
+.claude/
+docs/
+plans/
+CLAUDE.md
+repomix-output.xml

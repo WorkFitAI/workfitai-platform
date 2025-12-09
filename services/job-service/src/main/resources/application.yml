@@ -5,7 +5,7 @@ spring:
   application:
     name: job-service
   profiles:
-    active: docker  # Default profile cho containers
+    active: docker # Default profile cho containers
   config:
     import: optional:vault://secret/job,optional:consul
   cloud:
@@ -20,9 +20,11 @@ spring:
         enabled: false
       discovery:
         service-name: job
-        instance-id: job:${random.int}
+        instance-id: ${spring.application.name}:${server.port}
         health-check-path: /actuator/health
         prefer-ip-address: true
+        deregister: true
+        health-check-critical-timeout: 1m
   datasource:
     url: ${datasource.url:jdbc:postgresql://job-postgres:5432/job_db}
     username: ${datasource.username:user}
@@ -31,10 +33,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
   kafka:
     bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
     listener:
@@ -42,12 +46,6 @@ spring:
     consumer:
       group-id: job-service
       auto-offset-reset: earliest
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
-        spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -82,7 +80,7 @@ spring:
         enabled: true
         register: true
         service-name: job
-        instance-id: job:${random.int}
+        # instance-id: job:${random.int}
         health-check-path: /actuator/health
         prefer-ip-address: true
   datasource:
@@ -139,17 +137,19 @@ spring:
         register: true
         health-check-path: /actuator/health
   datasource:
-    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5432/job_db}
+    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5433/job_db}
     username: ${JOB_DB_USER:user}
     password: ${JOB_DB_PASS:pass}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
   kafka:
     bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
     listener:
@@ -157,12 +157,6 @@ spring:
     consumer:
       group-id: job-service
       auto-offset-reset: earliest
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
-        spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -174,6 +168,42 @@ service:
 
 logging:
   level:
+    # Service-specific logging
     org.workfitai: DEBUG
+    org.workfitai.jobservice: DEBUG
+
+    # Spring Framework
+    org.springframework: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+    # Database & JPA
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.orm.jpa: DEBUG
+
+    # Kafka
+    org.apache.kafka: INFO
+    org.springframework.kafka: DEBUG
+
+    # Consul
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.client: DEBUG
+
+    # Vault
     org.springframework.cloud.vault: DEBUG
+
+    # Feign & HTTP
+    feign: DEBUG
+    org.springframework.web.client: DEBUG
+
+    # Spring Filter
     com.turkraft.springfilter: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

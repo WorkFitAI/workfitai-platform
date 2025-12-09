@@ -45,7 +45,8 @@ vault kv put secret/cv-service \
 
 echo "Creating secrets for application-service..."
 vault kv put secret/application-service \
-  mongodb.uri=mongodb://application-mongo:27017/app-db
+  mongodb.uri=mongodb://application-mongo:27017/application_db \
+  kafka.bootstrap-servers=kafka-workfitai:29092
 
 echo "Creating secrets for monitoring-service..."
 vault kv put secret/monitoring-service \

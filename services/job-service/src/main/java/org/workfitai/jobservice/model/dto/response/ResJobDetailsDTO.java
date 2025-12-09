@@ -28,8 +28,9 @@ public class ResJobDetailsDTO {
     private Instant expiresAt;
     private JobStatus status;
     private String educationLevel;
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
     private ResCompanyDTO company;
     private Instant createdDate;
+    private String createdBy; // Username of HR who created the job
 }
