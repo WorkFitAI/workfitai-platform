@@ -78,12 +78,6 @@ public class CVService implements iCVService {
     }
 
 
-    @Override
-    public ResultPaginationDTO<ResCvDTO> getByUser(String userId, int page, int size) {
-        return null;
-    }
-
-
     // ---------------- GET WITHOUT FILTER ----------------
     @Override
     public ResultPaginationDTO<ResCvDTO> getCVByBelongTo(String username, int page, int size) {
@@ -152,12 +146,6 @@ public class CVService implements iCVService {
 
         cv.setExist(false);
         repository.save(cv);
-    }
-
-
-    @Override
-    public ResultPaginationDTO<ResCvDTO> getByUserWithFilter(String userId, Map<String, Object> filters, int page, int size) {
-        return null;
     }
 
 
