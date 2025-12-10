@@ -14,7 +14,10 @@ import org.workfitai.jobservice.model.dto.response.ResUpdateCompanyDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.mapper.CompanyMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iCompanyService;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ import org.workfitai.jobservice.service.iCompanyService;
 public class CompanyService implements iCompanyService {
     private final CompanyRepository companyRepository;
     private final CompanyMapper companyMapper;
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public ResCompanyDTO getById(String id) {
@@ -62,11 +66,22 @@ public class CompanyService implements iCompanyService {
         Company company = companyRepository.findById(dto.getCompanyNo())
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
+        if (dto.getLogoFile() != null && !dto.getLogoFile().isEmpty()) {
+            try {
+                String logoUrl = cloudinaryService.uploadFile(dto.getLogoFile(), dto.getCompanyNo());
+                company.setLogoUrl(logoUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload logo", e);
+            }
+        }
+
         companyMapper.updateEntityFromDTO(dto, company);
+
         companyRepository.save(company);
 
         return companyMapper.toResUpdateDTO(company);
     }
+
 
     @Override
     public void delete(String id) {

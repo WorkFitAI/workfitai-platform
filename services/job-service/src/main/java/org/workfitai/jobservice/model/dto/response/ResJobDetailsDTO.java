@@ -17,19 +17,49 @@ import java.util.UUID;
 @Setter
 @Builder
 public class ResJobDetailsDTO {
+
     private UUID postId;
+
+    // Basic info
     private String title;
+    private String shortDescription;
     private String description;
+
+    // Job attributes
     private EmploymentType employmentType;
     private ExperienceLevel experienceLevel;
+    private String educationLevel;
+    private String requiredExperience;
+
+    // Salary
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
     private String currency;
+
+    // Location / Quantity / Metrics
+    private String location;
+    private Integer quantity;
+    private Integer totalApplications;
+
+    // Dates
+    private Instant createdDate;
+    private Instant lastModifiedDate;
     private Instant expiresAt;
+
+    // Status
     private JobStatus status;
-    private String educationLevel;
+
+    // Description sections (markdown)
+    private String benefits;
+    private String requirements;
+    private String responsibilities;
+
+    // Skill list
     @JsonIgnoreProperties(value = {"jobs"})
     private List<String> skillNames;
+
+    // Company info
     private ResCompanyDTO company;
-    private Instant createdDate;
+
+    private String bannerUrl;
 }

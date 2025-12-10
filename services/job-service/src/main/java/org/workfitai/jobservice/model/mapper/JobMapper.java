@@ -40,6 +40,7 @@ public interface JobMapper {
     @Mapping(target = "postId", source = "jobId")
     ResJobDetailsForHrDTO toResJobDetailsForHrDTO(Job job);
 
+    @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
     ResJobDTO toResJobDTO(Job job);
 

@@ -3,10 +3,13 @@ package org.workfitai.jobservice.service.impl;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.config.errors.JobConflictException;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
@@ -19,8 +22,11 @@ import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iJobService;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,12 +45,15 @@ public class JobService implements iJobService {
 
     private final CompanyRepository companyRepository;
 
+    private final CloudinaryService cloudinaryService;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-                      SkillRepository skillRepository, CompanyRepository companyRepository) {
+                      SkillRepository skillRepository, CompanyRepository companyRepository, CloudinaryService cloudinaryService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
@@ -131,7 +140,7 @@ public class JobService implements iJobService {
 
         return new ResModifyStatus().builder()
                 .status(String.valueOf(job.getStatus()))
-                .updatedAt(job.getLastModifiedDate())
+                .lastModifiedDate(job.getLastModifiedDate())
                 .build();
     }
 
@@ -203,4 +212,74 @@ public class JobService implements iJobService {
 
         log.info("Updated totalApplications for jobId {}: {}", jobId, job.getTotalApplications());
     }
+
+    @Transactional
+    public Job increaseViews(UUID jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        job.setViews(job.getViews() + 1);
+
+        return jobRepository.save(job);
+    }
+
+    @Override
+    public List<ResJobDTO> getSimilarJobs(UUID jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        List<UUID> skillIds = job.getSkills()
+                .stream().map(Skill::getSkillId).toList();
+
+        List<Job> list = jobRepository.findSimilarJobs(
+                jobId,
+                skillIds,
+                job.getLocation(),
+                job.getTitle(),
+                job.getExperienceLevel()
+        );
+
+        Collections.shuffle(list);
+
+        return list.stream()
+                .limit(5)
+                .map(jobMapper::toResJobDTO)
+                .toList();
+    }
+
+    @Override
+    public ResultPaginationDTO getFeaturedJobs(int page) {
+
+        Pageable pageable = PageRequest.of(page, 4);
+
+        Page<Job> pageJob = jobRepository.findFeaturedJobs(pageable);
+        Page<ResJobDTO> pageJobDTO = pageJob.map(jobMapper::toResJobDTO);
+
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        // meta
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+        mt.setPages(pageJob.getTotalPages());
+        mt.setTotal(pageJob.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageJobDTO.getContent());
+
+        return rs;
+    }
+
+    @Transactional
+    public String uploadJobBanner(UUID jobId, MultipartFile bannerFile) throws InvalidDataException, IOException {
+        Job dbJob = jobRepository.findById(jobId)
+                .orElseThrow(() -> new InvalidDataException("Job not found"));
+
+        String bannerUrl = cloudinaryService.uploadFile(bannerFile, dbJob.getCompany().getCompanyNo());
+        dbJob.setBannerUrl(bannerUrl);
+        jobRepository.save(dbJob);
+
+        return bannerUrl;
+    }
+
 }

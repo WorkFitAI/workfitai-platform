@@ -13,6 +13,6 @@ import java.time.Instant;
 @AllArgsConstructor
 public class ResModifyStatus {
     private String status;
-    private Instant updatedAt;
+    private Instant lastModifiedDate;
 }
 

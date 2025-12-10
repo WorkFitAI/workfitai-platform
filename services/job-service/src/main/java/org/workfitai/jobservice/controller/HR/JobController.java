@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
@@ -13,6 +14,7 @@ import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.util.ApiMessage;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,6 +55,15 @@ public class JobController {
         }
 
         return RestResponse.success(this.jobService.updateJob(jobDTO, currentJob.get()));
+    }
+
+    @PostMapping("/{jobId}/banner")
+    public RestResponse<String> uploadBanner(
+            @PathVariable UUID jobId,
+            @RequestParam("file") MultipartFile bannerFile) throws InvalidDataException, IOException {
+
+        String bannerUrl = jobService.uploadJobBanner(jobId, bannerFile);
+        return RestResponse.success(bannerUrl);
     }
 
     @PutMapping("/{id}/{status}")
