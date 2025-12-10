@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.dto.LoginRequest;
-import org.workfitai.authservice.dto.RegisterRequest;
-import org.workfitai.authservice.dto.VerifyOtpRequest;
-import org.workfitai.authservice.dto.TokensResponse;
-import org.workfitai.authservice.response.ResponseData;
+import org.workfitai.authservice.dto.request.LoginRequest;
+import org.workfitai.authservice.dto.request.RegisterRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
+import org.workfitai.authservice.dto.response.ResponseData;
+import org.workfitai.authservice.dto.response.TokensResponse;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.iAuthService;
 

@@ -16,7 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.response.ApiError;
+import org.workfitai.authservice.dto.response.ApiError;
 import org.workfitai.authservice.security.JwtAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

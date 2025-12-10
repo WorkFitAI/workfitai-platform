@@ -7,20 +7,60 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
+  # Spring Cloud Config Server
+  cloud:
+    config:
+      server:
+        vault:
+          host: ${VAULT_HOST:localhost}
+          port: ${VAULT_PORT:8200}
+          scheme: http
+          authentication: TOKEN
+          token: ${VAULT_TOKEN:dev-token}
+          kv-version: 2
+        prefix: /config  # Config endpoints at /config/*
+    
+    # Spring Cloud Bus for dynamic refresh
+    bus:
+      enabled: true
+      refresh:
+        enabled: true
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: monitoring-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
       discovery:
-        service-name: monitoring
-        # instance-id: monitoring:${random.int}
-        health-check-path: /health
+        service-name: monitoring-service
+        health-check-path: /actuator/health
         health-check-interval: 10s
         prefer-ip-address: true
         ip-address: ${DISCOVERY_IP_ADDRESS:127.0.0.1}
+        tags:
+          - monitoring
+          - config-server
+          - metrics
+          - observability
+        metadata:
+          config-prefix: /config
+          metrics-path: /actuator/prometheus
+          health-path: /actuator/health
 
     vault:
-      host: ${VAULT_HOST:vault}
+      host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
       token: ${VAULT_TOKEN:dev-token}
       scheme: http
@@ -51,13 +91,26 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,refresh
+        include: health,info,metrics,prometheus,bus-refresh,loggers
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
     metrics:
       enabled: true
     prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+  health:
+    consul:
+      enabled: true
+    vault:
       enabled: true
 
 # Elasticsearch configuration for log querying
@@ -80,8 +133,11 @@ kibana:
 
 logging:
   level:
+    root: INFO
     org.workfitai.monitoringservice: DEBUG
+    org.springframework.cloud.config: DEBUG
     org.springframework.vault: DEBUG
+    org.springframework.cloud.bus: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
@@ -92,6 +148,13 @@ spring:
       on-profile: docker
 
   cloud:
+    config:
+      server:
+        vault:
+          host: vault
+          port: 8200
+          token: ${VAULT_TOKEN:myroot}
+    
     consul:
       host: consul
       discovery:
@@ -100,8 +163,11 @@ spring:
     vault:
       host: vault
       port: 8200
-      token: myroot
+      token: ${VAULT_TOKEN:myroot}
       scheme: http
+
+  kafka:
+    bootstrap-servers: kafka:9092
 
   data:
     redis:

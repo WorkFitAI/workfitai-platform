@@ -9,8 +9,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.workfitai.userservice.dto.kafka.UserRegistrationEvent;
-import org.workfitai.userservice.services.CandidateService;
-import org.workfitai.userservice.services.HRService;
+import org.workfitai.userservice.service.CandidateService;
+import org.workfitai.userservice.service.HRService;
 import org.workfitai.userservice.enums.EUserRole;
 import org.workfitai.userservice.enums.EUserStatus;
 

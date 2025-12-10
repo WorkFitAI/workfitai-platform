@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.response.ApiError;
+import org.workfitai.authservice.dto.response.ApiError;
 
 import com.mongodb.MongoWriteConcernException;
 import com.mongodb.MongoWriteException;
@@ -54,7 +54,8 @@ public class RestExceptionHandler {
         var errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .toList();
-        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, Messages.Error.VALIDATION_FAILED, errors));
+        return ResponseEntity.badRequest()
+                .body(build(HttpStatus.BAD_REQUEST, Messages.Error.VALIDATION_FAILED, errors));
     }
 
     // 400 – @Validated on @ConfigurationProperties, @PathVariable, @RequestParam…
@@ -69,7 +70,8 @@ public class RestExceptionHandler {
     // 400 – bad/malformed JSON
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleBadJson(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, Messages.Error.MALFORMED_JSON, List.of()));
+        return ResponseEntity.badRequest()
+                .body(build(HttpStatus.BAD_REQUEST, Messages.Error.MALFORMED_JSON, List.of()));
     }
 
     // 401 – spring-security/explicit

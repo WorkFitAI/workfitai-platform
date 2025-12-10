@@ -7,8 +7,8 @@ import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.workfitai.authservice.dto.CreateRoleDto;
-import org.workfitai.authservice.dto.RoleResponse;
+import org.workfitai.authservice.dto.response.CreateRoleDto;
+import org.workfitai.authservice.dto.response.RoleResponse;
 import org.workfitai.authservice.model.Role;
 
 @Mapper(componentModel = "spring")

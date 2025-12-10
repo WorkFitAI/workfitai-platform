@@ -72,6 +72,55 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "last_login", nullable = true)
   private Instant lastLogin = null;
 
+  // Avatar fields
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
+  @Column(name = "avatar_public_id")
+  private String avatarPublicId;
+
+  @Column(name = "avatar_uploaded_at")
+  private Instant avatarUploadedAt;
+
+  // 2FA fields
+  @Column(name = "two_factor_enabled")
+  private Boolean twoFactorEnabled = false;
+
+  @Column(name = "two_factor_method")
+  private String twoFactorMethod;
+
+  @Column(name = "two_factor_secret")
+  private String twoFactorSecret;
+
+  @Column(name = "two_factor_backup_codes", columnDefinition = "TEXT")
+  private String twoFactorBackupCodes;
+
+  @Column(name = "two_factor_enabled_at")
+  private Instant twoFactorEnabledAt;
+
+  // Settings fields (JSONB in PostgreSQL)
+  @Column(name = "notification_settings", columnDefinition = "jsonb")
+  private com.fasterxml.jackson.databind.JsonNode notificationSettings;
+
+  @Column(name = "privacy_settings", columnDefinition = "jsonb")
+  private com.fasterxml.jackson.databind.JsonNode privacySettings;
+
+  // Account management fields
+  @Column(name = "deactivated_at")
+  private Instant deactivatedAt;
+
+  @Column(name = "deactivation_reason", columnDefinition = "TEXT")
+  private String deactivationReason;
+
+  @Column(name = "deletion_scheduled_at")
+  private Instant deletionScheduledAt;
+
+  @Column(name = "deletion_date")
+  private Instant deletionDate;
+
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
+
   @Override
   public UUID getId() {
     return this.userId;

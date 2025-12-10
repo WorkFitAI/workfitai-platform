@@ -15,7 +15,7 @@ public class RefreshTokenService {
     private final Duration ttl;
 
     public RefreshTokenService(StringRedisTemplate redis,
-                               @Value("${auth.jwt.refresh-exp-ms}") long refreshExpMs) {
+            @Value("${auth.jwt.refresh-exp-ms}") long refreshExpMs) {
         this.redis = redis;
         this.ttl = Duration.ofMillis(refreshExpMs);
     }
@@ -37,5 +37,11 @@ public class RefreshTokenService {
     /** Remove the device binding (used by logout later) */
     public void delete(String userId, String deviceId) {
         redis.delete(String.format(KEY_FMT, userId, deviceId));
+    }
+
+    /** Delete all refresh tokens for a user (used when changing password) */
+    public void deleteAllByUsername(String username) {
+        String pattern = String.format(KEY_FMT, username, "*");
+        redis.keys(pattern).forEach(redis::delete);
     }
 }
