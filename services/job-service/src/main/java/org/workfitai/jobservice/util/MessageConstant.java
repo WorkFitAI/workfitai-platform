@@ -4,6 +4,8 @@ public class MessageConstant {
     public static final String JOB_CREATED_SUCCESSFULLY = "Job created successfully";
     public static final String JOB_DETAIL_FETCHED_SUCCESSFULLY = "Job fetched successfully";
     public static final String JOB_ALL_FETCHED_SUCCESSFULLY = "Jobs fetched successfully";
+    public static final String JOB_FEATURED_FETCHED_SUCCESSFULLY = "Featured jobs fetched successfully";
+    public static final String JOB_SIMILAR_FETCHED_SUCCESSFULLY = "Similar jobs fetched successfully";
     public static final String JOB_UPDATED_SUCCESSFULLY = "Job updated successfully";
     public static final String JOB_STATUS_UPDATED_SUCCESSFULLY = "Job's status updated successfully";
     public static final String JOB_DELETED_SUCCESSFULLY = "Job deleted successfully";

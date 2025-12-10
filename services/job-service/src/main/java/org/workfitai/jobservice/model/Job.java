@@ -36,6 +36,11 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(length = 500)
+    @NotBlank(message = "Short description must not be null")
+    @Size(min = 10, max = 300, message = "Short description must be between 10 and 300 characters")
+    private String shortDescription;
+
     @NotNull(message = "Employment type must not be null")
     @Enumerated(EnumType.STRING)
     private EmploymentType employmentType;
@@ -43,6 +48,9 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @NotNull(message = "Experience level must not be null")
     @Enumerated(EnumType.STRING)
     private ExperienceLevel experienceLevel;
+
+    @Size(min = 2, max = 120, message = "Required experience must be between 2 and 120 characters")
+    private String requiredExperience;
 
     @NotNull(message = "salaryMin must not be null")
     @DecimalMin(value = "0.0", inclusive = true, message = "salaryMin must be >= 0")
@@ -78,6 +86,24 @@ public class Job extends AbstractAuditingEntity<UUID> {
 
     @Size(min = 2, max = 120, message = "Education level must be between 2 and 120 characters")
     private String educationLevel;
+
+    @Column(columnDefinition = "TEXT")
+    private String benefits;
+
+    @Column(columnDefinition = "TEXT")
+    private String requirements;
+
+    @Column(columnDefinition = "TEXT")
+    private String responsibilities;
+
+    @NotNull(message = "Views must not be null")
+    @Min(value = 0, message = "Views must be >= 0")
+    @Column(nullable = false)
+    private Long views = 0L;
+
+    @Column(length = 500)
+    @Size(max = 500, message = "Banner URL must be at most 500 characters")
+    private String bannerUrl;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)

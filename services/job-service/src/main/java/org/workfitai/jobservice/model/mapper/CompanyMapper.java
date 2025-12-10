@@ -1,7 +1,9 @@
 package org.workfitai.jobservice.model.mapper;
 
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.dto.request.ReqCreateCompanyDTO;
 import org.workfitai.jobservice.model.dto.request.ReqUpdateCompanyDTO;
@@ -21,6 +23,5 @@ public interface CompanyMapper {
 
     ResCompanyDTO toResDTO(Company company);
 
-    @Mapping(target = "updatedAt", expression = "java(company.getLastModifiedDate() != null ? company.getLastModifiedDate().toString() : null)")
     ResUpdateCompanyDTO toResUpdateDTO(Company company);
 }

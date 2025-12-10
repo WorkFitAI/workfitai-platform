@@ -49,6 +49,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
 
 server:
   port: ${SERVER_PORT:9005}
@@ -111,6 +115,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
 
 # Service URLs for Docker environment
 service:
@@ -160,6 +168,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
 
 # Service URLs for Docker/local environment
 service:

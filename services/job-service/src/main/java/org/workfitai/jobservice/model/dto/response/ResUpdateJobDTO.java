@@ -17,20 +17,57 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class ResUpdateJobDTO {
+
     private UUID postId;
+
     private String title;
+
+    private String shortDescription;
+
     private String description;
+
+    private String benefits;
+
+    private String requirements;
+
+    private String responsibilities;
+
+    private String requiredExperience;
+
     private EmploymentType employmentType;
+
     private ExperienceLevel experienceLevel;
+
     private BigDecimal salaryMin;
+
     private BigDecimal salaryMax;
+
     private String currency;
-    private Instant expiresAt;
-    private JobStatus status;
-    private String educationLevel;
+
+    private String location;
+
     private Integer quantity;
+
+    private Instant expiresAt;
+
+    private JobStatus status;
+
+    private String educationLevel;
+
     private Integer totalApplications;
-    @JsonIgnoreProperties(value = {"jobs"})
+
+    private Long views;
+
+    private String companyNo;
+
+    private String companyName;
+
+    @JsonIgnoreProperties("jobs")
     private List<String> skillNames;
+
+    private String bannerUrl;
+
     private Instant createdDate;
+
+    private Instant lastModifiedDate;
 }

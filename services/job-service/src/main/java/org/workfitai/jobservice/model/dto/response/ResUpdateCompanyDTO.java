@@ -2,6 +2,8 @@ package org.workfitai.jobservice.model.dto.response;
 
 import lombok.*;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,6 +18,6 @@ public class ResUpdateCompanyDTO {
     private String description;
     private String address;
     private String size;
+    private Instant lastModifiedDate;
 
-    private String updatedAt;
 }

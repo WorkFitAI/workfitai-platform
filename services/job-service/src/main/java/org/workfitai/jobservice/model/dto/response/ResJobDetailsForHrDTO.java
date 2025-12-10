@@ -17,21 +17,49 @@ import java.util.UUID;
 @Setter
 @Builder
 public class ResJobDetailsForHrDTO {
+
     private UUID postId;
+
+    // Basic info
     private String title;
+    private String shortDescription;
     private String description;
+
+    // Job attributes
     private EmploymentType employmentType;
     private ExperienceLevel experienceLevel;
+    private String educationLevel;
+
+    // Salary
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
     private String currency;
-    private Instant expiresAt;
-    private JobStatus status;
-    private String educationLevel;
-    @JsonIgnoreProperties(value = {"jobs"})
-    private List<String> skillNames;
-    private ResCompanyDTO company;
-    private Instant createdDate;
+
+    // Location / Quantity / Metrics
+    private String location;
     private Integer quantity;
     private Integer totalApplications;
+    private String requiredExperience;
+
+    // Dates
+    private Instant createdDate;
+    private Instant lastModifiedDate;
+    private Instant expiresAt;
+
+    // Status
+    private JobStatus status;
+
+    // Description sections (markdown)
+    private String benefits;
+    private String requirements;
+    private String responsibilities;
+
+    // Skill list
+    @JsonIgnoreProperties(value = {"jobs"})
+    private List<String> skillNames;
+
+    // Company info
+    private ResCompanyDTO company;
+
+    private String bannerUrl;
 }
