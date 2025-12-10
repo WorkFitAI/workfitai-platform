@@ -406,7 +406,7 @@ services:
       - "workfitai.service=monitoring-service"
       - "workfitai.logs=enabled"
       - "prometheus.scrape=true"
-      - "prometheus.port=9086"
+      - "prometheus.port=9005"
       - "prometheus.path=/actuator/prometheus"
     logging:
       driver: json-file
@@ -417,9 +417,10 @@ services:
     env_file:
       - .env.local
     ports:
-      - "9086:9086"
+      - "9086:9005"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
       - VAULT_HOST=vault
       - VAULT_PORT=8200
       - VAULT_TOKEN=${VAULT_TOKEN:-myroot}
@@ -444,7 +445,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9086/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9005/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
