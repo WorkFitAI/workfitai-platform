@@ -1,7 +1,6 @@
 package org.workfitai.authservice.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CompanyRegisterRequest {
 
-    @NotBlank(message = "Company ID is required for HR manager registration")
-    @Pattern(regexp = "^[0-9a-fA-F-]{36}$", message = "Company ID must be a valid UUID")
-    private String companyId;
+    // @NotBlank(message = "Company ID is required for HR manager registration")
+    // @Pattern(regexp = "^[0-9a-fA-F-]{36}$", message = "Company ID must be a valid UUID")
+    // private String companyId;
 
     @NotBlank(message = "Company name is required")
     private String name;

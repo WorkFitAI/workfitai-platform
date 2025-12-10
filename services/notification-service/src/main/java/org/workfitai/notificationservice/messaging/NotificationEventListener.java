@@ -140,6 +140,8 @@ public class NotificationEventListener {
             case "ACCOUNT_ACTIVATED" -> "account-activated";
             case "PENDING_APPROVAL" -> "pending-approval";
             case "APPROVAL_GRANTED" -> "approval-granted";
+            case "APPLICATION_CONFIRMATION" -> "application-confirmation";
+            case "NEW_APPLICATION_HR" -> "new-application-hr";
             default -> null;
         };
     }

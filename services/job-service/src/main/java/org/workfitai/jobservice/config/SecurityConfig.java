@@ -1,6 +1,7 @@
 package org.workfitai.jobservice.config;
 
-import lombok.RequiredArgsConstructor;
+import java.util.HashSet;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,7 +12,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.workfitai.jobservice.security.SecurityJwtConfiguration;
 
-import java.util.HashSet;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableMethodSecurity
@@ -61,6 +62,9 @@ public class SecurityConfig {
             authorities.addAll(permsConverter.convert(jwt));
             return authorities;
         });
+
+        // ✅ Extract username from "sub" claim as principal
+        converter.setPrincipalClaimName("sub");
         return converter;
     }
 }

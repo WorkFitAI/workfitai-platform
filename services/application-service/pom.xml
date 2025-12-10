@@ -28,8 +28,29 @@
     </scm>
     <properties>
         <java.version>17</java.version>
+        <!-- Spring Cloud version for Consul, OpenFeign, LoadBalancer -->
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <!-- MapStruct version for DTO-Entity mapping -->
+        <mapstruct.version>1.6.0</mapstruct.version>
+        <!-- OpenAPI/Swagger for API documentation -->
+        <springdoc.version>2.3.0</springdoc.version>
     </properties>
+
+    <!-- Spring Cloud BOM for dependency management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <!-- ==================== Core Spring Boot Starters ==================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -47,11 +68,69 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- ==================== OAuth2 Resource Server (JWT validation) ==================== -->
+        <!-- Required for validating JWT tokens from auth-service -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- ==================== Spring Cloud - Service Discovery & Communication ==================== -->
+        <!-- Consul for service discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+        </dependency>
+        <!-- OpenFeign for declarative REST client (only used for AuthServiceClient to fetch JWT public key) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <!-- LoadBalancer for client-side load balancing with Feign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- ==================== Kafka - Async Messaging ==================== -->
+        <!-- For publishing application events (status changes, new applications) -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- ==================== MinIO - Object Storage ==================== -->
+        <!-- For storing CV PDF files -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.13</version>
+        </dependency>
+
+        <!-- ==================== MapStruct - DTO/Entity Mapping ==================== -->
+        <!-- Compile-time code generation for type-safe mapping -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- ==================== OpenAPI/Swagger - API Documentation ==================== -->
+        <!-- Auto-generates OpenAPI spec and Swagger UI -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- ==================== Utilities ==================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- ==================== Testing ==================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -62,13 +141,29 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Testcontainers for MongoDB integration tests -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
 
+        <!-- ==================== Monitoring ==================== -->
         <!-- Actuator endpoints (/actuator/**) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
         <!-- Micrometer Prometheus registry (enables /actuator/prometheus) -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -90,11 +185,28 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <annotationProcessorPaths>
+                        <!-- Lombok must come before MapStruct -->
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </path>
+                        <!-- MapStruct annotation processor for generating mapper implementations -->
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                        <!-- Lombok-MapStruct binding for proper integration -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
                     </annotationProcessorPaths>
+                    <!-- MapStruct configuration -->
+                    <compilerArgs>
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

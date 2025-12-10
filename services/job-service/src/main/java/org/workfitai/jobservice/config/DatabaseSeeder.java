@@ -101,6 +101,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         /* ===================== JOB SEED ===================== */
         if (countJobs == 0) {
+
             List<Company> companies = companyRepository.findAll();
             List<Skill> allSkills = skillRepository.findAll();
             Random rand = new Random();
@@ -139,9 +140,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 "Cơ hội được tiếp cận cloud, CI/CD và microservices.";
 
                 String shortDesc =
-                        "Tuyển " +
-                                expLevel.name() +
-                                " Developer tham gia phát triển dự án hệ thống nội bộ.";
+                        "Tuyển " + expLevel.name() + " Developer tham gia phát triển dự án hệ thống nội bộ.";
 
                 String benefits =
                         "- Lương thưởng hấp dẫn\n" +

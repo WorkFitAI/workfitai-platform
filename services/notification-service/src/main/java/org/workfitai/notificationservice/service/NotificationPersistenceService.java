@@ -134,4 +134,22 @@ public class NotificationPersistenceService {
     public List<EmailLog> getFailedEmailLogs() {
         return emailLogRepository.findByDeliveredFalseOrderByTimestampDesc();
     }
+
+    /**
+     * Save email log for application events
+     */
+    public EmailLog saveEmailLogForApplication(String applicationId, String email, String subject, boolean delivered, String error) {
+        EmailLog log = EmailLog.builder()
+                .eventId(applicationId)
+                .eventType("APPLICATION_CREATED")
+                .timestamp(Instant.now())
+                .recipientEmail(email)
+                .subject(subject)
+                .templateType("application-notification")
+                .delivered(delivered)
+                .error(error)
+                .sourceService("application-service")
+                .build();
+        return emailLogRepository.save(log);
+    }
 }

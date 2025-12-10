@@ -49,17 +49,13 @@ public class ResJobDetailsDTO {
     // Status
     private JobStatus status;
 
-    // Description sections (markdown)
-    private String benefits;
-    private String requirements;
-    private String responsibilities;
-
-    // Skill list
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
 
     // Company info
     private ResCompanyDTO company;
 
     private String bannerUrl;
+  
+    private String createdBy; // Username of HR who created the job
 }

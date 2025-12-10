@@ -1,13 +1,14 @@
 package org.workfitai.jobservice.messaging;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.workfitai.jobservice.dto.kafka.CompanySyncEvent;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.repository.CompanyRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class CompanySyncConsumer {
 
     private final CompanyRepository companyRepository;
 
-    @KafkaListener(topics = "${app.kafka.topics.company-sync:company-sync}", groupId = "${spring.kafka.consumer.group-id:job-service-group}")
+    @KafkaListener(topics = "${app.kafka.topics.company-sync:company-sync}", groupId = "${spring.kafka.consumer.group-id:job-service-group}", containerFactory = "companySyncKafkaListenerContainerFactory")
     public void handleCompanySync(@Payload CompanySyncEvent event) {
         if (event == null || event.getCompany() == null) {
             log.warn("Received empty company sync event");

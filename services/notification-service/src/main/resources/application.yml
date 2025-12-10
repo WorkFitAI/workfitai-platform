@@ -30,6 +30,7 @@ app:
   kafka:
     topics:
       notification: ${APP_KAFKA_TOPIC_NOTIFICATION:notification-events}
+      application-events: ${APP_KAFKA_TOPIC_APPLICATION_EVENTS:application-events}
 
 management:
   endpoints:
@@ -72,6 +73,8 @@ spring:
 service:
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+  user:
+    url: ${USER_SERVICE_URL:http://user-service:9001}
 
 ---
 spring:
@@ -98,6 +101,8 @@ spring:
 service:
   auth:
     url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+  user:
+    url: ${USER_SERVICE_URL_LOCAL:http://localhost:9082}
 
 server:
   port: ${SERVER_PORT:9005}

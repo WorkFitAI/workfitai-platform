@@ -1,7 +1,10 @@
 package org.workfitai.userservice.services.impl;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.userservice.constants.Messages;
@@ -21,7 +24,8 @@ import org.workfitai.userservice.repository.HRRepository;
 import org.workfitai.userservice.repository.UserRepository;
 import org.workfitai.userservice.services.UserService;
 
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -123,9 +127,21 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
     }
 
+    @Override
+    public List<UserBaseResponse> getUsersByUsernames(List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<UserEntity> users = userRepository.findAllByUsernameIn(usernames);
+        return users.stream()
+                .map(this::mapToBaseResponse)
+                .collect(Collectors.toList());
+    }
+
     private UserBaseResponse mapToBaseResponse(UserEntity user) {
         return UserBaseResponse.builder()
                 .userId(user.getUserId())
+                .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())

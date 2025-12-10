@@ -90,8 +90,17 @@ public class RestExceptionHandler {
   // 🔸 Lỗi Authentication (JWT, login sai,…)
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ApiError> handleAuth(AuthenticationException ex) {
+    log.error("❌ Authentication failed: {}", ex.getMessage(), ex);
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(build(HttpStatus.UNAUTHORIZED, ValidationMessages.UNAUTHORIZED_ACCESS, List.of()));
+        .body(build(HttpStatus.UNAUTHORIZED, ValidationMessages.UNAUTHORIZED_ACCESS, List.of(ex.getMessage())));
+  }
+
+  // 🔸 Lỗi Authorization (không đủ quyền)
+  @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+  public ResponseEntity<ApiError> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+    log.error("❌ Access denied: {}", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(build(HttpStatus.FORBIDDEN, "Access denied: " + ex.getMessage(), List.of()));
   }
 
   // 🔸 Lỗi được ném từ service (ResponseStatusException)

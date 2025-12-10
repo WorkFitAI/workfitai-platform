@@ -1,7 +1,5 @@
 package org.workfitai.jobservice.messaging;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -11,6 +9,9 @@ import org.springframework.stereotype.Component;
 import org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent;
 import org.workfitai.jobservice.service.impl.JobService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -18,10 +19,7 @@ public class JobStatsConsumer {
 
     private final JobService jobService;
 
-    @KafkaListener(
-            topics = "${app.kafka.topics.job-stats-update:job-stats-update}",
-            groupId = "${spring.kafka.consumer.group-id:job-service-group}"
-    )
+    @KafkaListener(topics = "${app.kafka.topics.job-stats-update:job-stats-update}", groupId = "${spring.kafka.consumer.group-id:job-service-group}", containerFactory = "jobStatsKafkaListenerContainerFactory")
     public void handleJobStatsUpdate(
             @Payload JobStatsUpdateEvent event,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,

@@ -1,11 +1,12 @@
 # =============================================================================
-# application-service Configuration (Unified Approach)
+# application-service Configuration
+# Handles job applications (Candidate → Job with CV)
 # =============================================================================
 spring:
   application:
-    name: application-service
+    name: application # Service name for Consul discovery
   profiles:
-    active: docker  # Default profile cho containers
+    active: docker # Default profile for containers
   config:
     import: optional:vault://secret/application-service,optional:consul
   cloud:
@@ -15,10 +16,53 @@ spring:
       kv:
         enabled: true
         backend: secret
+  # MongoDB configuration (Vault provides uri via mongodb.uri)
+  data:
+    mongodb:
+      uri: ${mongodb.uri:mongodb://localhost:27017/application_db}
+      auto-index-creation: true # Auto-create indexes from @Indexed annotations
+  # Multipart file upload configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+  # Kafka configuration for event publishing
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+# =============================================================================
+# MinIO Configuration (Object Storage for CV files)
+# =============================================================================
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket: ${MINIO_BUCKET:cvs-files}
+
+# Application-specific Kafka topics (used for logging when Kafka is disabled)
+app:
+  kafka:
+    topics:
+      application-events: application-events
+      application-status: application-status
+      job-stats-update: job-stats-update
+      notification-events: notification-events
 
 server:
-  port: ${SERVER_PORT:9005}
+  port: ${SERVER_PORT:9084}
 
+# =============================================================================
+# Actuator & Metrics
+# =============================================================================
 management:
   endpoints:
     web:
@@ -27,6 +71,25 @@ management:
   endpoint:
     health:
       show-details: always
+
+# =============================================================================
+# OpenAPI / Swagger Configuration
+# =============================================================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
+
+# =============================================================================
+# Kafka Event Logging (DEBUG mode)
+# =============================================================================
+logging:
+  level:
+    org.workfitai.applicationservice.messaging: DEBUG
 
 ---
 # =============================================================================
@@ -43,13 +106,17 @@ spring:
       discovery:
         enabled: true
         register: true
+        service-name: application # Short name for Consul
+        # instance-id: ${spring.application.name}:${random.uuid}
         health-check-path: /actuator/health
-
-# Add service-specific docker configs here
+        health-check-interval: 10s
+  data:
+    mongodb:
+      uri: ${mongodb.uri:mongodb://application-mongo:27017/application_db}
 
 ---
 # =============================================================================
-# LOCAL PROFILE (for IDE development)
+# LOCAL PROFILE (for IDE development with Docker infra)
 # =============================================================================
 spring:
   config:
@@ -65,12 +132,19 @@ spring:
       discovery:
         enabled: true
         register: true
+        service-name: application
         health-check-path: /actuator/health
+        health-check-interval: 10s
+  data:
+    mongodb:
+      uri: ${mongodb.uri:mongodb://localhost:27019/application_db}
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
 
-# Add service-specific local configs here
-
+# Override logging for local development
 logging:
   level:
     org.workfitai: DEBUG
     org.springframework.cloud.vault: DEBUG
-
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG
