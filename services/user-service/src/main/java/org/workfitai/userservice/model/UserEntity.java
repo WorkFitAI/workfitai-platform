@@ -100,9 +100,11 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
 
   // Settings fields (JSONB in PostgreSQL)
   @Column(name = "notification_settings", columnDefinition = "jsonb")
+  @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
   private com.fasterxml.jackson.databind.JsonNode notificationSettings;
 
   @Column(name = "privacy_settings", columnDefinition = "jsonb")
+  @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
   private com.fasterxml.jackson.databind.JsonNode privacySettings;
 
   // Account management fields

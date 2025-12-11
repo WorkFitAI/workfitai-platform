@@ -18,6 +18,8 @@ spring:
     consul:
       config:
         enabled: false
+        import-check:
+          enabled: false
       discovery:
         service-name: cv
         instance-id: ${spring.application.name}:${server.port}

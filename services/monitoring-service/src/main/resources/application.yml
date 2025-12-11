@@ -4,10 +4,16 @@ server:
 spring:
   application:
     name: monitoring-service
+  
+  main:
+    allow-bean-definition-overriding: true
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
-  # Spring Cloud Config Server
+  # ===================================================================
+  # SPRING CLOUD CONFIG SERVER (Monitoring-service acts as config-server)
+  # ===================================================================
   cloud:
     config:
       server:
@@ -18,31 +24,31 @@ spring:
           authentication: TOKEN
           token: ${VAULT_TOKEN:dev-token}
           kv-version: 2
-        prefix: /config  # Config endpoints at /config/*
-    
-    # Spring Cloud Bus for dynamic refresh
+        prefix: /config
+
+    # ===================================================================
+    # SPRING CLOUD BUS
+    # ===================================================================
     bus:
       enabled: true
       refresh:
         enabled: true
+
+    # ===================================================================
+    # STREAM (Kafka Binder)
+    # ===================================================================
     stream:
       kafka:
         binder:
           brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-  
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: monitoring-service
-      auto-offset-reset: earliest
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-  cloud:
+    # ===================================================================
+    # CONSUL DISCOVERY & CONFIG
+    # ===================================================================
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
+
       discovery:
         service-name: monitoring-service
         health-check-path: /actuator/health
@@ -59,21 +65,40 @@ spring:
           metrics-path: /actuator/prometheus
           health-path: /actuator/health
 
+      config:
+        enabled: true
+        default-context: application
+        profile-separator: "-"
+        import-check:
+          enabled: false
+
+    # ===================================================================
+    # VAULT CLIENT
+    # ===================================================================
     vault:
       host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
-      token: ${VAULT_TOKEN:dev-token}
       scheme: http
+      token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
-        default-context: application
-      authentication: TOKEN
-      config:
-        enabled: false
-      discovery:
-        enabled: false
 
+  # ===================================================================
+  # KAFKA
+  # ===================================================================
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: monitoring-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  # ===================================================================
+  # REDIS
+  # ===================================================================
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -87,19 +112,20 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
+# ===================================================================
+# MANAGEMENT & ACTUATOR
+# ===================================================================
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus,bus-refresh,loggers
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
+
   metrics:
     export:
       prometheus:
@@ -107,13 +133,16 @@ management:
     tags:
       application: ${spring.application.name}
       environment: ${SPRING_PROFILES_ACTIVE:local}
+
   health:
     consul:
       enabled: true
     vault:
       enabled: true
 
-# Elasticsearch configuration for log querying
+# ===================================================================
+# ELASTICSEARCH
+# ===================================================================
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}
   port: ${ELASTICSEARCH_PORT:9200}
@@ -123,7 +152,9 @@ elasticsearch:
   index-pattern: ${ELASTICSEARCH_INDEX_PATTERN:workfitai-logs-*}
   index-prefix: ${ELASTICSEARCH_INDEX_PREFIX:workfitai-logs}
 
-# Kibana configuration for Data View initialization
+# ===================================================================
+# KIBANA
+# ===================================================================
 kibana:
   host: ${KIBANA_HOST:localhost}
   port: ${KIBANA_PORT:5601}
@@ -131,6 +162,9 @@ kibana:
   username: ${KIBANA_USERNAME:elastic}
   password: ${KIBANA_PASSWORD:}
 
+# ===================================================================
+# LOGGING
+# ===================================================================
 logging:
   level:
     root: INFO
@@ -142,10 +176,15 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
 ---
+
+# ===============================================
+# DOCKER PROFILE (ACTIVATE: docker)
+# ===============================================
 spring:
   config:
     activate:
       on-profile: docker
+    import: "optional:configserver:,optional:consul:,optional:vault://secret/monitoring-service"
 
   cloud:
     config:
@@ -154,7 +193,7 @@ spring:
           host: vault
           port: 8200
           token: ${VAULT_TOKEN:myroot}
-    
+
     consul:
       host: consul
       discovery:
@@ -163,8 +202,8 @@ spring:
     vault:
       host: vault
       port: 8200
-      token: ${VAULT_TOKEN:myroot}
       scheme: http
+      token: ${VAULT_TOKEN:myroot}
 
   kafka:
     bootstrap-servers: kafka:9092

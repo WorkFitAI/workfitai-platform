@@ -21,6 +21,7 @@ import org.workfitai.authservice.model.PasswordResetToken;
 import org.workfitai.authservice.repository.PasswordResetTokenRepository;
 import org.workfitai.authservice.repository.UserRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,18 +65,18 @@ public class PasswordService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         // Verify current password
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadRequestException("Current password is incorrect");
         }
 
         // Check if new password is same as current
-        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new BadRequestException("New password must be different from current password");
         }
 
         // Update password
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        user.setPasswordChangedAt(LocalDateTime.now());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordChangedAt(Instant.now());
         userRepository.save(user);
 
         // Invalidate all refresh tokens (logout from all devices)
@@ -167,8 +168,8 @@ public class PasswordService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         // Update password
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        user.setPasswordChangedAt(LocalDateTime.now());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordChangedAt(Instant.now());
         userRepository.save(user);
 
         // Mark token as used
@@ -266,7 +267,7 @@ public class PasswordService {
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
                 .templateType("PASSWORD_RESET_OTP")
-                .data(data)
+                .metadata(data)
                 .build();
 
         notificationProducer.send(event);
@@ -281,7 +282,7 @@ public class PasswordService {
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
                 .templateType("PASSWORD_CHANGED")
-                .data(data)
+                .metadata(data)
                 .build();
 
         notificationProducer.send(event);
@@ -296,7 +297,7 @@ public class PasswordService {
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
                 .templateType("PASSWORD_RESET_SUCCESS")
-                .data(data)
+                .metadata(data)
                 .build();
 
         notificationProducer.send(event);
