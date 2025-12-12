@@ -3,10 +3,10 @@ package org.workfitai.jobservice.service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.workfitai.jobservice.model.Skill;
-import org.workfitai.jobservice.model.dto.request.ReqCreateSkillDTO;
-import org.workfitai.jobservice.model.dto.request.ReqUpdateSkillDTO;
-import org.workfitai.jobservice.model.dto.response.ResSkillDTO;
-import org.workfitai.jobservice.model.dto.response.ResUpdateSkillDTO;
+import org.workfitai.jobservice.model.dto.request.Skill.ReqCreateSkillDTO;
+import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
+import org.workfitai.jobservice.model.dto.response.Skill.ResSkillDTO;
+import org.workfitai.jobservice.model.dto.response.Skill.ResUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 
 import java.util.UUID;

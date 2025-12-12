@@ -1,14 +1,13 @@
 package org.workfitai.jobservice.messaging;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.workfitai.jobservice.dto.kafka.CompanySyncEvent;
 import org.workfitai.jobservice.model.Company;
+import org.workfitai.jobservice.model.dto.kafka.CompanySyncEvent;
 import org.workfitai.jobservice.repository.CompanyRepository;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor

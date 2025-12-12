@@ -1,12 +1,7 @@
 package org.workfitai.jobservice.service.impl;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.Collections;
-
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,19 +10,14 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
-import org.workfitai.jobservice.config.errors.JobConflictException;
+import org.workfitai.jobservice.config.errors.ResourceConflictException;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
-import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
-import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResCreateJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResJobDetailsDTO;
-import org.workfitai.jobservice.model.dto.response.ResJobDetailsForHrDTO;
-import org.workfitai.jobservice.model.dto.response.ResModifyStatus;
-import org.workfitai.jobservice.model.dto.response.ResUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
+import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.*;
+import org.workfitai.jobservice.model.dto.response.Job.*;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
@@ -35,11 +25,15 @@ import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iJobService;
-import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
-import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.workfitai.jobservice.util.MessageConstant.*;
 
 @Service
 @Slf4j
@@ -131,12 +125,16 @@ public class JobService implements iJobService {
 
         dbJob.setTitle(job.getTitle());
         dbJob.setDescription(job.getDescription());
+        dbJob.setShortDescription(job.getShortDescription());
         dbJob.setLocation(job.getLocation());
         dbJob.setSalaryMin(job.getSalaryMin());
         dbJob.setSalaryMax(job.getSalaryMax());
         dbJob.setExperienceLevel(job.getExperienceLevel());
         dbJob.setEducationLevel(job.getEducationLevel());
         dbJob.setCurrency(job.getCurrency());
+        dbJob.setRequirements(job.getRequirements());
+        dbJob.setResponsibilities(job.getResponsibilities());
+        dbJob.setBenefits(job.getBenefits());
         dbJob.setEmploymentType(job.getEmploymentType());
         dbJob.setQuantity(job.getQuantity());
         dbJob.setExpiresAt(job.getExpiresAt());
@@ -148,7 +146,7 @@ public class JobService implements iJobService {
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
         if (status == job.getStatus()) {
-            throw new JobConflictException(JOB_STATUS_CONFLICT);
+            throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }
         job.setStatus(status);
         this.jobRepository.save(job);
@@ -165,7 +163,7 @@ public class JobService implements iJobService {
                 .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
 
         if (job.getStatus() == JobStatus.PUBLISHED) {
-            throw new JobConflictException("Cannot delete a PUBLISHED job");
+            throw new ResourceConflictException(JOB_DELETE_CONFLICT);
         }
 
         jobRepository.delete(job);
@@ -288,7 +286,7 @@ public class JobService implements iJobService {
     @Transactional
     public String uploadJobBanner(UUID jobId, MultipartFile bannerFile) throws InvalidDataException, IOException {
         Job dbJob = jobRepository.findById(jobId)
-                .orElseThrow(() -> new InvalidDataException("Job not found"));
+                .orElseThrow(() -> new InvalidDataException(JOB_NOT_FOUND));
 
         String bannerUrl = cloudinaryService.uploadFile(bannerFile, dbJob.getCompany().getCompanyNo());
         dbJob.setBannerUrl(bannerUrl);

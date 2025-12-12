@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.dto.kafka;
+package org.workfitai.jobservice.model.dto.kafka;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

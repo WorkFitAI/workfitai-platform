@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.model.dto.request;
+package org.workfitai.jobservice.model.dto.request.Job;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -17,16 +17,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReqUpdateJobDTO {
+public class ReqJobDTO {
 
-    @NotNull(message = "JobId must not be null")
-    private UUID jobId;
-
+    @NotBlank(message = "Title must not be null")
+    @Size(min = 5, max = 120, message = "Title must be between 5 and 120 characters")
     private String title;
 
-    @Size(min = 5, max = 255, message = "Short description must be between 5 and 255 characters")
+    @NotBlank(message = "Short description must not be null")
+    @Size(min = 10, max = 300, message = "Short description must be between 10 and 300 characters")
     private String shortDescription;
 
+    @NotBlank(message = "Description must not be null")
     @Size(min = 20, max = 5000, message = "Description must be between 20 and 5000 characters")
     private String description;
 
@@ -39,41 +40,58 @@ public class ReqUpdateJobDTO {
     @Size(max = 5000, message = "Responsibilities must be <= 5000 characters")
     private String responsibilities;
 
+    @NotNull(message = "Employment type must not be null")
+    private EmploymentType employmentType;
+
+    @NotNull(message = "Experience level must not be null")
+    private ExperienceLevel experienceLevel;
+
     @Size(min = 2, max = 120, message = "Required experience must be between 2 and 120 characters")
     private String requiredExperience;
 
-    private EmploymentType employmentType;
-
-    private ExperienceLevel experienceLevel;
-
+    @NotNull(message = "salaryMin must not be null")
     @DecimalMin(value = "0.0", inclusive = true, message = "salaryMin must be >= 0")
     private BigDecimal salaryMin;
 
+    @NotNull(message = "salaryMax must not be null")
     @DecimalMin(value = "0.0", inclusive = true, message = "salaryMax must be >= 0")
     private BigDecimal salaryMax;
 
+    @NotBlank(message = "Currency must not be null")
     @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a 3-letter ISO code (e.g. USD, VND)")
     private String currency;
 
+    @NotBlank(message = "Location must not be null")
     @Size(min = 2, max = 255, message = "Location must be between 2 and 255 characters")
     private String location;
 
+    @NotNull(message = "Quantity must not be null")
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
 
+    private Integer totalApplications = 0;
+
+    @NotNull(message = "ExpiresAt must not be null")
     @Future(message = "ExpiresAt must be a future date")
     private Instant expiresAt;
 
+    private JobStatus status = JobStatus.DRAFT;
+
+    @NotBlank(message = "Education level must not be null")
     @Size(min = 2, max = 120, message = "Education level must be between 2 and 120 characters")
     private String educationLevel;
 
     @NotNull(message = "CompanyId must not be null")
     private String companyNo;
 
+    @NotEmpty(message = "Job must have at least one skill")
     private List<UUID> skillIds;
 
-    @NotNull(message = "Status must not be null")
-    private JobStatus status;
-
     private MultipartFile bannerFile;
+
+    @AssertTrue(message = "salaryMax must be greater than or equal to salaryMin")
+    public boolean isSalaryValid() {
+        if (salaryMin == null || salaryMax == null) return true;
+        return salaryMax.compareTo(salaryMin) >= 0;
+    }
 }

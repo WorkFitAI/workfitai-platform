@@ -5,10 +5,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.workfitai.jobservice.model.Company;
-import org.workfitai.jobservice.model.dto.request.ReqCreateCompanyDTO;
-import org.workfitai.jobservice.model.dto.request.ReqUpdateCompanyDTO;
-import org.workfitai.jobservice.model.dto.response.ResCompanyDTO;
-import org.workfitai.jobservice.model.dto.response.ResUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.request.Company.ReqCreateCompanyDTO;
+import org.workfitai.jobservice.model.dto.request.Company.ReqUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.Company.ResCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.Company.ResUpdateCompanyDTO;
 
 @Mapper(componentModel = "spring")
 public interface CompanyMapper {

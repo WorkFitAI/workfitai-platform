@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.model.Company;
-import org.workfitai.jobservice.model.dto.response.ResCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.Company.ResCompanyDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.service.iCompanyService;

@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.model.dto.response;
+package org.workfitai.jobservice.model.dto.response.Company;
 
 import lombok.Builder;
 import lombok.Getter;

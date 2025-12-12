@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.model.dto.response;
+package org.workfitai.jobservice.model.dto.response.Skill;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ResSkillDTO {
+public class ResUpdateSkillDTO {
     private UUID skillId;
     private String name;
 }
