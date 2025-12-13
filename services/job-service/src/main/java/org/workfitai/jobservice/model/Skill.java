@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class Skill extends AbstractAuditingEntity<UUID> {
     @Id
@@ -22,17 +23,12 @@ public class Skill extends AbstractAuditingEntity<UUID> {
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "skills")
     private List<Job> jobs;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "skills")
-    private List<Subscriber> subscribers;
+    public Skill(String name) {
+        this.name = name;
+    }
 
     @Override
     public UUID getId() {
         return this.skillId;
-    }
-
-    public Skill() {}
-
-    public Skill(String name) {
-        this.name = name;
     }
 }

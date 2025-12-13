@@ -4,12 +4,15 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.Report;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.enums.EReportStatus;
 import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
+import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 
 import java.math.BigDecimal;
@@ -24,14 +27,17 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final CompanyRepository companyRepository;
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
+    private final ReportRepository reportRepository;
 
     public DatabaseSeeder(
             CompanyRepository companyRepository,
             JobRepository jobRepository,
-            SkillRepository skillRepository) {
+            SkillRepository skillRepository,
+            ReportRepository reportRepository) {
         this.companyRepository = companyRepository;
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
+        this.reportRepository = reportRepository;
     }
 
     @Override
@@ -46,35 +52,39 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (countCompanies == 0) {
             companyRepository.saveAll(List.of(
                     Company.builder()
-                            .companyNo("C001_FPT")
+                            .companyNo("0101248141_FPT") // MST FPT
                             .name("FPT")
                             .description("Một công ty IT chuyên phát triển hệ thống tuyển dụng.")
                             .address("Hà Nội, Việt Nam")
                             .logoUrl("https://res.cloudinary.com/dphibwpag/image/upload/v1765285766/C001_FPT/oz3gqh997t5jbnj2gtmf.png")
                             .build(),
+
                     Company.builder()
-                            .companyNo("C002_KMS")
+                            .companyNo("0309807306_KMS") // MST KMS Technology VN
                             .name("KMS Technology")
                             .description("Công ty công nghệ chuyên cung cấp dịch vụ phát triển phần mềm.")
                             .address("TP. Hồ Chí Minh, Việt Nam")
                             .logoUrl("https://res.cloudinary.com/dphibwpag/image/upload/v1765287535/C002_KMS/s6p2prygdxoabcxrkqwp.png")
                             .build(),
+
                     Company.builder()
-                            .companyNo("C003_VNG")
+                            .companyNo("0303881597_VNG") // MST VNG Corporation
                             .name("VNG Corporation")
                             .description("Công ty công nghệ nổi tiếng về game và các dịch vụ online.")
                             .address("Hà Nội, Việt Nam")
                             .logoUrl("https://res.cloudinary.com/dphibwpag/image/upload/v1765287817/C003_VNG/zdk3cw5u04nkmwbqkwjx.png")
                             .build(),
+
                     Company.builder()
-                            .companyNo("C004_TMA")
+                            .companyNo("0302731081_TMA") // MST TMA Solutions
                             .name("TMA Solutions")
                             .description("Công ty gia công phần mềm chất lượng cao cho thị trường quốc tế.")
                             .address("Đà Nẵng, Việt Nam")
                             .logoUrl("https://res.cloudinary.com/dphibwpag/image/upload/v1765288090/C004_TMA/xqopm60ngq265e7518oa.jpg")
                             .build(),
+
                     Company.builder()
-                            .companyNo("C005_VNPT")
+                            .companyNo("0100109106_VNPT") // MST VNPT
                             .name("VNPT")
                             .description("Tập đoàn viễn thông hàng đầu Việt Nam.")
                             .address("Hà Nội, Việt Nam")
@@ -198,6 +208,32 @@ public class DatabaseSeeder implements CommandLineRunner {
             jobRepository.saveAll(jobs);
         }
 
+        /* ===================== REPORT SEED ===================== */
+        long countReports = reportRepository.count();
+        if (countReports == 0) {
+            List<Job> jobs = jobRepository.findAll().subList(0, 4);
+            List<Report> reports = new ArrayList<>();
+            Random rand = new Random();
+
+            int totalReports = 0;
+            while (totalReports < 20) {
+                for (Job job : jobs) {
+                    int reportsForJob = 1 + rand.nextInt(5);
+                    for (int i = 0; i < reportsForJob && totalReports < 20; i++) {
+                        Report report = Report.builder()
+                                .job(job)
+                                .reportContent("Nội dung report #" + (i + 1) + " cho job: " + job.getTitle())
+                                .status(EReportStatus.PENDING)
+                                .build();
+                        reports.add(report);
+                        totalReports++;
+                    }
+                }
+            }
+
+            reportRepository.saveAll(reports);
+            System.out.println(">>> Seeded " + reports.size() + " reports");
+        }
         System.out.println(">>> END INIT SAMPLE DATA");
     }
 }

@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.model.dto.request;
+package org.workfitai.jobservice.model.dto.request.Skill;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

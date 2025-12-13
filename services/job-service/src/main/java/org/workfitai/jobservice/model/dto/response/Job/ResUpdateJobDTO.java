@@ -1,9 +1,7 @@
-package org.workfitai.jobservice.model.dto.response;
+package org.workfitai.jobservice.model.dto.response.Job;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
@@ -16,46 +14,60 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class ResJobDetailsDTO {
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
+public class ResUpdateJobDTO {
 
     private UUID postId;
 
-    // Basic info
     private String title;
+
     private String shortDescription;
+
     private String description;
 
-    // Job attributes
-    private EmploymentType employmentType;
-    private ExperienceLevel experienceLevel;
-    private String educationLevel;
+    private String benefits;
+
+    private String requirements;
+
+    private String responsibilities;
+
     private String requiredExperience;
 
-    // Salary
+    private EmploymentType employmentType;
+
+    private ExperienceLevel experienceLevel;
+
     private BigDecimal salaryMin;
+
     private BigDecimal salaryMax;
+
     private String currency;
 
-    // Location / Quantity / Metrics
     private String location;
-    private Integer quantity;
-    private Integer totalApplications;
 
-    // Dates
-    private Instant createdDate;
-    private Instant lastModifiedDate;
+    private Integer quantity;
+
     private Instant expiresAt;
 
-    // Status
     private JobStatus status;
 
-    @JsonIgnoreProperties(value = { "jobs" })
+    private String educationLevel;
+
+    private Integer totalApplications;
+
+    private Long views;
+
+    private String companyNo;
+
+    private String companyName;
+
+    @JsonIgnoreProperties("jobs")
     private List<String> skillNames;
 
-    // Company info
-    private ResCompanyDTO company;
-
     private String bannerUrl;
-  
-    private String createdBy; // Username of HR who created the job
+
+    private Instant createdDate;
+
+    private Instant lastModifiedDate;
 }

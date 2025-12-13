@@ -1,4 +1,4 @@
-package org.workfitai.jobservice.model.dto.request;
+package org.workfitai.jobservice.model.dto.request.Skill;
 
 import lombok.*;
 

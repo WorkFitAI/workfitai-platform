@@ -1,8 +1,5 @@
 package org.workfitai.jobservice.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +11,15 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.workfitai.jobservice.dto.kafka.CompanySyncEvent;
+import org.workfitai.jobservice.model.dto.kafka.CompanySyncEvent;
 import org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Kafka configuration for job-service.
- * 
+ * <p>
  * Configures consumer factories for:
  * - JobStatsUpdateEvent (job-stats-update topic)
  * - CompanySyncEvent (company-sync topic)
