@@ -5,205 +5,84 @@ spring:
   application:
     name: monitoring-service
   
-  main:
-    allow-bean-definition-overriding: true
-
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
-  # ===================================================================
-  # SPRING CLOUD CONFIG SERVER (Monitoring-service acts as config-server)
-  # ===================================================================
+  config:
+    import: "optional:vault://secret/monitoring-service"
+
   cloud:
-    config:
-      server:
-        vault:
-          host: ${VAULT_HOST:localhost}
-          port: ${VAULT_PORT:8200}
-          scheme: http
-          authentication: TOKEN
-          token: ${VAULT_TOKEN:dev-token}
-          kv-version: 2
-        prefix: /config
-
-    # ===================================================================
-    # SPRING CLOUD BUS
-    # ===================================================================
-    bus:
-      enabled: true
-      refresh:
-        enabled: true
-
-    # ===================================================================
-    # STREAM (Kafka Binder)
-    # ===================================================================
-    stream:
-      kafka:
-        binder:
-          brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-
-    # ===================================================================
-    # CONSUL DISCOVERY & CONFIG
-    # ===================================================================
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
-
       discovery:
         service-name: monitoring-service
         health-check-path: /actuator/health
-        health-check-interval: 10s
         prefer-ip-address: true
         ip-address: ${DISCOVERY_IP_ADDRESS:127.0.0.1}
-        tags:
-          - monitoring
-          - config-server
-          - metrics
-          - observability
-        metadata:
-          config-prefix: /config
-          metrics-path: /actuator/prometheus
-          health-path: /actuator/health
-
       config:
-        enabled: true
-        default-context: application
-        profile-separator: "-"
-        import-check:
-          enabled: false
+        enabled: false
 
-    # ===================================================================
-    # VAULT CLIENT
-    # ===================================================================
     vault:
       host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
       scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
 
-  # ===================================================================
-  # KAFKA
-  # ===================================================================
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: monitoring-service
-      auto-offset-reset: earliest
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-  # ===================================================================
-  # REDIS
-  # ===================================================================
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      database: 0
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
 
-# ===================================================================
-# MANAGEMENT & ACTUATOR
-# ===================================================================
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,bus-refresh,loggers
-      base-path: /actuator
+        include: health,info,metrics,prometheus
 
-  endpoint:
-    health:
-      show-details: always
-
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    tags:
-      application: ${spring.application.name}
-      environment: ${SPRING_PROFILES_ACTIVE:local}
-
-  health:
-    consul:
-      enabled: true
-    vault:
-      enabled: true
-
-# ===================================================================
-# ELASTICSEARCH
-# ===================================================================
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}
   port: ${ELASTICSEARCH_PORT:9200}
-  scheme: ${ELASTICSEARCH_SCHEME:http}
-  username: ${ELASTICSEARCH_USERNAME:elastic}
-  password: ${ELASTICSEARCH_PASSWORD:}
-  index-pattern: ${ELASTICSEARCH_INDEX_PATTERN:workfitai-logs-*}
-  index-prefix: ${ELASTICSEARCH_INDEX_PREFIX:workfitai-logs}
 
-# ===================================================================
-# KIBANA
-# ===================================================================
 kibana:
   host: ${KIBANA_HOST:localhost}
   port: ${KIBANA_PORT:5601}
-  scheme: ${KIBANA_SCHEME:http}
-  username: ${KIBANA_USERNAME:elastic}
-  password: ${KIBANA_PASSWORD:}
 
-# ===================================================================
-# LOGGING
-# ===================================================================
 logging:
   level:
     root: INFO
-    org.workfitai.monitoringservice: DEBUG
-    org.springframework.cloud.config: DEBUG
-    org.springframework.vault: DEBUG
-    org.springframework.cloud.bus: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
 ---
-
-# ===============================================
-# DOCKER PROFILE (ACTIVATE: docker)
-# ===============================================
 spring:
   config:
     activate:
       on-profile: docker
-    import: "optional:configserver:,optional:consul:,optional:vault://secret/monitoring-service"
+    import: "optional:vault://secret/monitoring-service"
 
   cloud:
-    config:
-      server:
-        vault:
-          host: vault
-          port: 8200
-          token: ${VAULT_TOKEN:myroot}
-
     consul:
       host: consul
+      port: 8500
       discovery:
+        service-name: monitoring-service
         ip-address: monitoring-service
 
     vault:
       host: vault
       port: 8200
       scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
 
   kafka:
     bootstrap-servers: kafka:9092

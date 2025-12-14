@@ -205,11 +205,11 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9005/actuator/health" ]
-      interval: 5s
-      timeout: 3s
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9005/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
@@ -239,6 +239,8 @@ services:
         condition: service_started
       user-postgres:
         condition: service_started
+      monitoring-service:
+        condition: service_healthy
       api-gateway:
         condition: service_started
       auth-service:
@@ -277,6 +279,8 @@ services:
       job-postgres:
         condition: service_started
       kafka:
+        condition: service_healthy
+      monitoring-service:
         condition: service_healthy
       api-gateway:
         condition: service_started
@@ -319,6 +323,8 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
       api-gateway:
         condition: service_started
       auth-service:
@@ -356,6 +362,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
@@ -385,7 +393,7 @@ services:
     depends_on:
       consul:
         condition: service_started
-      auth-service:
+      monitoring-service:
         condition: service_healthy
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
@@ -445,11 +453,11 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9005/actuator/health" ]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9005/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 90s
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
@@ -493,6 +501,8 @@ services:
         condition: service_started
       notif-mongo:
         condition: service_started
+      monitoring-service:
+        condition: service_healthy
     networks: [ workfitai-net ]
     profiles: [ "services", "full" ]
 
