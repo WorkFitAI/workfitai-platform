@@ -20,6 +20,7 @@ import org.workfitai.authservice.exception.TooManyRequestsException;
 import org.workfitai.authservice.model.PasswordResetToken;
 import org.workfitai.authservice.repository.PasswordResetTokenRepository;
 import org.workfitai.authservice.repository.UserRepository;
+import org.workfitai.authservice.repository.UserSessionRepository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ import java.util.regex.Pattern;
 public class PasswordService {
 
     private final UserRepository userRepository;
+    private final UserSessionRepository sessionRepository;
     private final PasswordResetTokenRepository resetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicyConfig passwordPolicy;
@@ -80,7 +82,13 @@ public class PasswordService {
         userRepository.save(user);
 
         // Invalidate all refresh tokens (logout from all devices)
-        refreshTokenService.deleteAllByUsername(username);
+        // Use userId instead of username to match the key format:
+        // auth:rt:{userId}:{deviceId}
+        refreshTokenService.deleteAllByUserId(user.getId());
+
+        // Delete all sessions to invalidate all JWTs
+        sessionRepository.deleteByUserId(user.getId());
+        log.info("Deleted all sessions for user {} after password change", username);
 
         // Increment rate limit counter
         incrementChangePasswordCounter(username);
@@ -177,8 +185,12 @@ public class PasswordService {
         resetToken.setUsedAt(LocalDateTime.now());
         resetTokenRepository.save(resetToken);
 
-        // Invalidate all refresh tokens
-        refreshTokenService.deleteAllByUsername(user.getUsername());
+        // Invalidate all refresh tokens (use userId to match key format)
+        refreshTokenService.deleteAllByUserId(user.getId());
+
+        // Delete all sessions to invalidate all JWTs
+        sessionRepository.deleteByUserId(user.getId());
+        log.info("Deleted all sessions for user {} after password reset", user.getUsername());
 
         // Send notification
         sendPasswordResetSuccessNotification(user);
@@ -263,10 +275,13 @@ public class PasswordService {
         data.put("otp", otp);
         data.put("fullName", user.getFullName());
         data.put("validUntil", expiresAt.toString());
+        data.put("resetUrl", "https://workfitai.com/reset-password");
 
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
-                .templateType("PASSWORD_RESET_OTP")
+                .templateType("password-reset")
+                .sendEmail(true)
+                .createInAppNotification(false)
                 .metadata(data)
                 .build();
 
@@ -276,12 +291,17 @@ public class PasswordService {
     private void sendPasswordChangedNotification(User user) {
         Map<String, Object> data = new HashMap<>();
         data.put("username", user.getUsername());
-        data.put("fullName", user.getFullName());
         data.put("changedAt", LocalDateTime.now().toString());
+        data.put("deviceInfo", "Unknown Device"); // TODO: Get from request
+        data.put("ipAddress", "Unknown IP"); // TODO: Get from request
+        data.put("location", "Unknown Location"); // TODO: Get from GeoIP
+        data.put("loginUrl", "https://workfitai.com/login");
 
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
-                .templateType("PASSWORD_CHANGED")
+                .templateType("password-changed")
+                .sendEmail(true)
+                .createInAppNotification(true)
                 .metadata(data)
                 .build();
 
@@ -289,17 +309,7 @@ public class PasswordService {
     }
 
     private void sendPasswordResetSuccessNotification(User user) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("username", user.getUsername());
-        data.put("fullName", user.getFullName());
-        data.put("resetAt", LocalDateTime.now().toString());
-
-        NotificationEvent event = NotificationEvent.builder()
-                .recipientEmail(user.getEmail())
-                .templateType("PASSWORD_RESET_SUCCESS")
-                .metadata(data)
-                .build();
-
-        notificationProducer.send(event);
+        // Reuse password-changed template since it's the same notification
+        sendPasswordChangedNotification(user);
     }
 }

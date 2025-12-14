@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.document.TwoFactorAuth;
+import org.workfitai.authservice.dto.kafka.NotificationEvent;
 import org.workfitai.authservice.dto.request.Disable2FARequest;
 import org.workfitai.authservice.dto.request.Enable2FARequest;
 import org.workfitai.authservice.dto.response.Enable2FAResponse;
@@ -21,6 +22,7 @@ import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
+import org.workfitai.authservice.service.NotificationProducer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,6 +38,7 @@ public class TwoFactorAuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final GoogleAuthenticator googleAuthenticator;
+    private final NotificationProducer notificationProducer;
 
     private static final String ISSUER = "WorkFitAI";
     private static final int BACKUP_CODES_COUNT = 10;
@@ -90,6 +93,9 @@ public class TwoFactorAuthService {
 
         twoFactorAuthRepository.save(twoFactorAuth);
 
+        // Send 2FA enabled notification
+        send2FAEnabledNotification(user, method, backupCodes);
+
         log.info("Enabled 2FA for user: {} with method: {}", username, method);
 
         return Enable2FAResponse.builder()
@@ -120,7 +126,11 @@ public class TwoFactorAuthService {
         }
 
         // Delete 2FA configuration
+        String previousMethod = twoFactorAuth.getMethod();
         twoFactorAuthRepository.delete(twoFactorAuth);
+
+        // Send 2FA disabled notification
+        send2FADisabledNotification(user, previousMethod);
 
         log.info("Disabled 2FA for user: {}", username);
 
@@ -200,6 +210,60 @@ public class TwoFactorAuthService {
         } catch (WriterException | IOException e) {
             log.error("Error generating QR code", e);
             throw new BadRequestException("Failed to generate QR code");
+        }
+    }
+
+    private void send2FAEnabledNotification(User user, String method, List<String> backupCodes) {
+        try {
+            Map<String, Object> data = new HashMap<>();
+            data.put("username", user.getUsername());
+            data.put("method", method);
+            data.put("enabledAt", LocalDateTime.now().toString());
+            data.put("destination", method.equals("EMAIL") ? user.getEmail() : "Authenticator App");
+            data.put("backupCodes", backupCodes);
+            data.put("settingsUrl", "https://workfitai.com/profile/security");
+            data.put("downloadCodesUrl", "https://workfitai.com/profile/backup-codes");
+            data.put("disableUrl", "https://workfitai.com/auth/disable-2fa");
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .recipientEmail(user.getEmail())
+                    .templateType("2fa-enabled")
+                    .sendEmail(true)
+                    .createInAppNotification(true)
+                    .metadata(data)
+                    .build();
+
+            notificationProducer.send(event);
+            log.info("Sent 2FA enabled notification to: {}", user.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send 2FA enabled notification for user: {}", user.getUsername(), e);
+        }
+    }
+
+    private void send2FADisabledNotification(User user, String previousMethod) {
+        try {
+            Map<String, Object> data = new HashMap<>();
+            data.put("username", user.getUsername());
+            data.put("disabledAt", LocalDateTime.now().toString());
+            data.put("previousMethod", previousMethod);
+            data.put("enableUrl", "https://workfitai.com/auth/enable-2fa");
+            data.put("changePasswordUrl", "https://workfitai.com/auth/change-password");
+            data.put("activityUrl", "https://workfitai.com/auth/sessions");
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .recipientEmail(user.getEmail())
+                    .templateType("2fa-disabled")
+                    .sendEmail(true)
+                    .createInAppNotification(true)
+                    .metadata(data)
+                    .build();
+
+            notificationProducer.send(event);
+            log.info("Sent 2FA disabled notification to: {}", user.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send 2FA disabled notification for user: {}", user.getUsername(), e);
         }
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.userservice.dto.request.DeactivateAccountRequest;
 import org.workfitai.userservice.dto.request.DeleteAccountRequest;
 import org.workfitai.userservice.dto.response.AccountManagementResponse;
+import org.workfitai.userservice.dto.kafka.NotificationEvent;
 import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
@@ -55,11 +56,14 @@ public class AccountManagementService {
         userRepository.save(user);
 
         // Send notification
-        sendAccountNotification(user, "ACCOUNT_DEACTIVATED", Map.of(
-                "username", username,
-                "deactivatedAt", now.toString(),
-                "deletionDate", deletionDate.toString(),
-                "retentionDays", DEACTIVATION_RETENTION_DAYS));
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("deactivatedAt", now.toString());
+        data.put("daysRemaining", String.valueOf(DEACTIVATION_RETENTION_DAYS));
+        data.put("deletionDate", deletionDate.toString());
+        data.put("reactivateUrl", "https://workfitai.com/profile/reactivate");
+
+        sendAccountNotification(user, "account-deactivated", data);
 
         log.info("Account deactivated for user: {}. Scheduled for deletion on: {}", username, deletionDate);
 
@@ -87,11 +91,6 @@ public class AccountManagementService {
         user.setDeletionDate(null);
 
         userRepository.save(user);
-
-        // Send notification
-        sendAccountNotification(user, "ACCOUNT_REACTIVATED", Map.of(
-                "username", username,
-                "reactivatedAt", Instant.now().toString()));
 
         log.info("Account reactivated for user: {}", username);
 
@@ -124,11 +123,13 @@ public class AccountManagementService {
         userRepository.save(user);
 
         // Send notification
-        sendAccountNotification(user, "ACCOUNT_DELETION_SCHEDULED", Map.of(
-                "username", username,
-                "scheduledAt", now.toString(),
-                "deletionDate", deletionDate.toString(),
-                "gracePeriodDays", DELETION_GRACE_PERIOD_DAYS));
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("daysRemaining", String.valueOf(DELETION_GRACE_PERIOD_DAYS));
+        data.put("deletionDate", deletionDate.toString());
+        data.put("cancelUrl", "https://workfitai.com/profile/cancel-deletion");
+
+        sendAccountNotification(user, "account-deletion-requested", data);
 
         log.info("Account deletion scheduled for user: {}. Will be deleted on: {}", username, deletionDate);
 
@@ -155,11 +156,6 @@ public class AccountManagementService {
         user.setDeactivationReason(null);
 
         userRepository.save(user);
-
-        // Send notification
-        sendAccountNotification(user, "ACCOUNT_DELETION_CANCELLED", Map.of(
-                "username", username,
-                "cancelledAt", Instant.now().toString()));
 
         log.info("Account deletion cancelled for user: {}", username);
 
@@ -192,12 +188,15 @@ public class AccountManagementService {
 
     private void sendAccountNotification(UserEntity user, String templateType, Map<String, Object> data) {
         try {
-            Map<String, Object> notification = new HashMap<>();
-            notification.put("email", user.getEmail());
-            notification.put("templateType", templateType);
-            notification.put("data", data);
+            NotificationEvent event = NotificationEvent.builder()
+                    .recipientEmail(user.getEmail())
+                    .templateType(templateType)
+                    .sendEmail(true)
+                    .createInAppNotification(true)
+                    .metadata(data)
+                    .build();
 
-            kafkaTemplate.send("notification-events", notification);
+            kafkaTemplate.send("notification-events", event);
             log.info("Account notification sent for user: {} with template: {}", user.getUsername(), templateType);
 
         } catch (Exception e) {

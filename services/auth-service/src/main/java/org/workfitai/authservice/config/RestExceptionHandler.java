@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.response.ApiError;
+import org.workfitai.authservice.exception.BadRequestException;
+import org.workfitai.authservice.exception.NotFoundException;
 
 import com.mongodb.MongoWriteConcernException;
 import com.mongodb.MongoWriteException;
@@ -97,6 +99,19 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(java.util.NoSuchElementException.class)
     public ResponseEntity<ApiError> handleNotFound(java.util.NoSuchElementException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
+    }
+
+    // Custom exceptions from service layer
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.badRequest()
+                .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of()));
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFoundCustom(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
     }

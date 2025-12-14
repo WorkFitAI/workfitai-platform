@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Disabled - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .warning-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .alert-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔓 Two-Factor Authentication Disabled</h1>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <div class="alert-box">
+                <h3 style="margin-top: 0; color: #f59e0b;">⚠️ Security Notice</h3>
+                <p style="font-size: 16px;"><strong>Two-Factor Authentication (2FA) has been disabled on your
+                        account.</strong></p>
+                <p>Your account is now less secure than before.</p>
+            </div>
+
+            <p><strong>Disabled on:</strong> <span th:text="${disabledAt}">December 15, 2024</span></p>
+            <p><strong>Previous method:</strong> <span th:text="${previousMethod}">Email</span></p>
+
+            <div class="warning-box">
+                <h3 style="color: #dc2626; margin-top: 0;">🛡️ Security Impact:</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>❌ Your account is now protected by password only</li>
+                    <li>❌ Vulnerability to password theft has increased</li>
+                    <li>❌ Unauthorized access is easier if password is compromised</li>
+                    <li>❌ No additional verification required for login</li>
+                </ul>
+            </div>
+
+            <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #2563eb; margin-top: 0;">💡 We Strongly Recommend:</h3>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong>Re-enable 2FA</strong> for better security</li>
+                    <li>Use a strong, unique password</li>
+                    <li>Don't share your login credentials</li>
+                    <li>Monitor your account for suspicious activity</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${enableUrl}" class="button">Re-enable 2FA Now</a>
+            </div>
+
+            <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #dc2626; margin-top: 0;">🚨 Didn't Disable This?</h3>
+                <p><strong>If you didn't disable 2FA, your account may be compromised!</strong></p>
+                <p>Take action immediately:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Change your password NOW</li>
+                    <li>Re-enable Two-Factor Authentication</li>
+                    <li>Review recent account activity</li>
+                    <li>Logout from all devices</li>
+                    <li>Contact support if suspicious activity detected</li>
+                </ul>
+            </div>
+
+            <p style="margin-top: 30px; color: #64748b; font-size: 14px; text-align: center;">
+                <a th:href="${changePasswordUrl}" style="color: #dc2626; font-weight: bold;">Change Password</a> |
+                <a th:href="${activityUrl}" style="color: #2563eb;">View Account Activity</a>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Your security is our priority. Consider re-enabling 2FA.</p>
+            <p>© 2024 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

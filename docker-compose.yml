@@ -100,6 +100,14 @@ services:
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
 
+  notification-redis:
+    image: redis:6-alpine
+    container_name: notification-redis
+    ports:
+      - "6382:6379"
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
   cv-mongo:
     image: mongo:6.0
     container_name: cv-mongo
@@ -194,6 +202,7 @@ services:
       - AUTH_JWT_RSA_PRIVATE_KEY=classpath:keys/private_key_pkcs8.pem
       - AUTH_JWT_RSA_PUBLIC_KEY=classpath:keys/public_key.pem
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       consul:
@@ -234,6 +243,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -273,6 +283,7 @@ services:
       - SERVER_PORT=9005
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -314,6 +325,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
       - SPRING_DATA_REDIS_HOST=cv-redis
       - SPRING_DATA_REDIS_PORT=6379
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -353,6 +365,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -442,8 +455,8 @@ services:
     depends_on:
       consul:
         condition: service_started
-      vault:
-        condition: service_started
+      vault-init:
+        condition: service_completed_successfully
       api-redis:
         condition: service_started
       elasticsearch:
@@ -492,6 +505,8 @@ services:
       - VAULT_URI=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - SPRING_DATA_MONGODB_URI=mongodb://notif-mongo:27017/notification-db
+      - SPRING_DATA_REDIS_HOST=notification-redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       kafka:
         condition: service_healthy
@@ -500,6 +515,8 @@ services:
       consul:
         condition: service_started
       notif-mongo:
+        condition: service_started
+      notification-redis:
         condition: service_started
       monitoring-service:
         condition: service_healthy
@@ -527,7 +544,36 @@ services:
       - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN:-dev-token}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - VAULT_ADDR=http://127.0.0.1:8200
     command: vault server -dev
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:8200/v1/sys/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
+  vault-init:
+    image: curlimages/curl:8.1.2
+    container_name: vault-init
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROOT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-dphibwpag}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-586672837199227}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-s_nMSKl3232BzSN1USpCa57axXw}
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-587}
+      - EMAIL_ADDRESS=${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}
+      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}
+    volumes:
+      - ./scripts/init-vault.sh:/scripts/init-vault.sh:ro
+    entrypoint: [ "sh", "/scripts/init-vault.sh" ]
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
 

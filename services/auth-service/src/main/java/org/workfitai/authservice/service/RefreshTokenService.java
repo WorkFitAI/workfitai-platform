@@ -40,8 +40,17 @@ public class RefreshTokenService {
     }
 
     /** Delete all refresh tokens for a user (used when changing password) */
+    @Deprecated
     public void deleteAllByUsername(String username) {
+        // This method is deprecated and should not be used
+        // Use deleteAllByUserId() instead
         String pattern = String.format(KEY_FMT, username, "*");
+        redis.keys(pattern).forEach(redis::delete);
+    }
+
+    /** Delete all refresh tokens by userId (correct implementation) */
+    public void deleteAllByUserId(String userId) {
+        String pattern = String.format(KEY_FMT, userId, "*");
         redis.keys(pattern).forEach(redis::delete);
     }
 }

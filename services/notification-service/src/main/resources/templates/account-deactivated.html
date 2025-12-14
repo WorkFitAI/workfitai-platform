@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deactivated - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .countdown {
+            background-color: #fee2e2;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .countdown-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏸️ Account Temporarily Deactivated</h1>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <p>Your WorkFitAI account has been deactivated as per your request on <strong
+                    th:text="${deactivatedAt}">December 15, 2024</strong>.</p>
+
+            <div class="countdown">
+                <div class="countdown-number" th:text="${daysRemaining}">30</div>
+                <p style="margin: 5px 0 0 0; font-size: 18px; color: #64748b;">
+                    Days until permanent deletion
+                </p>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Important Information:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Your account will be <strong>permanently deleted</strong> on <strong
+                            th:text="${deletionDate}">January 14, 2025</strong></li>
+                    <li>All your data (CV, applications, profile) will be removed</li>
+                    <li>You can reactivate your account anytime before this date</li>
+                    <li>After deletion, recovery will not be possible</li>
+                </ul>
+            </div>
+
+            <p><strong>What happens during deactivation:</strong></p>
+            <ul>
+                <li>✅ Your data is preserved for 30 days</li>
+                <li>✅ You can reactivate anytime</li>
+                <li>❌ Your profile is hidden from employers</li>
+                <li>❌ You cannot apply for jobs</li>
+                <li>❌ You cannot login to the platform</li>
+            </ul>
+
+            <p style="margin-top: 30px;"><strong>Want to come back?</strong></p>
+            <p>Simply login with your credentials, and your account will be automatically reactivated!</p>
+
+            <p style="text-align: center;">
+                <a th:href="${reactivateUrl}" class="button">Reactivate My Account</a>
+            </p>
+
+            <p style="margin-top: 30px; color: #64748b; font-size: 14px;">
+                If you didn't request this deactivation, please contact our support team immediately.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>We're sorry to see you go. If you have feedback, we'd love to hear it.</p>
+            <p>© 2024 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

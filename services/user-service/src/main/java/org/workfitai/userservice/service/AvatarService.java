@@ -1,24 +1,21 @@
 package org.workfitai.userservice.service;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.imgscalr.Scalr;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.userservice.config.CloudinaryConfig;
 import org.workfitai.userservice.dto.response.AvatarResponse;
-import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
+import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.repository.UserRepository;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -35,29 +32,30 @@ public class AvatarService {
     private final CloudinaryConfig cloudinaryConfig;
     private final UserRepository userRepository;
 
+    /*
+     * =========================
+     * Upload avatar
+     * =========================
+     */
     @Transactional
     public AvatarResponse uploadAvatar(String username, MultipartFile file) {
-        // Validate file
         validateFile(file);
 
-        // Get user
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         try {
-            // Delete old avatar if exists
+            // Remove old avatar if exists
             if (user.getAvatarPublicId() != null) {
                 deleteFromCloudinary(user.getAvatarPublicId());
             }
 
-            // Process and upload image
-            byte[] processedImage = processImage(file);
-            Map uploadResult = uploadToCloudinary(processedImage, username);
+            // Upload to Cloudinary (Cloudinary handles resize/crop/face)
+            Map uploadResult = uploadToCloudinary(file.getBytes(), username);
 
             String avatarUrl = (String) uploadResult.get("secure_url");
             String publicId = (String) uploadResult.get("public_id");
 
-            // Update user entity
             user.setAvatarUrl(avatarUrl);
             user.setAvatarPublicId(publicId);
             user.setAvatarUploadedAt(Instant.now());
@@ -73,11 +71,16 @@ public class AvatarService {
                     .build();
 
         } catch (IOException e) {
-            log.error("Failed to upload avatar for user: {}", username, e);
-            throw new BadRequestException("Failed to upload avatar: " + e.getMessage());
+            log.error("Avatar upload failed for user {}", username, e);
+            throw new BadRequestException("Failed to upload avatar");
         }
     }
 
+    /*
+     * =========================
+     * Delete avatar
+     * =========================
+     */
     @Transactional
     public void deleteAvatar(String username) {
         UserEntity user = userRepository.findByUsername(username)
@@ -88,10 +91,8 @@ public class AvatarService {
         }
 
         try {
-            // Delete from Cloudinary
             deleteFromCloudinary(user.getAvatarPublicId());
 
-            // Update user entity
             user.setAvatarUrl(null);
             user.setAvatarPublicId(null);
             user.setAvatarUploadedAt(null);
@@ -99,12 +100,17 @@ public class AvatarService {
 
             log.info("Avatar deleted successfully for user: {}", username);
 
-        } catch (Exception e) {
-            log.error("Failed to delete avatar for user: {}", username, e);
-            throw new BadRequestException("Failed to delete avatar: " + e.getMessage());
+        } catch (IOException e) {
+            log.error("Avatar delete failed for user {}", username, e);
+            throw new BadRequestException("Failed to delete avatar");
         }
     }
 
+    /*
+     * =========================
+     * Get avatar
+     * =========================
+     */
     public AvatarResponse getAvatar(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -120,96 +126,69 @@ public class AvatarService {
                 .build();
     }
 
+    /*
+     * =========================
+     * Validation
+     * =========================
+     */
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("File is required");
         }
 
-        // Check file size
         if (file.getSize() > cloudinaryConfig.getMaxFileSize()) {
-            throw new BadRequestException("File size exceeds maximum limit of 5MB");
+            throw new BadRequestException("File size exceeds maximum limit");
         }
 
-        // Check file type
         String contentType = file.getContentType();
         List<String> allowedFormats = Arrays.asList(cloudinaryConfig.getAllowedFormats().split(","));
 
-        boolean isValidFormat = allowedFormats.stream()
-                .anyMatch(format -> contentType != null &&
-                        contentType.toLowerCase().contains(format.toLowerCase()));
+        boolean valid = allowedFormats.stream()
+                .anyMatch(f -> contentType != null && contentType.toLowerCase().contains(f));
 
-        if (!isValidFormat) {
-            throw new BadRequestException("Invalid file format. Allowed formats: " +
-                    cloudinaryConfig.getAllowedFormats());
+        if (!valid) {
+            throw new BadRequestException(
+                    "Invalid file format. Allowed: " + cloudinaryConfig.getAllowedFormats());
         }
     }
 
-    private byte[] processImage(MultipartFile file) throws IOException {
-        BufferedImage originalImage = ImageIO.read(file.getInputStream());
-
-        if (originalImage == null) {
-            throw new BadRequestException("Invalid image file");
-        }
-
-        // Resize image
-        CloudinaryConfig.Transformation transform = cloudinaryConfig.getTransformation();
-        BufferedImage resizedImage = Scalr.resize(
-                originalImage,
-                Scalr.Method.QUALITY,
-                Scalr.Mode.FIT_EXACT,
-                transform.getWidth(),
-                transform.getHeight(),
-                Scalr.OP_ANTIALIAS);
-
-        // Convert to byte array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String format = getImageFormat(file.getOriginalFilename());
-        ImageIO.write(resizedImage, format, baos);
-
-        return baos.toByteArray();
-    }
-
+    /*
+     * =========================
+     * Cloudinary upload
+     * =========================
+     */
     private Map uploadToCloudinary(byte[] imageData, String username) throws IOException {
-        CloudinaryConfig.Transformation transform = cloudinaryConfig.getTransformation();
+        CloudinaryConfig.Transformation cfg = cloudinaryConfig.getTransformation();
 
-        Map uploadParams = ObjectUtils.asMap(
-                "folder", cloudinaryConfig.getFolder(),
-                "public_id", "avatar_" + username + "_" + System.currentTimeMillis(),
+        // ✅ CORRECT Cloudinary Java SDK usage
+        Transformation transformation = new Transformation()
+                .crop(cfg.getCrop()) // e.g. fill
+                .gravity(cfg.getGravity()) // face
+                .width(cfg.getWidth()) // 256
+                .height(cfg.getHeight()) // 256
+                .quality(cfg.getQuality()); // auto
+
+        Map<String, Object> uploadParams = ObjectUtils.asMap(
+                "folder", cloudinaryConfig.getFolder() + "/" + username,
+                "public_id", "avatar_" + System.currentTimeMillis(),
                 "overwrite", true,
                 "resource_type", "image",
-                "transformation", Arrays.asList(
-                        ObjectUtils.asMap(
-                                "width", transform.getWidth(),
-                                "height", transform.getHeight(),
-                                "crop", transform.getCrop(),
-                                "gravity", transform.getGravity(),
-                                "quality", transform.getQuality())));
+                "transformation", transformation);
 
+        log.debug("Cloudinary transformation: {}", transformation.generate());
         return cloudinary.uploader().upload(imageData, uploadParams);
     }
 
+    /*
+     * =========================
+     * Cloudinary delete
+     * =========================
+     */
     private void deleteFromCloudinary(String publicId) throws IOException {
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (Exception e) {
             throw new IOException("Failed to delete from Cloudinary", e);
-        }
-    }
-
-    private String getImageFormat(String filename) {
-        if (filename == null)
-            return "jpg";
-
-        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
-        switch (extension) {
-            case "png":
-                return "png";
-            case "webp":
-                return "webp";
-            case "jpeg":
-            case "jpg":
-            default:
-                return "jpg";
         }
     }
 }

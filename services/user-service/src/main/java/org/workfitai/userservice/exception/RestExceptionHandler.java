@@ -125,6 +125,19 @@ public class RestExceptionHandler {
         .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
   }
 
+  // 🔸 Custom exceptions from service layer
+  @ExceptionHandler(BadRequestException.class)
+  public ResponseEntity<ApiError> handleBadRequestCustom(BadRequestException ex) {
+    return ResponseEntity.badRequest()
+        .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of()));
+  }
+
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<ApiError> handleNotFoundCustom(NotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
+  }
+
   // 🔸 Lỗi SQL/Database general
   @ExceptionHandler(org.springframework.dao.DataAccessException.class)
   public ResponseEntity<ApiError> handleDataAccess(org.springframework.dao.DataAccessException ex) {

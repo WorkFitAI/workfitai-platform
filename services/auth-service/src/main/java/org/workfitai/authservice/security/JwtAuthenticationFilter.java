@@ -72,23 +72,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             System.out.println("Extracted token: " + token.substring(0, Math.min(20, token.length())) + "...");
 
-            if (jwtService.validateToken(token)) {
-                Claims claims = jwtService.getClaims(token);
-                String username = claims.getSubject();
+            try {
+                if (jwtService.validateToken(token)) {
+                    Claims claims = jwtService.getClaims(token);
+                    String username = claims.getSubject();
 
-                @SuppressWarnings("unchecked")
-                var roles = (List<String>) claims.getOrDefault("roles", List.of());
-                @SuppressWarnings("unchecked")
-                var perms = (List<String>) claims.getOrDefault("perms", List.of());
+                    @SuppressWarnings("unchecked")
+                    var roles = (List<String>) claims.getOrDefault("roles", List.of());
+                    @SuppressWarnings("unchecked")
+                    var perms = (List<String>) claims.getOrDefault("perms", List.of());
 
-                var authorities = Stream.concat(roles.stream(), perms.stream())
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
+                    var authorities = Stream.concat(roles.stream(), perms.stream())
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
 
-                System.out.println("Authenticated user: " + username + " with authorities: " + authorities);
+                    System.out.println("Authenticated user: " + username + " with authorities: " + authorities);
 
-                var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                    var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception e) {
+                // JWT invalid/expired/malformed → Don't set authentication
+                // Spring Security will handle this as 401 Unauthorized
+                System.out.println("JWT validation failed: " + e.getMessage());
+                SecurityContextHolder.clearContext();
             }
         }
         chain.doFilter(req, res);

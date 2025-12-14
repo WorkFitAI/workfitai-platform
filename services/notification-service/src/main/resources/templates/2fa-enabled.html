@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Enabled - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #16a34a;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .success-box {
+            background-color: #dcfce7;
+            border-left: 4px solid #16a34a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background-color: #eff6ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .backup-codes {
+            background-color: #fef3c7;
+            border: 2px dashed #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .code-list {
+            font-family: 'Courier New', monospace;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Two-Factor Authentication Enabled</h1>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <div class="success-box">
+                <h3 style="margin-top: 0; color: #16a34a;">✅ Great News!</h3>
+                <p style="font-size: 16px;"><strong>Two-Factor Authentication (2FA) is now active on your
+                        account.</strong></p>
+                <p>Your account security has been significantly enhanced!</p>
+            </div>
+
+            <p><strong>2FA Method:</strong> <span th:text="${method}">Email</span></p>
+            <p><strong>Enabled on:</strong> <span th:text="${enabledAt}">December 15, 2024</span></p>
+
+            <div class="info-box">
+                <h3 style="color: #2563eb; margin-top: 0;">🛡️ What This Means:</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>You'll need to provide a verification code when logging in</li>
+                    <li>Codes will be sent to: <strong th:text="${destination}">your email</strong></li>
+                    <li>Your account is protected even if your password is compromised</li>
+                    <li>Unauthorized access is significantly harder</li>
+                </ul>
+            </div>
+
+            <div th:if="${backupCodes}" class="backup-codes">
+                <h3 style="color: #f59e0b; margin-top: 0;">⚠️ IMPORTANT: Save Your Backup Codes</h3>
+                <p>Store these codes in a safe place. You can use them to access your account if you lose access to
+                    your 2FA method.</p>
+
+                <div class="code-list">
+                    <p th:each="code : ${backupCodes}" th:text="${code}" style="margin: 5px 0;">XXXX-XXXX-XXXX</p>
+                </div>
+
+                <p style="color: #dc2626; font-weight: bold;">⚠️ Each code can only be used once!</p>
+                <p style="font-size: 14px; color: #64748b;">Print or save these codes securely. You won't be able to
+                    see them again.</p>
+            </div>
+
+            <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">📱 Next Time You Login:</h3>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Enter your username and password</li>
+                    <li>Check your <strong th:text="${method}">email</strong> for a verification code</li>
+                    <li>Enter the 6-digit code to complete login</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${settingsUrl}" class="button">Manage 2FA Settings</a>
+                <a th:href="${downloadCodesUrl}" class="button">Download Backup Codes</a>
+            </div>
+
+            <p style="margin-top: 30px; color: #64748b; font-size: 14px;">
+                <strong>Didn't enable this?</strong> If you didn't activate 2FA, your account may be compromised.
+                <a th:href="${disableUrl}" style="color: #dc2626;">Disable 2FA</a> and change your password
+                immediately.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for taking security seriously!</p>
+            <p>© 2024 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

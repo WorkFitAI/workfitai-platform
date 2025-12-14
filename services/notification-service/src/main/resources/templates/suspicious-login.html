@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suspicious Login Detected - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #dc2626;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .alert-box {
+            background-color: #fee2e2;
+            border: 3px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .login-details {
+            background-color: #fef2f2;
+            padding: 15px;
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+
+        .button-danger {
+            display: inline-block;
+            background-color: #dc2626;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+
+        .button-safe {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Suspicious Login Alert</h1>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <div class="alert-box">
+                <h3 style="margin-top: 0; color: #dc2626;">⚠️ SECURITY ALERT</h3>
+                <p style="font-size: 16px;"><strong>We detected an unusual login attempt to your account.</strong></p>
+                <p>If this wasn't you, your account may be at risk. Take action immediately!</p>
+            </div>
+
+            <p><strong>Login Details:</strong></p>
+            <div class="login-details">
+                <p><strong>Time:</strong> <span th:text="${loginTime}">December 15, 2024 14:30:25 UTC</span></p>
+                <p><strong>IP Address:</strong> <span th:text="${ipAddress}">192.168.1.100</span></p>
+                <p><strong>Location:</strong> <span th:text="${location}">Unknown Location</span></p>
+                <p><strong>Device:</strong> <span th:text="${deviceInfo}">Chrome on Windows 10</span></p>
+                <p><strong>Browser:</strong> <span th:text="${browserInfo}">Chrome 120.0</span></p>
+            </div>
+
+            <p><strong>Why is this suspicious?</strong></p>
+            <ul>
+                <li th:if="${newLocation}">✗ Login from a new location</li>
+                <li th:if="${newDevice}">✗ Login from a new device</li>
+                <li th:if="${unusualTime}">✗ Login at unusual time</li>
+                <li th:if="${suspiciousIP}">✗ IP address flagged as suspicious</li>
+                <li th:if="${multipleAttempts}">✗ Multiple failed login attempts</li>
+            </ul>
+
+            <h3 style="color: #dc2626;">Was this you?</h3>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${secureUrl}" class="button-safe">Yes, This Was Me</a>
+                <a th:href="${lockUrl}" class="button-danger">No, Secure My Account</a>
+            </div>
+
+            <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <strong>🔒 Immediate Actions to Take:</strong>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Change your password immediately</li>
+                    <li>Enable Two-Factor Authentication (2FA)</li>
+                    <li>Review recent account activity</li>
+                    <li>Logout from all devices</li>
+                    <li>Check for unauthorized changes</li>
+                </ol>
+            </div>
+
+            <p style="margin-top: 30px; color: #64748b; font-size: 14px;">
+                <strong>Note:</strong> If you don't recognize this activity, we recommend securing your account
+                immediately. This will temporarily lock your account and require password reset.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Need Help?</strong> Contact our security team immediately</p>
+            <p>Security Hotline: +84-xxx-xxx-xxx</p>
+            <p>© 2024 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>
