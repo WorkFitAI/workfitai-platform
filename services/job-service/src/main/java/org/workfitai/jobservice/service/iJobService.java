@@ -7,8 +7,8 @@ import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.*;
 import org.workfitai.jobservice.model.dto.response.Job.*;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 
 import java.io.IOException;
@@ -18,6 +18,10 @@ import java.util.UUID;
 
 public interface iJobService {
     ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable);
+
+    ResultPaginationDTO fetchAllForHr(Specification<Job> spec, Pageable pageable);
+
+    ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable);
 
     ResJobDetailsDTO fetchJobById(UUID id);
 
