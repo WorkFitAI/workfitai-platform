@@ -34,6 +34,7 @@ import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.NotificationProducer;
 import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
+import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
 
@@ -55,6 +56,7 @@ public class AuthServiceImpl implements iAuthService {
     private final OtpService otpService;
     private final NotificationProducer notificationProducer;
     private final UserServiceClient userServiceClient;
+    private final SessionService sessionService;
 
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
@@ -225,8 +227,10 @@ public class AuthServiceImpl implements iAuthService {
             String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
 
             String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
-            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
+            refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
+
+            // MongoDB: Create session for tracking active devices
+            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs());
 
             Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
             return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
@@ -283,7 +287,10 @@ public class AuthServiceImpl implements iAuthService {
         String newJti = jwt.newJti();
         String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
-        refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
+        refreshStore.saveJti(userId, dev, newJti); // Redis: Store new refresh token JTI
+
+        // MongoDB: Create new session after token rotation
+        sessionService.createSession(userId, newJti, jwt.getRefreshExpMs());
 
         return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
     }
