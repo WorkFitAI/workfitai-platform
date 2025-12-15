@@ -214,6 +214,9 @@ export VAULT_TOKEN=dev-token
 
 - **Hexagonal Architecture** in application-service for clean separation of concerns
 - **Saga Pattern** for distributed transactions in job application workflow
+- **Draft Application Workflow** - Save and submit applications in multiple steps (NEW)
+- **Role-Based APIs** - 30 endpoints covering Candidate, HR, HR Manager, and Admin roles (NEW)
+- **Advanced Application Management** - Status history, notes, bulk operations, analytics (NEW)
 - **Event-Driven** communication via Kafka for decoupled microservices
 - **JWT Authentication** with RSA-2048 signatures for secure inter-service communication
 - **Service Discovery** with Consul for dynamic service registration
@@ -255,4 +258,4 @@ Visit the [docs](docs/) directory for comprehensive documentation:
 
 **Version**: 0.0.1-SNAPSHOT
 **License**: Proprietary
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-11

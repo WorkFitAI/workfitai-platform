@@ -221,11 +221,9 @@ MongoDB indexes for optimal query performance:
 
 ## Development
 
-### Running Locally
-
 ```bash
 # Start infrastructure
-./dev.sh infra up
+docker-compose --profile full up -d
 
 # Start the service
 docker-compose up -d --build application-service
@@ -238,19 +236,17 @@ docker-compose logs -f application-service
 
 | Environment    | URL                                       |
 | -------------- | ----------------------------------------- |
-| Local (Docker) | http://localhost:9084                     |
-| Via Gateway    | http://localhost:9085/api/v1/applications |
+| Via Gateway    | http://localhost:9085/applications |
 | Swagger UI     | http://localhost:9084/swagger-ui.html     |
 
 ### Testing
-
+Always run on docker-compose ( docker-compose --profile full up --build -d ), ensure all services are up, if any service is down (except elasticsearch-setup), let's build that service and start it again.
 ```bash
-# Run tests
-cd services/application-service
-./mvnw test
+# Run docker-compose with full profile
+docker-compose --profile full up -d --build
 
-# Run with Testcontainers
-./mvnw verify
+# Rebuild and start only application-service (required all other services to be running, except elasticsearch-setup)
+docker-compose up -d --build application-service
 ```
 
 ## Project Structure

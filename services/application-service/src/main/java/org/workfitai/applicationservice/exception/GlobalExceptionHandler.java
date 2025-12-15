@@ -47,6 +47,13 @@ public class GlobalExceptionHandler {
                                 .body(ApiError.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
         }
 
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex) {
+                log.warn("Bad request: {}", ex.getMessage());
+                return ResponseEntity.badRequest()
+                                .body(ApiError.of(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+        }
+
         @ExceptionHandler(FileStorageException.class)
         public ResponseEntity<ApiError> handleFileStorage(FileStorageException ex) {
                 log.warn("File storage error: {}", ex.getMessage());

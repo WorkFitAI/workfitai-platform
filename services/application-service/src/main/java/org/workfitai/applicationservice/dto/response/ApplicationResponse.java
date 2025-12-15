@@ -80,6 +80,20 @@ public class ApplicationResponse {
     @Schema(description = "Job snapshot captured at application time")
     private JobSnapshotResponse jobSnapshot;
 
+    // Phase 3: Assignment \u0026 Company Fields
+
+    @Schema(description = "Company ID for the application", example = "company-123")
+    private String companyId;
+
+    @Schema(description = "HR username assigned to this application", example = "hr_sarah")
+    private String assignedTo;
+
+    @Schema(description = "When the application was assigned", example = "2024-01-16T09:00:00Z")
+    private Instant assignedAt;
+
+    @Schema(description = "Manager who assigned the application", example = "manager_tom")
+    private String assignedBy;
+
     @Data
     @Builder
     @NoArgsConstructor
