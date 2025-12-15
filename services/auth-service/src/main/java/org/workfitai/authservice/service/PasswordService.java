@@ -2,6 +2,7 @@ package org.workfitai.authservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.config.PasswordPolicyConfig;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.dto.kafka.NotificationEvent;
+import org.workfitai.authservice.dto.kafka.PasswordChangeEvent;
 import org.workfitai.authservice.dto.request.ChangePasswordRequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.ResetPasswordRequest;
@@ -18,9 +20,12 @@ import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
 import org.workfitai.authservice.exception.TooManyRequestsException;
 import org.workfitai.authservice.model.PasswordResetToken;
+import org.workfitai.authservice.model.UserSession;
 import org.workfitai.authservice.repository.PasswordResetTokenRepository;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.repository.UserSessionRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -44,7 +49,13 @@ public class PasswordService {
     private final PasswordPolicyConfig passwordPolicy;
     private final RedisTemplate<String, String> redisTemplate;
     private final NotificationProducer notificationProducer;
+    private final PasswordChangeProducer passwordChangeProducer;
     private final RefreshTokenService refreshTokenService;
+    private final GeoLocationService geoLocationService;
+    private final HttpServletRequest request;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     private static final String CHANGE_PASSWORD_RATE_LIMIT_KEY = "password:change:";
     private static final String FORGOT_PASSWORD_RATE_LIMIT_KEY = "password:forgot:";
@@ -89,6 +100,9 @@ public class PasswordService {
         // Delete all sessions to invalidate all JWTs
         sessionRepository.deleteByUserId(user.getId());
         log.info("Deleted all sessions for user {} after password change", username);
+
+        // Publish password change event to sync with user-service
+        publishPasswordChangeEvent(user, "USER_CHANGE");
 
         // Increment rate limit counter
         incrementChangePasswordCounter(username);
@@ -192,6 +206,9 @@ public class PasswordService {
         sessionRepository.deleteByUserId(user.getId());
         log.info("Deleted all sessions for user {} after password reset", user.getUsername());
 
+        // Publish password change event to sync with user-service
+        publishPasswordChangeEvent(user, "PASSWORD_RESET");
+
         // Send notification
         sendPasswordResetSuccessNotification(user);
 
@@ -275,7 +292,7 @@ public class PasswordService {
         data.put("otp", otp);
         data.put("fullName", user.getFullName());
         data.put("validUntil", expiresAt.toString());
-        data.put("resetUrl", "https://workfitai.com/reset-password");
+        data.put("resetUrl", frontendBaseUrl + "/reset-password");
 
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
@@ -288,14 +305,44 @@ public class PasswordService {
         notificationProducer.send(event);
     }
 
+    /**
+     * Publish password change event to Kafka for user-service to sync passwordHash.
+     * Uses fire-and-forget pattern - does not block password change operation.
+     */
+    private void publishPasswordChangeEvent(User user, String changeReason) {
+        PasswordChangeEvent event = PasswordChangeEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("PASSWORD_CHANGED")
+                .timestamp(Instant.now())
+                .passwordData(PasswordChangeEvent.PasswordData.builder()
+                        .userId(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .newPasswordHash(user.getPassword())
+                        .passwordChangedAt(user.getPasswordChangedAt())
+                        .changeReason(changeReason)
+                        .build())
+                .build();
+
+        passwordChangeProducer.publishPasswordChangeEvent(event);
+        log.info("Published password change event for user: {} (reason: {})", user.getUsername(), changeReason);
+    }
+
     private void sendPasswordChangedNotification(User user) {
+        // Extract device and location info from current request
+        String ipAddress = getClientIpAddress();
+        String userAgent = getUserAgent();
+        String deviceName = extractDeviceName(userAgent);
+        UserSession.Location location = geoLocationService.getLocation(ipAddress);
+        String locationString = formatLocation(location);
+
         Map<String, Object> data = new HashMap<>();
         data.put("username", user.getUsername());
         data.put("changedAt", LocalDateTime.now().toString());
-        data.put("deviceInfo", "Unknown Device"); // TODO: Get from request
-        data.put("ipAddress", "Unknown IP"); // TODO: Get from request
-        data.put("location", "Unknown Location"); // TODO: Get from GeoIP
-        data.put("loginUrl", "https://workfitai.com/login");
+        data.put("deviceInfo", deviceName);
+        data.put("ipAddress", ipAddress);
+        data.put("location", locationString);
+        data.put("loginUrl", frontendBaseUrl + "/login");
 
         NotificationEvent event = NotificationEvent.builder()
                 .recipientEmail(user.getEmail())
@@ -311,5 +358,93 @@ public class PasswordService {
     private void sendPasswordResetSuccessNotification(User user) {
         // Reuse password-changed template since it's the same notification
         sendPasswordChangedNotification(user);
+    }
+
+    /* ========== Request Context Utilities ========== */
+
+    private String getClientIpAddress() {
+        if (request == null) {
+            return "Unknown IP";
+        }
+
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String remoteAddr = request.getRemoteAddr();
+        return remoteAddr != null ? remoteAddr : "Unknown IP";
+    }
+
+    private String getUserAgent() {
+        if (request == null) {
+            return "Unknown";
+        }
+
+        String userAgent = request.getHeader("User-Agent");
+        return userAgent != null ? userAgent : "Unknown";
+    }
+
+    private String extractDeviceName(String userAgent) {
+        if (userAgent == null || userAgent.isEmpty() || "Unknown".equals(userAgent)) {
+            return "Unknown Device";
+        }
+
+        // Mobile device detection
+        if (userAgent.contains("Mobile")) {
+            if (userAgent.contains("iPhone"))
+                return "iPhone";
+            if (userAgent.contains("iPad"))
+                return "iPad";
+            if (userAgent.contains("Android"))
+                return "Android Phone";
+            return "Mobile Device";
+        }
+
+        // Desktop OS detection
+        if (userAgent.contains("Windows"))
+            return "Windows PC";
+        if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS"))
+            return "Mac";
+        if (userAgent.contains("Linux"))
+            return "Linux PC";
+
+        // Browser detection fallback
+        if (userAgent.contains("Chrome"))
+            return "Chrome Browser";
+        if (userAgent.contains("Firefox"))
+            return "Firefox Browser";
+        if (userAgent.contains("Safari"))
+            return "Safari Browser";
+        if (userAgent.contains("Edge"))
+            return "Edge Browser";
+
+        return "Unknown Device";
+    }
+
+    private String formatLocation(UserSession.Location location) {
+        if (location == null) {
+            return "Unknown Location";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        if (location.getCity() != null && !location.getCity().isEmpty()) {
+            sb.append(location.getCity());
+        }
+
+        if (location.getRegion() != null && !location.getRegion().isEmpty()) {
+            if (sb.length() > 0)
+                sb.append(", ");
+            sb.append(location.getRegion());
+        }
+
+        if (location.getCountry() != null && !location.getCountry().isEmpty()) {
+            if (sb.length() > 0)
+                sb.append(", ");
+            sb.append(location.getCountry());
+        }
+
+        return sb.length() > 0 ? sb.toString() : "Unknown Location";
     }
 }

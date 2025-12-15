@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class TwoFactorAuthController {
 

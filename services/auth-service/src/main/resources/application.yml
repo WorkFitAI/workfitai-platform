@@ -27,6 +27,11 @@ spring:
 server:
   port: ${SERVER_PORT:9005}
 
+# Application frontend URL for email links
+app:
+  frontend:
+    base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+
 management:
   endpoint:
     health:

@@ -27,6 +27,12 @@ public class EmailService {
     @Value("${spring.mail.password:}")
     private String mailPassword;
 
+    @Value("${app.mail.from:noreply@workfitai.com}")
+    private String mailFrom;
+
+    @Value("${app.mail.from-name:WorkFitAI}")
+    private String mailFromName;
+
     public boolean sendEmail(NotificationEvent event) {
         if (!StringUtils.hasText(event.getRecipientEmail())) {
             log.warn("Skip email: missing recipient for event {}", event.getEventId());
@@ -42,6 +48,8 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            // Gmail requires "From" to match authenticated user, use personal name instead
+            helper.setFrom(mailUsername, mailFromName);
             helper.setTo(event.getRecipientEmail());
             helper.setSubject(event.getSubject() == null ? "Notification" : event.getSubject());
 

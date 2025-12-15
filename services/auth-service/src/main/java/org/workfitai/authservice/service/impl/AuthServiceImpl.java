@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -54,6 +55,9 @@ public class AuthServiceImpl implements iAuthService {
     private final OtpService otpService;
     private final NotificationProducer notificationProducer;
     private final UserServiceClient userServiceClient;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -396,7 +400,7 @@ public class AuthServiceImpl implements iAuthService {
                         "otp", otp,
                         "fullName", fullName,
                         "validUntil", "24 hours",
-                        "loginUrl", "https://workfitai.com/login"))
+                        "loginUrl", frontendBaseUrl + "/login"))
                 .build());
     }
 
@@ -412,7 +416,7 @@ public class AuthServiceImpl implements iAuthService {
                 .metadata(Map.of(
                         "username", username,
                         "role", "Candidate",
-                        "loginUrl", "https://workfitai.com/login",
+                        "loginUrl", frontendBaseUrl + "/login",
                         "isCandidate", "true"))
                 .build());
     }
@@ -433,7 +437,7 @@ public class AuthServiceImpl implements iAuthService {
                         "username", username,
                         "role", role.getRoleName(),
                         "approverType", approverType,
-                        "loginUrl", "https://workfitai.com/login"))
+                        "loginUrl", frontendBaseUrl + "/login"))
                 .build());
     }
 

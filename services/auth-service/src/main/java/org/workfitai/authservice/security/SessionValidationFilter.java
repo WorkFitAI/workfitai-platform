@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.repository.UserSessionRepository;
 
 import java.io.IOException;
@@ -31,12 +32,17 @@ import java.io.IOException;
 public class SessionValidationFilter extends OncePerRequestFilter {
 
     private final UserSessionRepository sessionRepository;
+    private final UserRepository userRepository;
 
     private static final String[] SKIP_PATHS = {
             "/login",
             "/register",
             "/refresh",
             "/verify-otp",
+            "/change-password", // Allow password change even if sessions will be deleted
+            "/reset-password", // Allow password reset (uses token, not session)
+            "/forgot-password", // Public endpoint
+            "/sessions", // Allow checking sessions (returns empty list if no sessions)
             "/actuator",
             "/error"
     };
@@ -63,11 +69,33 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             String username = auth.getName();
 
+            // Get userId from username (sessions are stored with userId, not username)
+            String userId = userRepository.findByUsername(username)
+                    .map(user -> user.getId())
+                    .orElse(null);
+
+            if (userId == null) {
+                log.warn("🚫 User {} not found in database", username);
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("""
+                        {
+                            "status": 401,
+                            "message": "User not found. Please login again.",
+                            "timestamp": "%s"
+                        }
+                        """.formatted(java.time.LocalDateTime.now()));
+                return;
+            }
+
             // Check if user has any active sessions
-            long sessionCount = sessionRepository.countByUserId(username);
+            long sessionCount = sessionRepository.countByUserId(userId);
 
             if (sessionCount == 0) {
-                log.warn("🚫 User {} has valid JWT but NO active sessions (logged out or password changed)", username);
+                log.warn(
+                        "🚫 User {} (userId: {}) has valid JWT but NO active sessions (logged out or password changed)",
+                        username, userId);
 
                 // Clear security context
                 SecurityContextHolder.clearContext();

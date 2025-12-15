@@ -9,6 +9,7 @@ import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,9 @@ public class TwoFactorAuthService {
     private final PasswordEncoder passwordEncoder;
     private final GoogleAuthenticator googleAuthenticator;
     private final NotificationProducer notificationProducer;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     private static final String ISSUER = "WorkFitAI";
     private static final int BACKUP_CODES_COUNT = 10;
@@ -221,9 +225,9 @@ public class TwoFactorAuthService {
             data.put("enabledAt", LocalDateTime.now().toString());
             data.put("destination", method.equals("EMAIL") ? user.getEmail() : "Authenticator App");
             data.put("backupCodes", backupCodes);
-            data.put("settingsUrl", "https://workfitai.com/profile/security");
-            data.put("downloadCodesUrl", "https://workfitai.com/profile/backup-codes");
-            data.put("disableUrl", "https://workfitai.com/auth/disable-2fa");
+            data.put("settingsUrl", frontendBaseUrl + "/profile/security");
+            data.put("downloadCodesUrl", frontendBaseUrl + "/profile/backup-codes");
+            data.put("disableUrl", frontendBaseUrl + "/auth/disable-2fa");
 
             NotificationEvent event = NotificationEvent.builder()
                     .recipientEmail(user.getEmail())
@@ -247,9 +251,9 @@ public class TwoFactorAuthService {
             data.put("username", user.getUsername());
             data.put("disabledAt", LocalDateTime.now().toString());
             data.put("previousMethod", previousMethod);
-            data.put("enableUrl", "https://workfitai.com/auth/enable-2fa");
-            data.put("changePasswordUrl", "https://workfitai.com/auth/change-password");
-            data.put("activityUrl", "https://workfitai.com/auth/sessions");
+            data.put("enableUrl", frontendBaseUrl + "/auth/enable-2fa");
+            data.put("changePasswordUrl", frontendBaseUrl + "/auth/change-password");
+            data.put("activityUrl", frontendBaseUrl + "/auth/sessions");
 
             NotificationEvent event = NotificationEvent.builder()
                     .recipientEmail(user.getEmail())

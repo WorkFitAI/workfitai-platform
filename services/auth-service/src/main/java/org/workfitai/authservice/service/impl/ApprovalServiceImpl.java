@@ -2,6 +2,7 @@ package org.workfitai.authservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +34,9 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final UserRegistrationProducer userRegistrationProducer;
     private final NotificationProducer notificationProducer;
     private final CompanyProducer companyProducer;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     @Override
     public List<Object> getPendingApprovals() {
@@ -194,7 +198,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .metadata(Map.of(
                         "username", username,
                         "role", role,
-                        "loginUrl", "https://workfitai.com/login",
+                        "loginUrl", frontendBaseUrl + "/login",
                         "isHRManager", String.valueOf(isHRManager),
                         "isHR", String.valueOf(isHR),
                         "isCandidate", "false"))

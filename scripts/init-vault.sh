@@ -76,7 +76,8 @@ create_service_secrets "auth-service" '{
     "jwt.refresh.expiration": "604800000",
     "mongodb.uri": "mongodb://auth-mongo:27017/auth-db",
     "redis.host": "auth-redis",
-    "redis.port": "6379"
+    "redis.port": "6379",
+    "app.frontend.base-url": "'"${FRONTEND_BASE_URL:-http://localhost:3000}"'"
   }
 }'
 
@@ -128,7 +129,9 @@ create_service_secrets "notification-service" '{
     "spring.mail.host": "'"${EMAIL_SMTP_HOST:-smtp.gmail.com}"'",
     "spring.mail.port": "'"${EMAIL_SMTP_PORT:-587}"'",
     "spring.mail.username": "'"${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}"'",
-    "spring.mail.password": "'"${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}"'"
+    "spring.mail.password": "'"${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}"'",
+    "app.mail.from": "'"${MAIL_FROM:-noreply@workfitai.com}"'",
+    "app.mail.from-name": "'"${MAIL_FROM_NAME:-WorkFitAI}"'"
   }
 }'
 

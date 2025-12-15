@@ -571,6 +571,9 @@ services:
       - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-587}
       - EMAIL_ADDRESS=${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}
       - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}
+      - MAIL_FROM=${MAIL_FROM:-noreply@workfitai.com}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-WorkFitAI}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
     volumes:
       - ./scripts/init-vault.sh:/scripts/init-vault.sh:ro
     entrypoint: [ "sh", "/scripts/init-vault.sh" ]
