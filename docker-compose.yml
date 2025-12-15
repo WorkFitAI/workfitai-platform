@@ -574,6 +574,10 @@ services:
       - MAIL_FROM=${MAIL_FROM:-noreply@workfitai.com}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-WorkFitAI}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
+      # Account Policy Settings
+      - DEACTIVATION_RETENTION_DAYS=${DEACTIVATION_RETENTION_DAYS:-30}
+      - DELETION_GRACE_PERIOD_DAYS=${DELETION_GRACE_PERIOD_DAYS:-7}
+      - MAX_SESSIONS_PER_USER=${MAX_SESSIONS_PER_USER:-5}
     volumes:
       - ./scripts/init-vault.sh:/scripts/init-vault.sh:ro
     entrypoint: [ "sh", "/scripts/init-vault.sh" ]

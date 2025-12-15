@@ -87,4 +87,19 @@ public class UserController {
         boolean exists = userService.existsByUsername(username);
         return ResponseEntity.ok(exists);
     }
+
+    /**
+     * Internal endpoint: Check if deactivated account can be reactivated (within 30
+     * days).
+     * Called by auth-service during login.
+     * 
+     * @param username the username to check
+     * @return true if account was reactivated, false if beyond 30 days or already
+     *         deleted
+     */
+    @GetMapping("/internal/check-reactivate")
+    public ResponseEntity<Boolean> checkAndReactivateAccount(@RequestParam("username") String username) {
+        boolean reactivated = userService.checkAndReactivateAccount(username);
+        return ResponseEntity.ok(reactivated);
+    }
 }

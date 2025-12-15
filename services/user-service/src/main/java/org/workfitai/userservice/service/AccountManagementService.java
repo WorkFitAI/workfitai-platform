@@ -2,6 +2,7 @@ package org.workfitai.userservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,6 @@ import org.workfitai.userservice.repository.UserRepository;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +28,11 @@ public class AccountManagementService {
     private final UserRepository userRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    private static final int DEACTIVATION_RETENTION_DAYS = 30;
-    private static final int DELETION_GRACE_PERIOD_DAYS = 7;
+    @Value("${app.account.deactivation-retention-days:30}")
+    private int deactivationRetentionDays;
+
+    @Value("${app.account.deletion-grace-period-days:7}")
+    private int deletionGracePeriodDays;
 
     @Transactional
     public AccountManagementResponse deactivateAccount(String username, DeactivateAccountRequest request) {
@@ -47,7 +50,7 @@ public class AccountManagementService {
         }
 
         Instant now = Instant.now();
-        Instant deletionDate = now.plus(Duration.ofDays(DEACTIVATION_RETENTION_DAYS));
+        Instant deletionDate = now.plus(Duration.ofDays(deactivationRetentionDays));
 
         user.setDeactivatedAt(now);
         user.setDeactivationReason(request.getReason());
@@ -59,7 +62,7 @@ public class AccountManagementService {
         Map<String, Object> data = new HashMap<>();
         data.put("username", username);
         data.put("deactivatedAt", now.toString());
-        data.put("daysRemaining", String.valueOf(DEACTIVATION_RETENTION_DAYS));
+        data.put("daysRemaining", String.valueOf(deactivationRetentionDays));
         data.put("deletionDate", deletionDate.toString());
         data.put("reactivateUrl", "https://workfitai.com/profile/reactivate");
 
@@ -70,33 +73,9 @@ public class AccountManagementService {
         return AccountManagementResponse.builder()
                 .status("DEACTIVATED")
                 .message("Account deactivated successfully. Your data will be deleted after "
-                        + DEACTIVATION_RETENTION_DAYS + " days")
+                        + deactivationRetentionDays + " days")
                 .scheduledDate(deletionDate)
-                .daysRemaining(DEACTIVATION_RETENTION_DAYS)
-                .build();
-    }
-
-    @Transactional
-    public AccountManagementResponse reactivateAccount(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        // Check if account is deactivated
-        if (user.getDeactivatedAt() == null) {
-            throw new BadRequestException("Account is not deactivated");
-        }
-
-        user.setDeactivatedAt(null);
-        user.setDeactivationReason(null);
-        user.setDeletionDate(null);
-
-        userRepository.save(user);
-
-        log.info("Account reactivated for user: {}", username);
-
-        return AccountManagementResponse.builder()
-                .status("ACTIVE")
-                .message("Account reactivated successfully")
+                .daysRemaining(deactivationRetentionDays)
                 .build();
     }
 
@@ -114,7 +93,7 @@ public class AccountManagementService {
         }
 
         Instant now = Instant.now();
-        Instant deletionDate = now.plus(Duration.ofDays(DELETION_GRACE_PERIOD_DAYS));
+        Instant deletionDate = now.plus(Duration.ofDays(deletionGracePeriodDays));
 
         user.setDeletionScheduledAt(now);
         user.setDeletionDate(deletionDate);
@@ -125,7 +104,7 @@ public class AccountManagementService {
         // Send notification
         Map<String, Object> data = new HashMap<>();
         data.put("username", username);
-        data.put("daysRemaining", String.valueOf(DELETION_GRACE_PERIOD_DAYS));
+        data.put("daysRemaining", String.valueOf(deletionGracePeriodDays));
         data.put("deletionDate", deletionDate.toString());
         data.put("cancelUrl", "https://workfitai.com/profile/cancel-deletion");
 
@@ -135,9 +114,9 @@ public class AccountManagementService {
 
         return AccountManagementResponse.builder()
                 .status("DELETION_SCHEDULED")
-                .message("Account deletion scheduled. You have " + DELETION_GRACE_PERIOD_DAYS + " days to cancel")
+                .message("Account deletion scheduled. You have " + deletionGracePeriodDays + " days to cancel")
                 .scheduledDate(deletionDate)
-                .daysRemaining(DELETION_GRACE_PERIOD_DAYS)
+                .daysRemaining(deletionGracePeriodDays)
                 .build();
     }
 

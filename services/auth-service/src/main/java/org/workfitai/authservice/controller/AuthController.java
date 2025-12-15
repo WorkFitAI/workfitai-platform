@@ -24,6 +24,7 @@ import org.workfitai.authservice.dto.response.TokensResponse;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.iAuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -58,8 +59,9 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<ResponseData<TokensResponse>> login(
                         @Valid @RequestBody LoginRequest req,
-                        @RequestHeader(value = "X-Device-Id", required = false) String deviceId) {
-                var issued = authService.login(req, deviceId);
+                        @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+                        HttpServletRequest request) {
+                var issued = authService.login(req, deviceId, request);
                 var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
                                 .httpOnly(true)
                                 .path("/")

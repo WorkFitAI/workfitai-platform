@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -199,7 +200,7 @@ public class AuthServiceImpl implements iAuthService {
     }
 
     @Override
-    public IssuedTokens login(LoginRequest req, String deviceId) {
+    public IssuedTokens login(LoginRequest req, String deviceId, HttpServletRequest request) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -212,11 +213,30 @@ public class AuthServiceImpl implements iAuthService {
                             () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
             // Check if user is active
-            if (user.getStatus() != UserStatus.ACTIVE) {
+            if (user.getStatus() == UserStatus.INACTIVE) {
+                // Check with user-service if account can be reactivated (within 30 days)
+                try {
+                    Boolean canReactivate = userServiceClient.checkAndReactivateAccount(user.getUsername());
+                    if (Boolean.TRUE.equals(canReactivate)) {
+                        // Account reactivated, update status to ACTIVE
+                        user.setStatus(UserStatus.ACTIVE);
+                        user.setUpdatedAt(Instant.now());
+                        users.save(user);
+                        log.info("Account auto-reactivated for user: {}", user.getUsername());
+                    } else {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                "Your account has been deactivated for more than 30 days and cannot be restored. Please create a new account.");
+                    }
+                } catch (ResponseStatusException e) {
+                    throw e;
+                } catch (Exception e) {
+                    log.error("Failed to check reactivation status: {}", e.getMessage());
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your account has been deactivated.");
+                }
+            } else if (user.getStatus() != UserStatus.ACTIVE) {
                 String message = switch (user.getStatus()) {
                     case PENDING -> "Please verify your email before logging in.";
                     case WAIT_APPROVED -> "Your account is pending approval. Please wait for administrator approval.";
-                    case INACTIVE -> "Your account has been deactivated.";
                     default -> "Your account is not active.";
                 };
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
@@ -229,8 +249,8 @@ public class AuthServiceImpl implements iAuthService {
             String dev = normalizeDevice(deviceId);
             refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
 
-            // MongoDB: Create session for tracking active devices
-            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs());
+            // MongoDB: Create session with request context for device/IP detection
+            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
 
             Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
             return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
@@ -287,10 +307,7 @@ public class AuthServiceImpl implements iAuthService {
         String newJti = jwt.newJti();
         String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
-        refreshStore.saveJti(userId, dev, newJti); // Redis: Store new refresh token JTI
-
-        // MongoDB: Create new session after token rotation
-        sessionService.createSession(userId, newJti, jwt.getRefreshExpMs());
+        refreshStore.saveJti(userId, dev, newJti); // Redis: Store new refresh token JTI (overwrites + resets TTL)
 
         return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
     }

@@ -1,5 +1,6 @@
 package org.workfitai.authservice.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.workfitai.authservice.dto.request.LoginRequest;
 import org.workfitai.authservice.dto.request.RegisterRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
@@ -8,7 +9,7 @@ import org.workfitai.authservice.dto.response.IssuedTokens;
 public interface iAuthService {
     void register(RegisterRequest req);
 
-    IssuedTokens login(LoginRequest req, String deviceId);
+    IssuedTokens login(LoginRequest req, String deviceId, HttpServletRequest request);
 
     IssuedTokens refresh(String refreshTokenFromCookie, String deviceId);
 

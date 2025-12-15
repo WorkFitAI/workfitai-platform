@@ -77,7 +77,8 @@ create_service_secrets "auth-service" '{
     "mongodb.uri": "mongodb://auth-mongo:27017/auth-db",
     "redis.host": "auth-redis",
     "redis.port": "6379",
-    "app.frontend.base-url": "'"${FRONTEND_BASE_URL:-http://localhost:3000}"'"
+    "app.frontend.base-url": "'"${FRONTEND_BASE_URL:-http://localhost:3000}"'",
+    "app.session.max-sessions-per-user": "'"${MAX_SESSIONS_PER_USER:-5}"'"
   }
 }'
 
@@ -89,7 +90,9 @@ create_service_secrets "user-service" '{
     "spring.datasource.password": "pass",
     "cloudinary.cloud-name": "'"${CLOUDINARY_CLOUD_NAME:-dphibwpag}"'",
     "cloudinary.api-key": "'"${CLOUDINARY_API_KEY:-586672837199227}"'",
-    "cloudinary.api-secret": "'"${CLOUDINARY_API_SECRET:-s_nMSKl3232BzSN1USpCa57axXw}"'"
+    "cloudinary.api-secret": "'"${CLOUDINARY_API_SECRET:-s_nMSKl3232BzSN1USpCa57axXw}"'",
+    "app.account.deactivation-retention-days": "'"${DEACTIVATION_RETENTION_DAYS:-30}"'",
+    "app.account.deletion-grace-period-days": "'"${DELETION_GRACE_PERIOD_DAYS:-7}"'"
   }
 }'
 

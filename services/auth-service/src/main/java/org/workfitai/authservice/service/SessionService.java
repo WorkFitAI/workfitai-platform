@@ -3,6 +3,7 @@ package org.workfitai.authservice.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.dto.response.SessionResponse;
@@ -23,9 +24,9 @@ public class SessionService {
 
     private final UserSessionRepository sessionRepository;
     private final GeoLocationService geoLocationService;
-    private final HttpServletRequest request;
 
-    private static final int MAX_SESSIONS_PER_USER = 5;
+    @Value("${app.session.max-sessions-per-user:5}")
+    private int maxSessionsPerUser;
 
     public List<SessionResponse> getUserSessions(String userId, String currentSessionId) {
         List<UserSession> sessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -61,10 +62,11 @@ public class SessionService {
     }
 
     @Transactional
-    public UserSession createSession(String userId, String refreshTokenHash, Long expirationMs) {
+    public UserSession createSession(String userId, String refreshTokenHash, Long expirationMs,
+            HttpServletRequest request) {
         // Check session limit
         long sessionCount = sessionRepository.countByUserId(userId);
-        if (sessionCount >= MAX_SESSIONS_PER_USER) {
+        if (sessionCount >= maxSessionsPerUser) {
             // Delete oldest session
             List<UserSession> sessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(userId);
             if (!sessions.isEmpty()) {
@@ -75,8 +77,8 @@ public class SessionService {
         }
 
         String sessionId = UUID.randomUUID().toString();
-        String ipAddress = getClientIpAddress();
-        String userAgent = getUserAgent();
+        String ipAddress = getClientIpAddress(request);
+        String userAgent = getUserAgent(request);
         UserSession.Location location = geoLocationService.getLocation(ipAddress);
 
         UserSession session = UserSession.builder()
@@ -127,7 +129,7 @@ public class SessionService {
                 .build();
     }
 
-    private String getClientIpAddress() {
+    private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
@@ -137,7 +139,7 @@ public class SessionService {
         return remoteAddr != null ? remoteAddr : "0.0.0.0";
     }
 
-    private String getUserAgent() {
+    private String getUserAgent(HttpServletRequest request) {
         String userAgent = request.getHeader("User-Agent");
         return userAgent != null ? userAgent : "Unknown";
     }

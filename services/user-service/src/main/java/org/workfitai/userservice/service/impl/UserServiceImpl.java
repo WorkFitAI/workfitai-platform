@@ -1,5 +1,7 @@
 package org.workfitai.userservice.service.impl;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 import org.workfitai.userservice.enums.EUserRole;
+import org.workfitai.userservice.enums.EUserStatus;
 import org.workfitai.userservice.exception.ApiException;
 import org.workfitai.userservice.mapper.AdminMapper;
 import org.workfitai.userservice.mapper.CandidateMapper;
@@ -154,5 +157,43 @@ public class UserServiceImpl implements UserService {
                 .lastModifiedDate(user.getLastModifiedDate())
                 .isDeleted(user.isDeleted())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public boolean checkAndReactivateAccount(String username) {
+        UserEntity user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || user.getDeactivatedAt() == null) {
+            return false; // Not deactivated or not found
+        }
+
+        // Check if account is already marked as deleted
+        if (user.isDeleted() || user.getDeletedAt() != null) {
+            log.warn("Account {} is already deleted, cannot reactivate", username);
+            return false;
+        }
+
+        // Check if deactivation is within 30 days
+        Instant now = Instant.now();
+        long daysSinceDeactivation = ChronoUnit.DAYS.between(user.getDeactivatedAt(), now);
+
+        if (daysSinceDeactivation > 30) {
+            // Mark as deleted (soft delete)
+            user.setDeleted(true);
+            user.setDeletedAt(now);
+            userRepository.save(user);
+            log.info("Account {} deactivated for more than 30 days, marked as deleted", username);
+            return false;
+        }
+
+        // Auto-reactivate account
+        user.setDeactivatedAt(null);
+        user.setDeactivationReason(null);
+        user.setDeletionDate(null);
+        user.setUserStatus(EUserStatus.ACTIVE);
+        userRepository.save(user);
+
+        log.info("Account {} auto-reactivated on login (deactivated for {} days)", username, daysSinceDeactivation);
+        return true;
     }
 }

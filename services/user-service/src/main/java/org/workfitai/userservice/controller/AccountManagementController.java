@@ -32,16 +32,6 @@ public class AccountManagementController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reactivate")
-    public ResponseEntity<AccountManagementResponse> reactivateAccount(Authentication authentication) {
-        String username = authentication.getName();
-        log.info("Reactivate account request for user: {}", username);
-
-        AccountManagementResponse response = accountManagementService.reactivateAccount(username);
-
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/delete-request")
     public ResponseEntity<AccountManagementResponse> requestAccountDeletion(
             @Valid @RequestBody DeleteAccountRequest request,

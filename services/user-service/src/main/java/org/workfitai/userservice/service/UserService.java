@@ -72,4 +72,14 @@ public interface UserService {
      * @return list of user base responses
      */
     List<UserBaseResponse> getUsersByUsernames(List<String> usernames);
+
+    /**
+     * Check if deactivated account can be reactivated (within 30 days) and
+     * auto-reactivate.
+     * Called by auth-service during login.
+     * 
+     * @param username the username to check
+     * @return true if account was reactivated, false if beyond 30 days or deleted
+     */
+    boolean checkAndReactivateAccount(String username);
 }
