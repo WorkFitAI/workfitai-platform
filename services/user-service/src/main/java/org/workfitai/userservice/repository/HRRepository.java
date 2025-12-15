@@ -19,6 +19,8 @@ public interface HRRepository extends JpaRepository<HREntity, UUID>, JpaSpecific
 
   Optional<HREntity> findByUsername(String username);
 
+  boolean existsByPhoneNumber(String phoneNumber);
+
   boolean existsByCompanyIdAndUserRole(UUID companyId, EUserRole userRole);
 
   @Query("""

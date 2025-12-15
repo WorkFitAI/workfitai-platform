@@ -18,6 +18,8 @@ public interface CandidateRepository
 
   Optional<CandidateEntity> findByEmail(String email);
 
+  Optional<CandidateEntity> findByUsername(String username);
+
   boolean existsByPhoneNumber(String phoneNumber);
 
   @Query("""

@@ -178,17 +178,44 @@ public class CandidateServiceImpl implements CandidateService {
         throw new ApiException("Invalid role for candidate creation", HttpStatus.BAD_REQUEST);
       }
 
-      // Check if candidate already exists by email
-      if (candidateRepository.existsByEmail(userData.getEmail())) {
-        log.warn("Candidate with email {} already exists, skipping", userData.getEmail());
-        return;
-      }
-
       // Map status from string to enum
       EUserStatus status = userData.getStatus() != null ? EUserStatus.fromJson(userData.getStatus())
           : EUserStatus.ACTIVE;
 
-      // Create candidate entity from user data - let JPA handle ID generation
+      // Idempotent check: Try to find existing candidate by email or username
+      CandidateEntity existingCandidate = candidateRepository.findByEmail(userData.getEmail())
+          .or(() -> candidateRepository.findByUsername(userData.getUsername()))
+          .orElse(null);
+
+      if (existingCandidate != null) {
+        log.info("Candidate already exists with email/username: {}/{}. Updating existing record (idempotent operation)",
+            userData.getEmail(), userData.getUsername());
+
+        // Update existing candidate with new data from event (idempotent upsert)
+        existingCandidate.setEmail(userData.getEmail());
+        existingCandidate.setUsername(userData.getUsername());
+        existingCandidate.setFullName(userData.getFullName());
+        existingCandidate.setPhoneNumber(userData.getPhoneNumber());
+        existingCandidate.setPasswordHash(userData.getPasswordHash());
+        existingCandidate.setUserStatus(status);
+
+        CandidateEntity updatedCandidate = candidateRepository.save(existingCandidate);
+        log.info("Successfully updated existing candidate with ID {} for email: {}",
+            updatedCandidate.getUserId(), userData.getEmail());
+        return;
+      }
+
+      // Check for constraint violations before creating new candidate
+      if (candidateRepository.existsByPhoneNumber(userData.getPhoneNumber())) {
+        log.warn(
+            "Phone number {} already exists in database but belongs to different user. Skipping creation to prevent constraint violation.",
+            userData.getPhoneNumber());
+        // Acknowledge message without throwing - this is a business logic issue, not a
+        // technical error
+        return;
+      }
+
+      // Create new candidate entity from user data
       CandidateEntity candidate = CandidateEntity.builder()
           .email(userData.getEmail())
           .username(userData.getUsername())
@@ -202,7 +229,7 @@ public class CandidateServiceImpl implements CandidateService {
 
       CandidateEntity savedCandidate = candidateRepository.save(candidate);
 
-      log.info("Successfully created candidate with ID {} for email: {}",
+      log.info("Successfully created new candidate with ID {} for email: {}",
           savedCandidate.getUserId(), userData.getEmail());
 
     } catch (Exception ex) {

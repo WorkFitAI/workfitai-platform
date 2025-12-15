@@ -126,6 +126,42 @@ public class HRServiceImpl implements HRService {
     var hrProfile = userData.getHrProfile();
     UUID companyId = null;
 
+    // Idempotent check: Try to find existing HR by email or username
+    HREntity existingHR = hrRepository.findByEmail(userData.getEmail())
+        .or(() -> hrRepository.findByUsername(userData.getUsername()))
+        .orElse(null);
+
+    if (existingHR != null) {
+      log.info("HR profile already exists with email/username: {}/{}. Updating existing record (idempotent operation)",
+          userData.getEmail(), userData.getUsername());
+
+      // Update existing HR with new data from event (idempotent upsert)
+      existingHR.setEmail(userData.getEmail());
+      existingHR.setUsername(userData.getUsername());
+      existingHR.setFullName(userData.getFullName());
+      existingHR.setPhoneNumber(userData.getPhoneNumber());
+      existingHR.setPasswordHash(userData.getPasswordHash());
+      existingHR.setUserStatus(
+          userData.getStatus() != null ? EUserStatus.fromDisplayName(userData.getStatus()) : EUserStatus.PENDING);
+      existingHR.setDepartment(hrProfile.getDepartment());
+      existingHR.setAddress(hrProfile.getAddress());
+
+      HREntity updatedHR = hrRepository.save(existingHR);
+      log.info("Successfully updated existing HR profile with ID {} for email: {}",
+          updatedHR.getUserId(), userData.getEmail());
+      return;
+    }
+
+    // Check for phone constraint violations before creating new HR
+    if (hrRepository.existsByPhoneNumber(userData.getPhoneNumber())) {
+      log.warn(
+          "Phone number {} already exists in database but belongs to different user. Skipping creation to prevent constraint violation.",
+          userData.getPhoneNumber());
+      // Acknowledge message without throwing - this is a business logic issue, not a
+      // technical error
+      return;
+    }
+
     // For HR role: lookup company from HR Manager's email
     if (role == EUserRole.HR) {
       String hrManagerEmail = hrProfile.getHrManagerEmail();
@@ -163,10 +199,6 @@ public class HRServiceImpl implements HRService {
       // For now, generate a new UUID for the company
       companyId = UUID.randomUUID();
       log.info("Creating new company with ID {} for HR Manager: {}", companyId, userData.getEmail());
-    }
-
-    if (hrRepository.existsByEmail(userData.getEmail())) {
-      throw new ApiException("Email already exists", HttpStatus.CONFLICT);
     }
 
     if (role == EUserRole.HR_MANAGER
