@@ -69,10 +69,9 @@ public class ReqUpdateJobDTO {
 
     @NotNull(message = "CompanyId must not be null")
     private String companyNo;
-
+    
     private List<UUID> skillIds;
 
-    @NotNull(message = "Status must not be null")
     private JobStatus status;
 
     private MultipartFile bannerFile;

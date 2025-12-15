@@ -24,11 +24,13 @@ import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iReportService;
+import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
@@ -95,12 +97,11 @@ public class ReportService implements iReportService {
                 .entrySet().stream()
                 .map(e -> {
                     String[] keys = e.getKey().split("\\|");
-                    ResReportGroup group = ResReportGroup.builder()
+                    return ResReportGroup.builder()
                             .jobId(UUID.fromString(keys[0]))
                             .status(EReportStatus.valueOf(keys[1]))
                             .reports(e.getValue())
                             .build();
-                    return group;
                 })
                 .sorted((g1, g2) -> Integer.compare(g2.getReports().size(), g1.getReports().size()))
                 .toList();
@@ -111,21 +112,13 @@ public class ReportService implements iReportService {
         int end = Math.min(start + pageable.getPageSize(), totalGroups);
         List<ResReportGroup> pagedGroups = (start <= end) ? grouped.subList(start, end) : List.of();
 
-        // 4. Tạo PageImpl để tuân thủ PaginationUtil.build
+        // 4. Tạo PageImpl
         Page<ResReportGroup> page = new PageImpl<>(pagedGroups, pageable, totalGroups);
 
-        // 5. Build ResultPaginationDTO
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(page.getTotalPages());
-        mt.setTotal(page.getTotalElements());
-        rs.setMeta(mt);
-        rs.setResult(page.getContent());
-
-        return rs;
+        // 5. Build ResultPaginationDTO dùng PaginationUtils
+        return PaginationUtils.toResultPaginationDTO(page, Function.identity());
     }
+
 
     // Phương thức lấy tất cả report và map sang DTO
     @EntityGraph(attributePaths = "images")

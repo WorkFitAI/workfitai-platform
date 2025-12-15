@@ -16,6 +16,7 @@ import org.workfitai.jobservice.model.mapper.CompanyMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iCompanyService;
+import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
 
@@ -37,21 +38,7 @@ public class CompanyService implements iCompanyService {
     @Override
     public ResultPaginationDTO fetchAll(Specification<Company> spec, Pageable pageable) {
         Page<Company> pageCompany = companyRepository.findAll(spec, pageable);
-
-        Page<ResCompanyDTO> pageCompanyDTO = pageCompany.map(companyMapper::toResDTO);
-
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(pageCompany.getTotalPages());
-        mt.setTotal(pageCompany.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pageCompanyDTO.getContent());
-
-        return rs;
+        return PaginationUtils.toResultPaginationDTO(pageCompany, companyMapper::toResDTO);
     }
 
     @Override
