@@ -79,14 +79,21 @@ public class SessionService {
         String sessionId = UUID.randomUUID().toString();
         String ipAddress = getClientIpAddress(request);
         String userAgent = getUserAgent(request);
+
+        log.info("Creating session - IP: {}, User-Agent: {}", ipAddress, userAgent);
+
         UserSession.Location location = geoLocationService.getLocation(ipAddress);
+        String deviceName = extractDeviceName(userAgent);
+
+        log.info("Device detected: {}, Location: {}", deviceName,
+                location != null ? location.getCountry() + "/" + location.getCity() : "null");
 
         UserSession session = UserSession.builder()
                 .userId(userId)
                 .sessionId(sessionId)
                 .refreshTokenHash(refreshTokenHash)
                 .deviceId(generateDeviceId(userAgent, ipAddress))
-                .deviceName(extractDeviceName(userAgent))
+                .deviceName(deviceName)
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
                 .location(location)
@@ -153,7 +160,12 @@ public class SessionService {
             return "Unknown Device";
         }
 
-        // Simple device detection
+        // Postman detection
+        if (userAgent.contains("Postman")) {
+            return "Postman";
+        }
+
+        // Mobile devices
         if (userAgent.contains("Mobile")) {
             if (userAgent.contains("iPhone"))
                 return "iPhone";
@@ -164,14 +176,15 @@ public class SessionService {
             return "Mobile Device";
         }
 
+        // Desktop OS
         if (userAgent.contains("Windows"))
             return "Windows PC";
-        if (userAgent.contains("Mac"))
+        if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS"))
             return "Mac";
         if (userAgent.contains("Linux"))
             return "Linux PC";
 
-        // Browser detection
+        // Browsers (fallback)
         if (userAgent.contains("Chrome"))
             return "Chrome Browser";
         if (userAgent.contains("Firefox"))
