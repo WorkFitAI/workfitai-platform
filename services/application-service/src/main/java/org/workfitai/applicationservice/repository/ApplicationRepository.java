@@ -21,8 +21,17 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
     /**
      * Checks if a user has already applied to a specific job.
      * Uses compound index on (username, jobId) for O(1) lookup.
+     * NOTE: This checks ALL applications including soft-deleted ones.
+     * Use existsByUsernameAndJobIdAndDeletedAtIsNull() to check only active applications.
      */
     boolean existsByUsernameAndJobId(String username, String jobId);
+
+    /**
+     * Checks if a user has an active (non-deleted) application for a specific job.
+     * This should be used for duplicate validation to allow reapplication after withdrawal.
+     * Uses compound index on (username, jobId, deletedAt) for O(1) lookup.
+     */
+    boolean existsByUsernameAndJobIdAndDeletedAtIsNull(String username, String jobId);
 
     /** Finds all applications by a specific user (paginated). */
     Page<Application> findByUsername(String username, Pageable pageable);
