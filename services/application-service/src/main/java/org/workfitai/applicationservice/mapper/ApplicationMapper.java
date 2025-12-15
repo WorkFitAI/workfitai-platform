@@ -27,4 +27,23 @@ public interface ApplicationMapper {
     @Mapping(target = "experienceLevel", source = "experienceLevel")
     @Mapping(target = "snapshotAt", source = "snapshotAt")
     ApplicationResponse.JobSnapshotResponse toJobSnapshotResponse(Application.JobSnapshot snapshot);
+
+    default org.workfitai.applicationservice.dto.response.ResultPaginationDTO<ApplicationResponse> toResultPaginationDTO(
+            org.springframework.data.domain.Page<Application> page) {
+        return org.workfitai.applicationservice.dto.response.ResultPaginationDTO.<ApplicationResponse>builder()
+                .items(page.getContent().stream()
+                        .map(this::toResponse)
+                        .toList())
+                .meta(org.workfitai.applicationservice.dto.response.ResultPaginationDTO.Meta.builder()
+                        .page(page.getNumber())
+                        .size(page.getSize())
+                        .totalElements(page.getTotalElements())
+                        .totalPages(page.getTotalPages())
+                        .first(page.isFirst())
+                        .last(page.isLast())
+                        .hasNext(page.hasNext())
+                        .hasPrevious(page.hasPrevious())
+                        .build())
+                .build();
+    }
 }

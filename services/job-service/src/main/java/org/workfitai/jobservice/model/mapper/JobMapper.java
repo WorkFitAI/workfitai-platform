@@ -7,9 +7,9 @@ import org.mapstruct.factory.Mappers;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
-import org.workfitai.jobservice.model.dto.request.ReqJobDTO;
-import org.workfitai.jobservice.model.dto.request.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.*;
+import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
+import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.Job.*;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 
@@ -39,6 +39,10 @@ public interface JobMapper {
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
     ResJobDetailsForHrDTO toResJobDetailsForHrDTO(Job job);
+
+    @Mapping(target = "skillNames", source = "skills")
+    @Mapping(target = "postId", source = "jobId")
+    ResJobDetailsForAdminDTO toResJobDetailsForAdminDTO(Job job);
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")

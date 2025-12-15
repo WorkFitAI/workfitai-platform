@@ -1,8 +1,6 @@
 package org.workfitai.jobservice.config.errors;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -68,9 +67,9 @@ public class GlobalException {
                 .body(RestResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
-    @ExceptionHandler(JobConflictException.class)
-    public ResponseEntity<RestResponse<Object>> handleJobConflict(JobConflictException ex) {
-        log.warn("Job conflict exception: {}", ex.getMessage());
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<RestResponse<Object>> handleJobConflict(ResourceConflictException ex) {
+        log.warn("Resource conflict exception: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(RestResponse.error(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }

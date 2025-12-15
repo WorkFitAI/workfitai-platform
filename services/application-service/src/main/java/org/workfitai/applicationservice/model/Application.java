@@ -1,6 +1,8 @@
 package org.workfitai.applicationservice.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -46,7 +48,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @CompoundIndexes({
-        @CompoundIndex(name = "unique_user_job", def = "{'username': 1, 'jobId': 1}", unique = true)
+        @CompoundIndex(name = "unique_user_job", def = "{'username': 1, 'jobId': 1, 'deletedAt': 1}", unique = true),
+        @CompoundIndex(name = "username_isDraft", def = "{'username': 1, 'isDraft': 1}"),
+        @CompoundIndex(name = "company_status", def = "{'companyId': 1, 'status': 1, 'deletedAt': 1}"),
+        @CompoundIndex(name = "company_assigned", def = "{'companyId': 1, 'assignedTo': 1, 'deletedAt': 1}"),
+        @CompoundIndex(name = "assigned_deleted", def = "{'assignedTo': 1, 'deletedAt': 1}")
 })
 public class Application {
 
@@ -86,6 +92,36 @@ public class Application {
     @Indexed
     private String jobId;
 
+    // ==================== Company \u0026 Assignment Fields (Phase 3) ====================
+
+    /**
+     * Company ID for the application.
+     * Derived from job.companyId or stored directly for performance.
+     * Used for company-wide filtering and access control.
+     * Nullable for backward compatibility (will be backfilled later).
+     */
+    @Indexed
+    private String companyId;
+
+    /**
+     * Username of the HR user assigned to this application.
+     * Used for workload distribution and assignment tracking.
+     * Null means unassigned (in the common pool).
+     */
+    @Indexed
+    private String assignedTo;
+
+    /**
+     * Timestamp when the application was assigned to an HR user.
+     */
+    private Instant assignedAt;
+
+    /**
+     * Username of the manager who performed the assignment.
+     * Tracks who assigned the application for audit purposes.
+     */
+    private String assignedBy;
+
     // ==================== Job Snapshot (captured at application time)
     // ====================
 
@@ -121,6 +157,55 @@ public class Application {
      * Size of the CV file in bytes.
      */
     private Long cvFileSize;
+
+    // ==================== Draft Workflow Fields ====================
+
+    /**
+     * Indicates if this is a draft application (not yet submitted).
+     * Draft applications skip Saga orchestration and don't trigger events.
+     * Defaults to false for backward compatibility.
+     */
+    @Builder.Default
+    private boolean isDraft = false;
+
+    /**
+     * Timestamp when the draft was submitted and became an active application.
+     * Null for draft applications, set when draft is submitted.
+     */
+    private Instant submittedAt;
+
+    // ==================== Soft Delete Fields ====================
+
+    /**
+     * Timestamp when the application was withdrawn/deleted.
+     * Null for active applications.
+     * Used for soft delete pattern.
+     */
+    private Instant deletedAt;
+
+    /**
+     * Username of who deleted/withdrew the application.
+     * Typically the candidate who withdrew, or an admin who deleted.
+     */
+    private String deletedBy;
+
+    // ==================== Status History ====================
+
+    /**
+     * Timeline of status changes for transparency.
+     * Each entry records the transition, who made it, and when.
+     */
+    @Builder.Default
+    private List<StatusChange> statusHistory = new ArrayList<>();
+
+    // ==================== HR Notes ====================
+
+    /**
+     * Notes added by HR/recruiters.
+     * Some notes can be marked as visible to candidates.
+     */
+    @Builder.Default
+    private List<Note> notes = new ArrayList<>();
 
     // ==================== Application Content ====================
 
@@ -176,5 +261,96 @@ public class Application {
         private String employmentType;
         private String experienceLevel;
         private Instant snapshotAt;
+    }
+
+    // ==================== Embedded Document for Status Change ====================
+
+    /**
+     * Embedded document tracking a single status transition.
+     * Used to build a complete audit trail of application progress.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class StatusChange {
+        /**
+         * Status before this change (null for initial APPLIED status).
+         */
+        private ApplicationStatus previousStatus;
+
+        /**
+         * New status after this change.
+         */
+        @NotNull
+        private ApplicationStatus newStatus;
+
+        /**
+         * Username of who made the change.
+         */
+        @NotBlank
+        private String changedBy;
+
+        /**
+         * When the change occurred.
+         */
+        @NotNull
+        private Instant changedAt;
+
+        /**
+         * Optional reason for the status change.
+         */
+        @Size(max = 500)
+        private String reason;
+    }
+
+    // ==================== Embedded Document for HR Notes ====================
+
+    /**
+     * Embedded document for HR/recruiter notes on the application.
+     * Notes can be internal or shared with the candidate.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Note {
+        /**
+         * Unique identifier for this note.
+         */
+        @NotBlank
+        @Builder.Default
+        private String id = java.util.UUID.randomUUID().toString();
+
+        /**
+         * Username of the note author (HR/recruiter).
+         */
+        @NotBlank
+        private String author;
+
+        /**
+         * Note content.
+         */
+        @NotBlank
+        @Size(max = 2000)
+        private String content;
+
+        /**
+         * Whether this note should be visible to the candidate.
+         * False for internal HR notes.
+         */
+        @Builder.Default
+        private boolean candidateVisible = false;
+
+        /**
+         * When the note was created.
+         */
+        @NotNull
+        private Instant createdAt;
+
+        /**
+         * When the note was last updated (null if never updated).
+         */
+        private Instant updatedAt;
     }
 }

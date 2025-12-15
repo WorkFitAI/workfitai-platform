@@ -1,0 +1,24 @@
+package org.workfitai.jobservice.model.dto.request.Company;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ReqCreateCompanyDTO {
+
+    @NotBlank(message = "company no must not blank")
+    private String companyNo;
+
+    @NotBlank(message = "company's name must not blank")
+    private String name;
+
+    private String logoUrl;
+    private String websiteUrl;
+    private String description;
+    private String address;
+    private String size;
+}

@@ -10,6 +10,7 @@ import org.workfitai.jobservice.model.enums.JobStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -110,6 +111,9 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @NotNull(message = "Company must not be null")
     private Company company;
 
+    @NotNull(message = "isDeleted must not be null")
+    private boolean isDeleted;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = {"jobs"})
     @NotEmpty(message = "Job must have at least one skill")
@@ -120,6 +124,11 @@ public class Job extends AbstractAuditingEntity<UUID> {
     )
     private List<Skill> skills;
 
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("job")
+    private List<Report> reports = new ArrayList<>();
+
+
     @Override
     public UUID getId() {
         return this.jobId;
@@ -129,5 +138,10 @@ public class Job extends AbstractAuditingEntity<UUID> {
     public boolean isSalaryValid() {
         if (salaryMin == null || salaryMax == null) return true;
         return salaryMax.compareTo(salaryMin) >= 0;
+    }
+
+    @PrePersist
+    public void init() {
+        if (views == null) views = 0L;
     }
 }
