@@ -33,7 +33,11 @@ public class CompanySyncEvent {
   @AllArgsConstructor
   public static class CompanyData {
     @JsonProperty("companyId")
-    private String companyId;
+    private String companyId; // UUID for internal linking
+
+    @JsonProperty("companyNo")
+    private String companyNo; // Mã số thuế - primary key in job-service
+
     @JsonProperty("name")
     private String name;
     @JsonProperty("logoUrl")

@@ -75,7 +75,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         publishUserApprovalEvent(savedUser, "HR_MANAGER_APPROVED");
 
         // If HR_MANAGER, create company in job-service
-        if (savedUser.getCompany() != null) {
+        if (savedUser.getCompanyNo() != null) {
             createCompany(savedUser);
         }
 
@@ -95,7 +95,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                     .eventType("COMPANY_CREATED")
                     .company(CompanyCreationEvent.CompanyData.builder()
                             .companyId(companyId)
-                            .name(user.getCompany())
+                            .name(user.getCompanyNo()) // companyNo is the tax ID
                             .logoUrl(null) // Will be set later by HR_MANAGER
                             .websiteUrl(null) // Will be set later by HR_MANAGER
                             .description("Company created for HR Manager: " + user.getUsername())
@@ -111,7 +111,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
             companyProducer.sendCompanyCreation(companyEvent);
 
-            log.info("Company creation event sent for: {} (HR Manager: {})", user.getCompany(), user.getUsername());
+            log.info("Company creation event sent for: {} (HR Manager: {})", user.getCompanyNo(), user.getUsername());
         } catch (Exception e) {
             log.error("Error creating company creation event for user {}: {}", user.getId(), e.getMessage());
         }

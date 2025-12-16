@@ -34,9 +34,25 @@ public class InternalApiController {
             log.warn("Failed to get notification settings for email {}: {}", email, e.getMessage());
             // Return default settings (all enabled) on error
             return ResponseEntity.ok(NotificationSettingsResponse.builder()
-                    .emailEnabled(true)
-                    .pushEnabled(true)
-                    .smsEnabled(false)
+                    .email(NotificationSettingsResponse.EmailNotifications.builder()
+                            .jobAlerts(true)
+                            .applicationUpdates(true)
+                            .messages(true)
+                            .newsletter(false)
+                            .marketingEmails(false)
+                            .securityAlerts(true)
+                            .build())
+                    .push(NotificationSettingsResponse.PushNotifications.builder()
+                            .jobAlerts(true)
+                            .applicationUpdates(true)
+                            .messages(true)
+                            .reminders(true)
+                            .build())
+                    .sms(NotificationSettingsResponse.SmsNotifications.builder()
+                            .jobAlerts(false)
+                            .securityAlerts(true)
+                            .importantUpdates(true)
+                            .build())
                     .build());
         }
     }

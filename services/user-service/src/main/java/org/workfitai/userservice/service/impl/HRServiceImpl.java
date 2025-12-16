@@ -125,6 +125,7 @@ public class HRServiceImpl implements HRService {
 
     var hrProfile = userData.getHrProfile();
     UUID companyId = null;
+    String companyNo = null; // Declare companyNo at the beginning
 
     // Idempotent check: Try to find existing HR by email or username
     HREntity existingHR = hrRepository.findByEmail(userData.getEmail())
@@ -187,7 +188,9 @@ public class HRServiceImpl implements HRService {
       }
 
       companyId = hrManager.getCompanyId();
-      log.info("HR will be assigned to company {} (from HR Manager: {})", companyId, hrManagerEmail);
+      companyNo = hrManager.getCompanyNo(); // Inherit companyNo from HR Manager
+      log.info("HR will be assigned to company {} (companyNo: {}) from HR Manager: {}", companyId, companyNo,
+          hrManagerEmail);
     }
 
     // For HR_MANAGER role: create new company
@@ -198,7 +201,9 @@ public class HRServiceImpl implements HRService {
       // Company will be created and ID assigned after save
       // For now, generate a new UUID for the company
       companyId = UUID.randomUUID();
-      log.info("Creating new company with ID {} for HR Manager: {}", companyId, userData.getEmail());
+      companyNo = userData.getCompany().getCompanyNo(); // Get companyNo from registration data
+      log.info("Creating new company with ID {} and companyNo {} for HR Manager: {}", companyId, companyNo,
+          userData.getEmail());
     }
 
     if (role == EUserRole.HR_MANAGER
@@ -217,6 +222,7 @@ public class HRServiceImpl implements HRService {
             userData.getStatus() != null ? EUserStatus.fromDisplayName(userData.getStatus()) : EUserStatus.PENDING)
         .department(hrProfile.getDepartment())
         .companyId(companyId)
+        .companyNo(companyNo)
         .address(hrProfile.getAddress())
         .build();
 
@@ -357,6 +363,7 @@ public class HRServiceImpl implements HRService {
         .eventType("COMPANY_UPSERT")
         .company(CompanySyncEvent.CompanyData.builder()
             .companyId(companyData.getCompanyId())
+            .companyNo(companyData.getCompanyNo()) // Add companyNo field
             .name(companyData.getName())
             .logoUrl(companyData.getLogoUrl())
             .websiteUrl(companyData.getWebsiteUrl())

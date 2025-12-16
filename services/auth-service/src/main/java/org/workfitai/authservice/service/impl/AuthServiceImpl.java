@@ -104,8 +104,8 @@ public class AuthServiceImpl implements iAuthService {
             }
         }
         if (role == UserRole.HR_MANAGER && req.getHrProfile() != null && req.getCompany() != null) {
-            // Check if HR_MANAGER already exists for this company
-            validateHRManagerUniqueness(req.getCompany().getName());
+            // Check if HR_MANAGER already exists for this company (by companyNo)
+            validateHRManagerUniqueness(req.getCompany().getCompanyNo());
         }
 
         // Check if email already exists in auth-service
@@ -160,13 +160,20 @@ public class AuthServiceImpl implements iAuthService {
 
         otpService.savePendingRegistration(req.getEmail(), pendingData);
 
+        // Generate companyId UUID for HR_MANAGER
+        String companyId = (role == UserRole.HR_MANAGER && req.getCompany() != null)
+                ? UUID.randomUUID().toString()
+                : null;
+
         var user = User.builder()
                 .username(username)
                 .email(req.getEmail())
                 .password(encodedPassword)
                 .roles(Set.of(role.getRoleName()))
                 .status(UserStatus.PENDING)
-                .company(role == UserRole.HR_MANAGER && req.getCompany() != null ? req.getCompany().getName() : null)
+                .companyId(companyId)
+                .companyNo(role == UserRole.HR_MANAGER && req.getCompany() != null ? req.getCompany().getCompanyNo()
+                        : null)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
@@ -554,7 +561,13 @@ public class AuthServiceImpl implements iAuthService {
             return null;
         }
 
+        // Generate UUID for company (will be used in user-service and sent to
+        // job-service)
+        String companyId = UUID.randomUUID().toString();
+
         return UserRegistrationEvent.CompanyData.builder()
+                .companyId(companyId)
+                .companyNo(pendingData.getCompany().getCompanyNo())
                 .name(pendingData.getCompany().getName())
                 .logoUrl(pendingData.getCompany().getLogoUrl())
                 .websiteUrl(pendingData.getCompany().getWebsiteUrl())
@@ -620,14 +633,21 @@ public class AuthServiceImpl implements iAuthService {
 
     private User createUserFromPending(PendingRegistration pendingData) {
         UserRole role = pendingData.getRole() == null ? UserRole.CANDIDATE : pendingData.getRole();
+
+        // Generate companyId UUID for HR_MANAGER
+        String companyId = (role == UserRole.HR_MANAGER && pendingData.getCompany() != null)
+                ? UUID.randomUUID().toString()
+                : null;
+
         User user = User.builder()
                 .username(pendingData.getUsername())
                 .email(pendingData.getEmail())
                 .password(pendingData.getPasswordHash())
                 .roles(Set.of(role.getRoleName()))
                 .status(UserStatus.PENDING)
-                .company(role == UserRole.HR_MANAGER && pendingData.getCompany() != null
-                        ? pendingData.getCompany().getName()
+                .companyId(companyId)
+                .companyNo(role == UserRole.HR_MANAGER && pendingData.getCompany() != null
+                        ? pendingData.getCompany().getCompanyNo()
                         : null)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -635,16 +655,16 @@ public class AuthServiceImpl implements iAuthService {
         return users.save(user);
     }
 
-    private void validateHRManagerUniqueness(String companyName) {
-        // Check if there's already an HR_MANAGER with the same company in our
+    private void validateHRManagerUniqueness(String companyNo) {
+        // Check if there's already an HR_MANAGER with the same companyNo in our
         // auth-service database
-        List<User> existingHRManagers = users.findByRolesContainingAndCompany("HR_MANAGER", companyName);
+        List<User> existingHRManagers = users.findByRolesContainingAndCompanyNo("HR_MANAGER", companyNo);
         if (!existingHRManagers.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "A HR Manager already exists for company: " + companyName);
+                    "A HR Manager already exists for company with tax ID: " + companyNo);
         }
 
-        log.info("HR_MANAGER uniqueness validation passed for company: {}", companyName);
+        log.info("HR_MANAGER uniqueness validation passed for companyNo: {}", companyNo);
         // TODO: In the future, also call job-service to validate company existence and
         // HR_MANAGER uniqueness
     }

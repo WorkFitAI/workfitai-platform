@@ -85,6 +85,9 @@ public class UserRegistrationEvent {
         @JsonProperty("companyId")
         private String companyId;
 
+        @JsonProperty("companyNo")
+        private String companyNo; // Tax ID (Mã số thuế)
+
         @JsonProperty("name")
         private String name;
 

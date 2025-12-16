@@ -34,6 +34,10 @@ public class CompanySyncEvent {
     public static class CompanyData {
         @JsonProperty("companyId")
         private String companyId;
+
+        @JsonProperty("companyNo")
+        private String companyNo; // Tax ID (Mã số thuế) - primary key
+
         @JsonProperty("name")
         private String name;
         @JsonProperty("logoUrl")

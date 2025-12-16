@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.workfitai.userservice.dto.response.CandidateResponse;
 import org.workfitai.userservice.dto.response.HRResponse;
-import org.workfitai.userservice.exception.ForbiddenException;
 import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.repository.UserRepository;
 
@@ -98,10 +97,7 @@ public class PrivacyAspect {
             // Hide all sensitive data
             candidate.setPhoneNumber(null);
             candidate.setEmail(null);
-            candidate.setAddress(null);
-            candidate.setDateOfBirth(null);
-            candidate.setGender(null);
-            candidate.setTotalExperience(null);
+            // Note: Address, DOB, Gender not in CandidateResponse
             log.debug("Applied PRIVATE privacy filter for user: {}", candidate.getUsername());
 
         } else if ("CONNECTIONS_ONLY".equals(profileVisibility)) {
@@ -109,7 +105,6 @@ public class PrivacyAspect {
             // For now, hide sensitive data
             candidate.setPhoneNumber(null);
             candidate.setEmail(null);
-            candidate.setAddress(null);
             log.debug("Applied CONNECTIONS_ONLY privacy filter for user: {}", candidate.getUsername());
         }
         // PUBLIC - no filtering
@@ -139,7 +134,6 @@ public class PrivacyAspect {
         if ("PRIVATE".equals(profileVisibility)) {
             hr.setPhoneNumber(null);
             hr.setEmail(null);
-            hr.setAddress(null);
             log.debug("Applied PRIVATE privacy filter for HR user: {}", hr.getUsername());
 
         } else if ("CONNECTIONS_ONLY".equals(profileVisibility)) {

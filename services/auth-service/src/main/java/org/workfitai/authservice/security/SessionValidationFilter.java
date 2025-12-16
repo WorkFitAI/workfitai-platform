@@ -39,6 +39,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
             "/register",
             "/refresh",
             "/verify-otp",
+            "/verify-2fa-login", // Allow 2FA login verification
             "/change-password", // Allow password change even if sessions will be deleted
             "/reset-password", // Allow password reset (uses token, not session)
             "/forgot-password", // Public endpoint

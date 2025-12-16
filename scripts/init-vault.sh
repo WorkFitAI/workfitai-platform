@@ -134,8 +134,7 @@ create_service_secrets "notification-service" '{
     "spring.mail.username": "'"${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}"'",
     "spring.mail.password": "'"${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}"'",
     "app.mail.from": "'"${MAIL_FROM:-noreply@workfitai.com}"'",
-    "app.mail.from-name": "'"${MAIL_FROM_NAME:-WorkFitAI}"'",
-    "service.user.url": "http://user-service:9081"
+    "app.mail.from-name": "'"${MAIL_FROM_NAME:-WorkFitAI}"'"
   }
 }'
 

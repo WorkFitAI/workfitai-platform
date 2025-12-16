@@ -45,7 +45,8 @@ public class AdminUserDataInitializer implements ApplicationRunner {
                 passwordEncoder.encode("admin123"),
                 Set.of("ADMIN"),
                 UserStatus.ACTIVE,
-                null);
+                null, // companyId (null for ADMIN)
+                null); // companyNo (null for ADMIN)
 
         // 2) Create HR_MANAGER user (password: hrmanager123)
         createUserIfNotExists(
@@ -55,7 +56,8 @@ public class AdminUserDataInitializer implements ApplicationRunner {
                 passwordEncoder.encode("hrmanager123"),
                 Set.of("HR_MANAGER"),
                 UserStatus.ACTIVE,
-                "TechCorp Solutions");
+                "550e8400-e29b-41d4-a716-446655440001", // companyId UUID
+                "0123456789"); // companyNo (tax ID)
 
         // 3) Create HR user (password: hr123)
         createUserIfNotExists(
@@ -65,14 +67,15 @@ public class AdminUserDataInitializer implements ApplicationRunner {
                 passwordEncoder.encode("hr123"),
                 Set.of("HR"),
                 UserStatus.ACTIVE,
-                "TechCorp Solutions");
+                "550e8400-e29b-41d4-a716-446655440001", // companyId UUID
+                "0123456789"); // companyNo (tax ID)
 
         log.info("[BOOTSTRAP] Admin/HR user seed complete");
     }
 
     private void createUserIfNotExists(String id, String username, String email,
             String password, Set<String> roles,
-            UserStatus status, String company) {
+            UserStatus status, String companyId, String companyNo) {
         // Check by email (primary identifier for cross-service sync)
         if (userRepository.findByEmail(email).isEmpty()) {
             User user = User.builder()
@@ -82,7 +85,8 @@ public class AdminUserDataInitializer implements ApplicationRunner {
                     .password(password)
                     .roles(roles)
                     .status(status)
-                    .company(company)
+                    .companyId(companyId)
+                    .companyNo(companyNo)
                     .build();
 
             userRepository.save(user);
