@@ -1,7 +1,9 @@
 package org.workfitai.applicationservice.service.impl;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +13,9 @@ import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
+import org.workfitai.applicationservice.dto.response.NoteResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
+import org.workfitai.applicationservice.dto.response.StatusChangeResponse;
 import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
@@ -48,7 +52,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     public ApplicationResponse getApplicationById(String id) {
         log.debug(Messages.Log.FETCHING_APPLICATION, id);
 
-        Application application = applicationRepository.findById(id)
+        Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
         return applicationMapper.toResponse(application);
@@ -58,7 +62,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     public ResultPaginationDTO<ApplicationResponse> getMyApplications(String username, Pageable pageable) {
         log.debug(Messages.Log.FETCHING_USER_APPLICATIONS, username);
 
-        Page<Application> page = applicationRepository.findByUsername(username, pageable);
+        Page<Application> page = applicationRepository.findByUsernameAndDeletedAtIsNull(username, pageable);
         return buildPaginatedResponse(page);
     }
 
@@ -70,7 +74,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
         log.debug("Fetching applications for user {} with status {}", username, status);
 
-        Page<Application> page = applicationRepository.findByUsernameAndStatus(username, status, pageable);
+        Page<Application> page = applicationRepository.findByUsernameAndStatusAndDeletedAtIsNull(username, status, pageable);
         return buildPaginatedResponse(page);
     }
 
@@ -78,7 +82,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     public ResultPaginationDTO<ApplicationResponse> getApplicationsByJob(String jobId, Pageable pageable) {
         log.debug("Fetching applications for job: {}", jobId);
 
-        Page<Application> page = applicationRepository.findByJobId(jobId, pageable);
+        Page<Application> page = applicationRepository.findByJobIdAndDeletedAtIsNull(jobId, pageable);
         return buildPaginatedResponse(page);
     }
 
@@ -90,13 +94,13 @@ public class ApplicationServiceImpl implements IApplicationService {
 
         log.debug("Fetching applications for job {} with status {}", jobId, status);
 
-        Page<Application> page = applicationRepository.findByJobIdAndStatus(jobId, status, pageable);
+        Page<Application> page = applicationRepository.findByJobIdAndStatusAndDeletedAtIsNull(jobId, status, pageable);
         return buildPaginatedResponse(page);
     }
 
     @Override
     public boolean hasUserAppliedToJob(String username, String jobId) {
-        return applicationRepository.existsByUsernameAndJobId(username, jobId);
+        return applicationRepository.findByUsernameAndJobIdAndDeletedAtIsNull(username, jobId).isPresent();
     }
 
     @Override
@@ -104,13 +108,23 @@ public class ApplicationServiceImpl implements IApplicationService {
     public ApplicationResponse updateStatus(String id, ApplicationStatus newStatus, String updatedBy) {
         log.info(Messages.Log.UPDATING_STATUS, id, newStatus);
 
-        Application application = applicationRepository.findById(id)
+        Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
         ApplicationStatus previousStatus = application.getStatus();
         statusTransitionValidator.validateTransition(previousStatus, newStatus);
 
         application.setStatus(newStatus);
+
+        // Add status change to history
+        Application.StatusChange statusChange = Application.StatusChange.builder()
+                .previousStatus(previousStatus)
+                .newStatus(newStatus)
+                .changedBy(updatedBy)
+                .changedAt(Instant.now())
+                .build();
+        application.getStatusHistory().add(statusChange);
+
         Application updated = applicationRepository.save(application);
 
         publishStatusChangedEvent(updated, previousStatus, updatedBy);
@@ -124,7 +138,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     public void withdrawApplication(String id, String username) {
         log.info(Messages.Log.WITHDRAWING_APPLICATION, username, id);
 
-        Application application = applicationRepository.findById(id)
+        Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
         if (!application.getUsername().equals(username)) {
@@ -132,8 +146,24 @@ public class ApplicationServiceImpl implements IApplicationService {
         }
 
         String jobId = application.getJobId();
+        ApplicationStatus previousStatus = application.getStatus();
 
-        applicationRepository.delete(application);
+        // Soft delete: set timestamps instead of hard delete
+        application.setDeletedAt(Instant.now());
+        application.setDeletedBy(username);
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+
+        // Add status change to history
+        Application.StatusChange statusChange = Application.StatusChange.builder()
+                .previousStatus(previousStatus)
+                .newStatus(ApplicationStatus.WITHDRAWN)
+                .changedBy(username)
+                .changedAt(Instant.now())
+                .reason("Application withdrawn by candidate")
+                .build();
+        application.getStatusHistory().add(statusChange);
+
+        applicationRepository.save(application);
 
         publishApplicationWithdrawnEvent(id, username, jobId);
 
@@ -142,12 +172,71 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     public long countByUser(String username) {
-        return applicationRepository.countByUsername(username);
+        return applicationRepository.countByUsernameAndDeletedAtIsNull(username);
     }
 
     @Override
     public long countByJob(String jobId) {
-        return applicationRepository.countByJobId(jobId);
+        return applicationRepository.countByJobIdAndDeletedAtIsNull(jobId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StatusChangeResponse> getStatusHistory(String id, String username) {
+        log.debug("Fetching status history for application: {}", id);
+
+        Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
+
+        // Verify user can view this application (owner or HR/admin)
+        if (!application.getUsername().equals(username)) {
+            // For now, only owner can view. HR/admin check can be added later
+            throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
+        }
+
+        return application.getStatusHistory().stream()
+                .map(this::mapToStatusChangeResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NoteResponse> getPublicNotes(String id, String username) {
+        log.debug("Fetching public notes for application: {}", id);
+
+        Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
+
+        // Verify user can view this application (owner or HR/admin)
+        if (!application.getUsername().equals(username)) {
+            throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
+        }
+
+        // Filter only candidate-visible notes
+        return application.getNotes().stream()
+                .filter(Application.Note::isCandidateVisible)
+                .map(this::mapToNoteResponse)
+                .collect(Collectors.toList());
+    }
+
+    private StatusChangeResponse mapToStatusChangeResponse(Application.StatusChange statusChange) {
+        return StatusChangeResponse.builder()
+                .previousStatus(statusChange.getPreviousStatus())
+                .newStatus(statusChange.getNewStatus())
+                .changedBy(statusChange.getChangedBy())
+                .changedAt(statusChange.getChangedAt())
+                .reason(statusChange.getReason())
+                .build();
+    }
+
+    private NoteResponse mapToNoteResponse(Application.Note note) {
+        return NoteResponse.builder()
+                .id(note.getId())
+                .author(note.getAuthor())
+                .content(note.getContent())
+                .createdAt(note.getCreatedAt())
+                .updatedAt(note.getUpdatedAt())
+                .build();
     }
 
     private void publishStatusChangedEvent(Application application, ApplicationStatus previousStatus,

@@ -80,13 +80,14 @@ public interface UserServiceClient {
 
     /**
      * DTO for user information from user-service.
-     * Minimal fields needed for notifications.
+     * Minimal fields needed for notifications and company validation.
      */
     record UserInfo(
             String userId,
             String username,
             String fullName,
             String email,
-            String phoneNumber) {
+            String phoneNumber,
+            String companyId) {
     }
 }

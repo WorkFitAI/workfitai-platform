@@ -467,8 +467,8 @@ public class AuthServiceImpl implements iAuthService {
         String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
         Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
-
         refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
+
         return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 

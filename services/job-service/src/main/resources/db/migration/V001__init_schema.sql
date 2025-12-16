@@ -59,7 +59,8 @@ CREATE TABLE jobs
 
     featured            BOOLEAN        NOT NULL DEFAULT FALSE,
     views               BIGINT         NOT NULL DEFAULT 0,
-    banner_url          VARCHAR(500)
+    banner_url          VARCHAR(500),
+
     company_id          VARCHAR(255)   NOT NULL REFERENCES companies (company_no) ON DELETE CASCADE,
 
     created_by          VARCHAR(50),
@@ -76,24 +77,26 @@ CREATE TABLE job_skill
     PRIMARY KEY (job_id, skill_id)
 );
 
--- Create subscribers table
-CREATE TABLE subscribers
+-- Create report table
+CREATE TABLE report
 (
-    subscriber_id      BIGSERIAL PRIMARY KEY,
-    email              VARCHAR(255) NOT NULL,
-    name               VARCHAR(255) NOT NULL,
+    report_id          UUID PRIMARY KEY,
+    report_content     TEXT,
+    status             VARCHAR(50) NOT NULL,
+
+    job_id             UUID        NOT NULL REFERENCES jobs (job_id) ON DELETE CASCADE,
+
     created_by         VARCHAR(50),
     created_date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_by   VARCHAR(50),
     last_modified_date TIMESTAMP
 );
 
--- Create subscriber_skill junction table
-CREATE TABLE subscriber_skill
+-- Create report_images table (ElementCollection)
+CREATE TABLE report_images
 (
-    subscriber_id BIGINT NOT NULL REFERENCES subscribers (subscriber_id) ON DELETE CASCADE,
-    skill_id      UUID   NOT NULL REFERENCES skills (skill_id) ON DELETE CASCADE,
-    PRIMARY KEY (subscriber_id, skill_id)
+    report_id UUID NOT NULL REFERENCES report (report_id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL
 );
 
 -- Indexes
@@ -102,5 +105,3 @@ CREATE INDEX idx_jobs_status ON jobs (status);
 CREATE INDEX idx_jobs_expires ON jobs (expires_at);
 CREATE INDEX idx_jobs_featured ON jobs (featured);
 CREATE INDEX idx_jobs_views ON jobs (views);
-
-CREATE INDEX idx_subscribers_email ON subscribers (email);

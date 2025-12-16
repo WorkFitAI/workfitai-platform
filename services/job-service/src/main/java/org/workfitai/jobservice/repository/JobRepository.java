@@ -54,4 +54,6 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
                 ORDER BY j.views DESC, j.totalApplications DESC
             """)
     Page<Job> findFeaturedJobs(Pageable pageable);
+
+    Optional<Job> findByIdAndCreatedBy(UUID id, String createdBy);
 }

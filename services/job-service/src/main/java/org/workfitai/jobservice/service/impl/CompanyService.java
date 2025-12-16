@@ -7,15 +7,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.Company;
-import org.workfitai.jobservice.model.dto.request.ReqCreateCompanyDTO;
-import org.workfitai.jobservice.model.dto.request.ReqUpdateCompanyDTO;
-import org.workfitai.jobservice.model.dto.response.ResCompanyDTO;
-import org.workfitai.jobservice.model.dto.response.ResUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.request.Company.ReqCreateCompanyDTO;
+import org.workfitai.jobservice.model.dto.request.Company.ReqUpdateCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.Company.ResCompanyDTO;
+import org.workfitai.jobservice.model.dto.response.Company.ResUpdateCompanyDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.mapper.CompanyMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iCompanyService;
+import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
 
@@ -37,21 +38,7 @@ public class CompanyService implements iCompanyService {
     @Override
     public ResultPaginationDTO fetchAll(Specification<Company> spec, Pageable pageable) {
         Page<Company> pageCompany = companyRepository.findAll(spec, pageable);
-
-        Page<ResCompanyDTO> pageCompanyDTO = pageCompany.map(companyMapper::toResDTO);
-
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(pageCompany.getTotalPages());
-        mt.setTotal(pageCompany.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pageCompanyDTO.getContent());
-
-        return rs;
+        return PaginationUtils.toResultPaginationDTO(pageCompany, companyMapper::toResDTO);
     }
 
     @Override

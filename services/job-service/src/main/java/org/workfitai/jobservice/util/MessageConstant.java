@@ -11,6 +11,7 @@ public class MessageConstant {
     public static final String JOB_DELETED_SUCCESSFULLY = "Job deleted successfully";
     public static final String JOB_NOT_FOUND = "Job not found";
     public static final String JOB_STATUS_CONFLICT = "Job status conflict";
+    public static final String JOB_DELETE_CONFLICT = "Cannot delete a PUBLISHED job";
 
     public static final String COMPANY_CREATED_SUCCESSFULLY = "Company created successfully";
     public static final String COMPANY_DETAIL_FETCHED_SUCCESSFULLY = "Company fetched successfully";
@@ -25,4 +26,10 @@ public class MessageConstant {
     public static final String SKILL_UPDATED_SUCCESSFULLY = "Skill updated successfully";
     public static final String SKILL_DELETED_SUCCESSFULLY = "Skill deleted successfully";
     public static final String SKILL_NOT_FOUND = "Skill not found";
+
+    public static final String REPORT_CREATED_SUCCESSFULLY = "Reports created successfully";
+    public static final String REPORT_ALL_FETCHED_SUCCESSFULLY = "Reports fetched successfully";
+    public static final String REPORT_UPDATE_STATS_SUCCESSFULLY = "Changed successfully status of all reports for requested job";
+    public static final String REPORT_NOT_FOUND = "Reports not found";
+    public static final String REPORT_CREATE_CONFLICT = "You've already reported.";
 }
