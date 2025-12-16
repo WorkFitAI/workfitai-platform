@@ -459,9 +459,10 @@ public class AuthServiceImpl implements iAuthService {
         String newJti = jwt.newJti();
         String newRefresh = jwt.generateRefreshTokenWithJti(ud, newJti);
 
-        refreshStore.saveJti(userId, dev, newJti); // Redis: Store new refresh token JTI (overwrites + resets TTL)
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
 
-        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs());
+        refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles);
     }
 
     @Override
