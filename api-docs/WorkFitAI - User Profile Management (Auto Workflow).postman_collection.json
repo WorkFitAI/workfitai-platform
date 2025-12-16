@@ -1241,7 +1241,6 @@
 					},
 					"response": []
 				},
-				,
 				{
 					"key": "hrManagerEmail",
 					"value": "hrmanager_test{{$randomInt}}@company.test",
@@ -1316,7 +1315,8 @@
 					"key": "backupCodes",
 					"value": "",
 					"type": "string"
-				}	{
+				},
+				{
 					"name": "3. Admin - Approve HR Manager",
 					"event": [
 						{
