@@ -21,6 +21,7 @@ public class PendingRegistration {
     private UserRole role;
     private HRProfileRequest hrProfile;
     private CompanyRegisterRequest company;
+    private String companyId; // UUID generated for HR_MANAGER company
     @Builder.Default
     private Instant createdAt = Instant.now();
 }

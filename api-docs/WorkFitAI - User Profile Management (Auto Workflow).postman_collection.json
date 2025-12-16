@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "1207eaf2-bb63-46ec-a08a-09ef3e0d7e5b",
-		"name": "WorkFitAI - User Profile Management (Auto Workflow)",
+		"_postman_id": "490c4479-379f-4291-8e5a-0914d1d69a3f",
+		"name": "WorkFitAI - User Profile Management (Auto Workflow) Copy",
 		"description": "Complete workflow for testing User Profile, HR Management, Admin and 2FA endpoints through API Gateway.\n\n**How to use:**\n1. Import this collection\n2. Click 'Run Collection' button\n3. All tests will run automatically in sequence\n4. Check test results\n\n**Workflows:**\n\n**A. CANDIDATE Profile Management:**\n1. Register new candidate\n2. Verify OTP (auto-activated)\n3. Login (get JWT token)\n4. Upload avatar to Cloudinary\n5. Manage notification/privacy settings\n6. Change password, manage sessions\n7. Enable/Disable 2FA\n\n**B. HR MANAGER Registration:**\n1. Register HR_MANAGER with company data (companyNo, name, address)\n2. Verify OTP\n3. Status: WAIT_APPROVED (needs Admin approval)\n4. Admin approves HR_MANAGER\n5. Status: ACTIVE, company synced to job-service\n6. Login: JWT contains companyId claim\n\n**C. HR Registration:**\n1. Register HR with hrManagerEmail\n2. System finds HR Manager, inherits companyId + companyNo\n3. Verify OTP\n4. Status: WAIT_APPROVED (needs HR_MANAGER approval)\n5. HR_MANAGER approves HR\n6. Status: ACTIVE\n7. Login: JWT contains same companyId as manager\n\n**D. 2FA Enhanced Workflow:**\n1. Enable 2FA (EMAIL/SMS/TOTP methods)\n2. Receive backup codes\n3. Login requires 2FA code\n4. Can use backup code if needed\n5. Disable 2FA with password + code\n\n**API Gateway Base URL:** http://localhost:9085",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39562729",
-		"_collection_link": "https://workfitai.postman.co/workspace/My-Workspace~b17b3b12-1188-4343-8c09-ffced4821f8f/collection/39562729-1207eaf2-bb63-46ec-a08a-09ef3e0d7e5b?action=share&source=collection_link&creator=39562729"
+		"_collection_link": "https://workfitai.postman.co/workspace/My-Workspace~b17b3b12-1188-4343-8c09-ffced4821f8f/collection/39562729-490c4479-379f-4291-8e5a-0914d1d69a3f?action=share&source=collection_link&creator=39562729"
 	},
 	"item": [
 		{
@@ -435,7 +435,7 @@
 									"key": "file",
 									"description": "Upload an actual image file here (JPG/PNG, max 5MB)",
 									"type": "file",
-									"src": "/Users/killig/ThanhDi/MyProfile/3115.JPG"
+									"src": "/Users/killig/ThanhDi/MyProfile/1777.JPG"
 								}
 							]
 						},
@@ -1158,7 +1158,9 @@
 									"console.log(\"📧 Check logs for OTP code\");",
 									"console.log(\"⏳ Status: PENDING → (after OTP) → WAIT_APPROVED\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1175,7 +1177,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"fullName\": \"HR Manager Test\",\n  \"phoneNumber\": \"+84987654321\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{companyNo}}\",\n    \"name\": \"Test Company Ltd\",\n    \"address\": \"456 Business Avenue, District 1\",\n    \"websiteUrl\": \"https://testcompany.com\",\n    \"description\": \"A test company for HR Manager registration\",\n    \"size\": \"100-500\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"fullName\": \"HR Manager Test\",\n  \"phoneNumber\": \"0987654321\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{companyNo}}\",\n    \"name\": \"Test Company Ltd\",\n    \"address\": \"456 Business Avenue, District 1\",\n    \"websiteUrl\": \"https://testcompany.com\",\n    \"description\": \"A test company for HR Manager registration\",\n    \"size\": \"100-500\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/register",
@@ -1259,7 +1261,9 @@
 									"console.log(\"🏢 Company synced to job-service\");",
 									"console.log(\"📧 Approval granted email sent\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1277,17 +1281,16 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/user/api/v1/admin/approve-hr-manager/{{hrManagerUserId}}",
+							"raw": "{{baseUrl}}/user/hr/username/{{hrManagerUsername}}/approve-manager",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"user",
-								"api",
-								"v1",
-								"admin",
-								"approve-hr-manager",
-								"{{hrManagerUserId}}"
+								"hr",
+								"username",
+								"{{hrManagerUsername}}",
+								"approve-manager"
 							]
 						},
 						"description": "**Admin Approves HR Manager**\n\n**Requirements:**\n- Role: `ADMIN`\n- HR Manager must be in `WAIT_APPROVED` status\n\n**What Happens:**\n1. User-service updates status: `WAIT_APPROVED` → `ACTIVE`\n2. Publishes Kafka event → Auth-service syncs status\n3. Publishes CompanySync event → Job-service creates Company\n4. Job-service Company entity:\n   ```sql\n   INSERT INTO companies (company_no, name, address, ...)\n   VALUES ('0123456789', 'Test Company', ...)\n   ```\n5. Notification sent: \"Approval granted\" email with login link\n\n**Email Template Used:** `approval-granted.html`\n- Shows role: HR_MANAGER\n- Login URL provided\n- Includes companyId in JWT claim\n\n**To Test:**\n1. Login as Admin first (see Admin Login endpoint)\n2. Get HR Manager userId from registration response\n3. Approve with this endpoint"
@@ -1386,7 +1389,9 @@
 									"console.log(\"🔗 Will inherit companyId + companyNo from manager\");",
 									"console.log(\"📧 Check logs for OTP code\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1403,7 +1408,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"fullName\": \"HR Staff Test\",\n  \"phoneNumber\": \"+84976543210\",\n  \"role\": \"HR\",\n  \"hrProfile\": {\n    \"department\": \"Recruitment\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"fullName\": \"HR Staff Test\",\n  \"phoneNumber\": \"0976543210\",\n  \"role\": \"HR\",\n  \"hrProfile\": {\n    \"department\": \"Recruitment\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/register",
@@ -1436,7 +1441,9 @@
 									"console.log(\"📋 Status: WAIT_APPROVED (needs HR_MANAGER approval)\");",
 									"console.log(\"🔗 CompanyId inherited from HR Manager\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1486,7 +1493,9 @@
 									"console.log(\"📋 Status: ACTIVE\");",
 									"console.log(\"📧 Approval granted email sent\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1504,17 +1513,16 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/user/api/v1/admin/approve-hr/{{hrUserId}}",
+							"raw": "{{baseUrl}}/user/hr/username/{{hrUsername}}/approve",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"user",
-								"api",
-								"v1",
-								"admin",
-								"approve-hr",
-								"{{hrUserId}}"
+								"hr",
+								"username",
+								"{{hrUsername}}",
+								"approve"
 							]
 						},
 						"description": "**HR Manager Approves HR**\n\n**Requirements:**\n- Role: `HR_MANAGER`\n- HR must be in `WAIT_APPROVED` status\n- HR must belong to same company (companyId match)\n\n**What Happens:**\n1. User-service validates HR Manager owns this HR:\n   ```java\n   HREntity hrManager = getCurrentHRManager();\n   HREntity hr = hrRepository.findById(userId);\n   \n   if (!hr.getCompanyId().equals(hrManager.getCompanyId())) {\n       throw new UnauthorizedException();\n   }\n   ```\n2. Updates status: `WAIT_APPROVED` → `ACTIVE`\n3. Kafka event → Auth-service syncs status\n4. Notification: \"Approval granted\" email\n\n**Email Template:** `approval-granted.html`\n- Shows role: HR\n- Login URL provided\n\n**Security:**\n- HR_MANAGER can only approve HRs in their company\n- Cannot approve HRs from other companies"
@@ -1658,7 +1666,9 @@
 									"    }",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1676,14 +1686,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/user/api/v1/admin/pending-hr-managers",
+							"raw": "{{baseUrl}}/user/admin/pending-hr-managers",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"user",
-								"api",
-								"v1",
 								"admin",
 								"pending-hr-managers"
 							]

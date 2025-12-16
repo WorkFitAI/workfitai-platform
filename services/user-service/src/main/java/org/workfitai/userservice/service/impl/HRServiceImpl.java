@@ -193,16 +193,22 @@ public class HRServiceImpl implements HRService {
           hrManagerEmail);
     }
 
-    // For HR_MANAGER role: create new company
+    // For HR_MANAGER role: use company ID from auth-service
     if (role == EUserRole.HR_MANAGER) {
       if (userData.getCompany() == null) {
         throw new ApiException("Company information is required for HR Manager registration", HttpStatus.BAD_REQUEST);
       }
-      // Company will be created and ID assigned after save
-      // For now, generate a new UUID for the company
-      companyId = UUID.randomUUID();
-      companyNo = userData.getCompany().getCompanyNo(); // Get companyNo from registration data
-      log.info("Creating new company with ID {} and companyNo {} for HR Manager: {}", companyId, companyNo,
+
+      // ✅ CRITICAL: Use companyId from auth-service (single source of truth), DON'T
+      // generate new UUID
+      if (userData.getCompany().getCompanyId() == null || userData.getCompany().getCompanyId().isBlank()) {
+        throw new ApiException("Company ID is missing from registration event - auth-service must provide it",
+            HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      companyId = UUID.fromString(userData.getCompany().getCompanyId());
+      companyNo = userData.getCompany().getCompanyNo();
+      log.info("Using companyId {} and companyNo {} from auth-service for HR Manager: {}", companyId, companyNo,
           userData.getEmail());
     }
 
@@ -344,16 +350,22 @@ public class HRServiceImpl implements HRService {
 
   private void publishCompanySyncOnApproval(HREntity hrManager) {
     log.info("Publishing company sync event for approved HR Manager: {}", hrManager.getEmail());
+    log.info("HR Manager company details - companyId: {}, companyNo: {}",
+        hrManager.getCompanyId(), hrManager.getCompanyNo());
 
     CompanySyncEvent event = CompanySyncEvent.builder()
         .eventId(UUID.randomUUID().toString())
         .eventType("COMPANY_UPSERT")
         .company(CompanySyncEvent.CompanyData.builder()
             .companyId(hrManager.getCompanyId().toString())
+            .companyNo(hrManager.getCompanyNo()) // Add companyNo (primary key for job-service)
             .name(hrManager.getFullName() + "'s Company") // Will be overwritten if company data exists
             .address(hrManager.getAddress())
             .build())
         .build();
+
+    log.info("Publishing event with companyId: {}, companyNo: {}",
+        event.getCompany().getCompanyId(), event.getCompany().getCompanyNo());
     companySyncProducer.publish(event);
   }
 

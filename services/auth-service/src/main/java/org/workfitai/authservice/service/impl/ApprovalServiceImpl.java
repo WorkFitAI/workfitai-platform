@@ -87,14 +87,19 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     private void createCompany(User user) {
         try {
-            // Generate a UUID for the company
-            String companyId = UUID.randomUUID().toString();
+            // ✅ FIX: Use companyId from User entity (already saved in MongoDB during
+            // registration)
+            // DO NOT generate new UUID here - must use the same UUID as in MongoDB
+            if (user.getCompanyId() == null) {
+                log.error("User {} has no companyId in MongoDB - cannot create company", user.getId());
+                return;
+            }
 
             CompanyCreationEvent companyEvent = CompanyCreationEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("COMPANY_CREATED")
                     .company(CompanyCreationEvent.CompanyData.builder()
-                            .companyId(companyId)
+                            .companyId(user.getCompanyId()) // Use from MongoDB
                             .name(user.getCompanyNo()) // companyNo is the tax ID
                             .logoUrl(null) // Will be set later by HR_MANAGER
                             .websiteUrl(null) // Will be set later by HR_MANAGER

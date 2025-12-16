@@ -165,6 +165,14 @@ public class AuthServiceImpl implements iAuthService {
                 ? UUID.randomUUID().toString()
                 : null;
 
+        // ✅ IMPORTANT: Update PendingRegistration with companyId after generation
+        // This ensures companyId is available when building CompanyData during OTP
+        // verification
+        if (companyId != null) {
+            pendingData.setCompanyId(companyId);
+            otpService.savePendingRegistration(req.getEmail(), pendingData); // Re-save with companyId
+        }
+
         var user = User.builder()
                 .username(username)
                 .email(req.getEmail())
@@ -193,6 +201,21 @@ public class AuthServiceImpl implements iAuthService {
         // Update user info if they provided new data
         String newPasswordHash = encoder.encode(req.getPassword());
         existingUser.setPassword(newPasswordHash); // User model uses 'password' field
+
+        // ✅ FIX: Update companyId/companyNo if user provides company info (HR_MANAGER
+        // case)
+        // This handles scenario where user registers without complete data, then
+        // resends with company
+        if (role == UserRole.HR_MANAGER && req.getCompany() != null) {
+            // Only generate new companyId if user doesn't have one yet
+            if (existingUser.getCompanyId() == null) {
+                existingUser.setCompanyId(UUID.randomUUID().toString());
+                log.info("Generated companyId {} for existing pending user {}", existingUser.getCompanyId(),
+                        req.getEmail());
+            }
+            existingUser.setCompanyNo(req.getCompany().getCompanyNo());
+        }
+
         existingUser.setUpdatedAt(Instant.now());
         users.save(existingUser);
 
@@ -210,6 +233,7 @@ public class AuthServiceImpl implements iAuthService {
                 .role(role)
                 .hrProfile(req.getHrProfile())
                 .company(req.getCompany())
+                .companyId(existingUser.getCompanyId()) // ✅ Set companyId from User
                 .build();
         otpService.savePendingRegistration(req.getEmail(), pendingData);
 
@@ -537,7 +561,7 @@ public class AuthServiceImpl implements iAuthService {
                         .role(pendingData.getRole().getRoleName())
                         .status(status.getStatusName())
                         .hrProfile(buildHrProfile(pendingData))
-                        .company(buildCompanyData(pendingData))
+                        .company(buildCompanyData(user, pendingData))
                         .build())
                 .build();
 
@@ -556,17 +580,22 @@ public class AuthServiceImpl implements iAuthService {
                 .build();
     }
 
-    private UserRegistrationEvent.CompanyData buildCompanyData(PendingRegistration pendingData) {
+    private UserRegistrationEvent.CompanyData buildCompanyData(User user, PendingRegistration pendingData) {
         if (pendingData.getCompany() == null) {
             return null;
         }
 
-        // Generate UUID for company (will be used in user-service and sent to
-        // job-service)
-        String companyId = UUID.randomUUID().toString();
+        // ✅ FIX: Use companyId from PendingRegistration (preferred) or User entity
+        // (fallback)
+        // PendingRegistration should have companyId set during registration
+        String companyId = pendingData.getCompanyId();
+        if (companyId == null) {
+            companyId = user.getCompanyId(); // Fallback to User if not in PendingRegistration
+            log.warn("companyId not found in PendingRegistration, using from User: {}", companyId);
+        }
 
         return UserRegistrationEvent.CompanyData.builder()
-                .companyId(companyId)
+                .companyId(companyId) // Use from PendingRegistration or User
                 .companyNo(pendingData.getCompany().getCompanyNo())
                 .name(pendingData.getCompany().getName())
                 .logoUrl(pendingData.getCompany().getLogoUrl())
@@ -634,10 +663,20 @@ public class AuthServiceImpl implements iAuthService {
     private User createUserFromPending(PendingRegistration pendingData) {
         UserRole role = pendingData.getRole() == null ? UserRole.CANDIDATE : pendingData.getRole();
 
-        // Generate companyId UUID for HR_MANAGER
-        String companyId = (role == UserRole.HR_MANAGER && pendingData.getCompany() != null)
-                ? UUID.randomUUID().toString()
-                : null;
+        // ✅ FIX: Check if User already exists (resend OTP case) and reuse companyId
+        // DO NOT generate new UUID if user already has one in MongoDB
+        String companyId = null;
+        if (role == UserRole.HR_MANAGER && pendingData.getCompany() != null) {
+            // Try to find existing user to reuse companyId
+            User existingUser = users.findByEmail(pendingData.getEmail()).orElse(null);
+            if (existingUser != null && existingUser.getCompanyId() != null) {
+                companyId = existingUser.getCompanyId(); // Reuse existing
+                log.info("Reusing existing companyId {} for user {}", companyId, pendingData.getEmail());
+            } else {
+                companyId = UUID.randomUUID().toString(); // Generate new only if not exists
+                log.info("Generated new companyId {} for user {}", companyId, pendingData.getEmail());
+            }
+        }
 
         User user = User.builder()
                 .username(pendingData.getUsername())

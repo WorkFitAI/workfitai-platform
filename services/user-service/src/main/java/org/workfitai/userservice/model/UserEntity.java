@@ -69,8 +69,8 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "userStatus", nullable = false)
   private EUserStatus userStatus = EUserStatus.PENDING;
 
-  @Column(name = "last_login", nullable = true)
-  private Instant lastLogin = null;
+  // Note: lastLogin removed - login tracking is handled by auth-service sessions
+  // in MongoDB
 
   // Avatar fields
   @Column(name = "avatar_url")
