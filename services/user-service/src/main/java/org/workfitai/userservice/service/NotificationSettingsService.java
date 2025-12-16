@@ -39,6 +39,26 @@ public class NotificationSettingsService {
         }
     }
 
+    /**
+     * Get notification settings by email (for internal API / notification-service)
+     */
+    public NotificationSettingsResponse getNotificationSettingsByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user == null || user.getNotificationSettings() == null) {
+            log.debug("No notification settings found for email: {}, using defaults", email);
+            return createDefaultSettings();
+        }
+
+        try {
+            return objectMapper.treeToValue(user.getNotificationSettings(), NotificationSettingsResponse.class);
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing notification settings for email: {}", email, e);
+            return createDefaultSettings();
+        }
+    }
+
     @Transactional
     public NotificationSettingsResponse updateNotificationSettings(
             String username,

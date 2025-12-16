@@ -502,6 +502,7 @@ services:
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - AUTH_SERVICE_URL=http://auth-service:9005
+      - USER_SERVICE_URL=http://user-service:9081
       - VAULT_URI=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - SPRING_DATA_MONGODB_URI=mongodb://notif-mongo:27017/notification-db
@@ -511,6 +512,8 @@ services:
       kafka:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+      user-service:
         condition: service_healthy
       consul:
         condition: service_started

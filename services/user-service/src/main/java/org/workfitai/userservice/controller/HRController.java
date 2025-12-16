@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.workfitai.userservice.annotation.CheckPrivacy;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.request.HRCreateRequest;
 import org.workfitai.userservice.dto.request.HRUpdateRequest;
@@ -41,11 +42,13 @@ public class HRController {
         Messages.HR.DELETED, null));
   }
 
+  @CheckPrivacy
   @GetMapping("/{id}")
   public ResponseEntity<ResponseData<HRResponse>> getById(@PathVariable UUID id) {
     return ResponseEntity.ok(ResponseData.success(hrService.getById(id)));
   }
 
+  @CheckPrivacy
   @GetMapping
   public ResponseEntity<ResponseData<Page<HRResponse>>> search(
       @RequestParam(required = false) String keyword, Pageable pageable) {

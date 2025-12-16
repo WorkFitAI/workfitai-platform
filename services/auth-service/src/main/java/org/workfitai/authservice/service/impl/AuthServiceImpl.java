@@ -25,19 +25,26 @@ import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.dto.request.LoginRequest;
 import org.workfitai.authservice.dto.request.PendingRegistration;
 import org.workfitai.authservice.dto.request.RegisterRequest;
+import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
+import org.workfitai.authservice.document.TwoFactorAuth;
 import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.NotificationProducer;
 import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.SessionService;
+import org.workfitai.authservice.service.TwoFactorAuthService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
+import org.springframework.data.redis.core.RedisTemplate;
+import java.util.concurrent.TimeUnit;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +65,15 @@ public class AuthServiceImpl implements iAuthService {
     private final NotificationProducer notificationProducer;
     private final UserServiceClient userServiceClient;
     private final SessionService sessionService;
+    private final TwoFactorAuthRepository twoFactorAuthRepository;
+    private final TwoFactorAuthService twoFactorAuthService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
+
+    private static final String TEMP_LOGIN_TOKEN_PREFIX = "temp:login:";
+    private static final long TEMP_TOKEN_EXPIRY_MINUTES = 5;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -200,7 +213,7 @@ public class AuthServiceImpl implements iAuthService {
     }
 
     @Override
-    public IssuedTokens login(LoginRequest req, String deviceId, HttpServletRequest request) {
+    public Object login(LoginRequest req, String deviceId, HttpServletRequest request) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -242,22 +255,161 @@ public class AuthServiceImpl implements iAuthService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
             }
 
-            String access = jwt.generateAccessToken(ud);
-            String jti = jwt.newJti();
-            String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+            // ✅ NEW: Check if 2FA is enabled
+            Optional<TwoFactorAuth> twoFactorAuth = twoFactorAuthRepository.findByUserId(user.getId());
+            if (twoFactorAuth.isPresent() && Boolean.TRUE.equals(twoFactorAuth.get().getEnabled())) {
+                log.info("2FA enabled for user: {}. Initiating 2FA flow", user.getUsername());
+                return initiate2FALogin(user, twoFactorAuth.get(), deviceId);
+            }
 
-            String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
-
-            // MongoDB: Create session with request context for device/IP detection
-            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
-
-            Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
-            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+            // ✅ No 2FA - proceed with normal login
+            return completeLogin(user, ud, deviceId, request);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
         }
+    }
+
+    /**
+     * Initiate 2FA login flow - generate temp token and send code
+     */
+    private Partial2FALoginResponse initiate2FALogin(User user, TwoFactorAuth twoFactorAuth, String deviceId) {
+        // Generate temporary token (valid for 5 minutes)
+        String tempToken = UUID.randomUUID().toString();
+        String redisKey = TEMP_LOGIN_TOKEN_PREFIX + tempToken;
+
+        // Store user info in Redis
+        String userData = String.format("%s:%s:%s", user.getId(), user.getUsername(), deviceId);
+        redisTemplate.opsForValue().set(redisKey, userData, TEMP_TOKEN_EXPIRY_MINUTES, TimeUnit.MINUTES);
+
+        String method = twoFactorAuth.getMethod();
+
+        if ("EMAIL".equals(method)) {
+            // Generate and send 6-digit code via email
+            String code = twoFactorAuthService.generateEmailCode(user.getId());
+            sendEmail2FACode(user, code);
+
+            return Partial2FALoginResponse.builder()
+                    .tempToken(tempToken)
+                    .message("2FA code sent to your email")
+                    .method("EMAIL")
+                    .maskedEmail(maskEmail(user.getEmail()))
+                    .expiresIn(TEMP_TOKEN_EXPIRY_MINUTES * 60) // seconds
+                    .require2FA(true)
+                    .build();
+
+        } else if ("TOTP".equals(method)) {
+            // User needs to enter TOTP code from authenticator app
+            return Partial2FALoginResponse.builder()
+                    .tempToken(tempToken)
+                    .message("Enter the 6-digit code from your authenticator app")
+                    .method("TOTP")
+                    .expiresIn(TEMP_TOKEN_EXPIRY_MINUTES * 60) // seconds
+                    .require2FA(true)
+                    .build();
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid 2FA method");
+    }
+
+    /**
+     * Complete login after 2FA verification
+     */
+    public IssuedTokens verify2FALogin(Verify2FALoginRequest request, HttpServletRequest httpRequest) {
+        // Validate temp token
+        String redisKey = TEMP_LOGIN_TOKEN_PREFIX + request.getTempToken();
+        String userData = redisTemplate.opsForValue().get(redisKey);
+
+        if (userData == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired temporary token");
+        }
+
+        // Parse user data: userId:username:deviceId
+        String[] parts = userData.split(":");
+        if (parts.length != 3) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid token data");
+        }
+
+        String userId = parts[0];
+        String username = parts[1];
+        String deviceId = parts[2];
+
+        // Get user and 2FA settings
+        User user = users.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        TwoFactorAuth twoFactorAuth = twoFactorAuthRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "2FA configuration not found"));
+
+        // Verify 2FA code
+        boolean isValid = twoFactorAuthService.verify2FACode(userId, request.getCode(), twoFactorAuth.getMethod());
+
+        if (!isValid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid 2FA code");
+        }
+
+        // Delete temp token (one-time use)
+        redisTemplate.delete(redisKey);
+
+        // Complete login
+        UserDetails ud = org.springframework.security.core.userdetails.User
+                .withUsername(username)
+                .password(user.getPassword())
+                .authorities(user.getRoles().toArray(new String[0]))
+                .build();
+
+        return completeLogin(user, ud, deviceId, httpRequest);
+    }
+
+    /**
+     * Complete normal login (no 2FA) - generate tokens and create session
+     */
+    private IssuedTokens completeLogin(User user, UserDetails ud, String deviceId, HttpServletRequest request) {
+        String access = jwt.generateAccessToken(ud);
+        String jti = jwt.newJti();
+        String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+
+        String dev = normalizeDevice(deviceId);
+        refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
+
+        // MongoDB: Create session with request context for device/IP detection
+        sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
+
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+    }
+
+    private void sendEmail2FACode(User user, String code) {
+        Map<String, Object> data = Map.of(
+                "fullName", user.getFullName() != null ? user.getFullName() : user.getUsername(),
+                "code", code,
+                "validUntil", "5 minutes");
+
+        NotificationEvent event = NotificationEvent.builder()
+                .recipientEmail(user.getEmail())
+                .templateType("2fa-login-code")
+                .sendEmail(true)
+                .createInAppNotification(false)
+                .metadata(data)
+                .build();
+
+        notificationProducer.send(event);
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts[1];
+
+        if (local.length() <= 2) {
+            return "**@" + domain;
+        }
+
+        return local.substring(0, 2) + "****@" + domain;
     }
 
     @Override
