@@ -177,17 +177,26 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Login successful\", function () {",
+							"pm.test(\"Login response received\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.data).to.have.property(\"accessToken\");",
 							"    ",
-							"    // Save tokens to collection variables",
-							"    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
-							"    pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+							"    // Check if 2FA is required",
+							"    if (jsonData.data.require2FA && jsonData.data.tempToken) {",
+							"        // 2FA enabled - save temp token",
+							"        pm.collectionVariables.set(\"tempToken\", jsonData.data.tempToken);",
+							"        console.log(\"⚠️ 2FA required! TempToken saved, check email for code\");",
+							"        console.log(\"📧 Email: \" + jsonData.data.maskedEmail);",
+							"        console.log(\"⏰ Expires in: \" + jsonData.data.expiresIn + \" seconds\");",
+							"    } else {",
+							"        // Normal login - save tokens directly",
+							"        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+							"        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+							"        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+							"        console.log(\"✅ Step 3: Login successful, JWT token saved\");",
+							"    }",
 							"});",
-							"",
-							"console.log(\"✅ Step 3: Login successful, JWT token saved\");"
+							""
 						],
 						"type": "text/javascript",
 						"packages": {},
@@ -221,6 +230,90 @@
 					]
 				},
 				"description": "Login to get JWT access token"
+			},
+			"response": []
+		},
+		{
+			"name": "4b. Verify 2FA Login (If Enabled)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// This step only runs if user has 2FA enabled",
+							"console.log(\"⚠️ If 2FA is enabled, this step is required:\");",
+							"console.log(\"1. Login will return tempToken instead of access token\");",
+							"console.log(\"2. Check email/SMS for 6-digit code\");",
+							"console.log(\"3. This request will exchange tempToken + code for real tokens\");",
+							"console.log(\"4. Skip this step if 2FA is not enabled\");"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Only run if tempToken exists (2FA was required)",
+							"var tempToken = pm.collectionVariables.get(\"tempToken\");",
+							"",
+							"if (tempToken && tempToken !== \"\") {",
+							"    pm.test(\"2FA verification successful\", function () {",
+							"        pm.response.to.have.status(200);",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+							"        ",
+							"        // Update tokens after 2FA verification",
+							"        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+							"        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+							"        ",
+							"        // Clear temp token",
+							"        pm.collectionVariables.set(\"tempToken\", \"\");",
+							"    });",
+							"    console.log(\"✅ 2FA verification completed, real tokens obtained\");",
+							"} else {",
+							"    console.log(\"⏭️ Skipping 2FA verification (not enabled)\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Device-Id",
+						"value": "postman-test-device",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"tempToken\": \"{{tempToken}}\",\n  \"code\": \"{{twoFactorCode}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/verify-2fa-login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"verify-2fa-login"
+					]
+				},
+				"description": "Complete 2FA verification after login (only if 2FA enabled)\n\n**Flow:**\n1. Login returns tempToken if 2FA enabled\n2. User receives 6-digit code via EMAIL/SMS\n3. Submit tempToken + code\n4. Receive real access/refresh tokens"
 			},
 			"response": []
 		},
@@ -1129,6 +1222,16 @@
 		{
 			"key": "avatarPublicId",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tempToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "twoFactorCode",
+			"value": "123456",
 			"type": "string"
 		},
 		{
