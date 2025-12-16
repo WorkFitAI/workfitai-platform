@@ -52,7 +52,8 @@ import lombok.NoArgsConstructor;
         @CompoundIndex(name = "username_isDraft", def = "{'username': 1, 'isDraft': 1}"),
         @CompoundIndex(name = "company_status", def = "{'companyId': 1, 'status': 1, 'deletedAt': 1}"),
         @CompoundIndex(name = "company_assigned", def = "{'companyId': 1, 'assignedTo': 1, 'deletedAt': 1}"),
-        @CompoundIndex(name = "assigned_deleted", def = "{'assignedTo': 1, 'deletedAt': 1}")
+        @CompoundIndex(name = "assigned_draft_deleted", def = "{'assignedTo': 1, 'isDraft': 1, 'deletedAt': 1}"),
+        @CompoundIndex(name = "assigned_status_draft_deleted", def = "{'assignedTo': 1, 'status': 1, 'isDraft': 1, 'deletedAt': 1}")
 })
 public class Application {
 

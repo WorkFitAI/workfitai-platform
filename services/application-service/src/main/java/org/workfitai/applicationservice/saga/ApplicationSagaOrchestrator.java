@@ -155,11 +155,14 @@ public class ApplicationSagaOrchestrator {
                 .snapshotAt(Instant.now())
                 .build();
 
+        log.debug("Company ID for application: {}", jobInfo.getCompanyId());
+
         // Build application entity
         Application application = Application.builder()
                 .username(context.getUsername())
                 .email(context.getEmail())
                 .jobId(context.getJobId())
+                .companyId(jobInfo.getCompanyId()) // Store companyId for filtering
                 .jobSnapshot(snapshot)
                 .cvFileUrl(fileResult.getFileUrl())
                 .cvFileName(fileResult.getFileName())
@@ -167,6 +170,9 @@ public class ApplicationSagaOrchestrator {
                 .cvFileSize(fileResult.getFileSize())
                 .coverLetter(context.getCoverLetter())
                 .status(ApplicationStatus.APPLIED)
+                .assignedTo(jobInfo.getCreatedBy()) // Auto-assign to job creator (HR)
+                .assignedAt(Instant.now())
+                .assignedBy("SYSTEM") // System auto-assignment
                 .build();
 
         Application saved = applicationRepository.save(application);

@@ -403,19 +403,19 @@ public class ApplicationController {
 
     @GetMapping("/{id}/cv/download")
     @PreAuthorize("hasAuthority('application:review')")
-    @Operation(summary = "Generate pre-signed URL for CV download",
-               description = "Generate a temporary URL (1 hour expiry) for secure CV download")
+    @Operation(summary = "Download CV file directly",
+               description = "Download CV file directly through the application (no pre-signed URL)")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Download URL generated"),
+            @ApiResponse(responseCode = "200", description = "CV file downloaded"),
             @ApiResponse(responseCode = "403", description = "Access denied"),
             @ApiResponse(responseCode = "404", description = "Application not found")
     })
-    public ResponseEntity<RestResponse<PreSignedUrlResponse>> downloadCv(
+    public ResponseEntity<org.springframework.core.io.Resource> downloadCv(
             @PathVariable String id,
             Authentication authentication) {
 
         String username = applicationSecurity.getCurrentUsername(authentication);
-        log.info("Generating CV download URL for application: id={}, user={}", id, username);
+        log.info("Downloading CV for application: id={}, user={}", id, username);
 
         // Fetch application
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
@@ -424,14 +424,25 @@ public class ApplicationController {
         // Extract object key from file URL
         String objectKey = minioPreSignedUrlService.extractObjectKey(application.getCvFileUrl());
 
-        // Generate pre-signed URL
-        PreSignedUrlResponse response = minioPreSignedUrlService.generateDownloadUrl(
-                objectKey,
-                application.getCvFileName(),
-                application.getCvFileSize()
-        );
+        // Download file from MinIO and stream to response
+        try {
+            byte[] fileData = minioPreSignedUrlService.downloadFile(objectKey);
 
-        return ResponseEntity.ok(RestResponse.success(response));
+            org.springframework.core.io.ByteArrayResource resource =
+                new org.springframework.core.io.ByteArrayResource(fileData);
+
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + application.getCvFileName() + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .contentLength(fileData.length)
+                    .body(resource);
+
+        } catch (Exception e) {
+            log.error("Failed to download CV file: {}", e.getMessage(), e);
+            throw new org.workfitai.applicationservice.exception.FileStorageException(
+                    "Failed to download CV file: " + e.getMessage());
+        }
     }
 
     @PostMapping("/{id}/notes")
@@ -698,6 +709,10 @@ public class ApplicationController {
             Authentication authentication) {
 
         log.info("Fetching assigned applications: hrUsername={}, status={}", hrUsername, status);
+
+        if(hrUsername.equals("my")) {
+            hrUsername =  applicationSecurity.getCurrentUsername(authentication);
+        }
 
         size = Math.min(size, 100);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));

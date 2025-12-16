@@ -52,12 +52,17 @@ public class JobServiceAdapter implements JobServicePort {
             @SuppressWarnings("unchecked")
             Map<String, Object> company = (Map<String, Object>) jobData.get("company");
             String companyName = company != null ? (String) company.get("name") : "Unknown";
+            String companyId = company != null ? (String) company.get("companyNo") : null; // companyNo is the UUID
             String location = company != null ? (String) company.get("address") : "Not specified";
+
+            log.info("Company info for job {}: name={}, id={}, location={}",
+                    jobId, companyName, companyId, location);
 
             JobInfo jobInfo = JobInfo.builder()
                     .id(jobId)
                     .title((String) jobData.get("title"))
                     .companyName(companyName)
+                    .companyId(companyId)
                     .location(location)
                     .employmentType(jobData.get("employmentType") != null ?
                             jobData.get("employmentType").toString() : null)

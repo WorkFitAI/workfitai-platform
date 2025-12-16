@@ -109,7 +109,7 @@ public class CompanyApplicationService {
                 log.info("Fetching applications assigned to: {}", assignedTo);
 
                 Page<Application> applicationPage = applicationRepository
-                                .findByAssignedToAndDeletedAtIsNull(assignedTo, pageable);
+                                .findByAssignedToAndIsDraftFalseAndDeletedAtIsNull(assignedTo, pageable);
 
                 return buildPaginatedResult(applicationPage);
         }
@@ -130,7 +130,7 @@ public class CompanyApplicationService {
                 log.info("Fetching applications assigned to: {}, status: {}", assignedTo, status);
 
                 Page<Application> applicationPage = applicationRepository
-                                .findByAssignedToAndStatusAndDeletedAtIsNull(assignedTo, status, pageable);
+                                .findByAssignedToAndStatusAndIsDraftFalseAndDeletedAtIsNull(assignedTo, status, pageable);
 
                 return buildPaginatedResult(applicationPage);
         }

@@ -53,8 +53,14 @@ public class JobInfo {
     private String status;
 
     /**
+     * Company ID for the job.
+     * Used for company-level filtering and access control.
+     */
+    private String companyId;
+
+    /**
      * Username of HR who created the job.
-     * Used for notification purposes.
+     * Used for notification purposes and auto-assignment.
      */
     private String createdBy;
 
