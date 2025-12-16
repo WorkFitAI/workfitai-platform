@@ -7,29 +7,41 @@ spring:
   profiles:
     active: docker  # Default profile cho containers
   config:
-    import: optional:vault://secret/auth-service
+    import: "optional:vault://secret/auth-service"
   cloud:
-    consul:
-      config:
-        enabled: false
     vault:
-      uri: ${VAULT_URI:http://vault:8200}
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
 
 server:
   port: ${SERVER_PORT:9005}
 
+# Application frontend URL for email links
+app:
+  frontend:
+    base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+
 management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
-  endpoint:
-    health:
-      show-details: always
 
 ---
 # =============================================================================
@@ -40,6 +52,15 @@ spring:
     activate:
       on-profile: docker
   cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
     consul:
       host: consul
       port: 8500

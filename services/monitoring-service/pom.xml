@@ -101,6 +101,12 @@
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
         </dependency>
 
+        <!-- Spring Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
         <!-- Micrometer Prometheus registry (enables /actuator/prometheus) -->
         <dependency>
             <groupId>io.micrometer</groupId>

@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.workfitai.authservice.dto.VerifyOtpRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.service.iAuthService;
 
 @RestController

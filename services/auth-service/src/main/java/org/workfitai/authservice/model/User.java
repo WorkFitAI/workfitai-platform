@@ -30,6 +30,9 @@ public class User {
     private String email;
 
     private String password; // BCrypt-hashed
+    private Instant passwordChangedAt; // For password change tracking
+
+    private String fullName; // User's full name
 
     private Set<String> roles; // e.g. ["USER"]
 

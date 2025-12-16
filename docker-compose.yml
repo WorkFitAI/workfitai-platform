@@ -7,8 +7,8 @@ services:
     ports:
       - "8500:8500" # HTTP UI/API
       - "8600:8600/udp" # DNS
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Zookeeper (for Kafka) ###
   zookeeper:
@@ -19,12 +19,12 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SYNC_LIMIT: 2
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 10s
       timeout: 5s
       retries: 3
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Kafka ###
   kafka:
@@ -48,14 +48,13 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 3
     healthcheck:
-      test:
-        ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 30s
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Kafka UI for Monitoring ###
   kafka-ui:
@@ -71,8 +70,8 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       DYNAMIC_CONFIG_ENABLED: "true"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Databases & infra ###
   auth-mongo:
@@ -82,24 +81,32 @@ services:
       MONGO_INITDB_DATABASE: auth-db
     ports:
       - "27017:27017" # mở cổng ra máy Mac
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   auth-redis:
     image: redis:6-alpine
     container_name: auth-redis
     ports:
       - "6379:6379"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   cv-redis:
     image: redis:6-alpine
     container_name: cv-redis
     ports:
       - "6381:6379"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
+  notification-redis:
+    image: redis:6-alpine
+    container_name: notification-redis
+    ports:
+      - "6382:6379"
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   cv-mongo:
     image: mongo:6.0
@@ -113,8 +120,8 @@ services:
       - cv-mongo-data:/data/db
     ports:
       - "27018:27017"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   application-mongo:
     image: mongo:6.0
@@ -125,14 +132,14 @@ services:
       - "27019:27017"
     volumes:
       - application-mongo-data:/data/db
-    networks: [workfitai-net]
+    networks: [ workfitai-net ]
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    profiles: ["infra", "full"]
+    profiles: [ "infra", "full" ]
 
   user-postgres:
     image: postgres:15
@@ -147,8 +154,8 @@ services:
       POSTGRES_PASSWORD: ${USER_DB_PASS:-pass}
     volumes:
       - user-postgres-data:/var/lib/postgresql/data
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   job-postgres:
     image: postgres:15
@@ -163,8 +170,8 @@ services:
       POSTGRES_PASSWORD: ${JOB_DB_PASS:-job@123}
     volumes:
       - job-postgres-data:/var/lib/postgresql/data
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### Spring-Boot Services ###
   auth-service:
@@ -195,6 +202,7 @@ services:
       - AUTH_JWT_RSA_PRIVATE_KEY=classpath:keys/private_key_pkcs8.pem
       - AUTH_JWT_RSA_PUBLIC_KEY=classpath:keys/public_key.pem
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
     depends_on:
       consul:
@@ -206,13 +214,13 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
-      interval: 5s
-      timeout: 3s
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9005/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 10s
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+      start_period: 30s
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   user-service:
     build:
@@ -235,19 +243,22 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
       user-postgres:
         condition: service_started
+      monitoring-service:
+        condition: service_healthy
       api-gateway:
         condition: service_started
       auth-service:
         condition: service_healthy
       kafka:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   job-service:
     build:
@@ -272,6 +283,7 @@ services:
       - SERVER_PORT=9005
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -279,12 +291,14 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
       api-gateway:
         condition: service_started
       auth-service:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   cv-service:
     build:
@@ -311,6 +325,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://${CV_DB_USER}:${CV_DB_PASS}@${CV_HOST}:${CV_DB_PORT}/${CV_DB_NAME}?authSource=${CV_DB_NAME}
       - SPRING_DATA_REDIS_HOST=cv-redis
       - SPRING_DATA_REDIS_PORT=6379
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -320,12 +335,14 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
       api-gateway:
         condition: service_started
       auth-service:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   application-service:
     build:
@@ -348,6 +365,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
     depends_on:
       consul:
         condition: service_started
@@ -357,8 +375,10 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+      monitoring-service:
+        condition: service_healthy
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   api-gateway:
     build:
@@ -386,18 +406,18 @@ services:
     depends_on:
       consul:
         condition: service_started
-      auth-service:
+      monitoring-service:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   api-redis:
     image: redis:6-alpine
     container_name: api-redis
     ports:
       - "6380:6379"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   monitoring-service:
     build:
@@ -406,6 +426,9 @@ services:
     labels:
       - "workfitai.service=monitoring-service"
       - "workfitai.logs=enabled"
+      - "prometheus.scrape=true"
+      - "prometheus.port=9005"
+      - "prometheus.path=/actuator/prometheus"
     logging:
       driver: json-file
       options:
@@ -418,34 +441,38 @@ services:
       - "9086:9005"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=9005
       - VAULT_HOST=vault
       - VAULT_PORT=8200
-      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - VAULT_TOKEN=${VAULT_TOKEN:-myroot}
       - REDIS_HOST=api-redis
       - REDIS_PORT=6379
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     depends_on:
       consul:
         condition: service_started
-      vault:
-        condition: service_started
+      vault-init:
+        condition: service_completed_successfully
       api-redis:
         condition: service_started
       elasticsearch:
         condition: service_healthy
       kibana:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9005/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+      retries: 5
+      start_period: 90s
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   notification-service:
     build:
@@ -478,6 +505,8 @@ services:
       - VAULT_URI=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - SPRING_DATA_MONGODB_URI=mongodb://notif-mongo:27017/notification-db
+      - SPRING_DATA_REDIS_HOST=notification-redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       kafka:
         condition: service_healthy
@@ -487,8 +516,12 @@ services:
         condition: service_started
       notif-mongo:
         condition: service_started
-    networks: [workfitai-net]
-    profiles: ["services", "full"]
+      notification-redis:
+        condition: service_started
+      monitoring-service:
+        condition: service_healthy
+    networks: [ workfitai-net ]
+    profiles: [ "services", "full" ]
 
   notif-mongo:
     image: mongo:6.0
@@ -497,8 +530,8 @@ services:
       MONGO_INITDB_DATABASE: notification-db
     ports:
       - "27020:27017"
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   vault:
     image: vault:1.13.3
@@ -511,9 +544,45 @@ services:
       - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN:-dev-token}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - VAULT_ADDR=http://127.0.0.1:8200
     command: vault server -dev
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:8200/v1/sys/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+
+  vault-init:
+    image: curlimages/curl:8.1.2
+    container_name: vault-init
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROOT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-dphibwpag}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-586672837199227}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-s_nMSKl3232BzSN1USpCa57axXw}
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-587}
+      - EMAIL_ADDRESS=${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}
+      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}
+      - MAIL_FROM=${MAIL_FROM:-noreply@workfitai.com}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-WorkFitAI}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
+      # Account Policy Settings
+      - DEACTIVATION_RETENTION_DAYS=${DEACTIVATION_RETENTION_DAYS:-30}
+      - DELETION_GRACE_PERIOD_DAYS=${DELETION_GRACE_PERIOD_DAYS:-7}
+      - MAX_SESSIONS_PER_USER=${MAX_SESSIONS_PER_USER:-5}
+    volumes:
+      - ./scripts/init-vault.sh:/scripts/init-vault.sh:ro
+    entrypoint: [ "sh", "/scripts/init-vault.sh" ]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   prometheus:
     image: prom/prometheus:v2.53.0
@@ -525,8 +594,8 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -540,8 +609,8 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### ELK Stack for Centralized Logging ###
   elasticsearch:
@@ -567,17 +636,13 @@ services:
       - "9200:9200"
       - "9300:9300"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -f -u elastic:${ELASTICSEARCH_PASSWORD:-workfitai123} http://localhost:9200/_cluster/health || exit 1",
-        ]
+      test: [ "CMD-SHELL", "curl -f -u elastic:${ELASTICSEARCH_PASSWORD:-workfitai123} http://localhost:9200/_cluster/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
-    networks: [workfitai-net]
-    profiles: ["logging", "infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "logging", "infra", "full" ]
 
   # Setup kibana_system user password
   elasticsearch-setup:
@@ -601,8 +666,8 @@ services:
           -d "{\"password\": \"$${KIBANA_PASSWORD}\"}" | grep -q "^{}" && echo "Password set successfully" || echo "Password already set or error";
         echo "Setup complete!";
       '
-    networks: [workfitai-net]
-    profiles: ["logging", "infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "logging", "infra", "full" ]
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
@@ -620,13 +685,13 @@ services:
       elasticsearch-setup:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
-    networks: [workfitai-net]
-    profiles: ["logging", "infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "logging", "infra", "full" ]
 
   fluent-bit:
     image: fluent/fluent-bit:2.2
@@ -645,8 +710,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-    networks: [workfitai-net]
-    profiles: ["logging", "infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "logging", "infra", "full" ]
 
   ### MinIO ###
   minio:
@@ -661,8 +726,8 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - minio-data:/data
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
   ### MinIO Client (tuỳ chọn) ###
   minio-mc:
@@ -676,14 +741,9 @@ services:
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: cvs-files
     entrypoint: >
-      /bin/sh -c "
-      sleep 5 &&
-      mc alias set local $${MINIO_ENDPOINT} $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY} &&
-      mc mb -p local/$${MINIO_BUCKET} || true &&
-      tail -f /dev/null
-      "
-    networks: [workfitai-net]
-    profiles: ["infra", "full"]
+      /bin/sh -c " sleep 5 && mc alias set local $${MINIO_ENDPOINT} $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY} && mc mb -p local/$${MINIO_BUCKET} || true && tail -f /dev/null "
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
 
 volumes:
   user-postgres-data:
@@ -693,6 +753,7 @@ volumes:
   prometheus-data:
   minio-data:
   elasticsearch-data:
+
 
 networks:
   workfitai-net:

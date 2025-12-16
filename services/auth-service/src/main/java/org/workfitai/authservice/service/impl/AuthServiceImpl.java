@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,13 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.client.UserServiceClient;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.dto.IssuedTokens;
-import org.workfitai.authservice.dto.LoginRequest;
-import org.workfitai.authservice.dto.PendingRegistration;
-import org.workfitai.authservice.dto.RegisterRequest;
-import org.workfitai.authservice.dto.VerifyOtpRequest;
 import org.workfitai.authservice.dto.kafka.NotificationEvent;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
+import org.workfitai.authservice.dto.request.LoginRequest;
+import org.workfitai.authservice.dto.request.PendingRegistration;
+import org.workfitai.authservice.dto.request.RegisterRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
+import org.workfitai.authservice.dto.response.IssuedTokens;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
 import org.workfitai.authservice.model.User;
@@ -33,6 +35,7 @@ import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.NotificationProducer;
 import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
+import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
 
@@ -54,6 +57,10 @@ public class AuthServiceImpl implements iAuthService {
     private final OtpService otpService;
     private final NotificationProducer notificationProducer;
     private final UserServiceClient userServiceClient;
+    private final SessionService sessionService;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -193,7 +200,7 @@ public class AuthServiceImpl implements iAuthService {
     }
 
     @Override
-    public IssuedTokens login(LoginRequest req, String deviceId) {
+    public IssuedTokens login(LoginRequest req, String deviceId, HttpServletRequest request) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -206,11 +213,30 @@ public class AuthServiceImpl implements iAuthService {
                             () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
 
             // Check if user is active
-            if (user.getStatus() != UserStatus.ACTIVE) {
+            if (user.getStatus() == UserStatus.INACTIVE) {
+                // Check with user-service if account can be reactivated (within 30 days)
+                try {
+                    Boolean canReactivate = userServiceClient.checkAndReactivateAccount(user.getUsername());
+                    if (Boolean.TRUE.equals(canReactivate)) {
+                        // Account reactivated, update status to ACTIVE
+                        user.setStatus(UserStatus.ACTIVE);
+                        user.setUpdatedAt(Instant.now());
+                        users.save(user);
+                        log.info("Account auto-reactivated for user: {}", user.getUsername());
+                    } else {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                "Your account has been deactivated for more than 30 days and cannot be restored. Please create a new account.");
+                    }
+                } catch (ResponseStatusException e) {
+                    throw e;
+                } catch (Exception e) {
+                    log.error("Failed to check reactivation status: {}", e.getMessage());
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your account has been deactivated.");
+                }
+            } else if (user.getStatus() != UserStatus.ACTIVE) {
                 String message = switch (user.getStatus()) {
                     case PENDING -> "Please verify your email before logging in.";
                     case WAIT_APPROVED -> "Your account is pending approval. Please wait for administrator approval.";
-                    case INACTIVE -> "Your account has been deactivated.";
                     default -> "Your account is not active.";
                 };
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
@@ -221,8 +247,10 @@ public class AuthServiceImpl implements iAuthService {
             String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
 
             String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
-            refreshStore.saveJti(user.getId(), dev, jti); // overwrite any previous jti for this device
+            refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
+
+            // MongoDB: Create session with request context for device/IP detection
+            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
 
             Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
             return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
@@ -397,7 +425,7 @@ public class AuthServiceImpl implements iAuthService {
                         "otp", otp,
                         "fullName", fullName,
                         "validUntil", "24 hours",
-                        "loginUrl", "https://workfitai.com/login"))
+                        "loginUrl", frontendBaseUrl + "/login"))
                 .build());
     }
 
@@ -413,7 +441,7 @@ public class AuthServiceImpl implements iAuthService {
                 .metadata(Map.of(
                         "username", username,
                         "role", "Candidate",
-                        "loginUrl", "https://workfitai.com/login",
+                        "loginUrl", frontendBaseUrl + "/login",
                         "isCandidate", "true"))
                 .build());
     }
@@ -434,7 +462,7 @@ public class AuthServiceImpl implements iAuthService {
                         "username", username,
                         "role", role.getRoleName(),
                         "approverType", approverType,
-                        "loginUrl", "https://workfitai.com/login"))
+                        "loginUrl", frontendBaseUrl + "/login"))
                 .build());
     }
 
