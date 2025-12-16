@@ -1242,81 +1242,6 @@
 					"response": []
 				},
 				{
-					"key": "hrManagerEmail",
-					"value": "hrmanager_test{{$randomInt}}@company.test",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerPassword",
-					"value": "HRManager123!@",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerOtp",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerToken",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerUserId",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerCompanyId",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrManagerTempToken",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrEmail",
-					"value": "hr_test{{$randomInt}}@company.test",
-					"type": "string"
-				},
-				{
-					"key": "hrPassword",
-					"value": "HRStaff123!@",
-					"type": "string"
-				},
-				{
-					"key": "hrOtp",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrToken",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "hrUserId",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "adminToken",
-					"value": "",
-					"type": "string"
-				},
-				{
-					"key": "companyNo",
-					"value": "{{$randomInt}}",
-					"type": "string"
-				},
-				{
-					"key": "backupCodes",
-					"value": "",
-					"type": "string"
-				},
-				{
 					"name": "3. Admin - Approve HR Manager",
 					"event": [
 						{
@@ -2226,6 +2151,81 @@
 		},
 		{
 			"key": "twoFactorSecret",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerEmail",
+			"value": "hrmanager_test{{$randomInt}}@company.test",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerPassword",
+			"value": "HRManager123!@",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerOtp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerUserId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerCompanyId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerTempToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrEmail",
+			"value": "hr_test{{$randomInt}}@company.test",
+			"type": "string"
+		},
+		{
+			"key": "hrPassword",
+			"value": "HRStaff123!@",
+			"type": "string"
+		},
+		{
+			"key": "hrOtp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrUserId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "companyNo",
+			"value": "{{$randomInt}}",
+			"type": "string"
+		},
+		{
+			"key": "backupCodes",
 			"value": "",
 			"type": "string"
 		}
