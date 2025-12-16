@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.workfitai.authservice.config.RsaKeyProperties;
 import org.workfitai.authservice.constants.Messages;
+import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.service.iRoleService;
 
 import io.jsonwebtoken.Claims;
@@ -35,6 +37,7 @@ public class JwtService {
 
     private final iRoleService roleService;
     private final RsaKeyProperties rsaKeys;
+    private final UserRepository userRepository;
 
     @Value("${auth.jwt.access-exp-ms}")
     private long accessExpMs;
@@ -63,6 +66,7 @@ public class JwtService {
      * - subject = username
      * - claim "roles" = list of role names
      * - claim "perms" = union of all permissions for those roles
+     * - claim "companyId" = company UUID (only for HR/HR_MANAGER)
      */
     public String generateAccessToken(UserDetails user) {
         List<String> roles = user.getAuthorities().stream()
@@ -74,11 +78,23 @@ public class JwtService {
                 .flatMap(r -> roleService.getPermissions(r).stream())
                 .collect(Collectors.toSet());
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(user.getUsername())
                 .issuer(Messages.JWT.ISSUER)
                 .claim(Messages.JWT.ROLES_CLAIM, roles)
-                .claim(Messages.JWT.PERMISSIONS_CLAIM, perms)
+                .claim(Messages.JWT.PERMISSIONS_CLAIM, perms);
+
+        // Add companyId claim for HR/HR_MANAGER users
+        if (roles.contains("HR") || roles.contains("HR_MANAGER")) {
+            userRepository.findByUsername(user.getUsername())
+                    .ifPresent(userEntity -> {
+                        if (userEntity.getCompanyId() != null) {
+                            builder.claim("companyId", userEntity.getCompanyId());
+                        }
+                    });
+        }
+
+        return builder
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessExpMs))
                 .signWith(privateKey) // RS256 is automatically selected for RSA keys

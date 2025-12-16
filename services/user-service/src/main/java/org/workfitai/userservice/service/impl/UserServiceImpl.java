@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .userRole(user.getUserRole())
                 .userStatus(user.getUserStatus())
-                .lastLogin(user.getLastLogin())
+                // lastLogin removed - tracked by auth-service
                 .createdBy(user.getCreatedBy())
                 .createdDate(user.getCreatedDate())
                 .lastModifiedBy(user.getLastModifiedBy())

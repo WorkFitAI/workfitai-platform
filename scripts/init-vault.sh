@@ -99,9 +99,9 @@ create_service_secrets "user-service" '{
 # Create secrets for job-service
 create_service_secrets "job-service" '{
   "data": {
-    "spring.datasource.url": "jdbc:postgresql://job-postgres:5432/job_db",
-    "spring.datasource.username": "user",
-    "spring.datasource.password": "job@123"
+    "DATASOURCE_URL": "jdbc:postgresql://job-postgres:5432/job_db",
+    "DATASOURCE_USERNAME": "user",
+    "DATASOURCE_PASSWORD": "job@123"
   }
 }'
 

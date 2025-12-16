@@ -29,6 +29,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @Slf4j
 @Service
@@ -40,6 +42,7 @@ public class TwoFactorAuthService {
     private final PasswordEncoder passwordEncoder;
     private final GoogleAuthenticator googleAuthenticator;
     private final NotificationProducer notificationProducer;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
@@ -269,5 +272,72 @@ public class TwoFactorAuthService {
         } catch (Exception e) {
             log.error("Failed to send 2FA disabled notification for user: {}", user.getUsername(), e);
         }
+    }
+
+    /**
+     * Generate 6-digit code for EMAIL-based 2FA login
+     */
+    public String generateEmailCode(String userId) {
+        String code = String.format("%06d", new Random().nextInt(999999));
+        String redisKey = "2fa:login:email:" + userId;
+
+        // Store in Redis with 5-minute expiry
+        redisTemplate.opsForValue().set(redisKey, code, 5, TimeUnit.MINUTES);
+
+        log.info("Generated EMAIL 2FA code for user: {}", userId);
+        return code;
+    }
+
+    /**
+     * Verify 2FA code during login (supports both TOTP and EMAIL methods)
+     */
+    public boolean verify2FACode(String userId, String code, String method) {
+        if ("EMAIL".equals(method)) {
+            String redisKey = "2fa:login:email:" + userId;
+            String storedCode = redisTemplate.opsForValue().get(redisKey);
+
+            if (storedCode == null) {
+                log.warn("EMAIL 2FA code expired or not found for user: {}", userId);
+                return false;
+            }
+
+            boolean isValid = storedCode.equals(code);
+
+            if (isValid) {
+                // Delete code after successful verification (one-time use)
+                redisTemplate.delete(redisKey);
+                log.info("EMAIL 2FA code verified successfully for user: {}", userId);
+            } else {
+                log.warn("Invalid EMAIL 2FA code for user: {}", userId);
+            }
+
+            return isValid;
+
+        } else if ("TOTP".equals(method)) {
+            TwoFactorAuth twoFactorAuth = twoFactorAuthRepository.findByUserId(userId)
+                    .orElseThrow(() -> new NotFoundException("2FA configuration not found"));
+
+            if (twoFactorAuth.getSecret() == null) {
+                throw new BadRequestException("TOTP secret not configured");
+            }
+
+            try {
+                int numericCode = Integer.parseInt(code);
+                boolean isValid = googleAuthenticator.authorize(twoFactorAuth.getSecret(), numericCode);
+
+                if (isValid) {
+                    log.info("TOTP 2FA code verified successfully for user: {}", userId);
+                } else {
+                    log.warn("Invalid TOTP 2FA code for user: {}", userId);
+                }
+
+                return isValid;
+            } catch (NumberFormatException e) {
+                log.warn("Invalid TOTP code format for user: {}", userId);
+                return false;
+            }
+        }
+
+        throw new BadRequestException("Invalid 2FA method: " + method);
     }
 }

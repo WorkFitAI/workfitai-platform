@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .logout(logout -> logout.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp",
+                        .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp", "verify-2fa-login",
                                 "/actuator/**", "/error",
                                 "/api/v1/auth/**",
                                 "/api/v1/keys/public",

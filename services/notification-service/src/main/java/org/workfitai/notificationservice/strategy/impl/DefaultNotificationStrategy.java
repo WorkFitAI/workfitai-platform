@@ -3,6 +3,8 @@ package org.workfitai.notificationservice.strategy.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.workfitai.notificationservice.client.UserServiceClient;
+import org.workfitai.notificationservice.dto.NotificationSettings;
 import org.workfitai.notificationservice.dto.kafka.NotificationEvent;
 import org.workfitai.notificationservice.service.EmailService;
 import org.workfitai.notificationservice.service.NotificationPersistenceService;
@@ -20,6 +22,7 @@ public class DefaultNotificationStrategy implements NotificationStrategy {
 
     private final EmailService emailService;
     private final NotificationPersistenceService persistenceService;
+    private final UserServiceClient userServiceClient;
 
     @Override
     public boolean canHandle(NotificationEvent event) {
@@ -31,21 +34,35 @@ public class DefaultNotificationStrategy implements NotificationStrategy {
         log.info("[DEFAULT] Processing notification: type={}, to={}",
                 event.getEventType(), event.getRecipientEmail());
 
+        // ✅ NEW: Check user notification preferences
+        NotificationSettings settings = userServiceClient.getNotificationSettings(event.getRecipientEmail());
+
         boolean emailSent = false;
         boolean inAppCreated = false;
 
-        // Handle email sending
+        // Handle email sending - check if user enabled email notifications
         if (Boolean.TRUE.equals(event.getSendEmail()) || event.getSendEmail() == null) {
-            emailSent = emailService.sendEmail(event);
-            persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+            if (Boolean.TRUE.equals(settings.getEmailEnabled())) {
+                emailSent = emailService.sendEmail(event);
+                persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+            } else {
+                log.info("Skipping email for {} - email notifications disabled by user", event.getRecipientEmail());
+                persistenceService.saveEmailLog(event, false, "user_disabled_email_notifications");
+            }
         }
 
-        // Handle in-app notification creation
+        // Handle in-app notification creation - check if user enabled push
+        // notifications
         if (Boolean.TRUE.equals(event.getCreateInAppNotification())) {
-            try {
-                inAppCreated = persistenceService.createNotification(event) != null;
-            } catch (Exception e) {
-                log.error("Failed to create in-app notification: {}", e.getMessage());
+            if (Boolean.TRUE.equals(settings.getPushEnabled())) {
+                try {
+                    inAppCreated = persistenceService.createNotification(event) != null;
+                } catch (Exception e) {
+                    log.error("Failed to create in-app notification: {}", e.getMessage());
+                }
+            } else {
+                log.info("Skipping in-app notification for {} - push notifications disabled by user",
+                        event.getRecipientEmail());
             }
         }
 

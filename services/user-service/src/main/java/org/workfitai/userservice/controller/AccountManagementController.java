@@ -26,6 +26,8 @@ public class AccountManagementController {
 
         String username = authentication.getName();
         log.info("Deactivate account request for user: {}", username);
+        log.info("Authentication principal: {}", authentication.getPrincipal());
+        log.info("Authentication details: {}", authentication.getDetails());
 
         AccountManagementResponse response = accountManagementService.deactivateAccount(username, request);
 

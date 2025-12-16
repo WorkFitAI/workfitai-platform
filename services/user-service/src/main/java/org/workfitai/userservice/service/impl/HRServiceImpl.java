@@ -125,6 +125,43 @@ public class HRServiceImpl implements HRService {
 
     var hrProfile = userData.getHrProfile();
     UUID companyId = null;
+    String companyNo = null; // Declare companyNo at the beginning
+
+    // Idempotent check: Try to find existing HR by email or username
+    HREntity existingHR = hrRepository.findByEmail(userData.getEmail())
+        .or(() -> hrRepository.findByUsername(userData.getUsername()))
+        .orElse(null);
+
+    if (existingHR != null) {
+      log.info("HR profile already exists with email/username: {}/{}. Updating existing record (idempotent operation)",
+          userData.getEmail(), userData.getUsername());
+
+      // Update existing HR with new data from event (idempotent upsert)
+      existingHR.setEmail(userData.getEmail());
+      existingHR.setUsername(userData.getUsername());
+      existingHR.setFullName(userData.getFullName());
+      existingHR.setPhoneNumber(userData.getPhoneNumber());
+      existingHR.setPasswordHash(userData.getPasswordHash());
+      existingHR.setUserStatus(
+          userData.getStatus() != null ? EUserStatus.fromDisplayName(userData.getStatus()) : EUserStatus.PENDING);
+      existingHR.setDepartment(hrProfile.getDepartment());
+      existingHR.setAddress(hrProfile.getAddress());
+
+      HREntity updatedHR = hrRepository.save(existingHR);
+      log.info("Successfully updated existing HR profile with ID {} for email: {}",
+          updatedHR.getUserId(), userData.getEmail());
+      return;
+    }
+
+    // Check for phone constraint violations before creating new HR
+    if (hrRepository.existsByPhoneNumber(userData.getPhoneNumber())) {
+      log.warn(
+          "Phone number {} already exists in database but belongs to different user. Skipping creation to prevent constraint violation.",
+          userData.getPhoneNumber());
+      // Acknowledge message without throwing - this is a business logic issue, not a
+      // technical error
+      return;
+    }
 
     // For HR role: lookup company from HR Manager's email
     if (role == EUserRole.HR) {
@@ -151,22 +188,28 @@ public class HRServiceImpl implements HRService {
       }
 
       companyId = hrManager.getCompanyId();
-      log.info("HR will be assigned to company {} (from HR Manager: {})", companyId, hrManagerEmail);
+      companyNo = hrManager.getCompanyNo(); // Inherit companyNo from HR Manager
+      log.info("HR will be assigned to company {} (companyNo: {}) from HR Manager: {}", companyId, companyNo,
+          hrManagerEmail);
     }
 
-    // For HR_MANAGER role: create new company
+    // For HR_MANAGER role: use company ID from auth-service
     if (role == EUserRole.HR_MANAGER) {
       if (userData.getCompany() == null) {
         throw new ApiException("Company information is required for HR Manager registration", HttpStatus.BAD_REQUEST);
       }
-      // Company will be created and ID assigned after save
-      // For now, generate a new UUID for the company
-      companyId = UUID.randomUUID();
-      log.info("Creating new company with ID {} for HR Manager: {}", companyId, userData.getEmail());
-    }
 
-    if (hrRepository.existsByEmail(userData.getEmail())) {
-      throw new ApiException("Email already exists", HttpStatus.CONFLICT);
+      // ✅ CRITICAL: Use companyId from auth-service (single source of truth), DON'T
+      // generate new UUID
+      if (userData.getCompany().getCompanyId() == null || userData.getCompany().getCompanyId().isBlank()) {
+        throw new ApiException("Company ID is missing from registration event - auth-service must provide it",
+            HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      companyId = UUID.fromString(userData.getCompany().getCompanyId());
+      companyNo = userData.getCompany().getCompanyNo();
+      log.info("Using companyId {} and companyNo {} from auth-service for HR Manager: {}", companyId, companyNo,
+          userData.getEmail());
     }
 
     if (role == EUserRole.HR_MANAGER
@@ -185,6 +228,7 @@ public class HRServiceImpl implements HRService {
             userData.getStatus() != null ? EUserStatus.fromDisplayName(userData.getStatus()) : EUserStatus.PENDING)
         .department(hrProfile.getDepartment())
         .companyId(companyId)
+        .companyNo(companyNo)
         .address(hrProfile.getAddress())
         .build();
 
@@ -306,16 +350,22 @@ public class HRServiceImpl implements HRService {
 
   private void publishCompanySyncOnApproval(HREntity hrManager) {
     log.info("Publishing company sync event for approved HR Manager: {}", hrManager.getEmail());
+    log.info("HR Manager company details - companyId: {}, companyNo: {}",
+        hrManager.getCompanyId(), hrManager.getCompanyNo());
 
     CompanySyncEvent event = CompanySyncEvent.builder()
         .eventId(UUID.randomUUID().toString())
         .eventType("COMPANY_UPSERT")
         .company(CompanySyncEvent.CompanyData.builder()
             .companyId(hrManager.getCompanyId().toString())
+            .companyNo(hrManager.getCompanyNo()) // Add companyNo (primary key for job-service)
             .name(hrManager.getFullName() + "'s Company") // Will be overwritten if company data exists
             .address(hrManager.getAddress())
             .build())
         .build();
+
+    log.info("Publishing event with companyId: {}, companyNo: {}",
+        event.getCompany().getCompanyId(), event.getCompany().getCompanyNo());
     companySyncProducer.publish(event);
   }
 
@@ -325,6 +375,7 @@ public class HRServiceImpl implements HRService {
         .eventType("COMPANY_UPSERT")
         .company(CompanySyncEvent.CompanyData.builder()
             .companyId(companyData.getCompanyId())
+            .companyNo(companyData.getCompanyNo()) // Add companyNo field
             .name(companyData.getName())
             .logoUrl(companyData.getLogoUrl())
             .websiteUrl(companyData.getWebsiteUrl())

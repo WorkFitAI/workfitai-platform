@@ -9,12 +9,17 @@ spring:
   config:
     import: "optional:vault://secret/job-service"
   cloud:
+    bootstrap:
+      enabled: true
+    config:
+      enabled: false
     vault:
       uri: ${VAULT_URI:http://vault:8200}
       token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
+      fail-fast: false
     consul:
       config:
         enabled: false
@@ -28,9 +33,9 @@ spring:
         deregister: true
         health-check-critical-timeout: 1m
   datasource:
-    url: ${datasource.url:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${datasource.username:user}
-    password: ${datasource.password:pass}
+    url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -90,9 +95,9 @@ spring:
         health-check-path: /actuator/health
         prefer-ip-address: true
   datasource:
-    url: ${datasource.url:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${datasource.username:user}
-    password: ${datasource.password:pass}
+    url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -147,9 +152,9 @@ spring:
         register: true
         health-check-path: /actuator/health
   datasource:
-    url: ${JOB_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5433/job_db}
-    username: ${JOB_DB_USER:user}
-    password: ${JOB_DB_PASS:pass}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5433/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

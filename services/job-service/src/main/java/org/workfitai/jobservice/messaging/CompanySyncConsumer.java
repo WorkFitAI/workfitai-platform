@@ -27,8 +27,8 @@ public class CompanySyncConsumer {
         log.info("Received company sync event (type: {}) for company: {}", event.getEventType(), data.getName());
 
         try {
-            Company company = companyRepository.findById(data.getCompanyId())
-                    .orElse(Company.builder().companyNo(data.getCompanyId()).build());
+            Company company = companyRepository.findById(data.getCompanyNo())
+                    .orElse(Company.builder().companyNo(data.getCompanyNo()).build());
 
             company.setName(data.getName());
             company.setLogoUrl(data.getLogoUrl());

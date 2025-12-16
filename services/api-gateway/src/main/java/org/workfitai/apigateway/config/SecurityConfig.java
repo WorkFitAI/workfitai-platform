@@ -51,6 +51,7 @@ public class SecurityConfig {
                                                                 "/auth/refresh",
                                                                 "/auth/logout",
                                                                 "/auth/verify-otp",
+                                                                "/auth/verify-2fa-login",
                                                                 "/cv/public/**",
                                                                 "/job/public/**",
                                                                 "/monitoring-service/**",

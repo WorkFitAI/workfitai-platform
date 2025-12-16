@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.workfitai.userservice.annotation.CheckPrivacy;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.request.CandidateCreateRequest;
 import org.workfitai.userservice.dto.request.CandidateUpdateRequest;
@@ -43,11 +44,13 @@ public class CandidateController {
         Messages.Candidate.DELETED, null));
   }
 
+  @CheckPrivacy
   @GetMapping("/{id}")
   public ResponseEntity<ResponseData<CandidateResponse>> getById(@PathVariable UUID id) {
     return ResponseEntity.ok(ResponseData.success(candidateService.getById(id)));
   }
 
+  @CheckPrivacy
   @GetMapping
   public ResponseEntity<ResponseData<Page<CandidateResponse>>> search(
       @RequestParam(required = false) String keyword, Pageable pageable) {

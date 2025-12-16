@@ -88,12 +88,6 @@ spring:
         enabled: true
         backend: secret
 
-service:
-  auth:
-    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
-  user:
-    url: ${USER_SERVICE_URL:http://user-service:9001}
-
 ---
 spring:
   config:

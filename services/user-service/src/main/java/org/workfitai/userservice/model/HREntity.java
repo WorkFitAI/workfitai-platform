@@ -33,12 +33,19 @@ public class HREntity extends UserEntity {
   private String department;
 
   /**
-   * Liên kết với Company ở service khác.
-   * Chỉ lưu ID, lấy dữ liệu chi tiết qua API call / message broker.
+   * UUID for internal linking within user-service.
    */
   @NotNull(message = "Company ID must not be null")
   @Column(name = "company_id", nullable = false)
   private UUID companyId;
+
+  /**
+   * Mã số thuế (Tax ID) - primary key in job-service Company table.
+   * This is what users input during registration and what job-service uses.
+   */
+  @NotBlank(message = "Company number (tax ID) is required")
+  @Column(name = "company_no", nullable = false)
+  private String companyNo;
 
   @Size(max = 255, message = "Address must not exceed 255 characters")
   @NotBlank(message = "Address is required")

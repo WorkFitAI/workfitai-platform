@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * Feign client for communicating with user-service.
  * Used to check if email already exists in user-service before registration.
+ * Service name 'user' matches spring.cloud.consul.discovery.service-name in
+ * user-service config.
  */
-@FeignClient(name = "user-service", fallback = UserServiceClientFallback.class)
+@FeignClient(name = "user", fallback = UserServiceClientFallback.class)
 public interface UserServiceClient {
 
     /**

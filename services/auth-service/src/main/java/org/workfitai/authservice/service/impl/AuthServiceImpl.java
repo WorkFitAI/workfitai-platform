@@ -25,19 +25,26 @@ import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.dto.request.LoginRequest;
 import org.workfitai.authservice.dto.request.PendingRegistration;
 import org.workfitai.authservice.dto.request.RegisterRequest;
+import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
+import org.workfitai.authservice.document.TwoFactorAuth;
 import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.NotificationProducer;
 import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.SessionService;
+import org.workfitai.authservice.service.TwoFactorAuthService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
+import org.springframework.data.redis.core.RedisTemplate;
+import java.util.concurrent.TimeUnit;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +65,15 @@ public class AuthServiceImpl implements iAuthService {
     private final NotificationProducer notificationProducer;
     private final UserServiceClient userServiceClient;
     private final SessionService sessionService;
+    private final TwoFactorAuthRepository twoFactorAuthRepository;
+    private final TwoFactorAuthService twoFactorAuthService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
+
+    private static final String TEMP_LOGIN_TOKEN_PREFIX = "temp:login:";
+    private static final long TEMP_TOKEN_EXPIRY_MINUTES = 5;
 
     private static final String DEFAULT_DEVICE = Messages.Misc.DEFAULT_DEVICE;
 
@@ -91,8 +104,8 @@ public class AuthServiceImpl implements iAuthService {
             }
         }
         if (role == UserRole.HR_MANAGER && req.getHrProfile() != null && req.getCompany() != null) {
-            // Check if HR_MANAGER already exists for this company
-            validateHRManagerUniqueness(req.getCompany().getName());
+            // Check if HR_MANAGER already exists for this company (by companyNo)
+            validateHRManagerUniqueness(req.getCompany().getCompanyNo());
         }
 
         // Check if email already exists in auth-service
@@ -147,13 +160,28 @@ public class AuthServiceImpl implements iAuthService {
 
         otpService.savePendingRegistration(req.getEmail(), pendingData);
 
+        // Generate companyId UUID for HR_MANAGER
+        String companyId = (role == UserRole.HR_MANAGER && req.getCompany() != null)
+                ? UUID.randomUUID().toString()
+                : null;
+
+        // ✅ IMPORTANT: Update PendingRegistration with companyId after generation
+        // This ensures companyId is available when building CompanyData during OTP
+        // verification
+        if (companyId != null) {
+            pendingData.setCompanyId(companyId);
+            otpService.savePendingRegistration(req.getEmail(), pendingData); // Re-save with companyId
+        }
+
         var user = User.builder()
                 .username(username)
                 .email(req.getEmail())
                 .password(encodedPassword)
                 .roles(Set.of(role.getRoleName()))
                 .status(UserStatus.PENDING)
-                .company(role == UserRole.HR_MANAGER && req.getCompany() != null ? req.getCompany().getName() : null)
+                .companyId(companyId)
+                .companyNo(role == UserRole.HR_MANAGER && req.getCompany() != null ? req.getCompany().getCompanyNo()
+                        : null)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
@@ -173,6 +201,21 @@ public class AuthServiceImpl implements iAuthService {
         // Update user info if they provided new data
         String newPasswordHash = encoder.encode(req.getPassword());
         existingUser.setPassword(newPasswordHash); // User model uses 'password' field
+
+        // ✅ FIX: Update companyId/companyNo if user provides company info (HR_MANAGER
+        // case)
+        // This handles scenario where user registers without complete data, then
+        // resends with company
+        if (role == UserRole.HR_MANAGER && req.getCompany() != null) {
+            // Only generate new companyId if user doesn't have one yet
+            if (existingUser.getCompanyId() == null) {
+                existingUser.setCompanyId(UUID.randomUUID().toString());
+                log.info("Generated companyId {} for existing pending user {}", existingUser.getCompanyId(),
+                        req.getEmail());
+            }
+            existingUser.setCompanyNo(req.getCompany().getCompanyNo());
+        }
+
         existingUser.setUpdatedAt(Instant.now());
         users.save(existingUser);
 
@@ -190,6 +233,7 @@ public class AuthServiceImpl implements iAuthService {
                 .role(role)
                 .hrProfile(req.getHrProfile())
                 .company(req.getCompany())
+                .companyId(existingUser.getCompanyId()) // ✅ Set companyId from User
                 .build();
         otpService.savePendingRegistration(req.getEmail(), pendingData);
 
@@ -200,7 +244,7 @@ public class AuthServiceImpl implements iAuthService {
     }
 
     @Override
-    public IssuedTokens login(LoginRequest req, String deviceId, HttpServletRequest request) {
+    public Object login(LoginRequest req, String deviceId, HttpServletRequest request) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -242,22 +286,161 @@ public class AuthServiceImpl implements iAuthService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
             }
 
-            String access = jwt.generateAccessToken(ud);
-            String jti = jwt.newJti();
-            String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+            // ✅ NEW: Check if 2FA is enabled
+            Optional<TwoFactorAuth> twoFactorAuth = twoFactorAuthRepository.findByUserId(user.getId());
+            if (twoFactorAuth.isPresent() && Boolean.TRUE.equals(twoFactorAuth.get().getEnabled())) {
+                log.info("2FA enabled for user: {}. Initiating 2FA flow", user.getUsername());
+                return initiate2FALogin(user, twoFactorAuth.get(), deviceId);
+            }
 
-            String dev = normalizeDevice(deviceId);
-            refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
-
-            // MongoDB: Create session with request context for device/IP detection
-            sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
-
-            Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
-            return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+            // ✅ No 2FA - proceed with normal login
+            return completeLogin(user, ud, deviceId, request);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
         }
+    }
+
+    /**
+     * Initiate 2FA login flow - generate temp token and send code
+     */
+    private Partial2FALoginResponse initiate2FALogin(User user, TwoFactorAuth twoFactorAuth, String deviceId) {
+        // Generate temporary token (valid for 5 minutes)
+        String tempToken = UUID.randomUUID().toString();
+        String redisKey = TEMP_LOGIN_TOKEN_PREFIX + tempToken;
+
+        // Store user info in Redis
+        String userData = String.format("%s:%s:%s", user.getId(), user.getUsername(), deviceId);
+        redisTemplate.opsForValue().set(redisKey, userData, TEMP_TOKEN_EXPIRY_MINUTES, TimeUnit.MINUTES);
+
+        String method = twoFactorAuth.getMethod();
+
+        if ("EMAIL".equals(method)) {
+            // Generate and send 6-digit code via email
+            String code = twoFactorAuthService.generateEmailCode(user.getId());
+            sendEmail2FACode(user, code);
+
+            return Partial2FALoginResponse.builder()
+                    .tempToken(tempToken)
+                    .message("2FA code sent to your email")
+                    .method("EMAIL")
+                    .maskedEmail(maskEmail(user.getEmail()))
+                    .expiresIn(TEMP_TOKEN_EXPIRY_MINUTES * 60) // seconds
+                    .require2FA(true)
+                    .build();
+
+        } else if ("TOTP".equals(method)) {
+            // User needs to enter TOTP code from authenticator app
+            return Partial2FALoginResponse.builder()
+                    .tempToken(tempToken)
+                    .message("Enter the 6-digit code from your authenticator app")
+                    .method("TOTP")
+                    .expiresIn(TEMP_TOKEN_EXPIRY_MINUTES * 60) // seconds
+                    .require2FA(true)
+                    .build();
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid 2FA method");
+    }
+
+    /**
+     * Complete login after 2FA verification
+     */
+    public IssuedTokens verify2FALogin(Verify2FALoginRequest request, HttpServletRequest httpRequest) {
+        // Validate temp token
+        String redisKey = TEMP_LOGIN_TOKEN_PREFIX + request.getTempToken();
+        String userData = redisTemplate.opsForValue().get(redisKey);
+
+        if (userData == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired temporary token");
+        }
+
+        // Parse user data: userId:username:deviceId
+        String[] parts = userData.split(":");
+        if (parts.length != 3) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid token data");
+        }
+
+        String userId = parts[0];
+        String username = parts[1];
+        String deviceId = parts[2];
+
+        // Get user and 2FA settings
+        User user = users.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        TwoFactorAuth twoFactorAuth = twoFactorAuthRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "2FA configuration not found"));
+
+        // Verify 2FA code
+        boolean isValid = twoFactorAuthService.verify2FACode(userId, request.getCode(), twoFactorAuth.getMethod());
+
+        if (!isValid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid 2FA code");
+        }
+
+        // Delete temp token (one-time use)
+        redisTemplate.delete(redisKey);
+
+        // Complete login
+        UserDetails ud = org.springframework.security.core.userdetails.User
+                .withUsername(username)
+                .password(user.getPassword())
+                .authorities(user.getRoles().toArray(new String[0]))
+                .build();
+
+        return completeLogin(user, ud, deviceId, httpRequest);
+    }
+
+    /**
+     * Complete normal login (no 2FA) - generate tokens and create session
+     */
+    private IssuedTokens completeLogin(User user, UserDetails ud, String deviceId, HttpServletRequest request) {
+        String access = jwt.generateAccessToken(ud);
+        String jti = jwt.newJti();
+        String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
+
+        String dev = normalizeDevice(deviceId);
+        refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
+
+        // MongoDB: Create session with request context for device/IP detection
+        sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
+
+        Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+    }
+
+    private void sendEmail2FACode(User user, String code) {
+        Map<String, Object> data = Map.of(
+                "fullName", user.getFullName() != null ? user.getFullName() : user.getUsername(),
+                "code", code,
+                "validUntil", "5 minutes");
+
+        NotificationEvent event = NotificationEvent.builder()
+                .recipientEmail(user.getEmail())
+                .templateType("2fa-login-code")
+                .sendEmail(true)
+                .createInAppNotification(false)
+                .metadata(data)
+                .build();
+
+        notificationProducer.send(event);
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts[1];
+
+        if (local.length() <= 2) {
+            return "**@" + domain;
+        }
+
+        return local.substring(0, 2) + "****@" + domain;
     }
 
     @Override
@@ -378,7 +561,7 @@ public class AuthServiceImpl implements iAuthService {
                         .role(pendingData.getRole().getRoleName())
                         .status(status.getStatusName())
                         .hrProfile(buildHrProfile(pendingData))
-                        .company(buildCompanyData(pendingData))
+                        .company(buildCompanyData(user, pendingData))
                         .build())
                 .build();
 
@@ -397,12 +580,23 @@ public class AuthServiceImpl implements iAuthService {
                 .build();
     }
 
-    private UserRegistrationEvent.CompanyData buildCompanyData(PendingRegistration pendingData) {
+    private UserRegistrationEvent.CompanyData buildCompanyData(User user, PendingRegistration pendingData) {
         if (pendingData.getCompany() == null) {
             return null;
         }
 
+        // ✅ FIX: Use companyId from PendingRegistration (preferred) or User entity
+        // (fallback)
+        // PendingRegistration should have companyId set during registration
+        String companyId = pendingData.getCompanyId();
+        if (companyId == null) {
+            companyId = user.getCompanyId(); // Fallback to User if not in PendingRegistration
+            log.warn("companyId not found in PendingRegistration, using from User: {}", companyId);
+        }
+
         return UserRegistrationEvent.CompanyData.builder()
+                .companyId(companyId) // Use from PendingRegistration or User
+                .companyNo(pendingData.getCompany().getCompanyNo())
                 .name(pendingData.getCompany().getName())
                 .logoUrl(pendingData.getCompany().getLogoUrl())
                 .websiteUrl(pendingData.getCompany().getWebsiteUrl())
@@ -468,14 +662,31 @@ public class AuthServiceImpl implements iAuthService {
 
     private User createUserFromPending(PendingRegistration pendingData) {
         UserRole role = pendingData.getRole() == null ? UserRole.CANDIDATE : pendingData.getRole();
+
+        // ✅ FIX: Check if User already exists (resend OTP case) and reuse companyId
+        // DO NOT generate new UUID if user already has one in MongoDB
+        String companyId = null;
+        if (role == UserRole.HR_MANAGER && pendingData.getCompany() != null) {
+            // Try to find existing user to reuse companyId
+            User existingUser = users.findByEmail(pendingData.getEmail()).orElse(null);
+            if (existingUser != null && existingUser.getCompanyId() != null) {
+                companyId = existingUser.getCompanyId(); // Reuse existing
+                log.info("Reusing existing companyId {} for user {}", companyId, pendingData.getEmail());
+            } else {
+                companyId = UUID.randomUUID().toString(); // Generate new only if not exists
+                log.info("Generated new companyId {} for user {}", companyId, pendingData.getEmail());
+            }
+        }
+
         User user = User.builder()
                 .username(pendingData.getUsername())
                 .email(pendingData.getEmail())
                 .password(pendingData.getPasswordHash())
                 .roles(Set.of(role.getRoleName()))
                 .status(UserStatus.PENDING)
-                .company(role == UserRole.HR_MANAGER && pendingData.getCompany() != null
-                        ? pendingData.getCompany().getName()
+                .companyId(companyId)
+                .companyNo(role == UserRole.HR_MANAGER && pendingData.getCompany() != null
+                        ? pendingData.getCompany().getCompanyNo()
                         : null)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -483,16 +694,16 @@ public class AuthServiceImpl implements iAuthService {
         return users.save(user);
     }
 
-    private void validateHRManagerUniqueness(String companyName) {
-        // Check if there's already an HR_MANAGER with the same company in our
+    private void validateHRManagerUniqueness(String companyNo) {
+        // Check if there's already an HR_MANAGER with the same companyNo in our
         // auth-service database
-        List<User> existingHRManagers = users.findByRolesContainingAndCompany("HR_MANAGER", companyName);
+        List<User> existingHRManagers = users.findByRolesContainingAndCompanyNo("HR_MANAGER", companyNo);
         if (!existingHRManagers.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "A HR Manager already exists for company: " + companyName);
+                    "A HR Manager already exists for company with tax ID: " + companyNo);
         }
 
-        log.info("HR_MANAGER uniqueness validation passed for company: {}", companyName);
+        log.info("HR_MANAGER uniqueness validation passed for companyNo: {}", companyNo);
         // TODO: In the future, also call job-service to validate company existence and
         // HR_MANAGER uniqueness
     }

@@ -12,10 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CompanyRegisterRequest {
 
-    // @NotBlank(message = "Company ID is required for HR manager registration")
-    // @Pattern(regexp = "^[0-9a-fA-F-]{36}$", message = "Company ID must be a valid
-    // UUID")
-    // private String companyId;
+    @NotBlank(message = "Company tax ID (companyNo) is required for HR Manager registration")
+    private String companyNo; // Mã số thuế - will be primary key in job-service
 
     @NotBlank(message = "Company name is required")
     private String name;

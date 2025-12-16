@@ -1,1043 +1,2059 @@
 {
 	"info": {
-		"_postman_id": "1207eaf2-bb63-46ec-a08a-09ef3e0d7e5b",
-		"name": "WorkFitAI - User Profile Management (Auto Workflow)",
-		"description": "Complete workflow for testing all 17 User Profile endpoints through API Gateway.\n\n**How to use:**\n1. Import this collection\n2. Click 'Run Collection' button\n3. All tests will run automatically in sequence\n4. Check test results\n\n**Workflow:**\n1. Register new user\n2. Verify OTP\n3. Login (get JWT token)\n4. Upload avatar to Cloudinary\n5. Manage notification settings\n6. Manage privacy settings\n7. Change password\n8. Manage sessions\n9. Enable/Disable 2FA\n10. Test account management\n\n**API Gateway Base URL:** http://localhost:9085",
+		"_postman_id": "490c4479-379f-4291-8e5a-0914d1d69a3f",
+		"name": "WorkFitAI - User Profile Management (Auto Workflow) Copy",
+		"description": "Complete workflow for testing User Profile, HR Management, Admin and 2FA endpoints through API Gateway.\n\n**How to use:**\n1. Import this collection\n2. Click 'Run Collection' button\n3. All tests will run automatically in sequence\n4. Check test results\n\n**Workflows:**\n\n**A. CANDIDATE Profile Management:**\n1. Register new candidate\n2. Verify OTP (auto-activated)\n3. Login (get JWT token)\n4. Upload avatar to Cloudinary\n5. Manage notification/privacy settings\n6. Change password, manage sessions\n7. Enable/Disable 2FA\n\n**B. HR MANAGER Registration:**\n1. Register HR_MANAGER with company data (companyNo, name, address)\n2. Verify OTP\n3. Status: WAIT_APPROVED (needs Admin approval)\n4. Admin approves HR_MANAGER\n5. Status: ACTIVE, company synced to job-service\n6. Login: JWT contains companyId claim\n\n**C. HR Registration:**\n1. Register HR with hrManagerEmail\n2. System finds HR Manager, inherits companyId + companyNo\n3. Verify OTP\n4. Status: WAIT_APPROVED (needs HR_MANAGER approval)\n5. HR_MANAGER approves HR\n6. Status: ACTIVE\n7. Login: JWT contains same companyId as manager\n\n**D. 2FA Enhanced Workflow:**\n1. Enable 2FA (EMAIL/SMS/TOTP methods)\n2. Receive backup codes\n3. Login requires 2FA code\n4. Can use backup code if needed\n5. Disable 2FA with password + code\n\n**API Gateway Base URL:** http://localhost:9085",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39562729",
-		"_collection_link": "https://workfitai.postman.co/workspace/My-Workspace~b17b3b12-1188-4343-8c09-ffced4821f8f/collection/39562729-1207eaf2-bb63-46ec-a08a-09ef3e0d7e5b?action=share&source=collection_link&creator=39562729"
+		"_collection_link": "https://workfitai.postman.co/workspace/My-Workspace~b17b3b12-1188-4343-8c09-ffced4821f8f/collection/39562729-490c4479-379f-4291-8e5a-0914d1d69a3f?action=share&source=collection_link&creator=39562729"
 	},
 	"item": [
 		{
-			"name": "1. Setup - Register User",
-			"event": [
+			"name": "A. CANDIDATE WORKFLOW",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Registration successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.status).to.eql(\"success\");",
-							"});",
-							"",
-							"console.log(\"✅ Step 1: User registered successfully\");",
-							"console.log(\"📧 Check Redis for OTP or logs for OTP code\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"Profile Test User\",\n  \"phoneNumber\": \"+840912345678\",\n  \"role\": \"CANDIDATE\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/register",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"auth",
-						"register"
-					]
-				},
-				"description": "Register a new user for testing profile management"
-			},
-			"response": []
-		},
-		{
-			"name": "2. Setup - Input OTP (MANUAL STEP)",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"// This is a placeholder step",
-							"// In real testing, you need to:",
-							"// 1. Check docker logs: docker logs notification-service",
-							"// 2. Or check Redis: docker exec -it auth-redis redis-cli",
-							"// 3. GET otp:<email>",
-							"// 4. Update collection variable 'otp' with the code",
-							"",
-							"console.log(\"⚠️ MANUAL STEP REQUIRED:\");",
-							"console.log(\"1. Check logs: docker logs auth-service | grep OTP\");",
-							"console.log(\"2. Or Redis: docker exec -it auth-redis redis-cli\");",
-							"console.log(\"   > KEYS *otp*\");",
-							"console.log(\"   > GET otp:\" + pm.collectionVariables.get(\"email\"));",
-							"console.log(\"3. Copy OTP and update 'otp' variable\");",
-							"console.log(\"4. For auto-run, set otp to any 6-digit number (123456) in dev mode\");"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Skip this request - it's just a reminder",
-							"pm.test(\"OTP reminder shown\", function () {",
-							"    pm.expect(true).to.be.true;",
-							"});",
-							"",
-							"// For automated testing, set a default OTP",
-							"if (!pm.collectionVariables.get(\"otp\")) {",
-							"    pm.collectionVariables.set(\"otp\", \"123456\");",
-							"    console.log(\"⚠️ Using default OTP: 123456 (may fail in production)\");",
-							"}"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/auth/health",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"auth",
-						"health"
-					]
-				},
-				"description": "Dummy request to remind about OTP retrieval"
-			},
-			"response": []
-		},
-		{
-			"name": "3. Setup - Verify OTP",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"OTP verification successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.status).to.eql(\"success\");",
-							"});",
-							"",
-							"console.log(\"✅ Step 2: OTP verified, user activated\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/verify-otp",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"auth",
-						"verify-otp"
-					]
-				},
-				"description": "Verify OTP to activate user account"
-			},
-			"response": []
-		},
-		{
-			"name": "4. Setup - Login",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Login successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.data).to.have.property(\"accessToken\");",
-							"    ",
-							"    // Save tokens to collection variables",
-							"    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
-							"    pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
-							"});",
-							"",
-							"console.log(\"✅ Step 3: Login successful, JWT token saved\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"usernameOrEmail\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/login",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"auth",
-						"login"
-					]
-				},
-				"description": "Login to get JWT access token"
-			},
-			"response": []
-		},
-		{
-			"name": "5. Get Current Profile",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Get profile successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.status).to.eql(\"success\");",
-							"    pm.expect(jsonData.data).to.have.property(\"username\");",
-							"    pm.expect(jsonData.data.username).to.eql(pm.collectionVariables.get(\"username\"));",
-							"});",
-							"",
-							"console.log(\"✅ Profile endpoint working\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "1. Setup - Register Candidate",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Registration successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ Step 1: User registered successfully\");",
+									"console.log(\"📧 Check Redis for OTP or logs for OTP code\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
 						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/me",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"user",
-						"profile",
-						"me"
-					]
-				},
-				"description": "Get current user profile information"
-			},
-			"response": []
-		},
-		{
-			"name": "6. Upload Avatar (Base64 Sample)",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"// For demo purposes, we'll use a small base64 test image",
-							"// In real scenario, you'd upload actual file using form-data",
-							"console.log(\"📸 Avatar upload test\");",
-							"console.log(\"Note: Using form-data with actual image file in production\");"
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"Profile Test User\",\n  \"phoneNumber\": \"+840912345678\",\n  \"role\": \"CANDIDATE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user for testing profile management"
+					},
+					"response": []
 				},
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Avatar upload successful\", function () {",
-							"    // May return 400 if using base64 instead of multipart",
-							"    // This is expected - just testing the endpoint exists",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
-							"});",
-							"",
-							"if (pm.response.code === 200) {",
-							"    var jsonData = pm.response.json();",
-							"    if (jsonData.avatarUrl) {",
-							"        pm.collectionVariables.set(\"avatarUrl\", jsonData.avatarUrl);",
-							"        pm.collectionVariables.set(\"avatarPublicId\", jsonData.publicId);",
-							"        console.log(\"✅ Avatar uploaded to Cloudinary\");",
-							"    }",
-							"} else {",
-							"    console.log(\"⚠️ Avatar upload needs actual file - endpoint tested\");",
-							"}"
+					"name": "2. Setup - Input OTP (MANUAL STEP)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// This is a placeholder step",
+									"// In real testing, you need to:",
+									"// 1. Check docker logs: docker logs notification-service",
+									"// 2. Or check Redis: docker exec -it auth-redis redis-cli",
+									"// 3. GET otp:<email>",
+									"// 4. Update collection variable 'otp' with the code",
+									"",
+									"console.log(\"⚠️ MANUAL STEP REQUIRED:\");",
+									"console.log(\"1. Check logs: docker logs auth-service | grep OTP\");",
+									"console.log(\"2. Or Redis: docker exec -it auth-redis redis-cli\");",
+									"console.log(\"   > KEYS *otp*\");",
+									"console.log(\"   > GET otp:\" + pm.collectionVariables.get(\"email\"));",
+									"console.log(\"3. Copy OTP and update 'otp' variable\");",
+									"console.log(\"4. For auto-run, set otp to any 6-digit number (123456) in dev mode\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Skip this request - it's just a reminder",
+									"pm.test(\"OTP reminder shown\", function () {",
+									"    pm.expect(true).to.be.true;",
+									"});",
+									"",
+									"// For automated testing, set a default OTP",
+									"if (!pm.collectionVariables.get(\"otp\")) {",
+									"    pm.collectionVariables.set(\"otp\", \"123456\");",
+									"    console.log(\"⚠️ Using default OTP: 123456 (may fail in production)\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"health"
+							]
+						},
+						"description": "Dummy request to remind about OTP retrieval"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Setup - Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OTP verification successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ Step 2: OTP verified, user activated\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						},
+						"description": "Verify OTP to activate user account"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Setup - Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login response received\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check if 2FA is required",
+									"    if (jsonData.data.require2FA && jsonData.data.tempToken) {",
+									"        // 2FA enabled - save temp token",
+									"        pm.collectionVariables.set(\"tempToken\", jsonData.data.tempToken);",
+									"        console.log(\"⚠️ 2FA required! TempToken saved, check email for code\");",
+									"        console.log(\"📧 Email: \" + jsonData.data.maskedEmail);",
+									"        console.log(\"⏰ Expires in: \" + jsonData.data.expiresIn + \" seconds\");",
+									"    } else {",
+									"        // Normal login - save tokens directly",
+									"        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+									"        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+									"        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"        console.log(\"✅ Step 3: Login successful, JWT token saved\");",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login to get JWT access token"
+					},
+					"response": []
+				},
+				{
+					"name": "4b. Verify 2FA Login (If Enabled)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// This step only runs if user has 2FA enabled",
+									"console.log(\"⚠️ If 2FA is enabled, this step is required:\");",
+									"console.log(\"1. Login will return tempToken instead of access token\");",
+									"console.log(\"2. Check email/SMS for 6-digit code\");",
+									"console.log(\"3. This request will exchange tempToken + code for real tokens\");",
+									"console.log(\"4. Skip this step if 2FA is not enabled\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Only run if tempToken exists (2FA was required)",
+									"var tempToken = pm.collectionVariables.get(\"tempToken\");",
+									"",
+									"if (tempToken && tempToken !== \"\") {",
+									"    pm.test(\"2FA verification successful\", function () {",
+									"        pm.response.to.have.status(200);",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+									"        ",
+									"        // Update tokens after 2FA verification",
+									"        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+									"        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"        ",
+									"        // Clear temp token",
+									"        pm.collectionVariables.set(\"tempToken\", \"\");",
+									"    });",
+									"    console.log(\"✅ 2FA verification completed, real tokens obtained\");",
+									"} else {",
+									"    console.log(\"⏭️ Skipping 2FA verification (not enabled)\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "postman-test-device",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tempToken\": \"{{tempToken}}\",\n  \"code\": \"{{twoFactorCode}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-2fa-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-2fa-login"
+							]
+						},
+						"description": "Complete 2FA verification after login (only if 2FA enabled)\n\n**Flow:**\n1. Login returns tempToken if 2FA enabled\n2. User receives 6-digit code via EMAIL/SMS\n3. Submit tempToken + code\n4. Receive real access/refresh tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Get Current Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get profile successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data).to.have.property(\"username\");",
+									"    pm.expect(jsonData.data.username).to.eql(pm.collectionVariables.get(\"username\"));",
+									"});",
+									"",
+									"console.log(\"✅ Profile endpoint working\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"me"
+							]
+						},
+						"description": "Get current user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Upload Avatar (Base64 Sample)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// For demo purposes, we'll use a small base64 test image",
+									"// In real scenario, you'd upload actual file using form-data",
+									"console.log(\"📸 Avatar upload test\");",
+									"console.log(\"Note: Using form-data with actual image file in production\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Avatar upload successful\", function () {",
+									"    // May return 400 if using base64 instead of multipart",
+									"    // This is expected - just testing the endpoint exists",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.avatarUrl) {",
+									"        pm.collectionVariables.set(\"avatarUrl\", jsonData.avatarUrl);",
+									"        pm.collectionVariables.set(\"avatarPublicId\", jsonData.publicId);",
+									"        console.log(\"✅ Avatar uploaded to Cloudinary\");",
+									"    }",
+									"} else {",
+									"    console.log(\"⚠️ Avatar upload needs actual file - endpoint tested\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Upload an actual image file here (JPG/PNG, max 5MB)",
+									"type": "file",
+									"src": "/Users/killig/ThanhDi/MyProfile/1777.JPG"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/avatar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"avatar"
+							]
+						},
+						"description": "Upload avatar to Cloudinary\n\n**Note:** To test properly:\n1. Select an image file in the form-data\n2. Max 5MB, formats: jpg, jpeg, png, webp"
+					},
+					"response": []
+				},
+				{
+					"name": "7. Get Avatar",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get avatar response\", function () {",
+									"    // May return 404 if no avatar uploaded",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log(\"✅ Avatar URL: \" + jsonData.avatarUrl);",
+									"} else {",
+									"    console.log(\"⚠️ No avatar found (expected if upload skipped)\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/avatar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"avatar"
+							]
+						},
+						"description": "Get current user's avatar URL from Cloudinary"
+					},
+					"response": []
+				},
+				{
+					"name": "8. Get Notification Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get notification settings successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"emailNotifications\");",
+									"});",
+									"",
+									"console.log(\"✅ Notification settings retrieved\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/notification-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"notification-settings"
+							]
+						},
+						"description": "Get user's notification preferences"
+					},
+					"response": []
+				},
+				{
+					"name": "9. Update Notification Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update notification settings successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"✅ Notification settings updated\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"emailNotifications\": {\n    \"enabled\": true,\n    \"newJobMatch\": true,\n    \"applicationStatus\": true,\n    \"messages\": false,\n    \"weeklyDigest\": true,\n    \"promotions\": false\n  },\n  \"pushNotifications\": {\n    \"enabled\": true,\n    \"newJobMatch\": true,\n    \"applicationStatus\": true,\n    \"messages\": true\n  },\n  \"frequency\": \"REAL_TIME\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/notification-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"notification-settings"
+							]
+						},
+						"description": "Update notification preferences (JSONB in PostgreSQL)"
+					},
+					"response": []
+				},
+				{
+					"name": "10. Get Privacy Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get privacy settings successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"profileVisibility\");",
+									"});",
+									"",
+									"console.log(\"✅ Privacy settings retrieved\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/privacy-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"privacy-settings"
+							]
+						},
+						"description": "Get user's privacy preferences"
+					},
+					"response": []
+				},
+				{
+					"name": "11. Update Privacy Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update privacy settings successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"✅ Privacy settings updated\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"profileVisibility\": \"PUBLIC\",\n    \"showEmail\": false,\n    \"showPhone\": false,\n    \"showLocation\": true,\n    \"allowCvDownload\": true,\n    \"allowMessaging\": true,\n    \"showActivityStatus\": true,\n    \"showOnlineStatus\": true,\n    \"searchIndexing\": true\n  }"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/privacy-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"privacy-settings"
+							]
+						},
+						"description": "Update privacy preferences (JSONB in PostgreSQL)"
+					},
+					"response": []
+				},
+				{
+					"name": "12. Change Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Change password successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"// Update password variable for next login",
+									"pm.collectionVariables.set(\"password\", pm.collectionVariables.get(\"newPassword\"));",
+									"",
+									"console.log(\"✅ Password changed successfully\");",
+									"console.log(\"🔒 All sessions invalidated except current\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\",\n  \"confirmPassword\": \"{{newPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/change-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Change user password (requires current password)"
+					},
+					"response": []
+				},
+				{
+					"name": "13. Get Active Sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get sessions successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(Array.isArray(jsonData)).to.be.true;",
+									"    ",
+									"    if (jsonData.length > 0) {",
+									"        // Save first session ID for testing delete",
+									"        var nonCurrentSession = jsonData.find(s => !s.isCurrent);",
+									"        if (nonCurrentSession) {",
+									"            pm.collectionVariables.set(\"sessionId\", nonCurrentSession.sessionId);",
+									"        }",
+									"    }",
+									"});",
+									"",
+									"console.log(\"✅ Sessions list retrieved\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/sessions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"sessions"
+							]
+						},
+						"description": "Get list of all active sessions with device info"
+					},
+					"response": []
+				},
+				{
+					"name": "14. Enable 2FA (EMAIL)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Enable 2FA successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"twoFactorEnabled\");",
+									"    pm.expect(jsonData.data.twoFactorEnabled).to.be.true;",
+									"    ",
+									"    if (jsonData.data.backupCodes) {",
+									"        console.log(\"🔐 Backup codes: \" + jsonData.data.backupCodes.join(\", \"));",
+									"    }",
+									"});",
+									"",
+									"console.log(\"✅ 2FA enabled\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"method\": \"EMAIL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/enable-2fa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"enable-2fa"
+							]
+						},
+						"description": "Enable Two-Factor Authentication\n\nMethods: EMAIL, SMS, TOTP"
+					},
+					"response": []
+				},
+				{
+					"name": "15. Disable 2FA",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// For testing, use any backup code or skip verification",
+									"console.log(\"⚠️ Disable 2FA requires:\");",
+									"console.log(\"- Current password\");",
+									"console.log(\"- 2FA code (from email/SMS) or backup code\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Disable 2FA response\", function () {",
+									"    // May fail if code is invalid - that's expected",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    console.log(\"✅ 2FA disabled\");",
+									"} else {",
+									"    console.log(\"⚠️ 2FA disable needs valid code - endpoint tested\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"{{password}}\",\n  \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/disable-2fa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"disable-2fa"
+							]
+						},
+						"description": "Disable 2FA (requires password + valid code)"
+					},
+					"response": []
+				},
+				{
+					"name": "16. Forgot Password (Request OTP)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Forgot password OTP sent\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ Password reset OTP sent to email\");",
+									"console.log(\"📧 Check email or logs for OTP\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/forgot-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Request password reset OTP (30 min validity)"
+					},
+					"response": []
+				},
+				{
+					"name": "17. Delete Avatar",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Delete avatar response\", function () {",
+									"    // May return 404 if no avatar",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    console.log(\"✅ Avatar deleted from Cloudinary\");",
+									"    pm.collectionVariables.set(\"avatarUrl\", \"\");",
+									"} else {",
+									"    console.log(\"⚠️ No avatar to delete (expected if upload skipped)\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/avatar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"avatar"
+							]
+						},
+						"description": "Delete avatar from Cloudinary and database"
+					},
+					"response": []
+				},
+				{
+					"name": "18. OPTIONAL - Deactivate Account",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log(\"⚠️ OPTIONAL: Deactivate account\");",
+									"console.log(\"This will disable the account temporarily\");",
+									"console.log(\"Skip this if you want to keep testing\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This is optional - may want to skip for continuous testing",
+									"pm.test(\"Deactivate account (optional)\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    console.log(\"✅ Account deactivated (30-day retention)\");",
+									"} else {",
+									"    console.log(\"⚠️ Deactivation skipped or failed\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"TAKING_A_BREAK\",\n  \"feedback\": \"Testing deactivation feature\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/profile/deactivate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"deactivate"
+							]
+						},
+						"description": "⚠️ OPTIONAL: Deactivate account temporarily\n\n**Note:** Uncomment/enable this only for full workflow testing"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"description": "Upload an actual image file here (JPG/PNG, max 5MB)",
-							"type": "file",
-							"src": "/Users/killig/ThanhDi/MyProfile/3115.JPG"
-						}
-					]
-				},
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/avatar",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"avatar"
-					]
-				},
-				"description": "Upload avatar to Cloudinary\n\n**Note:** To test properly:\n1. Select an image file in the form-data\n2. Max 5MB, formats: jpg, jpeg, png, webp"
-			},
-			"response": []
+			"description": "Complete workflow for Candidate user profile management"
 		},
 		{
-			"name": "7. Get Avatar",
-			"event": [
+			"name": "B. HR MANAGER WORKFLOW",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Get avatar response\", function () {",
-							"    // May return 404 if no avatar uploaded",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-							"});",
-							"",
-							"if (pm.response.code === 200) {",
-							"    var jsonData = pm.response.json();",
-							"    console.log(\"✅ Avatar URL: \" + jsonData.avatarUrl);",
-							"} else {",
-							"    console.log(\"⚠️ No avatar found (expected if upload skipped)\");",
-							"}"
+					"name": "1. Register HR Manager with Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR Manager registration successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ HR Manager registered\");",
+									"console.log(\"📧 Check logs for OTP code\");",
+									"console.log(\"⏳ Status: PENDING → (after OTP) → WAIT_APPROVED\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"fullName\": \"HR Manager Test\",\n  \"phoneNumber\": \"0987654321\",\n  \"role\": \"HR_MANAGER\",\n  \"hrProfile\": {\n    \"department\": \"Human Resources\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{companyNo}}\",\n    \"name\": \"Test Company Ltd\",\n    \"address\": \"456 Business Avenue, District 1\",\n    \"websiteUrl\": \"https://testcompany.com\",\n    \"description\": \"A test company for HR Manager registration\",\n    \"size\": \"100-500\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "**Register HR Manager with Company Data**\n\n**Required Fields:**\n- `companyNo` (String): Mã số thuế (Tax ID) - Primary key in job-service\n- `company.name`: Company name\n- `company.address`: Company address\n- `hrProfile.department`: HR Manager's department\n- `hrProfile.address`: HR Manager's work address\n\n**Flow:**\n1. Auth-service generates UUID `companyId` automatically\n2. Stores both `companyId` (UUID) and `companyNo` (tax ID) in User entity\n3. Status: `PENDING`\n4. OTP sent to email (24h validity)\n5. After OTP verification → Status: `WAIT_APPROVED`\n6. Requires Admin approval to become `ACTIVE`\n\n**Data Flow:**\n```\nAuth-service User:\n  - companyId: \"uuid-string\" (generated)\n  - companyNo: \"0123456789\" (from input)\n  \nKafka Event → User-service:\n  - Creates HREntity with both IDs\n  \nAfter Approval → Job-service:\n  - Company created with companyNo as primary key\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Verify HR Manager OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OTP verification successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ OTP verified\");",
+									"console.log(\"📋 Status: WAIT_APPROVED (needs Admin approval)\");",
+									"console.log(\"📧 Pending approval email sent\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"otp\": \"{{hrManagerOtp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						},
+						"description": "**Verify HR Manager OTP**\n\n**What Happens:**\n1. OTP validated (Redis TTL: 24h)\n2. Status: `PENDING` → `WAIT_APPROVED`\n3. Kafka event → User-service creates HREntity\n4. Notification sent: \"Pending approval\" email\n5. Cannot login until Admin approves\n\n**Email Template Used:** `pending-approval.html`\n- Shows approver type: \"ADMIN\"\n- Explains approval required"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Admin - Approve HR Manager",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR Manager approval successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ HR Manager approved by Admin\");",
+									"console.log(\"📋 Status: ACTIVE\");",
+									"console.log(\"🏢 Company synced to job-service\");",
+									"console.log(\"📧 Approval granted email sent\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/hr/username/{{hrManagerUsername}}/approve-manager",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"hr",
+								"username",
+								"{{hrManagerUsername}}",
+								"approve-manager"
+							]
+						},
+						"description": "**Admin Approves HR Manager**\n\n**Requirements:**\n- Role: `ADMIN`\n- HR Manager must be in `WAIT_APPROVED` status\n\n**What Happens:**\n1. User-service updates status: `WAIT_APPROVED` → `ACTIVE`\n2. Publishes Kafka event → Auth-service syncs status\n3. Publishes CompanySync event → Job-service creates Company\n4. Job-service Company entity:\n   ```sql\n   INSERT INTO companies (company_no, name, address, ...)\n   VALUES ('0123456789', 'Test Company', ...)\n   ```\n5. Notification sent: \"Approval granted\" email with login link\n\n**Email Template Used:** `approval-granted.html`\n- Shows role: HR_MANAGER\n- Login URL provided\n- Includes companyId in JWT claim\n\n**To Test:**\n1. Login as Admin first (see Admin Login endpoint)\n2. Get HR Manager userId from registration response\n3. Approve with this endpoint"
+					},
+					"response": []
+				},
+				{
+					"name": "4. HR Manager - Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR Manager login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.data.require2FA) {",
+									"        pm.collectionVariables.set(\"hrManagerTempToken\", jsonData.data.tempToken);",
+									"        console.log(\"⚠️ 2FA required for HR Manager\");",
+									"    } else {",
+									"        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+									"        pm.collectionVariables.set(\"hrManagerToken\", jsonData.data.accessToken);",
+									"        ",
+									"        // Decode JWT to check companyId claim",
+									"        var token = jsonData.data.accessToken;",
+									"        var base64Url = token.split('.')[1];",
+									"        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');",
+									"        var payload = JSON.parse(atob(base64));",
+									"        ",
+									"        console.log(\"✅ HR Manager logged in\");",
+									"        console.log(\"🔑 JWT Claims:\");",
+									"        console.log(\"   - username: \" + payload.sub);",
+									"        console.log(\"   - roles: \" + JSON.stringify(payload.roles));",
+									"        console.log(\"   - companyId: \" + payload.companyId);",
+									"        ",
+									"        pm.expect(payload.companyId).to.not.be.undefined;",
+									"        pm.collectionVariables.set(\"hrManagerCompanyId\", payload.companyId);",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "**HR Manager Login - JWT with companyId**\n\n**JWT Token Structure:**\n```json\n{\n  \"sub\": \"hrmanager@test.com\",\n  \"iss\": \"WorkFitAI\",\n  \"roles\": [\"HR_MANAGER\"],\n  \"perms\": [\"MANAGE_JOBS\", \"VIEW_APPLICATIONS\", ...],\n  \"companyId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"iat\": 1234567890,\n  \"exp\": 1234571490\n}\n```\n\n**companyId Claim:**\n- Only present for HR/HR_MANAGER roles\n- UUID string format\n- Frontend uses this to identify user's company\n- No need for additional API calls to get company\n\n**Flow:**\n1. JwtService checks user roles\n2. If HR or HR_MANAGER: fetch User entity\n3. Add `companyId` claim to JWT\n4. Frontend decodes JWT → knows company context"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/avatar",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"avatar"
-					]
-				},
-				"description": "Get current user's avatar URL from Cloudinary"
-			},
-			"response": []
+			"description": "Complete workflow for HR Manager registration, approval and login with companyId in JWT"
 		},
 		{
-			"name": "8. Get Notification Settings",
-			"event": [
+			"name": "C. HR REGISTRATION WORKFLOW",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Get notification settings successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.have.property(\"emailNotifications\");",
-							"});",
-							"",
-							"console.log(\"✅ Notification settings retrieved\");"
+					"name": "1. Register HR under HR Manager",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR registration successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ HR registered under HR Manager\");",
+									"console.log(\"🔗 Will inherit companyId + companyNo from manager\");",
+									"console.log(\"📧 Check logs for OTP code\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"fullName\": \"HR Staff Test\",\n  \"phoneNumber\": \"0976543210\",\n  \"role\": \"HR\",\n  \"hrProfile\": {\n    \"department\": \"Recruitment\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"123 Test Street, Ho Chi Minh City\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "**Register HR under HR Manager**\n\n**Required Fields:**\n- `hrProfile.hrManagerEmail`: Email of the HR Manager (must be ACTIVE)\n- `hrProfile.department`: HR's department\n- `hrProfile.address`: HR's work address\n\n**NO Company Data Needed:**\n- HR inherits company from HR Manager\n- System automatically finds HR Manager by email\n- Copies `companyId` (UUID) and `companyNo` (tax ID)\n\n**Flow:**\n1. Auth-service validates hrManagerEmail exists\n2. Status: `PENDING`\n3. OTP sent to email\n4. After OTP verification:\n   - Status: `WAIT_APPROVED`\n   - Kafka event → User-service finds HR Manager\n   - HRServiceImpl logic:\n     ```java\n     HREntity hrManager = hrRepository.findByEmail(hrManagerEmail);\n     UUID companyId = hrManager.getCompanyId(); // Inherit\n     String companyNo = hrManager.getCompanyNo(); // Inherit\n     \n     HREntity hr = HREntity.builder()\n         .companyId(companyId)\n         .companyNo(companyNo)\n         .build();\n     ```\n5. Requires HR_MANAGER approval to become ACTIVE\n\n**Data Inheritance:**\n```\nHR Manager Entity:\n  - companyId: \"uuid-abc-123\"\n  - companyNo: \"0123456789\"\n  \nHR Entity (after OTP):\n  - companyId: \"uuid-abc-123\" (same)\n  - companyNo: \"0123456789\" (same)\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Verify HR OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR OTP verification successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ HR OTP verified\");",
+									"console.log(\"📋 Status: WAIT_APPROVED (needs HR_MANAGER approval)\");",
+									"console.log(\"🔗 CompanyId inherited from HR Manager\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"otp\": \"{{hrOtp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						},
+						"description": "**Verify HR OTP**\n\n**What Happens:**\n1. OTP validated\n2. Status: `PENDING` → `WAIT_APPROVED`\n3. Kafka event → User-service:\n   - Finds HR Manager by hrManagerEmail\n   - Creates HREntity with inherited companyId + companyNo\n4. Notification: \"Pending approval\" email\n5. Approver type: \"HR_MANAGER\" (not Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "3. HR Manager - Approve HR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR approval successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});",
+									"",
+									"console.log(\"✅ HR approved by HR Manager\");",
+									"console.log(\"📋 Status: ACTIVE\");",
+									"console.log(\"📧 Approval granted email sent\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/hr/username/{{hrUsername}}/approve",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"hr",
+								"username",
+								"{{hrUsername}}",
+								"approve"
+							]
+						},
+						"description": "**HR Manager Approves HR**\n\n**Requirements:**\n- Role: `HR_MANAGER`\n- HR must be in `WAIT_APPROVED` status\n- HR must belong to same company (companyId match)\n\n**What Happens:**\n1. User-service validates HR Manager owns this HR:\n   ```java\n   HREntity hrManager = getCurrentHRManager();\n   HREntity hr = hrRepository.findById(userId);\n   \n   if (!hr.getCompanyId().equals(hrManager.getCompanyId())) {\n       throw new UnauthorizedException();\n   }\n   ```\n2. Updates status: `WAIT_APPROVED` → `ACTIVE`\n3. Kafka event → Auth-service syncs status\n4. Notification: \"Approval granted\" email\n\n**Email Template:** `approval-granted.html`\n- Shows role: HR\n- Login URL provided\n\n**Security:**\n- HR_MANAGER can only approve HRs in their company\n- Cannot approve HRs from other companies"
+					},
+					"response": []
+				},
+				{
+					"name": "4. HR - Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HR login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (!jsonData.data.require2FA) {",
+									"        pm.collectionVariables.set(\"hrToken\", jsonData.data.accessToken);",
+									"        ",
+									"        // Decode JWT to verify companyId",
+									"        var token = jsonData.data.accessToken;",
+									"        var base64Url = token.split('.')[1];",
+									"        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');",
+									"        var payload = JSON.parse(atob(base64));",
+									"        ",
+									"        console.log(\"✅ HR logged in\");",
+									"        console.log(\"🔑 JWT companyId: \" + payload.companyId);",
+									"        console.log(\"✓ Same as HR Manager: \" + pm.collectionVariables.get(\"hrManagerCompanyId\"));",
+									"        ",
+									"        // Verify same companyId as HR Manager",
+									"        pm.expect(payload.companyId).to.eql(pm.collectionVariables.get(\"hrManagerCompanyId\"));",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "**HR Login - Same companyId as HR Manager**\n\n**JWT Token:**\n- Contains same `companyId` as HR Manager\n- Frontend can verify HR belongs to same company\n- Can access same company's jobs/applications\n\n**Verification:**\nThis test decodes both JWT tokens and verifies:\n```javascript\nhrManagerToken.companyId === hrToken.companyId\n```\n\n**Use Cases:**\n- HR can manage jobs for their company\n- HR can view applications for their company\n- Cannot access other companies' data"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/notification-settings",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"notification-settings"
-					]
-				},
-				"description": "Get user's notification preferences"
-			},
-			"response": []
+			"description": "Complete workflow for HR registration under HR Manager with company inheritance"
 		},
 		{
-			"name": "9. Update Notification Settings",
-			"event": [
+			"name": "D. ADMIN UTILITIES",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Update notification settings successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"console.log(\"✅ Notification settings updated\");"
+					"name": "Admin - Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Admin login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+									"    pm.collectionVariables.set(\"adminToken\", jsonData.data.accessToken);",
+									"});",
+									"",
+									"console.log(\"✅ Admin logged in\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"admin@workfitai.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "**Admin Login**\n\n**Seeded Admin Account:**\n- Email: `admin@workfitai.com`\n- Password: `admin123`\n- Role: `ADMIN`\n- Status: `ACTIVE`\n\n**Permissions:**\n- Approve HR_MANAGER registrations\n- Manage all users\n- Access all system resources\n\n**JWT Token:**\n- No `companyId` claim (Admin not tied to company)\n- Has all system permissions"
+					},
+					"response": []
+				},
+				{
+					"name": "Admin - Get Pending HR Managers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get pending HR Managers\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.length > 0) {",
+									"        console.log(\"📋 Found \" + jsonData.length + \" pending HR Managers\");",
+									"        // Save first userId for approval",
+									"        pm.collectionVariables.set(\"hrManagerUserId\", jsonData[0].userId);",
+									"    } else {",
+									"        console.log(\"✅ No pending HR Managers\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/admin/pending-hr-managers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"admin",
+								"pending-hr-managers"
+							]
+						},
+						"description": "**Get Pending HR Manager Registrations**\n\n**Returns:**\nList of HR Managers in `WAIT_APPROVED` status\n\n**Response Format:**\n```json\n[\n  {\n    \"userId\": \"uuid\",\n    \"fullName\": \"HR Manager Name\",\n    \"email\": \"hrmanager@company.com\",\n    \"phoneNumber\": \"+84...\",\n    \"companyName\": \"Company Name\",\n    \"department\": \"Human Resources\",\n    \"registeredAt\": \"2025-12-16T10:00:00Z\",\n    \"status\": \"WAIT_APPROVED\"\n  }\n]\n```"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"emailNotifications\": {\n    \"enabled\": true,\n    \"newJobMatch\": true,\n    \"applicationStatus\": true,\n    \"messages\": false,\n    \"weeklyDigest\": true,\n    \"promotions\": false\n  },\n  \"pushNotifications\": {\n    \"enabled\": true,\n    \"newJobMatch\": true,\n    \"applicationStatus\": true,\n    \"messages\": true\n  },\n  \"frequency\": \"REAL_TIME\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/notification-settings",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"notification-settings"
-					]
-				},
-				"description": "Update notification preferences (JSONB in PostgreSQL)"
-			},
-			"response": []
+			"description": "Admin utilities for managing HR Manager approvals"
 		},
 		{
-			"name": "10. Get Privacy Settings",
-			"event": [
+			"name": "E. 2FA ENHANCED WORKFLOW",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Get privacy settings successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.have.property(\"profileVisibility\");",
-							"});",
-							"",
-							"console.log(\"✅ Privacy settings retrieved\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "1. Enable 2FA - EMAIL Method",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Enable 2FA EMAIL successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.twoFactorEnabled).to.be.true;",
+									"    pm.expect(jsonData.data.twoFactorMethod).to.eql(\"EMAIL\");",
+									"    ",
+									"    // Save backup codes",
+									"    if (jsonData.data.backupCodes) {",
+									"        pm.collectionVariables.set(\"backupCodes\", JSON.stringify(jsonData.data.backupCodes));",
+									"        console.log(\"🔐 Backup codes: \" + jsonData.data.backupCodes.join(\", \"));",
+									"    }",
+									"});",
+									"",
+									"console.log(\"✅ 2FA EMAIL enabled\");",
+									"console.log(\"⚠️ Next login will require email code\");"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/privacy-settings",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"user",
-						"profile",
-						"privacy-settings"
-					]
-				},
-				"description": "Get user's privacy preferences"
-			},
-			"response": []
-		},
-		{
-			"name": "11. Update Privacy Settings",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Update privacy settings successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"console.log(\"✅ Privacy settings updated\");"
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"method\": \"EMAIL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/enable-2fa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"enable-2fa"
+							]
+						},
+						"description": "**Enable 2FA - EMAIL Method**\n\n**Methods Available:**\n- `EMAIL`: 6-digit code sent to email (5 min validity)\n- `SMS`: 6-digit code sent to phone (5 min validity)\n- `TOTP`: Time-based code using Authenticator app\n\n**Response:**\n```json\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"twoFactorEnabled\": true,\n    \"twoFactorMethod\": \"EMAIL\",\n    \"backupCodes\": [\n      \"ABC123DEF\",\n      \"XYZ789GHI\",\n      ...\n    ]\n  }\n}\n```\n\n**Backup Codes:**\n- 10 single-use codes generated\n- Can be used instead of 2FA code\n- Store securely (shown only once)\n- Use if: lose phone, can't access email, TOTP app unavailable\n\n**After Enabling:**\n- Next login requires 2FA verification\n- Login returns `tempToken` instead of `accessToken`\n- Must call `/auth/verify-2fa-login` with code"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Enable 2FA - TOTP Method",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Enable 2FA TOTP successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.twoFactorEnabled).to.be.true;",
+									"    pm.expect(jsonData.data.twoFactorMethod).to.eql(\"TOTP\");",
+									"    ",
+									"    if (jsonData.data.qrCode) {",
+									"        console.log(\"📱 QR Code: \" + jsonData.data.qrCode);",
+									"        console.log(\"🔑 Secret: \" + jsonData.data.secret);",
+									"    }",
+									"    ",
+									"    pm.collectionVariables.set(\"twoFactorSecret\", jsonData.data.secret);",
+									"});",
+									"",
+									"console.log(\"✅ 2FA TOTP enabled\");",
+									"console.log(\"📱 Scan QR code with Google Authenticator / Authy\");"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"profileVisibility\": \"PUBLIC\",\n    \"showEmail\": false,\n    \"showPhone\": false,\n    \"showLocation\": true,\n    \"allowCvDownload\": true,\n    \"allowMessaging\": true,\n    \"showActivityStatus\": true,\n    \"showOnlineStatus\": true,\n    \"searchIndexing\": true\n  }"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/privacy-settings",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"user",
-						"profile",
-						"privacy-settings"
-					]
-				},
-				"description": "Update privacy preferences (JSONB in PostgreSQL)"
-			},
-			"response": []
-		},
-		{
-			"name": "12. Change Password",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Change password successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.status).to.eql(\"success\");",
-							"});",
-							"",
-							"// Update password variable for next login",
-							"pm.collectionVariables.set(\"password\", pm.collectionVariables.get(\"newPassword\"));",
-							"",
-							"console.log(\"✅ Password changed successfully\");",
-							"console.log(\"🔒 All sessions invalidated except current\");"
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"method\": \"TOTP\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/enable-2fa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"enable-2fa"
+							]
+						},
+						"description": "**Enable 2FA - TOTP (Authenticator App)**\n\n**Response:**\n```json\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"twoFactorEnabled\": true,\n    \"twoFactorMethod\": \"TOTP\",\n    \"secret\": \"JBSWY3DPEHPK3PXP\",\n    \"qrCode\": \"data:image/png;base64,...\",\n    \"backupCodes\": [...]\n  }\n}\n```\n\n**Setup Instructions:**\n1. Scan `qrCode` with authenticator app:\n   - Google Authenticator\n   - Microsoft Authenticator\n   - Authy\n   - 1Password\n2. Or manually enter `secret` in app\n3. App generates 6-digit codes every 30 seconds\n4. Use code for login verification\n\n**TOTP Benefits:**\n- Works offline (no internet needed)\n- More secure than EMAIL/SMS\n- Standard RFC 6238 protocol"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Login with 2FA (Step 1)",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"2FA login - tempToken received\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.require2FA).to.be.true;",
+									"    pm.expect(jsonData.data.tempToken).to.not.be.empty;",
+									"    ",
+									"    pm.collectionVariables.set(\"tempToken\", jsonData.data.tempToken);",
+									"});",
+									"",
+									"console.log(\"✅ Step 1: Credentials verified\");",
+									"console.log(\"⏳ TempToken saved (5 min validity)\");",
+									"console.log(\"📧 2FA code sent to: \" + pm.response.json().data.maskedEmail);"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\",\n  \"confirmPassword\": \"{{newPassword}}\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/change-password",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"auth",
-						"change-password"
-					]
-				},
-				"description": "Change user password (requires current password)"
-			},
-			"response": []
-		},
-		{
-			"name": "13. Get Active Sessions",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Get sessions successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(Array.isArray(jsonData)).to.be.true;",
-							"    ",
-							"    if (jsonData.length > 0) {",
-							"        // Save first session ID for testing delete",
-							"        var nonCurrentSession = jsonData.find(s => !s.isCurrent);",
-							"        if (nonCurrentSession) {",
-							"            pm.collectionVariables.set(\"sessionId\", nonCurrentSession.sessionId);",
-							"        }",
-							"    }",
-							"});",
-							"",
-							"console.log(\"✅ Sessions list retrieved\");"
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "**Login with 2FA Enabled (Step 1)**\n\n**Response When 2FA Enabled:**\n```json\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"require2FA\": true,\n    \"tempToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"twoFactorMethod\": \"EMAIL\",\n    \"maskedEmail\": \"t***@example.com\",\n    \"expiresIn\": 300\n  }\n}\n```\n\n**What Happens:**\n1. Username/password validated\n2. System detects 2FA enabled\n3. Generates temporary token (5 min validity)\n4. Sends 6-digit code:\n   - EMAIL: to user's email\n   - SMS: to user's phone\n   - TOTP: user generates from app\n5. Returns tempToken (NOT access token)\n\n**Next Step:**\nMust call `/auth/verify-2fa-login` with tempToken + code"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Verify 2FA Code (Step 2)",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"2FA verification successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+									"    pm.expect(jsonData.data).to.have.property(\"refreshToken\");",
+									"    ",
+									"    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"});",
+									"",
+									"console.log(\"✅ 2FA verification complete\");",
+									"console.log(\"🔑 Real tokens obtained\");"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/auth/sessions",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"auth",
-						"sessions"
-					]
-				},
-				"description": "Get list of all active sessions with device info"
-			},
-			"response": []
-		},
-		{
-			"name": "14. Enable 2FA (EMAIL)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Enable 2FA successful\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.data).to.have.property(\"twoFactorEnabled\");",
-							"    pm.expect(jsonData.data.twoFactorEnabled).to.be.true;",
-							"    ",
-							"    if (jsonData.data.backupCodes) {",
-							"        console.log(\"🔐 Backup codes: \" + jsonData.data.backupCodes.join(\", \"));",
-							"    }",
-							"});",
-							"",
-							"console.log(\"✅ 2FA enabled\");"
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "postman-test-device",
+								"type": "text"
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tempToken\": \"{{tempToken}}\",\n  \"code\": \"{{twoFactorCode}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-2fa-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-2fa-login"
+							]
+						},
+						"description": "**Verify 2FA Code (Step 2)**\n\n**Request:**\n```json\n{\n  \"tempToken\": \"eyJhbGci...\",\n  \"code\": \"123456\"\n}\n```\n\n**Headers:**\n- `X-Device-Id`: Optional device identifier for session tracking\n\n**Code Sources:**\n1. **EMAIL**: Check email for 6-digit code\n2. **SMS**: Check phone for 6-digit code\n3. **TOTP**: Generate from authenticator app\n4. **Backup Code**: Use one of 10 backup codes\n\n**Response:**\n```json\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGci...\",\n    \"refreshToken\": \"eyJhbGci...\",\n    \"tokenType\": \"Bearer\",\n    \"expiresIn\": 3600\n  }\n}\n```\n\n**Security:**\n- Code valid for 5 minutes\n- Code single-use (cannot reuse)\n- Backup codes single-use (marked as used)\n- TempToken invalid after successful verification\n- Failed attempts tracked (lockout after 5 failures)"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Use Backup Code (Alternative)",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Backup code verification\", function () {",
+									"    // May fail if backup code invalid/used",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+									"    console.log(\"✅ Backup code verified\");",
+									"    console.log(\"⚠️ This code is now used (single-use)\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"method\": \"EMAIL\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/enable-2fa",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"auth",
-						"enable-2fa"
-					]
-				},
-				"description": "Enable Two-Factor Authentication\n\nMethods: EMAIL, SMS, TOTP"
-			},
-			"response": []
-		},
-		{
-			"name": "15. Disable 2FA",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"// For testing, use any backup code or skip verification",
-							"console.log(\"⚠️ Disable 2FA requires:\");",
-							"console.log(\"- Current password\");",
-							"console.log(\"- 2FA code (from email/SMS) or backup code\");"
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tempToken\": \"{{tempToken}}\",\n  \"code\": \"ABC123DEF\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-2fa-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"verify-2fa-login"
+							]
+						},
+						"description": "**Use Backup Code Instead of 2FA Code**\n\n**When to Use:**\n- Lost phone (can't receive SMS)\n- Email inaccessible\n- TOTP app unavailable (new phone, app uninstalled)\n- Traveling without internet\n\n**How It Works:**\n1. Use same endpoint: `/auth/verify-2fa-login`\n2. Instead of 6-digit code, use backup code: `ABC123DEF`\n3. System detects format difference (not 6 digits)\n4. Validates against backup codes array\n5. Marks code as used (single-use)\n6. Returns access/refresh tokens\n\n**Backup Code Format:**\n- 9 characters: `ABC123DEF`\n- Alphanumeric uppercase\n- Cannot be reused\n- Only 10 codes generated\n\n**Best Practices:**\n- Store backup codes securely (password manager)\n- Print and keep in safe place\n- Don't share with anyone\n- Generate new codes if all used"
+					},
+					"response": []
 				},
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Disable 2FA response\", function () {",
-							"    // May fail if code is invalid - that's expected",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
-							"});",
-							"",
-							"if (pm.response.code === 200) {",
-							"    console.log(\"✅ 2FA disabled\");",
-							"} else {",
-							"    console.log(\"⚠️ 2FA disable needs valid code - endpoint tested\");",
-							"}"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "6. Disable 2FA",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Disable 2FA successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.twoFactorEnabled).to.be.false;",
+									"});",
+									"",
+									"console.log(\"✅ 2FA disabled\");",
+									"console.log(\"🔓 Next login won't require 2FA code\");"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"password\": \"{{password}}\",\n  \"code\": \"123456\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/disable-2fa",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"auth",
-						"disable-2fa"
-					]
-				},
-				"description": "Disable 2FA (requires password + valid code)"
-			},
-			"response": []
-		},
-		{
-			"name": "16. Forgot Password (Request OTP)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Forgot password OTP sent\", function () {",
-							"    pm.response.to.have.status(200);",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.status).to.eql(\"success\");",
-							"});",
-							"",
-							"console.log(\"✅ Password reset OTP sent to email\");",
-							"console.log(\"📧 Check email or logs for OTP\");"
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"{{password}}\",\n  \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/disable-2fa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"disable-2fa"
+							]
+						},
+						"description": "**Disable 2FA**\n\n**Requirements:**\n- Current password\n- Valid 2FA code (or backup code)\n\n**Security Reasons:**\n- Prevents unauthorized 2FA disabling\n- Attacker with stolen token cannot disable 2FA\n- Requires both password + 2FA verification\n\n**Code Sources:**\n- EMAIL/SMS: Current 6-digit code (request new if needed)\n- TOTP: Generate from authenticator app\n- Backup code: Use one of remaining codes\n\n**What Happens:**\n1. Validates password\n2. Validates 2FA code\n3. Sets `twoFactorEnabled = false`\n4. Clears `twoFactorSecret`\n5. Deletes all backup codes\n6. Next login: normal flow (no 2FA required)"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{email}}\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/auth/forgot-password",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"auth",
-						"forgot-password"
-					]
-				},
-				"description": "Request password reset OTP (30 min validity)"
-			},
-			"response": []
-		},
-		{
-			"name": "17. Delete Avatar",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Delete avatar response\", function () {",
-							"    // May return 404 if no avatar",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-							"});",
-							"",
-							"if (pm.response.code === 200) {",
-							"    console.log(\"✅ Avatar deleted from Cloudinary\");",
-							"    pm.collectionVariables.set(\"avatarUrl\", \"\");",
-							"} else {",
-							"    console.log(\"⚠️ No avatar to delete (expected if upload skipped)\");",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/avatar",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"avatar"
-					]
-				},
-				"description": "Delete avatar from Cloudinary and database"
-			},
-			"response": []
-		},
-		{
-			"name": "18. OPTIONAL - Deactivate Account",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"console.log(\"⚠️ OPTIONAL: Deactivate account\");",
-							"console.log(\"This will disable the account temporarily\");",
-							"console.log(\"Skip this if you want to keep testing\");"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// This is optional - may want to skip for continuous testing",
-							"pm.test(\"Deactivate account (optional)\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
-							"});",
-							"",
-							"if (pm.response.code === 200) {",
-							"    console.log(\"✅ Account deactivated (30-day retention)\");",
-							"} else {",
-							"    console.log(\"⚠️ Deactivation skipped or failed\");",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"reason\": \"TAKING_A_BREAK\",\n  \"feedback\": \"Testing deactivation feature\",\n  \"password\": \"{{password}}\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/user/profile/deactivate",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"deactivate"
-					]
-				},
-				"description": "⚠️ OPTIONAL: Deactivate account temporarily\n\n**Note:** Uncomment/enable this only for full workflow testing"
-			},
-			"response": []
+			"description": "Complete 2FA workflow with EMAIL, SMS, TOTP methods and backup codes"
 		}
 	],
 	"auth": {
@@ -1132,7 +2148,92 @@
 			"type": "string"
 		},
 		{
+			"key": "tempToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "twoFactorCode",
+			"value": "123456",
+			"type": "string"
+		},
+		{
 			"key": "twoFactorSecret",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerEmail",
+			"value": "hrmanager_test{{$randomInt}}@company.test",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerPassword",
+			"value": "HRManager123!@",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerOtp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerUserId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerCompanyId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrManagerTempToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrEmail",
+			"value": "hr_test{{$randomInt}}@company.test",
+			"type": "string"
+		},
+		{
+			"key": "hrPassword",
+			"value": "HRStaff123!@",
+			"type": "string"
+		},
+		{
+			"key": "hrOtp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hrUserId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "companyNo",
+			"value": "{{$randomInt}}",
+			"type": "string"
+		},
+		{
+			"key": "backupCodes",
 			"value": "",
 			"type": "string"
 		}
