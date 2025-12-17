@@ -16,24 +16,26 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.*;
 import org.workfitai.jobservice.model.dto.response.Job.*;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.security.SecurityUtils;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iJobService;
+import org.workfitai.jobservice.service.specifications.JobSpecifications;
+import org.workfitai.jobservice.util.HtmlSanitizer;
+import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.workfitai.jobservice.util.MessageConstant.*;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
 @Service
 @Slf4j
@@ -58,41 +60,83 @@ public class JobService implements iJobService {
 
     @Override
     public ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable) {
-        Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
-        Page<ResJobDTO> pageJobDTO = pageJob.map(jobMapper::toResJobDTO);
+        // 1. Nếu spec null => khởi tạo Specification mở rộng (unrestricted)
+        Specification<Job> baseSpec = (spec != null) ? spec : Specification.unrestricted();
 
-        ResultPaginationDTO rs = new ResultPaginationDTO();
+        // 2. Kết hợp thêm các specification cố định: statusPublished và isNoDeleted
+        Specification<Job> finalSpec = baseSpec
+                .and(JobSpecifications.statusPublished())
+                .and(JobSpecifications.isNoDeleted());
 
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
+        // 3. Lấy dữ liệu từ repository
+        Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
 
-        mt.setPages(pageJob.getTotalPages());
-        mt.setTotal(pageJob.getTotalElements());
+        // 4. Chuyển Page<Job> sang ResultPaginationDTO dùng PaginationUtils
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+    }
 
-        rs.setMeta(mt);
-        rs.setResult(pageJobDTO.getContent());
+    @Override
+    public ResultPaginationDTO fetchAllForHr(Specification<Job> spec, Pageable pageable) {
+        // 1. Nếu spec null => khởi tạo Specification mở rộng (unrestricted)
+        Specification<Job> baseSpec = (spec != null) ? spec : Specification.unrestricted();
 
-        return rs;
+        // 2. Kết hợp thêm các specification cố định: ownedByCurrentUser và isNoDeleted
+        Specification<Job> finalSpec = baseSpec
+                .and(JobSpecifications.ownedByCurrentUser())
+                .and(JobSpecifications.isNoDeleted());
+
+        // 3. Lấy dữ liệu từ repository
+        Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
+
+        // 4. Chuyển Page<Job> sang ResultPaginationDTO dùng PaginationUtils
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+    }
+
+
+    @Override
+    public ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable) {
+        Page<Job> pageJob = jobRepository.findAll(spec, pageable);
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
     }
 
     @Override
     public ResJobDetailsDTO fetchJobById(UUID id) {
-        Optional jobOptional = getJobById(id);
-        if (jobOptional.isPresent()) {
-            return jobMapper.toResJobDetailsDTO((Job) jobOptional.get());
+        Optional<Job> jobOptional = getJobById(id);
+
+        if (jobOptional.isEmpty()) return null;
+
+        Job job = jobOptional.get();
+
+        if (job.isDeleted() || !JobStatus.PUBLISHED.equals(job.getStatus())) {
+            return null;
         }
-        return null;
+
+        return jobMapper.toResJobDetailsDTO(job);
     }
+
 
     @Override
     public ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id) {
-        Optional jobOptional = getJobById(id);
-        if (jobOptional.isPresent()) {
-            return jobMapper.toResJobDetailsForHrDTO((Job) jobOptional.get());
+        String currentUser = SecurityUtils.getCurrentUser();
+
+        Job job = jobRepository.findByIdAndCreatedBy(id, currentUser)
+                .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
+
+        if (job.isDeleted()) {
+            return null;
         }
-        return null;
+
+        return jobMapper.toResJobDetailsForHrDTO(job);
     }
+
+    public ResJobDetailsForAdminDTO fetchJobByIdForAdmin(UUID id) {
+        Optional<Job> jobOptional = getJobById(id);
+
+        Job job = jobOptional.get();
+
+        return jobMapper.toResJobDetailsForAdminDTO(job);
+    }
+
 
     @Override
     public Optional<Job> getJobById(UUID id) {
@@ -123,18 +167,18 @@ public class JobService implements iJobService {
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
 
-        dbJob.setTitle(job.getTitle());
-        dbJob.setDescription(job.getDescription());
-        dbJob.setShortDescription(job.getShortDescription());
-        dbJob.setLocation(job.getLocation());
+        dbJob.setTitle(HtmlSanitizer.sanitize(job.getTitle()));
+        dbJob.setDescription(HtmlSanitizer.sanitize(job.getDescription()));
+        dbJob.setShortDescription(HtmlSanitizer.sanitize(job.getShortDescription()));
+        dbJob.setLocation(HtmlSanitizer.sanitize(job.getLocation()));
         dbJob.setSalaryMin(job.getSalaryMin());
         dbJob.setSalaryMax(job.getSalaryMax());
         dbJob.setExperienceLevel(job.getExperienceLevel());
-        dbJob.setEducationLevel(job.getEducationLevel());
-        dbJob.setCurrency(job.getCurrency());
-        dbJob.setRequirements(job.getRequirements());
-        dbJob.setResponsibilities(job.getResponsibilities());
-        dbJob.setBenefits(job.getBenefits());
+        dbJob.setEducationLevel(HtmlSanitizer.sanitize(job.getEducationLevel()));
+        dbJob.setCurrency(HtmlSanitizer.sanitize(job.getCurrency()));
+        dbJob.setRequirements(HtmlSanitizer.sanitize(job.getRequirements()));
+        dbJob.setResponsibilities(HtmlSanitizer.sanitize(job.getResponsibilities()));
+        dbJob.setBenefits(HtmlSanitizer.sanitize(job.getBenefits()));
         dbJob.setEmploymentType(job.getEmploymentType());
         dbJob.setQuantity(job.getQuantity());
         dbJob.setExpiresAt(job.getExpiresAt());
@@ -142,6 +186,7 @@ public class JobService implements iJobService {
         this.jobRepository.save(dbJob);
         return jobMapper.toResUpdateJobDTO(dbJob);
     }
+
 
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
@@ -162,11 +207,8 @@ public class JobService implements iJobService {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
 
-        if (job.getStatus() == JobStatus.PUBLISHED) {
-            throw new ResourceConflictException(JOB_DELETE_CONFLICT);
-        }
-
-        jobRepository.delete(job);
+        job.setDeleted(true);
+        this.jobRepository.save(job);
     }
 
     private void checkCompany(Job job, Job dbJob) {
@@ -185,14 +227,19 @@ public class JobService implements iJobService {
 
     private void checkJobSkills(Job job, Job dbJob) {
         if (job.getSkills() != null) {
-            List<UUID> reqSkills = job.getSkills()
-                    .stream().map(Skill::getId)
+            List<UUID> reqSkills = job.getSkills().stream()
+                    .map(Skill::getId)
+                    .filter(Objects::nonNull)   // tránh null id
+                    .distinct()                  // loại bỏ trùng
                     .collect(Collectors.toList());
-            List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
-            if (dbJob != null) {
-                dbJob.setSkills(dbSkills); // update skills
-            } else {
-                job.setSkills(dbSkills); // create skills
+
+            if (!reqSkills.isEmpty()) {
+                List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
+                if (dbJob != null) {
+                    dbJob.setSkills(dbSkills); // update skills
+                } else {
+                    job.setSkills(dbSkills); // create skills
+                }
             }
         }
     }
@@ -262,25 +309,10 @@ public class JobService implements iJobService {
 
     @Override
     public ResultPaginationDTO getFeaturedJobs(int page) {
-
         Pageable pageable = PageRequest.of(page, 4);
 
         Page<Job> pageJob = jobRepository.findFeaturedJobs(pageable);
-        Page<ResJobDTO> pageJobDTO = pageJob.map(jobMapper::toResJobDTO);
-
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-
-        // meta
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(pageJob.getTotalPages());
-        mt.setTotal(pageJob.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pageJobDTO.getContent());
-
-        return rs;
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
     }
 
     @Transactional

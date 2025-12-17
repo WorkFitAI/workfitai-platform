@@ -7,14 +7,22 @@ spring:
   profiles:
     active: docker  # Default profile cho containers
   config:
-    import: optional:vault://secret/user-service
+    import: "optional:vault://secret/user-service"
   cloud:
     vault:
-      uri: ${VAULT_URI:http://vault:8200}
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
   datasource:
     url: ${datasource.url:jdbc:postgresql://user-postgres:5432/user_db}
     username: ${datasource.username:user}
@@ -41,7 +49,7 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:9005}
 
 management:
   endpoints:
@@ -61,6 +69,8 @@ spring:
     activate:
       on-profile: docker
   cloud:
+    vault:
+      uri: http://vault:8200
     consul:
       host: consul
       port: 8500
@@ -68,7 +78,10 @@ spring:
         enabled: true
         register: true
         service-name: user
+        port: ${SERVER_PORT:9005}
         health-check-path: /actuator/health
+        health-check-interval: 10s
+        health-check-timeout: 5s
 
 # Service URLs for Docker environment
 service:

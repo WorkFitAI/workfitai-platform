@@ -89,6 +89,14 @@ public class DatabaseSeeder implements CommandLineRunner {
                             .description("Tập đoàn viễn thông hàng đầu Việt Nam.")
                             .address("Hà Nội, Việt Nam")
                             .logoUrl("https://res.cloudinary.com/dphibwpag/image/upload/v1765288202/C005_VNPT/zoomsuffrk47p8qjy5xu.jpg")
+                            .build(),
+
+                    Company.builder()
+                            .companyNo("0100109106_TC")  // MST TechCorp
+                            .name("TechCorp Vietnam")
+                            .description("Công ty công nghệ hàng đầu Việt Nam.")
+                            .address("Hồ Chí Minh, Việt Nam")
+                            .logoUrl("https://example.com/techcorp-logo.jpg")
                             .build()
             ));
         }
@@ -118,7 +126,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             List<Job> jobs = new ArrayList<>();
 
-            for (int i = 1; i <= 24; i++) {
+            for (int i = 1; i <= 30; i++) {
 
                 Company company = companies.get(rand.nextInt(companies.size()));
 

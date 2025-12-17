@@ -14,6 +14,7 @@ import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.config.errors.ResourceConflictException;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Report;
+import org.workfitai.jobservice.model.dto.JobInfoDTO;
 import org.workfitai.jobservice.model.dto.request.Report.ReqCreateReport;
 import org.workfitai.jobservice.model.dto.response.Report.ResReport;
 import org.workfitai.jobservice.model.dto.response.Report.ResReportGroup;
@@ -24,11 +25,11 @@ import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
 import org.workfitai.jobservice.service.iReportService;
+import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
@@ -85,46 +86,88 @@ public class ReportService implements iReportService {
         return REPORT_CREATED_SUCCESSFULLY;
     }
 
-    public ResultPaginationDTO fetchAllReportsGrouped(Specification<Report> spec, Pageable pageable) {
-        // 1. Lấy tất cả report theo filter động và map sang DTO
+    @Override
+    public ResultPaginationDTO fetchAllReportsGrouped(
+            Specification<Report> spec,
+            Pageable pageable
+    ) {
+        // 1. Lấy toàn bộ report + map sang DTO
         List<ResReport> allReports = getReportDTOList(spec);
 
-        // 2. Gom nhóm theo jobId + status
+        // 2. Lấy tất cả jobId
+        Set<UUID> jobIds = allReports.stream()
+                .map(ResReport::getJobId)
+                .collect(Collectors.toSet());
+
+        // 3. Query Job + Company theo jobId
+        Map<UUID, JobInfoDTO> jobInfoMap = jobRepository
+                .findAllById(jobIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        Job::getJobId,
+                        j -> new JobInfoDTO(
+                                j.getCompany() != null
+                                        ? j.getCompany().getName()
+                                        : "Unknown",
+                                j.isDeleted()
+                        )
+                ));
+
+        // 4. Gom nhóm theo jobId + status
         List<ResReportGroup> grouped = allReports.stream()
-                .collect(Collectors.groupingBy(r -> r.getJobId().toString() + "|" + r.getStatus()))
-                .entrySet().stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getJobId() + "|" + r.getStatus()
+                ))
+                .entrySet()
+                .stream()
                 .map(e -> {
                     String[] keys = e.getKey().split("\\|");
-                    ResReportGroup group = ResReportGroup.builder()
-                            .jobId(UUID.fromString(keys[0]))
-                            .status(EReportStatus.valueOf(keys[1]))
-                            .reports(e.getValue())
+                    UUID jobId = UUID.fromString(keys[0]);
+                    EReportStatus status = EReportStatus.valueOf(keys[1]);
+
+                    List<ResReport> reports = e.getValue();
+                    JobInfoDTO jobInfo = jobInfoMap.get(jobId);
+
+                    return ResReportGroup.builder()
+                            .jobId(jobId)
+                            .companyName(
+                                    jobInfo != null
+                                            ? jobInfo.getCompanyName()
+                                            : "Unknown"
+                            )
+                            .isDeleted(
+                                    jobInfo != null
+                            )
+                            .status(status)
+                            .reportCount(reports.size())
+                            .reports(reports)
                             .build();
-                    return group;
                 })
-                .sorted((g1, g2) -> Integer.compare(g2.getReports().size(), g1.getReports().size()))
+                // sort job bị report nhiều nhất lên đầu
+                .sorted((a, b) ->
+                        Integer.compare(b.getReportCount(), a.getReportCount())
+                )
                 .toList();
 
-        // 3. Phân trang nhóm
-        int totalGroups = grouped.size();
-        int start = Math.toIntExact(pageable.getOffset());
-        int end = Math.min(start + pageable.getPageSize(), totalGroups);
-        List<ResReportGroup> pagedGroups = (start <= end) ? grouped.subList(start, end) : List.of();
+        // 5. Phân trang GROUP
+        int total = grouped.size();
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), total);
 
-        // 4. Tạo PageImpl để tuân thủ PaginationUtil.build
-        Page<ResReportGroup> page = new PageImpl<>(pagedGroups, pageable, totalGroups);
+        List<ResReportGroup> pageContent =
+                (start <= end) ? grouped.subList(start, end) : List.of();
 
-        // 5. Build ResultPaginationDTO
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(page.getTotalPages());
-        mt.setTotal(page.getTotalElements());
-        rs.setMeta(mt);
-        rs.setResult(page.getContent());
+        Page<ResReportGroup> page = new PageImpl<>(
+                pageContent,
+                pageable,
+                total
+        );
 
-        return rs;
+        // 6. Build response pagination chuẩn
+        return PaginationUtils.toResultPaginationDTO(
+                page,
+                Function.identity()
+        );
     }
 
     // Phương thức lấy tất cả report và map sang DTO

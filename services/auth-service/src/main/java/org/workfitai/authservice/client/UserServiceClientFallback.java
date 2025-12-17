@@ -25,4 +25,11 @@ public class UserServiceClientFallback implements UserServiceClient {
         log.warn("UserService unavailable, cannot check username existence for: {}", username);
         return false;
     }
+
+    @Override
+    public Boolean checkAndReactivateAccount(String username) {
+        log.error("UserService unavailable, cannot check reactivation status for: {}", username);
+        // Return false to block login when user-service is down (safer approach)
+        return false;
+    }
 }

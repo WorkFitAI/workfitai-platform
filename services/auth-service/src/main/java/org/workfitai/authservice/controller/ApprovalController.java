@@ -4,8 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.workfitai.authservice.dto.ApprovalRequest;
-import org.workfitai.authservice.response.ResponseData;
+import org.workfitai.authservice.dto.request.ApprovalRequest;
+import org.workfitai.authservice.dto.response.ResponseData;
 import org.workfitai.authservice.service.ApprovalService;
 
 import java.util.List;

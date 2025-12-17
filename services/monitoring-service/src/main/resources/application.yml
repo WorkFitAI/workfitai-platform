@@ -4,8 +4,13 @@ server:
 spring:
   application:
     name: monitoring-service
+  
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+
+  config:
+    # Config loaded from Vault after vault-init container completes
+    import: "optional:vault://secret/monitoring-service"
 
   cloud:
     consul:
@@ -13,95 +18,76 @@ spring:
       port: ${CONSUL_PORT:8500}
       discovery:
         service-name: monitoring
-        # instance-id: monitoring:${random.int}
-        health-check-path: /health
-        health-check-interval: 10s
+        health-check-path: /actuator/health
         prefer-ip-address: true
         ip-address: ${DISCOVERY_IP_ADDRESS:127.0.0.1}
+      config:
+        enabled: false
 
     vault:
-      host: ${VAULT_HOST:vault}
+      host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
-      token: ${VAULT_TOKEN:dev-token}
       scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
         backend: secret
-        default-context: application
-      authentication: TOKEN
-      config:
-        enabled: false
-      discovery:
-        enabled: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      database: 0
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,refresh
-  endpoint:
-    health:
-      show-details: always
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
+        include: health,info,metrics,prometheus
 
-# Elasticsearch configuration for log querying
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}
   port: ${ELASTICSEARCH_PORT:9200}
-  scheme: ${ELASTICSEARCH_SCHEME:http}
-  username: ${ELASTICSEARCH_USERNAME:elastic}
-  password: ${ELASTICSEARCH_PASSWORD:}
-  index-pattern: ${ELASTICSEARCH_INDEX_PATTERN:workfitai-logs-*}
-  index-prefix: ${ELASTICSEARCH_INDEX_PREFIX:workfitai-logs}
 
-# Kibana configuration for Data View initialization
 kibana:
   host: ${KIBANA_HOST:localhost}
   port: ${KIBANA_PORT:5601}
-  scheme: ${KIBANA_SCHEME:http}
-  username: ${KIBANA_USERNAME:elastic}
-  password: ${KIBANA_PASSWORD:}
 
 logging:
   level:
-    org.workfitai.monitoringservice: DEBUG
-    org.springframework.vault: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+    root: INFO
 
 ---
 spring:
   config:
     activate:
       on-profile: docker
+    # Config loaded from Vault after vault-init container completes
+    import: "optional:vault://secret/monitoring-service"
 
   cloud:
     consul:
       host: consul
+      port: 8500
       discovery:
+        service-name: monitoring
         ip-address: monitoring-service
 
     vault:
       host: vault
       port: 8200
-      token: myroot
       scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
+
+  kafka:
+    bootstrap-servers: kafka:9092
 
   data:
     redis:

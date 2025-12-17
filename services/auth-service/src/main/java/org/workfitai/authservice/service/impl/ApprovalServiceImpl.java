@@ -2,6 +2,7 @@ package org.workfitai.authservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +34,9 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final UserRegistrationProducer userRegistrationProducer;
     private final NotificationProducer notificationProducer;
     private final CompanyProducer companyProducer;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     @Override
     public List<Object> getPendingApprovals() {
@@ -71,7 +75,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         publishUserApprovalEvent(savedUser, "HR_MANAGER_APPROVED");
 
         // If HR_MANAGER, create company in job-service
-        if (savedUser.getCompany() != null) {
+        if (savedUser.getCompanyNo() != null) {
             createCompany(savedUser);
         }
 
@@ -83,15 +87,20 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     private void createCompany(User user) {
         try {
-            // Generate a UUID for the company
-            String companyId = UUID.randomUUID().toString();
+            // ✅ FIX: Use companyId from User entity (already saved in MongoDB during
+            // registration)
+            // DO NOT generate new UUID here - must use the same UUID as in MongoDB
+            if (user.getCompanyId() == null) {
+                log.error("User {} has no companyId in MongoDB - cannot create company", user.getId());
+                return;
+            }
 
             CompanyCreationEvent companyEvent = CompanyCreationEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("COMPANY_CREATED")
                     .company(CompanyCreationEvent.CompanyData.builder()
-                            .companyId(companyId)
-                            .name(user.getCompany())
+                            .companyId(user.getCompanyId()) // Use from MongoDB
+                            .name(user.getCompanyNo()) // companyNo is the tax ID
                             .logoUrl(null) // Will be set later by HR_MANAGER
                             .websiteUrl(null) // Will be set later by HR_MANAGER
                             .description("Company created for HR Manager: " + user.getUsername())
@@ -107,7 +116,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
             companyProducer.sendCompanyCreation(companyEvent);
 
-            log.info("Company creation event sent for: {} (HR Manager: {})", user.getCompany(), user.getUsername());
+            log.info("Company creation event sent for: {} (HR Manager: {})", user.getCompanyNo(), user.getUsername());
         } catch (Exception e) {
             log.error("Error creating company creation event for user {}: {}", user.getId(), e.getMessage());
         }
@@ -194,7 +203,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .metadata(Map.of(
                         "username", username,
                         "role", role,
-                        "loginUrl", "https://workfitai.com/login",
+                        "loginUrl", frontendBaseUrl + "/login",
                         "isHRManager", String.valueOf(isHRManager),
                         "isHR", String.valueOf(isHR),
                         "isCandidate", "false"))

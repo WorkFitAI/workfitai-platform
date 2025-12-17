@@ -30,14 +30,21 @@ public class User {
     private String email;
 
     private String password; // BCrypt-hashed
+    private Instant passwordChangedAt; // For password change tracking
+
+    private String fullName; // User's full name
 
     private Set<String> roles; // e.g. ["USER"]
 
     @Builder.Default
     private UserStatus status = UserStatus.PENDING; // User status for registration flow
 
-    // Company name for HR_MANAGER role
-    private String company;
+    // Company UUID for HR/HR_MANAGER role - internal linking
+    private String companyId;
+
+    // Company tax ID (companyNo) for HR_MANAGER role - mã số thuế (primary key in
+    // job-service)
+    private String companyNo;
 
     @CreatedDate
     private Instant createdAt;

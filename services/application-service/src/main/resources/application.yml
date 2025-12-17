@@ -8,7 +8,7 @@ spring:
   profiles:
     active: docker # Default profile for containers
   config:
-    import: optional:vault://secret/application-service,optional:consul
+    import: "optional:vault://secret/application-service"
   cloud:
     vault:
       uri: ${VAULT_URI:http://vault:8200}
@@ -16,6 +16,11 @@ spring:
       kv:
         enabled: true
         backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
   # MongoDB configuration (Vault provides uri via mongodb.uri)
   data:
     mongodb:

@@ -16,14 +16,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.dto.LoginRequest;
-import org.workfitai.authservice.dto.RegisterRequest;
-import org.workfitai.authservice.dto.VerifyOtpRequest;
-import org.workfitai.authservice.dto.TokensResponse;
-import org.workfitai.authservice.response.ResponseData;
+import org.workfitai.authservice.dto.request.LoginRequest;
+import org.workfitai.authservice.dto.request.RegisterRequest;
+import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
+import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
+import org.workfitai.authservice.dto.response.ResponseData;
+import org.workfitai.authservice.dto.response.TokensResponse;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.iAuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -56,10 +60,43 @@ public class AuthController {
         }
 
         @PostMapping("/login")
-        public ResponseEntity<ResponseData<TokensResponse>> login(
+        public ResponseEntity<ResponseData<?>> login(
                         @Valid @RequestBody LoginRequest req,
-                        @RequestHeader(value = "X-Device-Id", required = false) String deviceId) {
-                var issued = authService.login(req, deviceId);
+                        @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+                        HttpServletRequest request) {
+                Object result = authService.login(req, deviceId, request);
+
+                // Check if 2FA is required
+                if (result instanceof Partial2FALoginResponse) {
+                        return ResponseEntity.ok()
+                                        .body(ResponseData.success(
+                                                        "2FA verification required",
+                                                        result));
+                }
+
+                // Normal login - return tokens
+                IssuedTokens issued = (IssuedTokens) result;
+                var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
+                                .httpOnly(true)
+                                .path("/")
+                                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
+                                .build();
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                                .body(ResponseData.success(
+                                                Messages.Success.TOKENS_ISSUED,
+                                                TokensResponse.withUserInfo(
+                                                                issued.getAccessToken(),
+                                                                issued.getExpiresIn(),
+                                                                issued.getUsername(),
+                                                                issued.getRoles())));
+        }
+
+        @PostMapping("/verify-2fa-login")
+        public ResponseEntity<ResponseData<TokensResponse>> verify2FALogin(
+                        @Valid @RequestBody Verify2FALoginRequest req,
+                        HttpServletRequest request) {
+                var issued = authService.verify2FALogin(req, request);
                 var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
                                 .httpOnly(true)
                                 .path("/")

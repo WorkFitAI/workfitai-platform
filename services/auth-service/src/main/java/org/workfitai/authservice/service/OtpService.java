@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.workfitai.authservice.dto.PendingRegistration;
+import org.workfitai.authservice.dto.request.PendingRegistration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

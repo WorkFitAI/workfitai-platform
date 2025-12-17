@@ -111,6 +111,9 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @NotNull(message = "Company must not be null")
     private Company company;
 
+    @NotNull(message = "isDeleted must not be null")
+    private boolean isDeleted;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = {"jobs"})
     @NotEmpty(message = "Job must have at least one skill")

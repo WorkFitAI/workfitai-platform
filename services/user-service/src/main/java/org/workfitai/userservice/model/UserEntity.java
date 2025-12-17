@@ -69,8 +69,46 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "userStatus", nullable = false)
   private EUserStatus userStatus = EUserStatus.PENDING;
 
-  @Column(name = "last_login", nullable = true)
-  private Instant lastLogin = null;
+  // Note: lastLogin removed - login tracking is handled by auth-service sessions
+  // in MongoDB
+
+  // Avatar fields
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
+  @Column(name = "avatar_public_id")
+  private String avatarPublicId;
+
+  @Column(name = "avatar_uploaded_at")
+  private Instant avatarUploadedAt;
+
+  // Note: 2FA is now handled by auth-service and stored in MongoDB
+  // See TwoFactorAuth document in auth-service
+
+  // Settings fields (JSONB in PostgreSQL)
+  @Column(name = "notification_settings", columnDefinition = "jsonb")
+  @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+  private com.fasterxml.jackson.databind.JsonNode notificationSettings;
+
+  @Column(name = "privacy_settings", columnDefinition = "jsonb")
+  @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+  private com.fasterxml.jackson.databind.JsonNode privacySettings;
+
+  // Account management fields
+  @Column(name = "deactivated_at")
+  private Instant deactivatedAt;
+
+  @Column(name = "deactivation_reason", columnDefinition = "TEXT")
+  private String deactivationReason;
+
+  @Column(name = "deletion_scheduled_at")
+  private Instant deletionScheduledAt;
+
+  @Column(name = "deletion_date")
+  private Instant deletionDate;
+
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
 
   @Override
   public UUID getId() {

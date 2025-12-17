@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deletion Requested - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #dc2626;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .danger-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .countdown {
+            background-color: #fef2f2;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #fca5a5;
+        }
+
+        .countdown-number {
+            font-size: 72px;
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        .button-cancel {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ Account Deletion Requested</h1>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <p>We received your request to permanently delete your WorkFitAI account.</p>
+
+            <div class="countdown">
+                <div class="countdown-number" th:text="${daysRemaining}">7</div>
+                <p style="margin: 5px 0 0 0; font-size: 20px; color: #dc2626; font-weight: bold;">
+                    Days until permanent deletion
+                </p>
+                <p style="margin: 10px 0 0 0; color: #64748b;">
+                    Deletion date: <strong th:text="${deletionDate}">December 22, 2024</strong>
+                </p>
+            </div>
+
+            <div class="danger-box">
+                <strong>⚠️ This action is PERMANENT and IRREVERSIBLE!</strong>
+                <p style="margin-top: 10px;">After <strong th:text="${deletionDate}">7 days</strong>, the following
+                    will be deleted forever:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Your profile and personal information</li>
+                    <li>All uploaded CVs and documents</li>
+                    <li>Your job applications and history</li>
+                    <li>Saved jobs and preferences</li>
+                    <li>All messages and notifications</li>
+                    <li>Account credentials and login access</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>This data CANNOT be recovered after deletion!</strong></p>
+            </div>
+
+            <p><strong>Changed your mind?</strong></p>
+            <p>You have until <strong th:text="${deletionDate}">December 22, 2024</strong> to cancel this request. After
+                that date, your account will be permanently deleted.</p>
+
+            <p style="text-align: center; margin: 40px 0;">
+                <a th:href="${cancelUrl}" class="button-cancel">Cancel Deletion Request</a>
+            </p>
+
+            <p style="color: #64748b; font-size: 14px;">
+                If you want to proceed with deletion, no further action is needed. Your account will be automatically
+                deleted after the grace period.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+            <p style="color: #64748b; font-size: 14px;">
+                <strong>Didn't request this?</strong> If you didn't request account deletion, your account may be
+                compromised. Please <a th:href="${cancelUrl}" style="color: #2563eb;">cancel this request</a>
+                immediately
+                and change your password.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>We're sorry to see you go. If you have feedback about why you're leaving, we'd love to hear it.</p>
+            <p>© 2024 WorkFitAI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

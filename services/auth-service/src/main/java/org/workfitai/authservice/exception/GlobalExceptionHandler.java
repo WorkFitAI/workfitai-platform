@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.response.ApiError;
+import org.workfitai.authservice.dto.response.ApiError;
 
 @Slf4j
 @RestControllerAdvice

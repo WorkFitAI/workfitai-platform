@@ -1,19 +1,22 @@
 package org.workfitai.jobservice.controller.HR;
 
+import com.turkraft.springfilter.boot.Filter;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
-import org.workfitai.jobservice.model.dto.response.*;
 import org.workfitai.jobservice.model.dto.response.Job.ResCreateJobDTO;
 import org.workfitai.jobservice.model.dto.response.Job.ResJobDetailsForHrDTO;
 import org.workfitai.jobservice.model.dto.response.Job.ResModifyStatus;
 import org.workfitai.jobservice.model.dto.response.Job.ResUpdateJobDTO;
+import org.workfitai.jobservice.model.dto.response.RestResponse;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.util.ApiMessage;
@@ -32,6 +35,16 @@ public class JobController {
 
     public JobController(iJobService jobService) {
         this.jobService = jobService;
+    }
+
+    @GetMapping()
+    @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
+    public RestResponse<ResultPaginationDTO> getAllJob(
+            @Filter Specification<Job> spec,
+            Pageable pageable) {
+
+        ResultPaginationDTO result = this.jobService.fetchAllForHr(spec, pageable);
+        return RestResponse.success(result);
     }
 
     @GetMapping("/{id}")
@@ -80,17 +93,5 @@ public class JobController {
         }
 
         return RestResponse.success(this.jobService.updateStatus(currentJob.get(), status));
-    }
-
-    @DeleteMapping("/{id}")
-    @ApiMessage(JOB_DELETED_SUCCESSFULLY)
-    public RestResponse<Void> delete(@PathVariable("id") UUID id) throws InvalidDataException {
-        try {
-            this.jobService.deleteJob(id);
-        } catch (ResourceNotFoundException ex) {
-            throw new InvalidDataException(JOB_NOT_FOUND);
-        }
-
-        return RestResponse.deleted();
     }
 }

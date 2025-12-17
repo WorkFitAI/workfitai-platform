@@ -51,6 +51,7 @@ public class SecurityConfig {
                                                                 "/auth/refresh",
                                                                 "/auth/logout",
                                                                 "/auth/verify-otp",
+                                                                "/auth/verify-2fa-login",
                                                                 "/cv/public/**",
                                                                 "/job/public/**",
                                                                 "/monitoring-service/**",
@@ -68,7 +69,8 @@ public class SecurityConfig {
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
                                                                 .jwtDecoder(jwtDecoder())
-                                                                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                                                                .jwtAuthenticationConverter(
+                                                                                jwtAuthenticationConverter())))
                                 .build();
         }
 
@@ -84,13 +86,14 @@ public class SecurityConfig {
          *
          * Extracts authorities from both "roles" and "perms" claims:
          * - "roles" claim → ROLE_* authorities (for hasRole() checks)
-         *   Example: ["CANDIDATE"] → [ROLE_CANDIDATE]
+         * Example: ["CANDIDATE"] → [ROLE_CANDIDATE]
          *
          * - "perms" claim → Direct authorities (for hasAuthority() checks)
-         *   Example: ["application:create", "application:read"] → as-is
+         * Example: ["application:create", "application:read"] → as-is
          *
          * This ensures the API Gateway properly populates the Authentication object
-         * with authorities, allowing downstream services to perform authorization checks.
+         * with authorities, allowing downstream services to perform authorization
+         * checks.
          *
          * @return Configured ReactiveJwtAuthenticationConverter
          */
@@ -115,15 +118,14 @@ public class SecurityConfig {
 
                         // Combine both collections
                         Set<GrantedAuthority> authorities = Stream.concat(
-                                roles != null ? roles.stream() : Stream.empty(),
-                                perms != null ? perms.stream() : Stream.empty()
-                        ).collect(Collectors.toSet());
+                                        roles != null ? roles.stream() : Stream.empty(),
+                                        perms != null ? perms.stream() : Stream.empty()).collect(Collectors.toSet());
 
                         log.info("🔐 [JWT Auth] Extracted {} authorities from JWT: {}",
-                                authorities.size(),
-                                authorities.stream()
-                                        .map(GrantedAuthority::getAuthority)
-                                        .collect(Collectors.joining(", ")));
+                                        authorities.size(),
+                                        authorities.stream()
+                                                        .map(GrantedAuthority::getAuthority)
+                                                        .collect(Collectors.joining(", ")));
 
                         return Flux.fromIterable(authorities);
                 });

@@ -26,7 +26,6 @@ public class UserBaseResponse {
 
   private EUserRole userRole;
   private EUserStatus userStatus;
-  private Instant lastLogin;
 
   // auditing info
   private String createdBy;

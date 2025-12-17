@@ -15,14 +15,14 @@ import org.workfitai.applicationservice.dto.response.RestResponse;
  * - Bulk user info retrieval by username list
  *
  * Service Discovery:
- * - Uses Consul service name "user" (matches user-service's Consul
- * registration)
+ * - Uses Consul service name "user" (matches
+ * spring.cloud.consul.discovery.service-name)
  * - In Docker: Consul discovers user-service automatically
  * - In Local: Can override with user.url property
  *
  * Path Configuration:
  * - Feign client name "user" routes to the service via Consul
- * - Base path is root ("/") as user-service endpoints are at root level
+ * - Base path is root ("/") as UserController has no @RequestMapping prefix
  * - Final URL: http://user/by-username?username=...
  */
 @FeignClient(name = "user")

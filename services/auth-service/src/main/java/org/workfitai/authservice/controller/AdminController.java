@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.dto.CreatePermissionDto;
-import org.workfitai.authservice.dto.CreateRoleDto;
-import org.workfitai.authservice.dto.PermissionResponse;
-import org.workfitai.authservice.dto.RolePermissionRequest;
-import org.workfitai.authservice.dto.RoleResponse;
+import org.workfitai.authservice.dto.request.RolePermissionRequest;
+import org.workfitai.authservice.dto.response.CreatePermissionDto;
+import org.workfitai.authservice.dto.response.CreateRoleDto;
+import org.workfitai.authservice.dto.response.PermissionResponse;
+import org.workfitai.authservice.dto.response.ResponseData;
+import org.workfitai.authservice.dto.response.RoleResponse;
 import org.workfitai.authservice.mapper.PermissionMapper;
 import org.workfitai.authservice.mapper.RoleMapper;
-import org.workfitai.authservice.response.ResponseData;
 import org.workfitai.authservice.service.iPermissionService;
 import org.workfitai.authservice.service.iRoleService;
 import org.workfitai.authservice.service.iUserRoleService;
@@ -50,14 +50,16 @@ public class AdminController {
     public ResponseEntity<ResponseData<PermissionResponse>> createPermission(
             @Valid @RequestBody CreatePermissionDto dto) {
         var created = permissionService.create(permissionMapper.toEntity(dto));
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.PERMISSION_CREATED, permissionMapper.toResponse(created)));
+        return ResponseEntity
+                .ok(ResponseData.success(Messages.Success.PERMISSION_CREATED, permissionMapper.toResponse(created)));
     }
 
     @GetMapping("/permissions/{name}")
     @PreAuthorize("hasAuthority('perm:read')")
     public ResponseEntity<ResponseData<PermissionResponse>> getPerm(@PathVariable String name) {
         var permission = permissionService.getByName(name);
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.OPERATION_SUCCESS, permissionMapper.toResponse(permission)));
+        return ResponseEntity
+                .ok(ResponseData.success(Messages.Success.OPERATION_SUCCESS, permissionMapper.toResponse(permission)));
     }
 
     @PostMapping("/roles")
@@ -81,7 +83,8 @@ public class AdminController {
             @PathVariable String roleName,
             @Valid @RequestBody RolePermissionRequest request) {
         var updated = roleService.addPermission(roleName, request.getPermission());
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.ROLE_PERMISSION_ADDED, roleMapper.toResponse(updated)));
+        return ResponseEntity
+                .ok(ResponseData.success(Messages.Success.ROLE_PERMISSION_ADDED, roleMapper.toResponse(updated)));
     }
 
     @PostMapping("/users/{username}/roles")

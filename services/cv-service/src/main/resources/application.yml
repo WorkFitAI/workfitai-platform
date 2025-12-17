@@ -7,7 +7,7 @@ spring:
   profiles:
     active: docker # Default profile cho containers
   config:
-    import: optional:vault://secret/cv
+    import: "optional:vault://secret/cv-service"
   cloud:
     vault:
       uri: ${VAULT_URI:http://vault:8200}
@@ -18,6 +18,8 @@ spring:
     consul:
       config:
         enabled: false
+        import-check:
+          enabled: false
       discovery:
         service-name: cv
         instance-id: ${spring.application.name}:${server.port}

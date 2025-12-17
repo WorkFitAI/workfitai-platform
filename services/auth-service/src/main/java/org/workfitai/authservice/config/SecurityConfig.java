@@ -16,8 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.workfitai.authservice.constants.Messages;
-import org.workfitai.authservice.response.ApiError;
+import org.workfitai.authservice.dto.response.ApiError;
 import org.workfitai.authservice.security.JwtAuthenticationFilter;
+import org.workfitai.authservice.security.SessionValidationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -29,13 +30,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter, ObjectMapper om)
-            throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+            JwtAuthenticationFilter jwtFilter,
+            SessionValidationFilter sessionFilter,
+            ObjectMapper om) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .logout(logout -> logout.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp",
+                        .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp", "verify-2fa-login",
                                 "/actuator/**", "/error",
                                 "/api/v1/auth/**",
                                 "/api/v1/keys/public",
@@ -65,7 +68,9 @@ public class SecurityConfig {
                                     .build();
                             res.getOutputStream().write(om.writeValueAsBytes(err));
                         }))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // Order: JWT validation → Session validation → Controllers
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(sessionFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

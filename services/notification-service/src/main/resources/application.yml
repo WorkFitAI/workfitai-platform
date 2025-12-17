@@ -2,7 +2,22 @@ spring:
   application:
     name: notification
   config:
-    import: optional:vault://secret/notification-service, optional:consul
+    import: "optional:vault://secret/notification-service"
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     consumer:
@@ -27,6 +42,9 @@ server:
   port: ${SERVER_PORT:9005}
 
 app:
+  mail:
+    from: ${MAIL_FROM:noreply@workfitai.com}
+    from-name: ${MAIL_FROM_NAME:WorkFitAI}
   kafka:
     topics:
       notification: ${APP_KAFKA_TOPIC_NOTIFICATION:notification-events}
@@ -69,12 +87,6 @@ spring:
       kv:
         enabled: true
         backend: secret
-
-service:
-  auth:
-    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
-  user:
-    url: ${USER_SERVICE_URL:http://user-service:9001}
 
 ---
 spring:

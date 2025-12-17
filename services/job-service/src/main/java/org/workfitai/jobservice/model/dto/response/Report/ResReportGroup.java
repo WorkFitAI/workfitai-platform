@@ -12,5 +12,8 @@ import java.util.UUID;
 public class ResReportGroup {
     private UUID jobId;
     private EReportStatus status;
+    private int reportCount;
+    private String companyName;
     private List<ResReport> reports;
+    private boolean isDeleted;
 }
