@@ -373,11 +373,21 @@ public class AuthServiceImpl implements iAuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                         "2FA configuration not found"));
 
-        // Verify 2FA code
-        boolean isValid = twoFactorAuthService.verify2FACode(userId, request.getCode(), twoFactorAuth.getMethod());
-
-        if (!isValid) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid 2FA code");
+        // Verify 2FA code or backup code
+        boolean isValid;
+        if (Boolean.TRUE.equals(request.getUseBackupCode())) {
+            // Verify backup code
+            isValid = twoFactorAuthService.verifyBackupCode(twoFactorAuth, request.getCode());
+            if (!isValid) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid backup code");
+            }
+            log.info("User {} verified with backup code", username);
+        } else {
+            // Verify regular 2FA code
+            isValid = twoFactorAuthService.verify2FACode(userId, request.getCode(), twoFactorAuth.getMethod());
+            if (!isValid) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid 2FA code");
+            }
         }
 
         // Delete temp token (one-time use)

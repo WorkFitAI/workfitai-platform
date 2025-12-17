@@ -15,5 +15,7 @@ public class Verify2FALoginRequest {
     private String tempToken;
 
     @NotBlank(message = "2FA code is required")
-    private String code; // 6-digit TOTP code or email code
+    private String code; // 6-digit TOTP code, email code, or 8-digit backup code
+
+    private Boolean useBackupCode; // true if using backup code instead of regular 2FA code
 }

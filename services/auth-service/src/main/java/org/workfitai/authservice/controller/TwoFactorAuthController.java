@@ -45,4 +45,14 @@ public class TwoFactorAuthController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/2fa/status")
+    public ResponseEntity<Map<String, Object>> get2FAStatus(Authentication authentication) {
+        String username = authentication.getName();
+        log.info("Get 2FA status for user: {}", username);
+
+        Map<String, Object> status = twoFactorAuthService.get2FAStatus(username);
+
+        return ResponseEntity.ok(status);
+    }
 }

@@ -340,4 +340,28 @@ public class TwoFactorAuthService {
 
         throw new BadRequestException("Invalid 2FA method: " + method);
     }
+
+    public Map<String, Object> get2FAStatus(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Optional<TwoFactorAuth> twoFactorAuth = twoFactorAuthRepository.findByUserId(user.getId());
+
+        Map<String, Object> status = new HashMap<>();
+
+        if (twoFactorAuth.isPresent() && twoFactorAuth.get().getEnabled()) {
+            TwoFactorAuth config = twoFactorAuth.get();
+            status.put("enabled", true);
+            status.put("method", config.getMethod());
+            status.put("enabledAt", config.getEnabledAt());
+        } else {
+            status.put("enabled", false);
+            status.put("method", null);
+            status.put("enabledAt", null);
+        }
+
+        log.info("Retrieved 2FA status for user: {} - enabled: {}", username, status.get("enabled"));
+
+        return status;
+    }
 }
