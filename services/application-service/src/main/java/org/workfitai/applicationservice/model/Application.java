@@ -93,7 +93,8 @@ public class Application {
     @Indexed
     private String jobId;
 
-    // ==================== Company \u0026 Assignment Fields (Phase 3) ====================
+    // ==================== Company \u0026 Assignment Fields (Phase 3)
+    // ====================
 
     /**
      * Company ID for the application.
@@ -256,11 +257,37 @@ public class Application {
     @AllArgsConstructor
     @Builder
     public static class JobSnapshot {
+        private String postId;
         private String title;
-        private String companyName;
-        private String location;
+        private String shortDescription;
+        private String description;
         private String employmentType;
         private String experienceLevel;
+        private String educationLevel;
+        private String requiredExperience;
+        private Double salaryMin;
+        private Double salaryMax;
+        private String currency;
+        private String location;
+        private Integer quantity;
+        private Integer totalApplications;
+        private Instant createdDate;
+        private Instant lastModifiedDate;
+        private Instant expiresAt;
+        private String status;
+        private List<String> skillNames;
+        private String bannerUrl;
+        private String createdBy;
+
+        // Company info
+        private String companyNo;
+        private String companyName;
+        private String companyDescription;
+        private String companyAddress;
+        private String companyWebsiteUrl;
+        private String companyLogoUrl;
+        private String companySize;
+
         private Instant snapshotAt;
     }
 

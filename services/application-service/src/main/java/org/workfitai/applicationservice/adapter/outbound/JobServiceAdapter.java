@@ -1,6 +1,7 @@
 package org.workfitai.applicationservice.adapter.outbound;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
@@ -41,6 +42,8 @@ public class JobServiceAdapter implements JobServicePort {
 
             Map<String, Object> jobData = response.getData();
 
+            log.debug("Job data received: {}", jobData);
+
             // Validate job status
             String status = (String) jobData.get("status");
             if (!"PUBLISHED".equals(status)) {
@@ -52,24 +55,56 @@ public class JobServiceAdapter implements JobServicePort {
             @SuppressWarnings("unchecked")
             Map<String, Object> company = (Map<String, Object>) jobData.get("company");
             String companyName = company != null ? (String) company.get("name") : "Unknown";
-            String companyId = company != null ? (String) company.get("companyNo") : null; // companyNo is the UUID
-            String location = company != null ? (String) company.get("address") : "Not specified";
+            String companyId = company != null ? (String) company.get("companyNo") : null;
+            String companyDescription = company != null ? (String) company.get("description") : null;
+            String companyAddress = company != null ? (String) company.get("address") : null;
+            String companyWebsiteUrl = company != null ? (String) company.get("websiteUrl") : null;
+            String companyLogoUrl = company != null ? (String) company.get("logoUrl") : null;
+            String companySize = company != null ? (String) company.get("size") : null;
 
-            log.info("Company info for job {}: name={}, id={}, location={}",
-                    jobId, companyName, companyId, location);
+            // Extract skill names
+            @SuppressWarnings("unchecked")
+            List<String> skillNames = (List<String>) jobData.get("skillNames");
+
+            log.info("Company info for job {}: name={}, id={}", jobId, companyName, companyId);
 
             JobInfo jobInfo = JobInfo.builder()
-                    .id(jobId)
+                    .postId((String) jobData.get("postId"))
                     .title((String) jobData.get("title"))
-                    .companyName(companyName)
-                    .companyId(companyId)
-                    .location(location)
-                    .employmentType(jobData.get("employmentType") != null ?
-                            jobData.get("employmentType").toString() : null)
-                    .experienceLevel(jobData.get("experienceLevel") != null ?
-                            jobData.get("experienceLevel").toString() : null)
+                    .shortDescription((String) jobData.get("shortDescription"))
+                    .description((String) jobData.get("description"))
+                    .employmentType((String) jobData.get("employmentType"))
+                    .experienceLevel((String) jobData.get("experienceLevel"))
+                    .educationLevel((String) jobData.get("educationLevel"))
+                    .requiredExperience((String) jobData.get("requiredExperience"))
+                    .salaryMin(
+                            jobData.get("salaryMin") != null ? ((Number) jobData.get("salaryMin")).doubleValue() : null)
+                    .salaryMax(
+                            jobData.get("salaryMax") != null ? ((Number) jobData.get("salaryMax")).doubleValue() : null)
+                    .currency((String) jobData.get("currency"))
+                    .location((String) jobData.get("location"))
+                    .quantity(jobData.get("quantity") != null ? ((Number) jobData.get("quantity")).intValue() : null)
+                    .totalApplications(jobData.get("totalApplications") != null
+                            ? ((Number) jobData.get("totalApplications")).intValue()
+                            : null)
+                    .createdDate(jobData.get("createdDate") != null ? Instant.parse((String) jobData.get("createdDate"))
+                            : null)
+                    .lastModifiedDate(jobData.get("lastModifiedDate") != null
+                            ? Instant.parse((String) jobData.get("lastModifiedDate"))
+                            : null)
+                    .expiresAt(
+                            jobData.get("expiresAt") != null ? Instant.parse((String) jobData.get("expiresAt")) : null)
                     .status(status)
+                    .skillNames(skillNames)
+                    .bannerUrl((String) jobData.get("bannerUrl"))
                     .createdBy((String) jobData.get("createdBy"))
+                    .companyId(companyId)
+                    .companyName(companyName)
+                    .companyDescription(companyDescription)
+                    .companyAddress(companyAddress)
+                    .companyWebsiteUrl(companyWebsiteUrl)
+                    .companyLogoUrl(companyLogoUrl)
+                    .companySize(companySize)
                     .fetchedAt(Instant.now())
                     .build();
 

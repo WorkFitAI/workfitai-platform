@@ -23,6 +23,7 @@ import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
+import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.IApplicationService;
 import org.workfitai.applicationservice.validation.StatusTransitionValidator;
 
@@ -47,6 +48,7 @@ public class ApplicationServiceImpl implements IApplicationService {
     private final ApplicationMapper applicationMapper;
     private final EventPublisherPort eventPublisher;
     private final StatusTransitionValidator statusTransitionValidator;
+    private final ApplicationSecurity applicationSecurity;
 
     @Override
     public ApplicationResponse getApplicationById(String id) {
@@ -74,7 +76,8 @@ public class ApplicationServiceImpl implements IApplicationService {
 
         log.debug("Fetching applications for user {} with status {}", username, status);
 
-        Page<Application> page = applicationRepository.findByUsernameAndStatusAndDeletedAtIsNull(username, status, pageable);
+        Page<Application> page = applicationRepository.findByUsernameAndStatusAndDeletedAtIsNull(username, status,
+                pageable);
         return buildPaginatedResponse(page);
     }
 
@@ -182,33 +185,52 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<StatusChangeResponse> getStatusHistory(String id, String username) {
+    public List<StatusChangeResponse> getStatusHistory(String id,
+            org.springframework.security.core.Authentication authentication) {
         log.debug("Fetching status history for application: {}", id);
 
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
-        // Verify user can view this application (owner or HR/admin)
-        if (!application.getUsername().equals(username)) {
-            // For now, only owner can view. HR/admin check can be added later
+        // Verify user can view this application using ApplicationSecurity helper
+        // Allows: owner, HR with application:review, or admin
+        String username = applicationSecurity.getCurrentUsername(authentication);
+        boolean isOwner = application.getUsername().equals(username);
+        boolean hasReviewPermission = applicationSecurity.hasPermission(authentication, "application:review");
+        boolean isAdmin = applicationSecurity.isAdmin(authentication);
+
+        if (!isOwner && !hasReviewPermission && !isAdmin) {
+            log.warn("User {} attempted to view status history for application {} without proper permissions",
+                    username, id);
             throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
         }
 
+        // Return status history sorted by newest first
         return application.getStatusHistory().stream()
+                .sorted((a, b) -> b.getChangedAt().compareTo(a.getChangedAt()))
                 .map(this::mapToStatusChangeResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<NoteResponse> getPublicNotes(String id, String username) {
+    public List<NoteResponse> getPublicNotes(String id,
+            org.springframework.security.core.Authentication authentication) {
         log.debug("Fetching public notes for application: {}", id);
 
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
-        // Verify user can view this application (owner or HR/admin)
-        if (!application.getUsername().equals(username)) {
+        // Verify user can view this application using ApplicationSecurity helper
+        // Allows: owner, HR with application:review, or admin
+        String username = applicationSecurity.getCurrentUsername(authentication);
+        boolean isOwner = application.getUsername().equals(username);
+        boolean hasReviewPermission = applicationSecurity.hasPermission(authentication, "application:review");
+        boolean isAdmin = applicationSecurity.isAdmin(authentication);
+
+        if (!isOwner && !hasReviewPermission && !isAdmin) {
+            log.warn("User {} attempted to view public notes for application {} without proper permissions",
+                    username, id);
             throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
         }
 

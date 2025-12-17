@@ -1,6 +1,7 @@
 package org.workfitai.applicationservice.dto;
 
 import java.time.Instant;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,56 +18,37 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JobInfo {
 
-    /**
-     * Job ID.
-     */
-    private String id;
-
-    /**
-     * Job title.
-     */
+    private String postId;
     private String title;
-
-    /**
-     * Company name posting the job.
-     */
-    private String companyName;
-
-    /**
-     * Job location.
-     */
-    private String location;
-
-    /**
-     * Employment type (FULL_TIME, PART_TIME, CONTRACT, etc.).
-     */
+    private String shortDescription;
+    private String description;
     private String employmentType;
-
-    /**
-     * Required experience level (ENTRY, MID, SENIOR, etc.).
-     */
     private String experienceLevel;
-
-    /**
-     * Job status (should be PUBLISHED for applications).
-     */
+    private String educationLevel;
+    private String requiredExperience;
+    private Double salaryMin;
+    private Double salaryMax;
+    private String currency;
+    private String location;
+    private Integer quantity;
+    private Integer totalApplications;
+    private Instant createdDate;
+    private Instant lastModifiedDate;
+    private Instant expiresAt;
     private String status;
-
-    /**
-     * Company ID for the job.
-     * Used for company-level filtering and access control.
-     */
-    private String companyId;
-
-    /**
-     * Username of HR who created the job.
-     * Used for notification purposes and auto-assignment.
-     */
+    private List<String> skillNames;
+    private String bannerUrl;
     private String createdBy;
 
-    /**
-     * When the job info was fetched (for snapshot timestamp).
-     */
+    // Company info
+    private String companyId;
+    private String companyName;
+    private String companyDescription;
+    private String companyAddress;
+    private String companyWebsiteUrl;
+    private String companyLogoUrl;
+    private String companySize;
+
     @Builder.Default
     private Instant fetchedAt = Instant.now();
 }
