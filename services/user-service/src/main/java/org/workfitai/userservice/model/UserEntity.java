@@ -82,21 +82,8 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "avatar_uploaded_at")
   private Instant avatarUploadedAt;
 
-  // 2FA fields
-  @Column(name = "two_factor_enabled")
-  private Boolean twoFactorEnabled = false;
-
-  @Column(name = "two_factor_method")
-  private String twoFactorMethod;
-
-  @Column(name = "two_factor_secret")
-  private String twoFactorSecret;
-
-  @Column(name = "two_factor_backup_codes", columnDefinition = "TEXT")
-  private String twoFactorBackupCodes;
-
-  @Column(name = "two_factor_enabled_at")
-  private Instant twoFactorEnabledAt;
+  // Note: 2FA is now handled by auth-service and stored in MongoDB
+  // See TwoFactorAuth document in auth-service
 
   // Settings fields (JSONB in PostgreSQL)
   @Column(name = "notification_settings", columnDefinition = "jsonb")
