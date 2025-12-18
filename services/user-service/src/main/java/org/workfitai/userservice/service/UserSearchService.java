@@ -60,13 +60,20 @@ public class UserSearchService {
             Query multiMatchQuery = Query.of(q -> q
                     .multiMatch(m -> m
                             .query(request.getQuery())
-                            .fields("username^3", "email^2", "fullName^2", "phoneNumber")
+                            .fields("username^3", "email^2", "fullName^2")
                             .fuzziness("AUTO")));
             boolQuery.must(multiMatchQuery);
         }
 
         // Add filters
         addFilters(boolQuery, request);
+
+        // Determine sort field (default to _score for relevance)
+        String sortField = request.getSortField();
+        if (sortField == null || sortField.isBlank()) {
+            sortField = "_score";
+        }
+        final String finalSortField = sortField;
 
         // Build search request
         SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
@@ -75,7 +82,7 @@ public class UserSearchService {
                 .from(request.getFrom())
                 .size(request.getSize())
                 .sort(s -> s.field(f -> f
-                        .field(request.getSortField())
+                        .field(finalSortField)
                         .order("desc".equalsIgnoreCase(request.getSortOrder()) ? SortOrder.Desc : SortOrder.Asc)));
 
         // Add aggregations if requested
@@ -124,10 +131,12 @@ public class UserSearchService {
         }
 
         // Deleted filter (default: exclude deleted users)
-        boolQuery.filter(Query.of(q -> q
-                .term(t -> t
-                        .field("deleted")
-                        .value(FieldValue.of(request.getIncludeDeleted() != null && request.getIncludeDeleted())))));
+        if (request.getIncludeDeleted() == null || !request.getIncludeDeleted()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("deleted")
+                            .value(FieldValue.of(false)))));
+        }
 
         // Date range filters
         if (request.getCreatedAfter() != null || request.getCreatedBefore() != null) {
