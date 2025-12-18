@@ -55,8 +55,10 @@ public class UserSearchService {
     private SearchRequest buildSearchRequest(UserSearchRequest request) {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
+        boolean hasQuery = request.getQuery() != null && !request.getQuery().isBlank();
+
         // Add search query
-        if (request.getQuery() != null && !request.getQuery().isBlank()) {
+        if (hasQuery) {
             Query multiMatchQuery = Query.of(q -> q
                     .multiMatch(m -> m
                             .query(request.getQuery())
@@ -68,10 +70,13 @@ public class UserSearchService {
         // Add filters
         addFilters(boolQuery, request);
 
-        // Determine sort field (default to _score for relevance)
+        // Determine sort field
+        // CRITICAL: Only sort by _score when there's a query (has relevance)
+        // Otherwise, sort by a field like createdDate to avoid "all shards failed"
+        // error
         String sortField = request.getSortField();
         if (sortField == null || sortField.isBlank()) {
-            sortField = "_score";
+            sortField = hasQuery ? "_score" : "createdDate";
         }
         final String finalSortField = sortField;
 
@@ -128,6 +133,22 @@ public class UserSearchService {
                     .term(t -> t
                             .field("blocked")
                             .value(FieldValue.of(request.getBlocked())))));
+        }
+
+        // Company ID filter (for HR filtering by company)
+        if (request.getCompanyId() != null && !request.getCompanyId().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("companyId.keyword")
+                            .value(FieldValue.of(request.getCompanyId())))));
+        }
+
+        // Company Name filter (for HR filtering by company name)
+        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .match(m -> m
+                            .field("companyName")
+                            .query(request.getCompanyName())))));
         }
 
         // Deleted filter (default: exclude deleted users)

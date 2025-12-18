@@ -27,6 +27,11 @@ public class UserDocument {
     private String status; // Store as String for Elasticsearch
     private boolean blocked;
     private boolean deleted;
+
+    // Company information (for HR users)
+    private String companyId;
+    private String companyName;
+
     private Instant createdDate;
     private Instant lastModifiedDate;
 
