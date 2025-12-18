@@ -16,6 +16,7 @@ import org.workfitai.userservice.dto.elasticsearch.ReindexJobResponse;
 import org.workfitai.userservice.dto.elasticsearch.ReindexRequest;
 import org.workfitai.userservice.dto.kafka.UserDocument;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
+import org.workfitai.userservice.model.HREntity;
 import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.repository.UserRepository;
 
@@ -92,8 +93,9 @@ public class UserIndexManagementService {
             int pageNumber = 0;
 
             while (processedUsers < totalUsers) {
-                // Use findAllWithHrProfile to eagerly fetch HR profile data
-                Page<UserEntity> userPage = userRepository.findAllWithHrProfile(PageRequest.of(pageNumber, batchSize));
+                // findAll will automatically load subclass fields (HREntity) due to JOINED
+                // inheritance
+                Page<UserEntity> userPage = userRepository.findAll(PageRequest.of(pageNumber, batchSize));
 
                 for (UserEntity user : userPage.getContent()) {
                     try {
@@ -147,13 +149,14 @@ public class UserIndexManagementService {
     }
 
     private void indexUser(UserEntity user) throws Exception {
-        // Get company info from HrProfile if user is HR/HR_MANAGER
+        // Get company info from HREntity if user is HR/HR_MANAGER
         String companyNo = null;
         String companyName = null;
 
-        if (user.getHrProfile() != null) {
-            companyNo = user.getHrProfile().getCompanyNo();
-            companyName = user.getHrProfile().getCompanyName();
+        if (user instanceof HREntity) {
+            HREntity hrEntity = (HREntity) user;
+            companyNo = hrEntity.getCompanyNo();
+            companyName = hrEntity.getCompanyName();
         }
 
         UserDocument document = UserDocument.builder()
