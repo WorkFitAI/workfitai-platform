@@ -1,4 +1,9 @@
-target/
+# Ignore everything except JAR files in target/
+target/*
+!target/*.jar
+
 *.log
 .mvn/
 mvnw*
+src/
+pom.xml

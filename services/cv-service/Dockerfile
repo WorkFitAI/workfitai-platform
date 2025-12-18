@@ -1,19 +1,12 @@
-# Build stage
-FROM maven:latest AS builder
-WORKDIR /app
-COPY pom.xml /app/
-COPY src /app/src
-RUN mvn clean package -DskipTests
-
-# Stage 2: runtime
+# Runtime-only stage: sử dụng JAR đã build sẵn từ máy local
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
-# Copy jar artifact từ builder
-COPY --from=builder /app/target/*.jar /app.jar
+# Copy jar đã build sẵn từ target/ folder (chạy mvn clean install trước)
+COPY ./target/*.jar /app/app.jar
 
-# Mở port 8080
+# Mở port 8084
 EXPOSE 8084
 
 # Chạy ứng dụng
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
