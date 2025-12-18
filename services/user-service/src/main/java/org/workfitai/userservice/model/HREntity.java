@@ -47,6 +47,13 @@ public class HREntity extends UserEntity {
   @Column(name = "company_no", nullable = false)
   private String companyNo;
 
+  /**
+   * Company name from registration - sent to job-service for synchronization.
+   */
+  @Size(max = 255, message = "Company name must not exceed 255 characters")
+  @Column(name = "company_name", nullable = true)
+  private String companyName;
+
   @Size(max = 255, message = "Address must not exceed 255 characters")
   @NotBlank(message = "Address is required")
   @Column(name = "address", nullable = false)

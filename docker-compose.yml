@@ -596,20 +596,20 @@ services:
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
 
-  grafana:
-    image: grafana/grafana:11.1.0
-    container_name: grafana
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-    networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
+  # grafana:
+  #   image: grafana/grafana:11.1.0
+  #   container_name: grafana
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - ./grafana/provisioning:/etc/grafana/provisioning:ro
+  #   depends_on:
+  #     - prometheus
+  #   networks: [ workfitai-net ]
+  #   profiles: [ "infra", "full" ]
 
   ### ELK Stack for Centralized Logging ###
   elasticsearch:
