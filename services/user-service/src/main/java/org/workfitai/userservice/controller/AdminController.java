@@ -44,7 +44,7 @@ public class AdminController {
 
   @PutMapping("/{id}")
   public ResponseEntity<ResponseData<AdminResponse>> update(@PathVariable UUID id,
-                                                            @RequestBody AdminUpdateRequest dto) {
+      @RequestBody AdminUpdateRequest dto) {
     return ResponseEntity.ok(ResponseData.success(
         Messages.Admin.UPDATED, adminService.update(id, dto)));
   }
@@ -115,6 +115,32 @@ public class AdminController {
     }
 
     userService.deleteUser(id);
+    return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
+  }
+
+  /**
+   * Block or unblock user account by username
+   */
+  @PutMapping("/users/username/{username}/block")
+  public ResponseEntity<ResponseData<Void>> blockUserByUsername(
+      @PathVariable String username,
+      @RequestParam boolean blocked,
+      @RequestAttribute("userId") String currentUserId) {
+
+    userService.setUserBlockStatusByUsername(username, blocked, currentUserId);
+    String message = blocked ? "User blocked successfully" : "User unblocked successfully";
+    return ResponseEntity.ok(ResponseData.success(message, null));
+  }
+
+  /**
+   * Delete user account by username (soft delete)
+   */
+  @DeleteMapping("/users/username/{username}")
+  public ResponseEntity<ResponseData<Void>> deleteUserByUsername(
+      @PathVariable String username,
+      @RequestAttribute("userId") String currentUserId) {
+
+    userService.deleteUserByUsername(username, currentUserId);
     return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
   }
 

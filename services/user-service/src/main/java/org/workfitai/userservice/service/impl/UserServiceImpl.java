@@ -18,6 +18,7 @@ import org.workfitai.userservice.mapper.AdminMapper;
 import org.workfitai.userservice.mapper.CandidateMapper;
 import org.workfitai.userservice.mapper.HRMapper;
 import org.workfitai.userservice.messaging.UserEventPublisher;
+import org.workfitai.userservice.messaging.SessionInvalidationProducer;
 import org.workfitai.userservice.model.AdminEntity;
 import org.workfitai.userservice.model.CandidateEntity;
 import org.workfitai.userservice.model.HREntity;
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final HRMapper hrMapper;
     private final AdminMapper adminMapper;
     private final UserEventPublisher eventPublisher;
+    private final SessionInvalidationProducer sessionInvalidationProducer;
     private final CandidateService candidateService;
     private final HRService hrService;
     private final AdminService adminService;
@@ -327,6 +329,12 @@ public class UserServiceImpl implements UserService {
         if (blocked) {
             user.setUserStatus(EUserStatus.SUSPENDED);
             log.info("User {} blocked by admin", user.getUsername());
+
+            // Invalidate all sessions when blocking user
+            sessionInvalidationProducer.publishSessionInvalidation(
+                    user.getUserId(),
+                    user.getUsername(),
+                    "BLOCKED");
         } else {
             user.setUserStatus(EUserStatus.ACTIVE);
             log.info("User {} unblocked by admin", user.getUsername());
@@ -352,6 +360,12 @@ public class UserServiceImpl implements UserService {
             throw new ApiException("User already deleted", HttpStatus.CONFLICT);
         }
 
+        // Invalidate all sessions when deleting user
+        sessionInvalidationProducer.publishSessionInvalidation(
+                user.getUserId(),
+                user.getUsername(),
+                "DELETED");
+
         // Soft delete
         user.setDeleted(true);
         user.setDeletedAt(Instant.now());
@@ -362,5 +376,33 @@ public class UserServiceImpl implements UserService {
 
         // Publish event to Kafka for Elasticsearch sync
         eventPublisher.publishUserDeleted(user);
+    }
+
+    @Override
+    @Transactional
+    public void setUserBlockStatusByUsername(String username, boolean blocked, String currentUserId) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        // Prevent self-blocking
+        if (user.getUserId().toString().equals(currentUserId)) {
+            throw new ApiException("You cannot block yourself", HttpStatus.BAD_REQUEST);
+        }
+
+        setUserBlockStatus(user.getUserId(), blocked);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserByUsername(String username, String currentUserId) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        // Prevent self-deletion
+        if (user.getUserId().toString().equals(currentUserId)) {
+            throw new ApiException("You cannot delete yourself", HttpStatus.BAD_REQUEST);
+        }
+
+        deleteUser(user.getUserId());
     }
 }
