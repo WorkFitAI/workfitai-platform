@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,27 +24,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.constants.Messages;
+import org.workfitai.applicationservice.dto.request.AssignApplicationRequest;
 import org.workfitai.applicationservice.dto.request.BulkUpdateRequest;
 import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.CreateDraftRequest;
 import org.workfitai.applicationservice.dto.request.CreateNoteRequest;
+import org.workfitai.applicationservice.dto.request.ExportRequest;
 import org.workfitai.applicationservice.dto.request.SubmitDraftRequest;
 import org.workfitai.applicationservice.dto.request.UpdateDraftRequest;
 import org.workfitai.applicationservice.dto.request.UpdateNoteRequest;
-import org.workfitai.applicationservice.dto.request.AssignApplicationRequest;
-import org.workfitai.applicationservice.dto.request.ExportRequest;
 import org.workfitai.applicationservice.dto.response.ApiError;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.BulkUpdateResult;
 import org.workfitai.applicationservice.dto.response.DashboardStatsResponse;
+import org.workfitai.applicationservice.dto.response.ExportResponse;
+import org.workfitai.applicationservice.dto.response.HRAuditActivityResponse;
+import org.workfitai.applicationservice.dto.response.HRUserResponse;
 import org.workfitai.applicationservice.dto.response.JobStatsResponse;
+import org.workfitai.applicationservice.dto.response.ManagerStatsResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
-import org.workfitai.applicationservice.dto.response.PreSignedUrlResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
 import org.workfitai.applicationservice.dto.response.StatusChangeResponse;
-import org.workfitai.applicationservice.dto.response.ManagerStatsResponse;
-import org.workfitai.applicationservice.dto.response.ExportResponse;
+import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
@@ -52,15 +55,16 @@ import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.ApplicationNoteService;
 import org.workfitai.applicationservice.service.ApplicationSearchService;
 import org.workfitai.applicationservice.service.ApplicationStatsService;
+import org.workfitai.applicationservice.service.AssignmentService;
 import org.workfitai.applicationservice.service.BulkOperationService;
+import org.workfitai.applicationservice.service.CompanyApplicationService;
+import org.workfitai.applicationservice.service.CompanyHRService;
+import org.workfitai.applicationservice.service.ExportService;
 import org.workfitai.applicationservice.service.IApplicationService;
 import org.workfitai.applicationservice.service.IDraftApplicationService;
 import org.workfitai.applicationservice.service.JobStatsService;
-import org.workfitai.applicationservice.service.MinioPreSignedUrlService;
-import org.workfitai.applicationservice.service.CompanyApplicationService;
-import org.workfitai.applicationservice.service.AssignmentService;
 import org.workfitai.applicationservice.service.ManagerStatsService;
-import org.workfitai.applicationservice.service.ExportService;
+import org.workfitai.applicationservice.service.MinioPreSignedUrlService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -109,6 +113,7 @@ public class ApplicationController {
         private final AssignmentService assignmentService;
         private final ManagerStatsService managerStatsService;
         private final ExportService exportService;
+        private final CompanyHRService companyHRService;
 
         @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasAuthority('application:create')")
@@ -764,5 +769,112 @@ public class ApplicationController {
 
                 ExportResponse response = exportService.exportApplications(request);
                 return ResponseEntity.ok(RestResponse.success(response));
+        }
+
+        // ==================== Company HR Management APIs (Phase 3+)
+        // ====================
+
+        /**
+         * Get list of HR users in a specific company.
+         * 
+         * Access Control:
+         * - HR_MANAGER: Can view HR users in their own company only
+         * - ADMIN: Can view HR users in any company
+         * 
+         * @param companyId      Company ID to filter HR users
+         * @param authentication Spring Security authentication
+         * @return List of HR users in the company
+         */
+        @GetMapping("/company/{companyId}/hr-users")
+        @PreAuthorize("hasAuthority('application:manage')")
+        @Operation(summary = "Get HR users in company", description = "Retrieve all HR and HR_MANAGER users in a specific company. Requires HR_MANAGER or ADMIN role.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "HR users retrieved successfully"),
+                        @ApiResponse(responseCode = "403", description = "Access denied - not authorized for this company"),
+                        @ApiResponse(responseCode = "503", description = "User service unavailable")
+        })
+        public ResponseEntity<RestResponse<List<HRUserResponse>>> getCompanyHRUsers(
+                        @PathVariable @Parameter(description = "Company ID") String companyId,
+                        Authentication authentication) {
+
+                log.info("Fetching HR users for company: {}", companyId);
+
+                // Verify company access
+                if (!applicationSecurity.isSameCompany(companyId, authentication)) {
+                        throw new ForbiddenException(
+                                        "Access denied. You are not authorized to view HR users for this company.");
+                }
+
+                List<HRUserResponse> hrUsers = companyHRService.getCompanyHRUsers(companyId);
+                return ResponseEntity.ok(RestResponse.success(hrUsers));
+        }
+
+        /**
+         * Get audit activities of all HR users in a specific company.
+         * 
+         * This endpoint provides comprehensive tracking of all actions performed by
+         * HR and HR_MANAGER users within a company. Useful for:
+         * - Compliance auditing
+         * - Activity monitoring
+         * - Performance tracking
+         * - Security investigations
+         * 
+         * Access Control:
+         * - HR_MANAGER: Can view audit logs for their own company only
+         * - ADMIN: Can view audit logs for any company
+         * 
+         * @param companyId      Company ID to filter audit activities
+         * @param fromDate       Optional start date for filtering (ISO 8601 format)
+         * @param toDate         Optional end date for filtering (ISO 8601 format)
+         * @param page           Page number (0-indexed)
+         * @param size           Page size (default: 20)
+         * @param authentication Spring Security authentication
+         * @return Paginated audit activities of HR users
+         */
+        @GetMapping("/company/{companyId}/hr-activities")
+        @PreAuthorize("hasAuthority('application:manage')")
+        @Operation(summary = "Get HR audit activities in company", description = "Retrieve audit trail of all HR and HR_MANAGER activities in a company. Supports date range filtering. Requires HR_MANAGER or ADMIN role.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Audit activities retrieved successfully"),
+                        @ApiResponse(responseCode = "403", description = "Access denied - not authorized for this company"),
+                        @ApiResponse(responseCode = "503", description = "User service unavailable")
+        })
+        public ResponseEntity<RestResponse<ResultPaginationDTO<HRAuditActivityResponse>>> getCompanyHRAuditActivities(
+                        @PathVariable @Parameter(description = "Company ID") String companyId,
+                        @RequestParam(required = false) @Parameter(description = "Start date (ISO 8601 format)") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
+                        @RequestParam(required = false) @Parameter(description = "End date (ISO 8601 format)") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
+                        @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-indexed)") int page,
+                        @RequestParam(defaultValue = "20") @Parameter(description = "Page size") int size,
+                        Authentication authentication) {
+
+                log.info("Fetching HR audit activities for company: {}, fromDate: {}, toDate: {}", companyId, fromDate,
+                                toDate);
+
+                // Verify company access
+                if (!applicationSecurity.isSameCompany(companyId, authentication)) {
+                        throw new ForbiddenException(
+                                        "Access denied. You are not authorized to view audit activities for this company.");
+                }
+
+                // Create pageable with sorting by performed date descending
+                Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "performedAt"));
+
+                Page<HRAuditActivityResponse> activities = companyHRService.getCompanyHRAuditActivities(
+                                companyId, fromDate, toDate, pageable);
+
+                ResultPaginationDTO<HRAuditActivityResponse> result = ResultPaginationDTO
+                                .<HRAuditActivityResponse>builder()
+                                .items(activities.getContent())
+                                .meta(ResultPaginationDTO.Meta.builder()
+                                                .page(activities.getNumber())
+                                                .size(activities.getSize())
+                                                .totalElements(activities.getTotalElements())
+                                                .totalPages(activities.getTotalPages())
+                                                .first(activities.isFirst())
+                                                .last(activities.isLast())
+                                                .build())
+                                .build();
+
+                return ResponseEntity.ok(RestResponse.success(result));
         }
 }
