@@ -1,10 +1,7 @@
 package org.workfitai.authservice.config;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -14,12 +11,14 @@ import org.workfitai.authservice.model.Role;
 import org.workfitai.authservice.repository.PermissionRepository;
 import org.workfitai.authservice.repository.RoleRepository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Initializes roles and permissions for the WorkFitAI platform.
- * 
+ * <p>
  * Permission naming convention: {resource}:{action}
  * Resources: user, candidate, hr, admin, job, company, skill, cv, application
  * Actions: create, read, update, delete, list, search, manage
@@ -144,6 +143,12 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("skill:list", "List all skills");
         perms.put("skill:search", "Search skills");
 
+        perms.put("report:create", "Create reports");
+        perms.put("report:read", "View reports");
+        perms.put("report:update", "Update reports");
+        perms.put("report:delete", "Delete reports");
+        perms.put("report:list", "List all reports");
+
         // ==================== CV SERVICE ====================
         // CV management
         perms.put("cv:create", "Create/upload CVs");
@@ -245,6 +250,9 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("skill:read");
             permissions.add("skill:list");
             permissions.add("skill:search");
+
+            // Report
+            permissions.add("report:create");
 
             // CV management (own CVs)
             permissions.add("cv:create");
@@ -547,6 +555,12 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("skill:delete");
             permissions.add("skill:list");
             permissions.add("skill:search");
+
+            permissions.add("report:create");
+            permissions.add("report:read");
+            permissions.add("report:update");
+            permissions.add("report:delete");
+            permissions.add("report:list");
 
             // CV management (full access)
             permissions.add("cv:create");

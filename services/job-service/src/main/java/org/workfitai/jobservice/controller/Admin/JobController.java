@@ -1,6 +1,7 @@
 package org.workfitai.jobservice.controller.Admin;
 
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class JobController {
         this.jobService = jobService;
     }
 
+    @PreAuthorize("hasAuthority('job:delete')")
     @DeleteMapping("/{id}")
     @ApiMessage(JOB_DELETED_SUCCESSFULLY)
     public RestResponse<Void> delete(@PathVariable("id") UUID id) throws InvalidDataException {

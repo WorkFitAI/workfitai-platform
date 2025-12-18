@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.model.Report;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
@@ -29,6 +30,7 @@ public class ReportController {
         this.reportService = reportService;
     }
 
+    @PreAuthorize("hasAuthority('report:create')")
     @GetMapping("/grouped")
     @ApiMessage(REPORT_ALL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO> getReportsGrouped(
@@ -38,6 +40,7 @@ public class ReportController {
         return RestResponse.success(reportService.fetchAllReportsGrouped(spec, pageable));
     }
 
+    @PreAuthorize("hasAuthority('report:stats')")
     @PutMapping("/{jobId}/status/{newStatus}")
     @ApiMessage(REPORT_UPDATE_STATS_SUCCESSFULLY)
     public RestResponse<String> changeStatusByJobId(

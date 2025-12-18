@@ -1,6 +1,7 @@
 package org.workfitai.jobservice.controller.HR;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,6 +23,7 @@ public class CompanyController {
 
     private final iCompanyService companyService;
 
+    @PreAuthorize("hasAuthority('company:update')")
     @PutMapping(consumes = "multipart/form-data")
     @ApiMessage(COMPANY_UPDATED_SUCCESSFULLY)
     public RestResponse<ResUpdateCompanyDTO> updateCompany(
