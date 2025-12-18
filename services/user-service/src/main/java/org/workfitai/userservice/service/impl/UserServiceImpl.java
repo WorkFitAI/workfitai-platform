@@ -137,6 +137,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            return false;
+        }
+        return userRepository.existsByPhoneNumber(phoneNumber);
+    }
+
+    @Override
     public UUID findUserIdByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(UserEntity::getId)

@@ -58,6 +58,11 @@ public interface UserService {
     boolean existsByUsername(String username);
 
     /**
+     * Check if phone number exists.
+     */
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    /**
      * Find user ID by username.
      * Used to convert username from JWT to user ID for service operations.
      *

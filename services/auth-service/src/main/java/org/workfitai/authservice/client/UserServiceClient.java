@@ -32,6 +32,15 @@ public interface UserServiceClient {
     Boolean existsByUsername(@RequestParam("username") String username);
 
     /**
+     * Check if a phone number already exists in user-service.
+     * 
+     * @param phoneNumber the phone number to check
+     * @return true if phone number exists, false otherwise
+     */
+    @GetMapping("/exists/phone-number")
+    Boolean existsByPhoneNumber(@RequestParam("phoneNumber") String phoneNumber);
+
+    /**
      * Check if account can be reactivated (within 30 days) and auto-reactivate it.
      * 
      * @param username the username to check

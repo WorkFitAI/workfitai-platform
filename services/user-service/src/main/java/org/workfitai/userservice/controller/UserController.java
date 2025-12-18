@@ -89,6 +89,19 @@ public class UserController {
     }
 
     /**
+     * Check if a phone number already exists in user-service.
+     * Used by auth-service during registration to ensure data consistency.
+     *
+     * @param phoneNumber the phone number to check
+     * @return true if phone number exists, false otherwise
+     */
+    @GetMapping("/exists/phone-number")
+    public ResponseEntity<Boolean> existsByPhoneNumber(@RequestParam("phoneNumber") String phoneNumber) {
+        boolean exists = userService.existsByPhoneNumber(phoneNumber);
+        return ResponseEntity.ok(exists);
+    }
+
+    /**
      * Internal endpoint: Check if deactivated account can be reactivated (within 30
      * days).
      * Called by auth-service during login.

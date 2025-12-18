@@ -136,6 +136,24 @@ public class AuthServiceImpl implements iAuthService {
             // Continue with registration - will be caught by Kafka consumer if duplicate
         }
 
+        // Check if phone number already exists in user-service (cross-service
+        // validation)
+        if (req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank()) {
+            try {
+                Boolean phoneExistsInUserService = userServiceClient.existsByPhoneNumber(req.getPhoneNumber());
+                if (Boolean.TRUE.equals(phoneExistsInUserService)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Phone number is already registered in the system");
+                }
+            } catch (ResponseStatusException e) {
+                throw e; // Re-throw our validation errors
+            } catch (Exception e) {
+                log.warn("Could not validate phone number with user-service: {}. Proceeding with registration.",
+                        e.getMessage());
+                // Continue with registration - will be caught by Kafka consumer if duplicate
+            }
+        }
+
         // Generate unique username from email (part before @)
         String username = generateUniqueUsername(req.getEmail());
 
