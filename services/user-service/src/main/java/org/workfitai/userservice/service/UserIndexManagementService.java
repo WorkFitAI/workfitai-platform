@@ -92,7 +92,8 @@ public class UserIndexManagementService {
             int pageNumber = 0;
 
             while (processedUsers < totalUsers) {
-                Page<UserEntity> userPage = userRepository.findAll(PageRequest.of(pageNumber, batchSize));
+                // Use findAllWithHrProfile to eagerly fetch HR profile data
+                Page<UserEntity> userPage = userRepository.findAllWithHrProfile(PageRequest.of(pageNumber, batchSize));
 
                 for (UserEntity user : userPage.getContent()) {
                     try {
@@ -146,6 +147,15 @@ public class UserIndexManagementService {
     }
 
     private void indexUser(UserEntity user) throws Exception {
+        // Get company info from HrProfile if user is HR/HR_MANAGER
+        String companyNo = null;
+        String companyName = null;
+
+        if (user.getHrProfile() != null) {
+            companyNo = user.getHrProfile().getCompanyNo();
+            companyName = user.getHrProfile().getCompanyName();
+        }
+
         UserDocument document = UserDocument.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
@@ -156,6 +166,8 @@ public class UserIndexManagementService {
                 .status(user.getUserStatus().name())
                 .blocked(user.isBlocked())
                 .deleted(user.isDeleted())
+                .companyNo(companyNo)
+                .companyName(companyName)
                 .createdDate(user.getCreatedDate())
                 .lastModifiedDate(user.getLastModifiedDate())
                 .version(user.getVersion())

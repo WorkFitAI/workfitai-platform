@@ -738,7 +738,187 @@
                     "response": []
                 },
                 {
-                    "name": "5.4 Advanced Search - Aggregations Only",
+                    "name": "5.4 Advanced Search - Filter by Company (HR/HR_MANAGER)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Company filter search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ Found \" + jsonData.data.totalHits + \" HR users with company filter\");",
+                                    "    if (jsonData.data.hits.length > 0) {",
+                                    "        jsonData.data.hits.forEach(user => {",
+                                    "            console.log(\"   User: \" + user.username + \" - Company: \" + (user.companyName || 'N/A'));",
+                                    "        });",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"role\": \"HR\",\n  \"companyNo\": \"0123456789\",\n  \"from\": 0,\n  \"size\": 10,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Filter HR/HR_MANAGER users by company tax code (companyNo). This is useful for multi-tenant scenarios where admins need to find all HR users from a specific company."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.5 Advanced Search - Filter by Company Name",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Company name filter search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ Found \" + jsonData.data.totalHits + \" users from company\");",
+                                    "    if (jsonData.data.hits.length > 0 && jsonData.data.hits[0].highlights) {",
+                                    "        console.log(\"   Highlighted matches: \" + JSON.stringify(jsonData.data.hits[0].highlights));",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"role\": \"HR_MANAGER\",\n  \"companyName\": \"VNG Corporation\",\n  \"from\": 0,\n  \"size\": 10,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Filter HR/HR_MANAGER users by company name with fuzzy matching. Supports Vietnamese text with accent-insensitive search."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.6 Advanced Search - Combined Company Filters",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Combined company filters successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ Found \" + jsonData.data.totalHits + \" HR users matching both company filters\");",
+                                    "    if (jsonData.data.hits.length > 0) {",
+                                    "        console.log(\"   CompanyNo: \" + jsonData.data.hits[0].companyNo);",
+                                    "        console.log(\"   CompanyName: \" + jsonData.data.hits[0].companyName);",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"hr manager\",\n  \"role\": \"HR_MANAGER\",\n  \"companyNo\": \"0123456789\",\n  \"companyName\": \"VNG\",\n  \"status\": \"ACTIVE\",\n  \"from\": 0,\n  \"size\": 10,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Search with both companyNo and companyName filters combined with text query and other filters. Useful for precise company-based user searches."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.7 Advanced Search - Aggregations Only",
                     "event": [
                         {
                             "listen": "test",
