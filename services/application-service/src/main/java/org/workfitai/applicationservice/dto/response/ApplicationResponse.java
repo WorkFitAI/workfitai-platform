@@ -1,6 +1,7 @@
 package org.workfitai.applicationservice.dto.response;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 
@@ -38,14 +39,14 @@ public class ApplicationResponse {
     private String username;
 
     @NotBlank
+    @Schema(description = "Email of the applicant", example = "candidate@example.com")
+    private String email;
+
+    @NotBlank
     @Schema(description = "ID of the job applied to", example = "550e8400-e29b-41d4-a716-446655440000")
     private String jobId;
 
     // CV File Info
-
-    @NotBlank
-    @Schema(description = "URL to the CV file in MinIO storage", example = "http://minio:9000/cvs-files/user/app123/resume.pdf")
-    private String cvFileUrl;
 
     @NotBlank
     @Schema(description = "Original filename of the uploaded CV", example = "John_Doe_Resume.pdf")
@@ -101,20 +102,90 @@ public class ApplicationResponse {
     @Schema(description = "Snapshot of job info at application time")
     public static class JobSnapshotResponse {
 
+        @Schema(description = "Job post ID", example = "140a5367-722c-40dd-ae71-c16bada74c74")
+        private String postId;
+
         @Schema(description = "Job title", example = "Senior Java Developer")
         private String title;
 
-        @Schema(description = "Company name", example = "TechCorp Inc")
-        private String companyName;
+        @Schema(description = "Short description", example = "Looking for a new position")
+        private String shortDescription;
 
-        @Schema(description = "Job location", example = "Remote")
-        private String location;
+        @Schema(description = "Full job description")
+        private String description;
 
         @Schema(description = "Employment type", example = "FULL_TIME")
         private String employmentType;
 
         @Schema(description = "Experience level", example = "SENIOR")
         private String experienceLevel;
+
+        @Schema(description = "Education level", example = "Bachelor Degree in Computer Science")
+        private String educationLevel;
+
+        @Schema(description = "Required experience")
+        private String requiredExperience;
+
+        @Schema(description = "Minimum salary", example = "500.0")
+        private Double salaryMin;
+
+        @Schema(description = "Maximum salary", example = "800.0")
+        private Double salaryMax;
+
+        @Schema(description = "Salary currency", example = "USD")
+        private String currency;
+
+        @Schema(description = "Job location", example = "Ha Noi City")
+        private String location;
+
+        @Schema(description = "Number of positions", example = "10")
+        private Integer quantity;
+
+        @Schema(description = "Total applications", example = "1")
+        private Integer totalApplications;
+
+        @Schema(description = "Job creation date")
+        private Instant createdDate;
+
+        @Schema(description = "Last modified date")
+        private Instant lastModifiedDate;
+
+        @Schema(description = "Job expiration date")
+        private Instant expiresAt;
+
+        @Schema(description = "Job status", example = "PUBLISHED")
+        private String status;
+
+        @Schema(description = "Required skills", example = "[\"Java\", \"Spring Boot\"]")
+        private List<String> skillNames;
+
+        @Schema(description = "Banner image URL")
+        private String bannerUrl;
+
+        @Schema(description = "Job creator username", example = "jane")
+        private String createdBy;
+
+        // Company info
+        @Schema(description = "Company ID", example = "b1c31a80-a9b9-4965-aeeb-0941db99a544")
+        private String companyNo;
+
+        @Schema(description = "Company name", example = "Sarah HR Manager's Company")
+        private String companyName;
+
+        @Schema(description = "Company description")
+        private String companyDescription;
+
+        @Schema(description = "Company address", example = "456 Corporate Ave, Ho Chi Minh City")
+        private String companyAddress;
+
+        @Schema(description = "Company website URL")
+        private String companyWebsiteUrl;
+
+        @Schema(description = "Company logo URL")
+        private String companyLogoUrl;
+
+        @Schema(description = "Company size")
+        private String companySize;
 
         @Schema(description = "When the snapshot was taken", example = "2024-01-15T10:30:00Z")
         private Instant snapshotAt;

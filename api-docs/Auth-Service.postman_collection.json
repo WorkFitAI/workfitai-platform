@@ -246,7 +246,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"193102\"\n}"
+							"raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"397015\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/verify-otp",
@@ -299,7 +299,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"otp\": \"450371\"\n}"
+							"raw": "{\n  \"email\": \"{{hrEmail}}\",\n  \"otp\": \"380667\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/verify-otp",
@@ -352,7 +352,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"otp\": \"424083\"\n}"
+							"raw": "{\n  \"email\": \"{{hrManagerEmail}}\",\n  \"otp\": \"582446\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/verify-otp",

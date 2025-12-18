@@ -136,7 +136,7 @@ public class ReportService implements iReportService {
                                             : "Unknown"
                             )
                             .isDeleted(
-                                    jobInfo != null
+                                    jobInfo != null ? jobInfo.isDeleted() : false
                             )
                             .status(status)
                             .reportCount(reports.size())

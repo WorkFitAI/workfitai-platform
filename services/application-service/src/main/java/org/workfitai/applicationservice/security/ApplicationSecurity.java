@@ -74,10 +74,10 @@ public class ApplicationSecurity {
      * - Null/absent for CANDIDATE users
      * - Null/absent for ADMIN users (global access)
      *
-     * TODO: Update auth-service to include companyId in JWT claims
-     * - Modify JwtService.generateAccessToken() to add companyId claim
-     * - Fetch companyId from User entity in auth-service
-     * - Make companyId REQUIRED for HR/HR_MANAGER roles
+     * Note: companyId in JWT corresponds to companyNo in database tables:
+     * - auth-service: User.companyNo → JWT.companyId
+     * - job-service: Job.companyNo → JWT.companyId
+     * - application-service: Application.companyId = companyNo from job-service
      *
      * @param authentication Spring Security authentication object
      * @return CompanyId from JWT claim, or null if not present
@@ -272,30 +272,24 @@ public class ApplicationSecurity {
      * Used for company-level access control.
      * Manager must belong to same company to view/manage applications.
      *
-     * Implementation (Phase 5 - JWT-based):
-     * - Extracts user's companyId from JWT "companyId" claim (optional)
-     * - Validates that user.companyId == application.companyId
-     * - If companyId not in JWT, bypasses validation (returns false)
+     * Implementation:
+     * - Extracts user's companyId from JWT "companyId" claim
+     * - Validates that user.companyId == application.companyId (where companyId = companyNo)
+     * - companyId in JWT = companyNo in auth-service, job-service, and application-service
      *
      * Special Cases:
      * - ADMIN users: Bypass company check (global access)
      * - CANDIDATE users: Have no companyId (returns false for company checks)
-     * - CompanyId not in JWT: Bypass validation (returns false) - TEMPORARY
+     * - HR/HR_MANAGER without companyId: Denied access (security measure)
      *
      * Security:
      * - Prevents cross-company data leaks
-     * - Enforces strict company isolation when companyId available
-     * - Logs all validation attempts
+     * - Enforces strict company isolation for HR/HR_MANAGER roles
+     * - Logs all validation attempts for audit trail
      *
-     * TODO (Future Enhancement):
-     * - Make companyId REQUIRED in JWT for HR/HR_MANAGER roles
-     * - Update auth-service to include companyId claim
-     * - Remove bypass logic once all JWTs include companyId
-     * - See: getCurrentCompanyId() for auth-service update checklist
-     *
-     * @param companyId      Company ID to check
+     * @param companyId      Company ID to check (corresponds to companyNo in database)
      * @param authentication Current user's authentication
-     * @return true if user belongs to same company OR is admin OR companyId not available (bypass)
+     * @return true if user belongs to same company OR is admin
      */
     public boolean isSameCompany(String companyId, Authentication authentication) {
         String username = getCurrentUsername(authentication);
@@ -306,15 +300,15 @@ public class ApplicationSecurity {
             return true;
         }
 
-        // Extract companyId from JWT (Phase 5: JWT-based approach)
+        // Extract companyId from JWT (companyId in JWT = companyNo in database)
         String userCompanyId = getCurrentCompanyId(authentication);
 
-        // TEMPORARY: If companyId not in JWT, bypass validation
-        // TODO: Remove this bypass once auth-service adds companyId to JWT
+        // If companyId not in JWT, deny access for security
+        // HR/HR_MANAGER should always have companyId in JWT
         if (userCompanyId == null) {
-            log.warn("CompanyId not found in JWT for user={} - BYPASSING company validation for companyId={}. " +
-                    "TODO: Update auth-service to include companyId claim in JWT", username, companyId);
-            return false; // Deny access if no company ID (safer default)
+            log.warn("Company validation DENIED: user={} has no companyId in JWT, cannot access companyId={}",
+                    username, companyId);
+            return false;
         }
 
         // Validate company match
@@ -357,7 +351,7 @@ public class ApplicationSecurity {
                         return false;
                     }
 
-                    // Check same company (Phase 3: always true for now)
+                    // Check same company (companyId in JWT must match app.companyId)
                     return isSameCompany(app.getCompanyId(), authentication);
                 })
                 .orElse(false);

@@ -144,15 +144,15 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
             Pageable pageable);
 
     /**
-     * Finds active applications assigned to specific HR user.
+     * Finds active (non-draft, non-deleted) applications assigned to specific HR user.
      * Used for HR personal workload view.
      */
-    Page<Application> findByAssignedToAndDeletedAtIsNull(String assignedTo, Pageable pageable);
+    Page<Application> findByAssignedToAndIsDraftFalseAndDeletedAtIsNull(String assignedTo, Pageable pageable);
 
     /**
-     * Finds active applications assigned to HR with specific status.
+     * Finds active (non-draft, non-deleted) applications assigned to HR with specific status.
      */
-    Page<Application> findByAssignedToAndStatusAndDeletedAtIsNull(String assignedTo, ApplicationStatus status,
+    Page<Application> findByAssignedToAndStatusAndIsDraftFalseAndDeletedAtIsNull(String assignedTo, ApplicationStatus status,
             Pageable pageable);
 
     /**

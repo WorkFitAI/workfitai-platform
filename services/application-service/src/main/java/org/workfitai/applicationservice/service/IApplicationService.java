@@ -47,18 +47,19 @@ public interface IApplicationService {
         /**
          * Get status change history for an application.
          *
-         * @param id Application ID
-         * @param username Username (for authorization)
+         * @param id             Application ID
+         * @param authentication User authentication (for authorization)
          * @return List of status changes in chronological order
          */
-        List<StatusChangeResponse> getStatusHistory(String id, String username);
+        List<StatusChangeResponse> getStatusHistory(String id,
+                        org.springframework.security.core.Authentication authentication);
 
         /**
          * Get public HR notes for an application (visible to candidate).
          *
-         * @param id Application ID
-         * @param username Username (for authorization)
+         * @param id             Application ID
+         * @param authentication User authentication (for authorization)
          * @return List of public notes
          */
-        List<NoteResponse> getPublicNotes(String id, String username);
+        List<NoteResponse> getPublicNotes(String id, org.springframework.security.core.Authentication authentication);
 }

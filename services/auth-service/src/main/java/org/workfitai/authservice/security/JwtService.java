@@ -88,8 +88,8 @@ public class JwtService {
         if (roles.contains("HR") || roles.contains("HR_MANAGER")) {
             userRepository.findByUsername(user.getUsername())
                     .ifPresent(userEntity -> {
-                        if (userEntity.getCompanyId() != null) {
-                            builder.claim("companyId", userEntity.getCompanyId());
+                        if (userEntity.getCompanyNo() != null) {
+                            builder.claim("companyId", userEntity.getCompanyNo());
                         }
                     });
         }

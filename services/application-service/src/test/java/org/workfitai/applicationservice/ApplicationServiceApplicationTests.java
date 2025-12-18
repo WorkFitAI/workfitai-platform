@@ -173,9 +173,9 @@ class ApplicationServiceApplicationTests {
                 ApplicationResponse submittedResponse = ApplicationResponse.builder()
                                 .id(APP_ID)
                                 .username(USERNAME)
+                                .email("candidate@example.com")
                                 .jobId(JOB_ID)
                                 .status(ApplicationStatus.APPLIED) // Status changed
-                                .cvFileUrl("http://minio:9000/cvs/test.pdf")
                                 .cvFileName("test.pdf")
                                 .createdAt(Instant.now())
                                 .build();
