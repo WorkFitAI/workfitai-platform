@@ -6,9 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.client.UserServiceClient;
 import org.workfitai.authservice.constants.Messages;
+import org.workfitai.authservice.document.TwoFactorAuth;
 import org.workfitai.authservice.dto.kafka.NotificationEvent;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.dto.request.LoginRequest;
@@ -31,7 +33,6 @@ import org.workfitai.authservice.dto.response.IssuedTokens;
 import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
-import org.workfitai.authservice.document.TwoFactorAuth;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
@@ -43,10 +44,9 @@ import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.TwoFactorAuthService;
 import org.workfitai.authservice.service.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
-import org.springframework.data.redis.core.RedisTemplate;
-import java.util.concurrent.TimeUnit;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -206,7 +206,7 @@ public class AuthServiceImpl implements iAuthService {
         // case)
         // This handles scenario where user registers without complete data, then
         // resends with company
-        if (role == UserRole.HR_MANAGER && req.getCompany() != null) {
+        if ((role == UserRole.HR_MANAGER || role == UserRole.HR) && req.getCompany() != null) {
             // Only generate new companyId if user doesn't have one yet
             if (existingUser.getCompanyId() == null) {
                 existingUser.setCompanyId(UUID.randomUUID().toString());
@@ -418,7 +418,7 @@ public class AuthServiceImpl implements iAuthService {
         sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
 
         Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
-        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+        return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles, user.getCompanyNo());
     }
 
     private void sendEmail2FACode(User user, String code) {
@@ -503,7 +503,7 @@ public class AuthServiceImpl implements iAuthService {
         Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
         refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
 
-        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles);
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles, user.getCompanyNo());
     }
 
     @Override

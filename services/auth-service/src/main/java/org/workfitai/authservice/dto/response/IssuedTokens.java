@@ -15,6 +15,7 @@ public class IssuedTokens {
     private long expiresIn;
     private String username;
     private Set<String> roles;
+    private String companyId;
 
     public static IssuedTokens of(String access, String refresh, long expiresMs) {
         return IssuedTokens.builder()
@@ -34,6 +35,19 @@ public class IssuedTokens {
                 .expiresIn(expiresMs)
                 .username(username)
                 .roles(roles)
+                .build();
+    }
+
+    public static IssuedTokens of(String access, String refresh, long expiresMs, String username,
+            Set<String> roles, String companyId) {
+        return IssuedTokens.builder()
+                .tokenType("Bearer")
+                .accessToken(access)
+                .refreshToken(refresh)
+                .expiresIn(expiresMs)
+                .username(username)
+                .roles(roles)
+                .companyId(companyId)
                 .build();
     }
 }

@@ -1,0 +1,9 @@
+# Ensure shell scripts always use LF line endings (Unix-style)
+*.sh text eol=lf
+
+# Ensure batch files use CRLF line endings (Windows-style)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Auto detect text files and perform LF normalization
+* text=auto
