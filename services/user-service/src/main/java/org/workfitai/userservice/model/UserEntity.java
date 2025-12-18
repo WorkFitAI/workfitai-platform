@@ -110,6 +110,20 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "deleted_at")
   private Instant deletedAt;
 
+  @Column(name = "is_blocked", nullable = false)
+  @Builder.Default
+  private boolean isBlocked = false;
+
+  // Note: isDeleted is inherited from AbstractAuditingEntity
+
+  /**
+   * Optimistic locking version for concurrent update control.
+   * Used to ensure Kafka events are processed in correct order.
+   */
+  @Version
+  @Column(name = "version")
+  private Long version;
+
   @Override
   public UUID getId() {
     return this.userId;

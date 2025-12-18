@@ -1,6 +1,7 @@
 package org.workfitai.userservice.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import org.workfitai.userservice.model.UserEntity;
 
@@ -9,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, UUID> {
+public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpecificationExecutor<UserEntity> {
 
   Optional<UserEntity> findByEmail(String email);
 
@@ -26,4 +27,3 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
   boolean existsByUsername(String username);
 
 }
-

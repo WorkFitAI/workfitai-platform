@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.userservice.constants.Messages;
@@ -25,6 +30,10 @@ import org.workfitai.userservice.repository.AdminRepository;
 import org.workfitai.userservice.repository.CandidateRepository;
 import org.workfitai.userservice.repository.HRRepository;
 import org.workfitai.userservice.repository.UserRepository;
+import org.workfitai.userservice.service.AdminService;
+import org.workfitai.userservice.service.CandidateService;
+import org.workfitai.userservice.service.HRService;
+import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +52,10 @@ public class UserServiceImpl implements UserService {
     private final CandidateMapper candidateMapper;
     private final HRMapper hrMapper;
     private final AdminMapper adminMapper;
+    private final UserEventPublisher eventPublisher;
+    private final CandidateService candidateService;
+    private final HRService hrService;
+    private final AdminService adminService;
 
     @Override
     public Object getCurrentUserProfile(UUID userId) {
@@ -195,5 +208,133 @@ public class UserServiceImpl implements UserService {
 
         log.info("Account {} auto-reactivated on login (deactivated for {} days)", username, daysSinceDeactivation);
         return true;
+    }
+
+    @Override
+    public Page<UserBaseResponse> searchAllUsers(String keyword, String role, Pageable pageable) {
+        Specification<UserEntity> spec = (root, query, cb) -> cb.conjunction();
+
+        // Filter by keyword (username, email, fullName)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchTerm = "%" + keyword.toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("username")), searchTerm),
+                    cb.like(cb.lower(root.get("email")), searchTerm),
+                    cb.like(cb.lower(root.get("fullName")), searchTerm)));
+        }
+
+        // Filter by role
+        if (role != null && !role.trim().isEmpty()) {
+            try {
+                EUserRole userRole = EUserRole.valueOf(role.toUpperCase());
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("userRole"), userRole));
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid role filter: {}", role);
+            }
+        }
+
+        // Exclude deleted users
+        spec = spec.and((root, query, cb) -> cb.equal(root.get("isDeleted"), false));
+
+        Page<UserEntity> userPage = userRepository.findAll(spec, pageable);
+
+        List<UserBaseResponse> responses = userPage.getContent().stream()
+                .map(user -> UserBaseResponse.builder()
+                        .userId(user.getUserId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .phoneNumber(user.getPhoneNumber())
+                        .userRole(user.getUserRole())
+                        .userStatus(user.getUserStatus())
+                        .createdDate(user.getCreatedDate())
+                        .build())
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(responses, pageable, userPage.getTotalElements());
+    }
+
+    @Override
+    public UserBaseResponse getByUserId(UUID userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+        return mapToBaseResponse(user);
+    }
+
+    /*
+     * // TODO: Requires getByUserId() methods in CandidateService, HRService,
+     * AdminService
+     * 
+     * @Override
+     * public Object getFullUserProfile(UUID userId) {
+     * UserEntity user = userRepository.findById(userId)
+     * .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+     * 
+     * // Delegate to role-specific service
+     * switch (user.getUserRole()) {
+     * case CANDIDATE:
+     * return candidateService.getByUserId(userId);
+     * 
+     * case HR:
+     * case HR_MANAGER:
+     * return hrService.getByUserId(userId);
+     * 
+     * case ADMIN:
+     * return adminService.getByUserId(userId);
+     * 
+     * default:
+     * throw new ApiException("Unknown user role: " + user.getUserRole(),
+     * HttpStatus.BAD_REQUEST);
+     * }
+     * }
+     */
+
+    @Override
+    @Transactional
+    public void setUserBlockStatus(UUID userId, boolean blocked) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
+
+        boolean wasBlocked = user.isBlocked();
+        user.setBlocked(blocked);
+
+        if (blocked) {
+            user.setUserStatus(EUserStatus.SUSPENDED);
+            log.info("User {} blocked by admin", user.getUsername());
+        } else {
+            user.setUserStatus(EUserStatus.ACTIVE);
+            log.info("User {} unblocked by admin", user.getUsername());
+        }
+
+        user = userRepository.save(user);
+
+        // Publish event to Kafka for Elasticsearch sync
+        if (blocked && !wasBlocked) {
+            eventPublisher.publishUserBlocked(user);
+        } else if (!blocked && wasBlocked) {
+            eventPublisher.publishUserUnblocked(user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(UUID userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new ApiException("User already deleted", HttpStatus.CONFLICT);
+        }
+
+        // Soft delete
+        user.setDeleted(true);
+        user.setDeletedAt(Instant.now());
+        user.setUserStatus(EUserStatus.DELETED);
+
+        user = userRepository.save(user);
+        log.info("User {} soft deleted by admin", user.getUsername());
+
+        // Publish event to Kafka for Elasticsearch sync
+        eventPublisher.publishUserDeleted(user);
     }
 }

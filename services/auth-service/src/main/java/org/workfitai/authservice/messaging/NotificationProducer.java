@@ -1,4 +1,4 @@
-package org.workfitai.authservice.service;
+package org.workfitai.authservice.messaging;
 
 import java.util.concurrent.CompletableFuture;
 
