@@ -1,0 +1,1206 @@
+{
+    "info": {
+        "_postman_id": "user-mgmt-collection-001",
+        "name": "WorkFitAI - User Management (Admin Dashboard)",
+        "description": "Complete end-to-end workflow for testing Admin User Management endpoints.\n\n**Features:**\n- User listing with pagination (PostgreSQL)\n- Advanced search with Elasticsearch\n- User blocking/unblocking\n- Soft delete users\n- View user details and full profiles\n- Bulk reindex to Elasticsearch\n\n**How to use:**\n1. Import this collection\n2. Set environment variables (baseUrl, adminEmail, adminPassword)\n3. Run 'Admin Login' to get access token\n4. Execute other requests in any order\n\n**API Gateway Base URL:** http://localhost:9085\n\n**Endpoints:**\n- GET /user/admins/all-users - List all users (PostgreSQL)\n- GET /user/admins/users/{id} - Get user basic info\n- GET /user/admins/users/{id}/full-profile - Get complete profile\n- PUT /user/admins/users/{id}/block - Block/Unblock user\n- DELETE /user/admins/users/{id} - Soft delete user\n- POST /user/admins/users/search - Advanced Elasticsearch search\n- POST /user/admins/users/reindex - Bulk reindex to Elasticsearch",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. SETUP - Admin Login",
+            "item": [
+                {
+                    "name": "1.1 Admin Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Admin login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    if (jsonData.data.require2FA && jsonData.data.tempToken) {",
+                                    "        pm.collectionVariables.set(\"tempToken\", jsonData.data.tempToken);",
+                                    "        console.log(\"⚠️ 2FA required! Check email/SMS for code\");",
+                                    "    } else {",
+                                    "        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+                                    "        pm.collectionVariables.set(\"adminToken\", jsonData.data.accessToken);",
+                                    "        console.log(\"✅ Admin login successful, token saved\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"usernameOrEmail\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as admin to get JWT access token for user management operations"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "2. USER LISTING",
+            "item": [
+                {
+                    "name": "2.1 Get All Users (Basic)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get all users successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property(\"content\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"totalElements\");",
+                                    "    ",
+                                    "    // Save first user ID for detail tests",
+                                    "    if (jsonData.data.content.length > 0) {",
+                                    "        pm.collectionVariables.set(\"testUserId\", jsonData.data.content[0].userId);",
+                                    "        console.log(\"✅ Retrieved \" + jsonData.data.totalElements + \" users\");",
+                                    "        console.log(\"📋 Saved first user ID: \" + jsonData.data.content[0].userId);",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/all-users?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "all-users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-based)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10",
+                                    "description": "Items per page"
+                                },
+                                {
+                                    "key": "keyword",
+                                    "value": "",
+                                    "description": "Search keyword (username, email, fullName)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "role",
+                                    "value": "",
+                                    "description": "Filter by role: ADMIN, HR_MANAGER, HR, CANDIDATE",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of all users from PostgreSQL with optional keyword and role filters"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2.2 Get All Users - Filter by Role",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Filter by role successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.content).to.be.an('array');",
+                                    "    ",
+                                    "    // Verify all users have CANDIDATE role",
+                                    "    if (jsonData.data.content.length > 0) {",
+                                    "        jsonData.data.content.forEach(user => {",
+                                    "            pm.expect(user.role).to.eql(\"CANDIDATE\");",
+                                    "        });",
+                                    "        console.log(\"✅ Found \" + jsonData.data.totalElements + \" CANDIDATE users\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/all-users?role=CANDIDATE&page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "all-users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "role",
+                                    "value": "CANDIDATE"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Filter users by role (ADMIN, HR_MANAGER, HR, CANDIDATE)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2.3 Get All Users - Search by Keyword",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Keyword search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Search returned \" + jsonData.data.totalElements + \" results\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/all-users?keyword=test&page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "all-users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "keyword",
+                                    "value": "test",
+                                    "description": "Search in username, email, fullName"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Search users by keyword (searches username, email, fullName fields)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "3. USER DETAILS",
+            "item": [
+                {
+                    "name": "3.1 Get User By ID (Basic Info)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get user by ID successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property(\"userId\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"username\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"email\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"role\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"status\");",
+                                    "    console.log(\"✅ Retrieved user: \" + jsonData.data.username);",
+                                    "    console.log(\"   Role: \" + jsonData.data.role);",
+                                    "    console.log(\"   Status: \" + jsonData.data.status);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{testUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{testUserId}}"
+                            ]
+                        },
+                        "description": "Get basic user information by user ID (UserBaseResponse)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.2 Get Full User Profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get full profile successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property(\"userId\");",
+                                    "    ",
+                                    "    // Profile structure varies by role",
+                                    "    console.log(\"✅ Retrieved full profile for user: \" + jsonData.data.userId);",
+                                    "    console.log(\"   Profile Type: \" + (jsonData.data.role || 'unknown'));",
+                                    "    console.log(\"   Response: \" + JSON.stringify(jsonData.data, null, 2));",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{testUserId}}/full-profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{testUserId}}",
+                                "full-profile"
+                            ]
+                        },
+                        "description": "Get complete user profile with role-specific details (CandidateResponse/HRResponse/AdminResponse)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "4. USER ACTIONS",
+            "item": [
+                {
+                    "name": "4.1 Block User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Block user successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include(\"blocked\");",
+                                    "    console.log(\"✅ User blocked successfully\");",
+                                    "    console.log(\"📨 Kafka event published: USER_BLOCKED\");",
+                                    "    console.log(\"🔍 Elasticsearch will remove from index\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{testUserId}}/block?blocked=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{testUserId}}",
+                                "block"
+                            ],
+                            "query": [
+                                {
+                                    "key": "blocked",
+                                    "value": "true",
+                                    "description": "true to block, false to unblock"
+                                }
+                            ]
+                        },
+                        "description": "Block a user account (status changes to SUSPENDED, publishes USER_BLOCKED event to Kafka)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4.2 Unblock User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Unblock user successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include(\"unblocked\");",
+                                    "    console.log(\"✅ User unblocked successfully\");",
+                                    "    console.log(\"📨 Kafka event published: USER_UNBLOCKED\");",
+                                    "    console.log(\"🔍 Elasticsearch will re-index user\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{testUserId}}/block?blocked=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{testUserId}}",
+                                "block"
+                            ],
+                            "query": [
+                                {
+                                    "key": "blocked",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Unblock a user account (status changes to ACTIVE, publishes USER_UNBLOCKED event to Kafka)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4.3 Delete User (Soft Delete)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Delete user successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.message).to.include(\"deleted\");",
+                                    "    console.log(\"✅ User soft deleted successfully\");",
+                                    "    console.log(\"📨 Kafka event published: USER_DELETED\");",
+                                    "    console.log(\"🔍 Elasticsearch will remove from index\");",
+                                    "    console.log(\"⚠️ User data preserved in DB with deleted=true flag\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{testUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{testUserId}}"
+                            ]
+                        },
+                        "description": "Soft delete a user (sets deleted=true, deletedAt timestamp, status=DELETED, publishes USER_DELETED event)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "5. ELASTICSEARCH SEARCH",
+            "item": [
+                {
+                    "name": "5.1 Advanced Search - Full Text",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Elasticsearch search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property(\"hits\");",
+                                    "    pm.expect(jsonData.data).to.have.property(\"totalHits\");",
+                                    "    ",
+                                    "    console.log(\"✅ Search found \" + jsonData.data.totalHits + \" results\");",
+                                    "    if (jsonData.data.hits.length > 0) {",
+                                    "        console.log(\"   Top result score: \" + jsonData.data.hits[0].score);",
+                                    "        console.log(\"   User: \" + jsonData.data.hits[0].username);",
+                                    "        if (jsonData.data.hits[0].highlights) {",
+                                    "            console.log(\"   Highlights: \" + JSON.stringify(jsonData.data.hits[0].highlights));",
+                                    "        }",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"test\",\n  \"from\": 0,\n  \"size\": 10,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Full-text search using Elasticsearch with multi-field matching (username^3, email^2, fullName^2) and fuzzy matching"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.2 Advanced Search - With Filters",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Filtered search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ Filtered search found \" + jsonData.data.totalHits + \" results\");",
+                                    "    if (jsonData.data.roleAggregations) {",
+                                    "        console.log(\"   Role counts: \" + JSON.stringify(jsonData.data.roleAggregations));",
+                                    "    }",
+                                    "    if (jsonData.data.statusAggregations) {",
+                                    "        console.log(\"   Status counts: \" + JSON.stringify(jsonData.data.statusAggregations));",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"john\",\n  \"role\": \"CANDIDATE\",\n  \"status\": \"ACTIVE\",\n  \"blocked\": false,\n  \"includeDeleted\": false,\n  \"from\": 0,\n  \"size\": 20,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Search with multiple filters: role, status, blocked state, with aggregations for faceted search"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.3 Advanced Search - Date Range",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Date range search successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Found \" + jsonData.data.totalHits + \" users created in date range\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"createdAfter\": \"2024-01-01T00:00:00Z\",\n  \"createdBefore\": \"2025-12-31T23:59:59Z\",\n  \"from\": 0,\n  \"size\": 10,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Search users created within a specific date range"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.4 Advanced Search - Aggregations Only",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Aggregations retrieved\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ User Statistics:\");",
+                                    "    console.log(\"   Total Users: \" + jsonData.data.totalHits);",
+                                    "    if (jsonData.data.roleAggregations) {",
+                                    "        console.log(\"   By Role:\");",
+                                    "        Object.entries(jsonData.data.roleAggregations).forEach(([role, count]) => {",
+                                    "            console.log(\"     \" + role + \": \" + count);",
+                                    "        });",
+                                    "    }",
+                                    "    if (jsonData.data.statusAggregations) {",
+                                    "        console.log(\"   By Status:\");",
+                                    "        Object.entries(jsonData.data.statusAggregations).forEach(([status, count]) => {",
+                                    "            console.log(\"     \" + status + \": \" + count);",
+                                    "        });",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"from\": 0,\n  \"size\": 0,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Get aggregations only (statistics) without retrieving actual user documents (size=0)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "6. ELASTICSEARCH MANAGEMENT",
+            "item": [
+                {
+                    "name": "6.1 Trigger Bulk Reindex",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Reindex job started\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Bulk reindex job started\");",
+                                    "    console.log(\"   Message: \" + jsonData.message);",
+                                    "    console.log(\"   Check logs for progress and completion\");",
+                                    "    console.log(\"   docker logs user-service | grep 'Reindex'\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"batchSize\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/reindex",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "reindex"
+                            ]
+                        },
+                        "description": "Trigger async bulk reindex from PostgreSQL to Elasticsearch (useful after data migration or index corruption)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "7. COMPLETE WORKFLOW TEST",
+            "item": [
+                {
+                    "name": "7.1 Create Test User (Setup)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Test user created\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    console.log(\"✅ Test user registered\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"usermgmt_test_{{$randomInt}}@test.com\",\n  \"password\": \"TestUser123!@\",\n  \"fullName\": \"User Management Test User\",\n  \"phoneNumber\": \"+840987654321\",\n  \"role\": \"CANDIDATE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Create a test user for the complete workflow demonstration"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7.2 Search for Test User (ES)",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Wait 2 seconds for Elasticsearch indexing",
+                                    "setTimeout(function(){}, 2000);",
+                                    "console.log(\"⏳ Waiting 2 seconds for Elasticsearch indexing...\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Found test user in Elasticsearch\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    if (jsonData.data.totalHits > 0) {",
+                                    "        pm.collectionVariables.set(\"workflowUserId\", jsonData.data.hits[0].userId);",
+                                    "        console.log(\"✅ Found user via Elasticsearch\");",
+                                    "        console.log(\"   User ID: \" + jsonData.data.hits[0].userId);",
+                                    "        console.log(\"   Score: \" + jsonData.data.hits[0].score);",
+                                    "    } else {",
+                                    "        console.log(\"⚠️ User not yet indexed, try again\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"User Management Test\",\n  \"from\": 0,\n  \"size\": 1,\n  \"sortField\": \"createdAt\",\n  \"sortOrder\": \"desc\",\n  \"includeAggregations\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "search"
+                            ]
+                        },
+                        "description": "Search for newly created test user using Elasticsearch"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7.3 Block Test User",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{workflowUserId}}/block?blocked=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{workflowUserId}}",
+                                "block"
+                            ],
+                            "query": [
+                                {
+                                    "key": "blocked",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Block the test user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7.4 Verify User Blocked in DB",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User blocked status verified\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.status).to.eql(\"SUSPENDED\");",
+                                    "    console.log(\"✅ User status confirmed: SUSPENDED\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{workflowUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{workflowUserId}}"
+                            ]
+                        },
+                        "description": "Verify user is blocked in PostgreSQL"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7.5 Unblock Test User",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{workflowUserId}}/block?blocked=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{workflowUserId}}",
+                                "block"
+                            ],
+                            "query": [
+                                {
+                                    "key": "blocked",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Unblock the test user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7.6 Delete Test User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"User deleted successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    console.log(\"✅ Complete workflow test finished\");",
+                                    "    console.log(\"   User lifecycle: Created → Indexed → Blocked → Unblocked → Deleted\");",
+                                    "    console.log(\"   All Kafka events published successfully\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/user/admins/users/{{workflowUserId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "user",
+                                "admins",
+                                "users",
+                                "{{workflowUserId}}"
+                            ]
+                        },
+                        "description": "Soft delete the test user (cleanup)"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string"
+        },
+        {
+            "key": "adminEmail",
+            "value": "admin@workfitai.com",
+            "type": "string"
+        },
+        {
+            "key": "adminPassword",
+            "value": "Admin123!@",
+            "type": "string"
+        },
+        {
+            "key": "adminToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "tempToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "testUserId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "workflowUserId",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

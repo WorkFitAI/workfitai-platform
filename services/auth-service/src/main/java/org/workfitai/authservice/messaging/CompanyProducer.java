@@ -1,4 +1,4 @@
-package org.workfitai.authservice.service;
+package org.workfitai.authservice.messaging;
 
 import org.workfitai.authservice.dto.kafka.CompanyCreationEvent;
 

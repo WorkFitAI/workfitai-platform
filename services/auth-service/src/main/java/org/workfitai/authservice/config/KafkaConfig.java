@@ -18,6 +18,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.workfitai.authservice.dto.kafka.UserChangeEvent;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
 import java.util.HashMap;
@@ -88,6 +89,39 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
         log.info("Kafka consumer container factory configured for UserRegistrationEvent");
+        return factory;
+    }
+
+    // ==================== UserChangeEvent Consumer Configuration
+    // ====================
+
+    @Bean
+    public ConsumerFactory<String, UserChangeEvent> userChangeEventConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+
+        JsonDeserializer<UserChangeEvent> jsonDeserializer = new JsonDeserializer<>(UserChangeEvent.class);
+        jsonDeserializer.setRemoveTypeHeaders(true);
+        jsonDeserializer.setUseTypeMapperForKey(false);
+        jsonDeserializer.addTrustedPackages("*");
+
+        ErrorHandlingDeserializer<UserChangeEvent> errorHandlingDeserializer = new ErrorHandlingDeserializer<>(
+                jsonDeserializer);
+
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                errorHandlingDeserializer);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, UserChangeEvent> userChangeEventListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, UserChangeEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(userChangeEventConsumerFactory());
+        factory.setConcurrency(3);
+        log.info("Kafka consumer container factory configured for UserChangeEvent");
         return factory;
     }
 }

@@ -39,6 +39,9 @@ public class User {
     @Builder.Default
     private UserStatus status = UserStatus.PENDING; // User status for registration flow
 
+    @Builder.Default
+    private Boolean isBlocked = false; // Admin can block users
+
     // Company UUID for HR/HR_MANAGER role - internal linking
     private String companyId;
 

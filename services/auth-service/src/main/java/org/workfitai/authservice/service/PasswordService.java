@@ -19,6 +19,7 @@ import org.workfitai.authservice.dto.response.PasswordResetResponse;
 import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
 import org.workfitai.authservice.exception.TooManyRequestsException;
+import org.workfitai.authservice.messaging.NotificationProducer;
 import org.workfitai.authservice.model.PasswordResetToken;
 import org.workfitai.authservice.model.UserSession;
 import org.workfitai.authservice.repository.PasswordResetTokenRepository;

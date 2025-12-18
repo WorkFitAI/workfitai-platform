@@ -1,0 +1,86 @@
+{
+    "settings": {
+        "number_of_shards": 2,
+        "number_of_replicas": 1,
+        "analysis": {
+            "analyzer": {
+                "vietnamese_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "asciifolding"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "userId": {
+                "type": "keyword"
+            },
+            "username": {
+                "type": "text",
+                "analyzer": "vietnamese_analyzer",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "email": {
+                "type": "text",
+                "analyzer": "standard",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "fullName": {
+                "type": "text",
+                "analyzer": "vietnamese_analyzer",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "phoneNumber": {
+                "type": "keyword"
+            },
+            "role": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "status": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "blocked": {
+                "type": "boolean"
+            },
+            "deleted": {
+                "type": "boolean"
+            },
+            "createdDate": {
+                "type": "date"
+            },
+            "lastModifiedDate": {
+                "type": "date"
+            },
+            "version": {
+                "type": "long"
+            }
+        }
+    }
+}

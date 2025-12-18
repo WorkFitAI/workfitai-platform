@@ -33,16 +33,19 @@ import org.workfitai.authservice.dto.response.IssuedTokens;
 import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
+
+import org.workfitai.authservice.messaging.NotificationProducer;
+import org.workfitai.authservice.document.TwoFactorAuth;
+
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
-import org.workfitai.authservice.service.NotificationProducer;
 import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.TwoFactorAuthService;
-import org.workfitai.authservice.service.UserRegistrationProducer;
+import org.workfitai.authservice.messaging.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
 
 import io.jsonwebtoken.JwtException;
@@ -255,6 +258,13 @@ public class AuthServiceImpl implements iAuthService {
             User user = users.findByUsername(ud.getUsername())
                     .orElseThrow(
                             () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND));
+
+            // Check if user is blocked by admin
+            if (Boolean.TRUE.equals(user.getIsBlocked())) {
+                log.warn("Blocked user attempted to login: {}", user.getUsername());
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Your account has been blocked by administrator. Please contact support.");
+            }
 
             // Check if user is active
             if (user.getStatus() == UserStatus.INACTIVE) {

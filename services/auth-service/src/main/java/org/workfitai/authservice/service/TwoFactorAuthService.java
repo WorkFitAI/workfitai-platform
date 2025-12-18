@@ -21,9 +21,9 @@ import org.workfitai.authservice.dto.response.Enable2FAResponse;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
+import org.workfitai.authservice.messaging.NotificationProducer;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
-import org.workfitai.authservice.service.NotificationProducer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
