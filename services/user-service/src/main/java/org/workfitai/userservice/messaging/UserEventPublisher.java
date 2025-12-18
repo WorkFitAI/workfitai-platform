@@ -84,6 +84,18 @@ public class UserEventPublisher {
      * Map UserEntity to event data
      */
     private UserChangeEvent.UserEventData mapToEventData(UserEntity user) {
+        // Extract company information based on user type
+        String companyId = null;
+        String companyName = null;
+
+        if (user instanceof org.workfitai.userservice.model.HREntity) {
+            org.workfitai.userservice.model.HREntity hrEntity = (org.workfitai.userservice.model.HREntity) user;
+            if (hrEntity.getCompanyId() != null) {
+                companyId = hrEntity.getCompanyId().toString();
+            }
+            companyName = hrEntity.getCompanyNo(); // Use companyNo as company name
+        }
+
         return UserChangeEvent.UserEventData.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
@@ -94,6 +106,8 @@ public class UserEventPublisher {
                 .userStatus(user.getUserStatus())
                 .isBlocked(user.isBlocked())
                 .isDeleted(user.isDeleted())
+                .companyId(companyId)
+                .companyName(companyName)
                 .createdDate(user.getCreatedDate())
                 .lastModifiedDate(user.getLastModifiedDate())
                 .version(user.getVersion())
