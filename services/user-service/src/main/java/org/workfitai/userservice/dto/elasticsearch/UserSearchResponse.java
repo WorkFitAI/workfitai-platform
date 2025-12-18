@@ -41,12 +41,17 @@ public class UserSearchResponse {
         private String fullName;
         private String email;
         private String phoneNumber;
+        private String avatarUrl;
         private String role; // Store as String instead of enum
         private String status; // Store as String instead of enum
         private boolean blocked;
         private boolean deleted;
         private Instant createdAt;
         private Instant updatedAt;
+
+        // Company information (for HR/HR_MANAGER users)
+        private String companyNo;
+        private String companyName;
 
         /**
          * Elasticsearch relevance score

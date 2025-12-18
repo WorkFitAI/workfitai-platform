@@ -165,6 +165,7 @@ public class UserIndexManagementService {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
+                .avatarUrl(user.getAvatarUrl())
                 .role(user.getUserRole().name())
                 .status(user.getUserStatus().name())
                 .blocked(user.isBlocked())

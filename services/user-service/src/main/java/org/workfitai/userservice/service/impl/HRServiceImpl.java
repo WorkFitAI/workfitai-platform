@@ -277,6 +277,9 @@ public class HRServiceImpl implements HRService {
     entity.setApprovedAt(Instant.now());
     HREntity saved = hrRepository.save(entity);
 
+    // Publish USER_UPDATED event for Elasticsearch sync
+    userEventPublisher.publishUserUpdated(saved);
+
     // Publish event to sync status with auth-service
     publishUserStatusUpdate(saved, "HR_MANAGER_APPROVED");
 
@@ -319,6 +322,9 @@ public class HRServiceImpl implements HRService {
     entity.setApprovedBy(approver);
     entity.setApprovedAt(Instant.now());
     HREntity saved = hrRepository.save(entity);
+
+    // Publish USER_UPDATED event for Elasticsearch sync
+    userEventPublisher.publishUserUpdated(saved);
 
     // Publish event to sync status with auth-service
     publishUserStatusUpdate(saved, "HR_APPROVED");

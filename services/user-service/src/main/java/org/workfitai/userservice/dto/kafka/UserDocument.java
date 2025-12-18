@@ -23,6 +23,7 @@ public class UserDocument {
     private String fullName;
     private String email;
     private String phoneNumber;
+    private String avatarUrl;
     private String role; // Store as String for Elasticsearch
     private String status; // Store as String for Elasticsearch
     private boolean blocked;

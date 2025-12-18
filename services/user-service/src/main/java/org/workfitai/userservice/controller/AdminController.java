@@ -8,19 +8,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.constants.Messages;
+import org.workfitai.userservice.dto.elasticsearch.ReindexJobResponse;
+import org.workfitai.userservice.dto.elasticsearch.ReindexRequest;
+import org.workfitai.userservice.dto.elasticsearch.UserSearchRequest;
+import org.workfitai.userservice.dto.elasticsearch.UserSearchResponse;
 import org.workfitai.userservice.dto.request.AdminCreateRequest;
 import org.workfitai.userservice.dto.request.AdminUpdateRequest;
 import org.workfitai.userservice.dto.response.AdminResponse;
 import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
-import org.workfitai.userservice.dto.elasticsearch.UserSearchRequest;
-import org.workfitai.userservice.dto.elasticsearch.UserSearchResponse;
-import org.workfitai.userservice.dto.elasticsearch.ReindexRequest;
-import org.workfitai.userservice.dto.elasticsearch.ReindexJobResponse;
 import org.workfitai.userservice.service.AdminService;
-import org.workfitai.userservice.service.UserService;
-import org.workfitai.userservice.service.UserSearchService;
 import org.workfitai.userservice.service.UserIndexManagementService;
+import org.workfitai.userservice.service.UserSearchService;
+import org.workfitai.userservice.service.UserService;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +44,7 @@ public class AdminController {
 
   @PutMapping("/{id}")
   public ResponseEntity<ResponseData<AdminResponse>> update(@PathVariable UUID id,
-      @RequestBody AdminUpdateRequest dto) {
+                                                            @RequestBody AdminUpdateRequest dto) {
     return ResponseEntity.ok(ResponseData.success(
         Messages.Admin.UPDATED, adminService.update(id, dto)));
   }
@@ -86,7 +86,15 @@ public class AdminController {
   @PutMapping("/users/{id}/block")
   public ResponseEntity<ResponseData<Void>> blockUser(
       @PathVariable UUID id,
-      @RequestParam boolean blocked) {
+      @RequestParam boolean blocked,
+      @RequestAttribute("userId") String currentUserId) {
+    // Prevent blocking self
+    if (id.toString().equals(currentUserId)) {
+      throw new org.workfitai.userservice.exception.ApiException(
+          "You cannot block yourself",
+          org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
     userService.setUserBlockStatus(id, blocked);
     String message = blocked ? "User blocked successfully" : "User unblocked successfully";
     return ResponseEntity.ok(ResponseData.success(message, null));
@@ -96,7 +104,16 @@ public class AdminController {
    * Delete user account (soft delete)
    */
   @DeleteMapping("/users/{id}")
-  public ResponseEntity<ResponseData<Void>> deleteUser(@PathVariable UUID id) {
+  public ResponseEntity<ResponseData<Void>> deleteUser(
+      @PathVariable UUID id,
+      @RequestAttribute("userId") String currentUserId) {
+    // Prevent deleting self
+    if (id.toString().equals(currentUserId)) {
+      throw new org.workfitai.userservice.exception.ApiException(
+          "You cannot delete yourself",
+          org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
     userService.deleteUser(id);
     return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
   }
@@ -107,6 +124,16 @@ public class AdminController {
   @GetMapping("/users/{id}")
   public ResponseEntity<ResponseData<UserBaseResponse>> getUserById(@PathVariable UUID id) {
     UserBaseResponse user = userService.getByUserId(id);
+    return ResponseEntity.ok(ResponseData.success(user));
+  }
+
+  /**
+   * Get user details by username
+   */
+  @GetMapping("/users/username/{username}")
+  public ResponseEntity<ResponseData<UserBaseResponse>> getUserByUsername(
+      @PathVariable String username) {
+    UserBaseResponse user = userService.getUserByUsername(username);
     return ResponseEntity.ok(ResponseData.success(user));
   }
 

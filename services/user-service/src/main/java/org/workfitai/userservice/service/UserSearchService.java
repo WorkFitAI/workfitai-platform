@@ -31,228 +31,231 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserSearchService {
 
-  private static final String INDEX_NAME = "users-index";
-  private final ElasticsearchClient elasticsearchClient;
+    private static final String INDEX_NAME = "users-index";
+    private final ElasticsearchClient elasticsearchClient;
 
-  /**
-   * Search users with advanced filtering and aggregations
-   */
-  public UserSearchResponse searchUsers(UserSearchRequest request) {
-    try {
-      SearchRequest searchRequest = buildSearchRequest(request);
-      SearchResponse<UserDocument> response = elasticsearchClient.search(searchRequest, UserDocument.class);
+    /**
+     * Search users with advanced filtering and aggregations
+     */
+    public UserSearchResponse searchUsers(UserSearchRequest request) {
+        try {
+            SearchRequest searchRequest = buildSearchRequest(request);
+            SearchResponse<UserDocument> response = elasticsearchClient.search(searchRequest, UserDocument.class);
 
-      return buildSearchResponse(response, request);
-    } catch (Exception e) {
-      log.error("Error searching users in Elasticsearch: {}", e.getMessage(), e);
-      throw new RuntimeException("Failed to search users", e);
-    }
-  }
-
-  private SearchRequest buildSearchRequest(UserSearchRequest request) {
-    BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-
-    boolean hasQuery = request.getQuery() != null && !request.getQuery().isBlank();
-
-    // Add search query
-    if (hasQuery) {
-      Query multiMatchQuery = Query.of(q -> q
-          .multiMatch(m -> m
-              .query(request.getQuery())
-              .fields("username^3", "email^2", "fullName^2")
-              .fuzziness("AUTO")));
-      boolQuery.must(multiMatchQuery);
-    }
-
-    // Add filters
-    addFilters(boolQuery, request);
-
-    // Determine sort field
-    // CRITICAL: Only sort by _score when there's a query (has relevance)
-    // Otherwise, sort by a field like createdDate to avoid "all shards failed"
-    // error
-    String sortField = request.getSortField();
-
-    // map alias FE → ES
-    Map<String, String> SORT_FIELD_MAPPING = Map.of(
-        "createdAt", "createdDate",
-        "score", "_score");
-
-    if (sortField == null || sortField.isBlank()) {
-      sortField = hasQuery ? "_score" : "createdDate";
-    }
-
-    sortField = SORT_FIELD_MAPPING.getOrDefault(sortField, sortField);
-
-    // whitelist field cho ES
-    Set<String> ALLOWED_SORT_FIELDS = Set.of(
-        "_score",
-        "createdDate",
-        "lastModifiedDate");
-
-    if (!ALLOWED_SORT_FIELDS.contains(sortField)) {
-      log.warn("Invalid sortField '{}', fallback to createdDate", sortField);
-      sortField = "createdDate";
-    }
-
-    final String finalSortField = sortField;
-
-    // Build search request
-    SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
-        .index(INDEX_NAME)
-        .query(boolQuery.build()._toQuery())
-        .from(request.getFrom())
-        .size(request.getSize())
-        .sort(s -> s.field(f -> f
-            .field(finalSortField)
-            .order("desc".equalsIgnoreCase(request.getSortOrder()) ? SortOrder.Desc : SortOrder.Asc)));
-
-    // Add aggregations if requested
-    if (request.isIncludeAggregations()) {
-      searchBuilder
-          .aggregations("roles", Aggregation.of(a -> a
-              .terms(t -> t.field("role.keyword"))))
-          .aggregations("statuses", Aggregation.of(a -> a
-              .terms(t -> t.field("status.keyword"))));
-    }
-
-    // Add highlighting
-    if (request.getQuery() != null && !request.getQuery().isBlank()) {
-      searchBuilder.highlight(h -> h
-          .fields("username", f -> f)
-          .fields("email", f -> f)
-          .fields("fullName", f -> f));
-    }
-
-    return searchBuilder.build();
-  }
-
-  private void addFilters(BoolQuery.Builder boolQuery, UserSearchRequest request) {
-    // Role filter
-    if (request.getRole() != null && !request.getRole().isBlank()) {
-      boolQuery.filter(Query.of(q -> q
-          .term(t -> t
-              .field("role.keyword")
-              .value(FieldValue.of(request.getRole())))));
-    }
-
-    // Status filter
-    if (request.getStatus() != null && !request.getStatus().isBlank()) {
-      boolQuery.filter(Query.of(q -> q
-          .term(t -> t
-              .field("status.keyword")
-              .value(FieldValue.of(request.getStatus())))));
-    }
-
-    // Blocked filter
-    if (request.getBlocked() != null) {
-      boolQuery.filter(Query.of(q -> q
-          .term(t -> t
-              .field("blocked")
-              .value(FieldValue.of(request.getBlocked())))));
-    }
-
-    // Company No filter (for HR filtering by company number/code)
-    if (request.getCompanyNo() != null && !request.getCompanyNo().isBlank()) {
-      boolQuery.filter(Query.of(q -> q
-          .term(t -> t
-              .field("companyNo.keyword")
-              .value(FieldValue.of(request.getCompanyNo())))));
-    }
-
-    // Company Name filter (for HR filtering by company name)
-    if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
-      boolQuery.filter(Query.of(q -> q
-          .match(m -> m
-              .field("companyName")
-              .query(request.getCompanyName()))));
-    }
-
-    // Deleted filter (default: exclude deleted users)
-    if (request.getIncludeDeleted() == null || !request.getIncludeDeleted()) {
-      boolQuery.filter(Query.of(q -> q
-          .term(t -> t
-              .field("deleted")
-              .value(FieldValue.of(false)))));
-    }
-
-    // Date range filters
-    if (request.getCreatedAfter() != null || request.getCreatedBefore() != null) {
-      boolQuery.filter(Query.of(q -> q
-          .range(r -> {
-            var rangeBuilder = r.field("createdDate");
-            if (request.getCreatedAfter() != null) {
-              rangeBuilder.gte(co.elastic.clients.json.JsonData.of(request.getCreatedAfter().toString()));
-            }
-            if (request.getCreatedBefore() != null) {
-              rangeBuilder
-                  .lte(co.elastic.clients.json.JsonData.of(request.getCreatedBefore().toString()));
-            }
-            return rangeBuilder;
-          })));
-    }
-  }
-
-  private UserSearchResponse buildSearchResponse(SearchResponse<UserDocument> response, UserSearchRequest request) {
-    List<UserSearchResponse.UserSearchHit> hits = response.hits().hits().stream()
-        .map(this::mapToSearchHit)
-        .collect(Collectors.toList());
-
-    UserSearchResponse result = UserSearchResponse.builder()
-        .hits(hits)
-        .totalHits(response.hits().total() != null ? response.hits().total().value() : 0)
-        .from(request.getFrom())
-        .size(request.getSize())
-        .build();
-
-    // Add aggregations if available
-    if (request.isIncludeAggregations() && response.aggregations() != null) {
-      Map<String, Long> roleAggregations = new HashMap<>();
-      Map<String, Long> statusAggregations = new HashMap<>();
-
-      if (response.aggregations().get("roles") != null) {
-        StringTermsAggregate rolesAgg = response.aggregations().get("roles").sterms();
-        for (StringTermsBucket bucket : rolesAgg.buckets().array()) {
-          roleAggregations.put(bucket.key().stringValue(), bucket.docCount());
+            return buildSearchResponse(response, request);
+        } catch (Exception e) {
+            log.error("Error searching users in Elasticsearch: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to search users", e);
         }
-      }
+    }
 
-      if (response.aggregations().get("statuses") != null) {
-        StringTermsAggregate statusesAgg = response.aggregations().get("statuses").sterms();
-        for (StringTermsBucket bucket : statusesAgg.buckets().array()) {
-          statusAggregations.put(bucket.key().stringValue(), bucket.docCount());
+    private SearchRequest buildSearchRequest(UserSearchRequest request) {
+        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+
+        boolean hasQuery = request.getQuery() != null && !request.getQuery().isBlank();
+
+        // Add search query
+        if (hasQuery) {
+            Query multiMatchQuery = Query.of(q -> q
+                    .multiMatch(m -> m
+                            .query(request.getQuery())
+                            .fields("username^3", "email^2", "fullName^2")
+                            .fuzziness("AUTO")));
+            boolQuery.must(multiMatchQuery);
         }
-      }
 
-      result.setRoleAggregations(roleAggregations);
-      result.setStatusAggregations(statusAggregations);
+        // Add filters
+        addFilters(boolQuery, request);
+
+        // Determine sort field
+        // CRITICAL: Only sort by _score when there's a query (has relevance)
+        // Otherwise, sort by a field like createdDate to avoid "all shards failed"
+        // error
+        String sortField = request.getSortField();
+
+        // map alias FE → ES
+        Map<String, String> SORT_FIELD_MAPPING = Map.of(
+                "createdAt", "createdDate",
+                "score", "_score");
+
+        if (sortField == null || sortField.isBlank()) {
+            sortField = hasQuery ? "_score" : "createdDate";
+        }
+
+        sortField = SORT_FIELD_MAPPING.getOrDefault(sortField, sortField);
+
+        // whitelist field cho ES
+        Set<String> ALLOWED_SORT_FIELDS = Set.of(
+                "_score",
+                "createdDate",
+                "lastModifiedDate");
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortField)) {
+            log.warn("Invalid sortField '{}', fallback to createdDate", sortField);
+            sortField = "createdDate";
+        }
+
+        final String finalSortField = sortField;
+
+        // Build search request
+        SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
+                .index(INDEX_NAME)
+                .query(boolQuery.build()._toQuery())
+                .from(request.getFrom())
+                .size(request.getSize())
+                .sort(s -> s.field(f -> f
+                        .field(finalSortField)
+                        .order("desc".equalsIgnoreCase(request.getSortOrder()) ? SortOrder.Desc : SortOrder.Asc)));
+
+        // Add aggregations if requested
+        if (request.isIncludeAggregations()) {
+            searchBuilder
+                    .aggregations("roles", Aggregation.of(a -> a
+                            .terms(t -> t.field("role.keyword"))))
+                    .aggregations("statuses", Aggregation.of(a -> a
+                            .terms(t -> t.field("status.keyword"))));
+        }
+
+        // Add highlighting
+        if (request.getQuery() != null && !request.getQuery().isBlank()) {
+            searchBuilder.highlight(h -> h
+                    .fields("username", f -> f)
+                    .fields("email", f -> f)
+                    .fields("fullName", f -> f));
+        }
+
+        return searchBuilder.build();
     }
 
-    return result;
-  }
+    private void addFilters(BoolQuery.Builder boolQuery, UserSearchRequest request) {
+        // Role filter
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("role.keyword")
+                            .value(FieldValue.of(request.getRole())))));
+        }
 
-  private UserSearchResponse.UserSearchHit mapToSearchHit(Hit<UserDocument> hit) {
-    UserDocument doc = hit.source();
-    Map<String, List<String>> highlights = new HashMap<>();
+        // Status filter
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("status.keyword")
+                            .value(FieldValue.of(request.getStatus())))));
+        }
 
-    if (hit.highlight() != null) {
-      hit.highlight().forEach((field, values) -> highlights.put(field, new ArrayList<>(values)));
+        // Blocked filter
+        if (request.getBlocked() != null) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("blocked")
+                            .value(FieldValue.of(request.getBlocked())))));
+        }
+
+        // Company No filter (for HR filtering by company number/code)
+        if (request.getCompanyNo() != null && !request.getCompanyNo().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("companyNo.keyword")
+                            .value(FieldValue.of(request.getCompanyNo())))));
+        }
+
+        // Company Name filter (for HR filtering by company name)
+        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .match(m -> m
+                            .field("companyName")
+                            .query(request.getCompanyName()))));
+        }
+
+        // Deleted filter (default: exclude deleted users)
+        if (request.getIncludeDeleted() == null || !request.getIncludeDeleted()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("deleted")
+                            .value(FieldValue.of(false)))));
+        }
+
+        // Date range filters
+        if (request.getCreatedAfter() != null || request.getCreatedBefore() != null) {
+            boolQuery.filter(Query.of(q -> q
+                    .range(r -> {
+                        var rangeBuilder = r.field("createdDate");
+                        if (request.getCreatedAfter() != null) {
+                            rangeBuilder.gte(co.elastic.clients.json.JsonData.of(request.getCreatedAfter().toString()));
+                        }
+                        if (request.getCreatedBefore() != null) {
+                            rangeBuilder
+                                    .lte(co.elastic.clients.json.JsonData.of(request.getCreatedBefore().toString()));
+                        }
+                        return rangeBuilder;
+                    })));
+        }
     }
 
-    return UserSearchResponse.UserSearchHit.builder()
-        .userId(doc.getUserId())
-        .username(doc.getUsername())
-        .email(doc.getEmail())
-        .fullName(doc.getFullName())
-        .phoneNumber(doc.getPhoneNumber())
-        .role(doc.getRole())
-        .status(doc.getStatus())
-        .blocked(doc.isBlocked())
-        .deleted(doc.isDeleted())
-        .createdAt(doc.getCreatedDate())
-        .updatedAt(doc.getLastModifiedDate())
-        .score(hit.score() != null ? hit.score() : 0.0)
-        .highlights(highlights)
-        .build();
-  }
+    private UserSearchResponse buildSearchResponse(SearchResponse<UserDocument> response, UserSearchRequest request) {
+        List<UserSearchResponse.UserSearchHit> hits = response.hits().hits().stream()
+                .map(this::mapToSearchHit)
+                .collect(Collectors.toList());
+
+        UserSearchResponse result = UserSearchResponse.builder()
+                .hits(hits)
+                .totalHits(response.hits().total() != null ? response.hits().total().value() : 0)
+                .from(request.getFrom())
+                .size(request.getSize())
+                .build();
+
+        // Add aggregations if available
+        if (request.isIncludeAggregations() && response.aggregations() != null) {
+            Map<String, Long> roleAggregations = new HashMap<>();
+            Map<String, Long> statusAggregations = new HashMap<>();
+
+            if (response.aggregations().get("roles") != null) {
+                StringTermsAggregate rolesAgg = response.aggregations().get("roles").sterms();
+                for (StringTermsBucket bucket : rolesAgg.buckets().array()) {
+                    roleAggregations.put(bucket.key().stringValue(), bucket.docCount());
+                }
+            }
+
+            if (response.aggregations().get("statuses") != null) {
+                StringTermsAggregate statusesAgg = response.aggregations().get("statuses").sterms();
+                for (StringTermsBucket bucket : statusesAgg.buckets().array()) {
+                    statusAggregations.put(bucket.key().stringValue(), bucket.docCount());
+                }
+            }
+
+            result.setRoleAggregations(roleAggregations);
+            result.setStatusAggregations(statusAggregations);
+        }
+
+        return result;
+    }
+
+    private UserSearchResponse.UserSearchHit mapToSearchHit(Hit<UserDocument> hit) {
+        UserDocument doc = hit.source();
+        Map<String, List<String>> highlights = new HashMap<>();
+
+        if (hit.highlight() != null) {
+            hit.highlight().forEach((field, values) -> highlights.put(field, new ArrayList<>(values)));
+        }
+
+        return UserSearchResponse.UserSearchHit.builder()
+                .userId(doc.getUserId())
+                .username(doc.getUsername())
+                .email(doc.getEmail())
+                .fullName(doc.getFullName())
+                .phoneNumber(doc.getPhoneNumber())
+                .avatarUrl(doc.getAvatarUrl())
+                .role(doc.getRole())
+                .status(doc.getStatus())
+                .blocked(doc.isBlocked())
+                .deleted(doc.isDeleted())
+                .companyNo(doc.getCompanyNo())
+                .companyName(doc.getCompanyName())
+                .createdAt(doc.getCreatedDate())
+                .updatedAt(doc.getLastModifiedDate())
+                .score(hit.score() != null ? hit.score() : 0.0)
+                .highlights(highlights)
+                .build();
+    }
 }

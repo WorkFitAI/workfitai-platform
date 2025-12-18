@@ -63,7 +63,7 @@ public class SessionService {
 
     @Transactional
     public UserSession createSession(String userId, String refreshTokenHash, Long expirationMs,
-            HttpServletRequest request) {
+            HttpServletRequest request, Double latitude, Double longitude) {
         // Check session limit
         long sessionCount = sessionRepository.countByUserId(userId);
         if (sessionCount >= maxSessionsPerUser) {
@@ -80,9 +80,20 @@ public class SessionService {
         String ipAddress = getClientIpAddress(request);
         String userAgent = getUserAgent(request);
 
-        log.info("Creating session - IP: {}, User-Agent: {}", ipAddress, userAgent);
+        log.info("Creating session - IP: {}, User-Agent: {}, Coords: {}, {}", ipAddress, userAgent, latitude,
+                longitude);
 
-        UserSession.Location location = geoLocationService.getLocation(ipAddress);
+        // Use browser coordinates if available, otherwise fall back to IP-based
+        // location
+        UserSession.Location location;
+        if (latitude != null && longitude != null) {
+            location = geoLocationService.getLocationFromCoordinates(latitude, longitude);
+            log.info("Using browser geolocation: {}", location);
+        } else {
+            location = geoLocationService.getLocation(ipAddress);
+            log.info("Using IP-based geolocation: {}", location);
+        }
+
         String deviceName = extractDeviceName(userAgent);
 
         log.info("Device detected: {}, Location: {}", deviceName,
