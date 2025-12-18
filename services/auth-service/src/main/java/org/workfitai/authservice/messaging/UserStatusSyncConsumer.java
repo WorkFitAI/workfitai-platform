@@ -1,4 +1,4 @@
-package org.workfitai.authservice.service;
+package org.workfitai.authservice.messaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

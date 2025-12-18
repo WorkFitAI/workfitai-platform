@@ -1,16 +1,16 @@
-package org.workfitai.authservice.service;
+package org.workfitai.authservice.messaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 
 import java.util.concurrent.CompletableFuture;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserRegistrationProducer {

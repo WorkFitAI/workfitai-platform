@@ -46,10 +46,22 @@ spring:
       auto-offset-reset: earliest
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    admin:
+      properties:
+        # Auto-create topics if they don't exist
+        auto.create.topics.enable: true
 
 server:
   port: ${SERVER_PORT:9005}
+
+# Elasticsearch configuration for user search
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:elasticsearch}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
 
 management:
   endpoints:
@@ -122,6 +134,12 @@ spring:
 service:
   auth:
     url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+
+# Elasticsearch configuration for local development
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST_LOCAL:localhost}
+  port: ${ELASTICSEARCH_PORT_LOCAL:9200}
+  scheme: http
 
 server:
   port: ${SERVER_PORT:9005}

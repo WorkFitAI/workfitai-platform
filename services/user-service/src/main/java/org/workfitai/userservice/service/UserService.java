@@ -2,6 +2,8 @@ package org.workfitai.userservice.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 
 import java.util.UUID;
@@ -82,4 +84,49 @@ public interface UserService {
      * @return true if account was reactivated, false if beyond 30 days or deleted
      */
     boolean checkAndReactivateAccount(String username);
+
+    /**
+     * Search all users across all roles with pagination.
+     * For admin user management dashboard.
+     *
+     * @param keyword  search keyword (username, email, fullName)
+     * @param role     filter by role (optional)
+     * @param pageable pagination parameters
+     * @return page of user base responses
+     */
+    Page<UserBaseResponse> searchAllUsers(String keyword, String role, Pageable pageable);
+
+    /**
+     * Get basic user information by ID.
+     *
+     * @param userId user ID
+     * @return user base response
+     */
+    UserBaseResponse getByUserId(UUID userId);
+
+    /**
+     * Get full user profile with role-specific details.
+     * Returns CandidateResponse, HRResponse, or AdminResponse based on role.
+     * TODO: Requires getByUserId() methods in CandidateService, HRService,
+     * AdminService
+     *
+     * @param userId user ID
+     * @return role-specific response (Candidate/HR/Admin)
+     */
+    // Object getFullUserProfile(UUID userId);
+
+    /**
+     * Delete user (soft delete)
+     *
+     * @param userId user ID to delete
+     */
+    void deleteUser(UUID userId);
+
+    /**
+     * Block or unblock user account.
+     *
+     * @param userId  user ID
+     * @param blocked true to block, false to unblock
+     */
+    void setUserBlockStatus(UUID userId, boolean blocked);
 }
