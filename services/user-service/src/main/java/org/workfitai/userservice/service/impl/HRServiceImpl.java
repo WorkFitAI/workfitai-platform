@@ -24,6 +24,7 @@ import org.workfitai.userservice.model.HREntity;
 import org.workfitai.userservice.repository.HRRepository;
 import org.workfitai.userservice.messaging.CompanySyncProducer;
 import org.workfitai.userservice.messaging.NotificationProducer;
+import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.messaging.UserRegistrationProducer;
 import org.workfitai.userservice.service.HRService;
 import org.workfitai.userservice.specification.HRSpecification;
@@ -47,6 +48,7 @@ public class HRServiceImpl implements HRService {
   private final CompanySyncProducer companySyncProducer;
   private final NotificationProducer notificationProducer;
   private final UserRegistrationProducer userRegistrationProducer;
+  private final UserEventPublisher userEventPublisher;
 
   private <T> void validate(T dto) {
     Set<ConstraintViolation<T>> violations = validator.validate(dto);
@@ -232,7 +234,10 @@ public class HRServiceImpl implements HRService {
         .address(hrProfile.getAddress())
         .build();
 
-    hrRepository.save(entity);
+    HREntity savedEntity = hrRepository.save(entity);
+
+    // Publish USER_CREATED event for Elasticsearch sync
+    userEventPublisher.publishUserCreated(savedEntity);
 
     if (role == EUserRole.HR_MANAGER && userData.getCompany() != null) {
       // Set the generated companyId to company data before publishing

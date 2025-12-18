@@ -76,12 +76,34 @@ public class KafkaConfig {
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
+  /**
+   * Consumer factory specifically for UserChangeEvent messages
+   * Used by UserIndexConsumer for Elasticsearch synchronization
+   */
+  @Bean
+  public ConsumerFactory<String, Object> userChangeEventConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+    // Configure for UserChangeEvent deserialization
+    props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+    props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE,
+        "org.workfitai.userservice.dto.kafka.UserChangeEvent");
+
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+
+    return new DefaultKafkaConsumerFactory<>(props);
+  }
+
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
     ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-    factory.setConsumerFactory(consumerFactory());
-    factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-    factory.setConcurrency(3);
+    factory.setConsumerFactory(userChangeEventConsumerFactory());
+    factory.setConcurrency(3); // Match number of partitions
 
     return factory;
   }

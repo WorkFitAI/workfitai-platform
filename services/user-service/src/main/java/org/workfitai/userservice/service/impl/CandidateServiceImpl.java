@@ -21,6 +21,7 @@ import org.workfitai.userservice.enums.EUserRole;
 import org.workfitai.userservice.enums.EUserStatus;
 import org.workfitai.userservice.exception.ApiException;
 import org.workfitai.userservice.mapper.CandidateMapper;
+import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.model.CandidateEntity;
 import org.workfitai.userservice.repository.CandidateRepository;
 import org.workfitai.userservice.service.CandidateService;
@@ -42,6 +43,7 @@ public class CandidateServiceImpl implements CandidateService {
   private final CandidateMapper candidateMapper;
   private final Validator validator;
   private final PasswordEncoder passwordEncoder;
+  private final UserEventPublisher userEventPublisher;
 
   private <T> void validateDto(T dto) {
     Set<ConstraintViolation<T>> violations = validator.validate(dto);
@@ -231,6 +233,9 @@ public class CandidateServiceImpl implements CandidateService {
 
       log.info("Successfully created new candidate with ID {} for email: {}",
           savedCandidate.getUserId(), userData.getEmail());
+
+      // Publish USER_CREATED event for Elasticsearch sync
+      userEventPublisher.publishUserCreated(savedCandidate);
 
     } catch (Exception ex) {
       log.error("Error creating candidate from Kafka event for email: {}", userData.getEmail(), ex);

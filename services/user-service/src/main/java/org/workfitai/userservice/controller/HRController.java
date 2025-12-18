@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.annotation.CheckPrivacy;
 import org.workfitai.userservice.constants.Messages;
@@ -48,6 +49,7 @@ public class HRController {
     return ResponseEntity.ok(ResponseData.success(hrService.getById(id)));
   }
 
+  @PreAuthorize("hasAnyRole('ADMIN', 'HR_MANAGER')")
   @CheckPrivacy
   @GetMapping
   public ResponseEntity<ResponseData<Page<HRResponse>>> search(
@@ -60,6 +62,7 @@ public class HRController {
     return ResponseEntity.ok(ResponseData.success(hrService.countByDepartment()));
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("/{id}/approve-manager")
   public ResponseEntity<ResponseData<HRResponse>> approveManager(
       @PathVariable UUID id,
@@ -67,6 +70,7 @@ public class HRController {
     return ResponseEntity.ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHrManager(id, approver)));
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("/username/{username}/approve-manager")
   public ResponseEntity<ResponseData<HRResponse>> approveManagerByUsername(
       @PathVariable String username,
@@ -75,6 +79,7 @@ public class HRController {
         .ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHrManagerByUsername(username, approver)));
   }
 
+  @PreAuthorize("hasRole('HR_MANAGER')")
   @PostMapping("/{id}/approve")
   public ResponseEntity<ResponseData<HRResponse>> approveHr(
       @PathVariable UUID id,
@@ -82,6 +87,7 @@ public class HRController {
     return ResponseEntity.ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHr(id, approver)));
   }
 
+  @PreAuthorize("hasRole('HR_MANAGER')")
   @PostMapping("/username/{username}/approve")
   public ResponseEntity<ResponseData<HRResponse>> approveHrByUsername(
       @PathVariable String username,

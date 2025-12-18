@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.workfitai.authservice.dto.kafka.CompanyCreationEvent;
-import org.workfitai.authservice.service.CompanyProducer;
+import org.workfitai.authservice.messaging.CompanyProducer;
 
 import java.time.Instant;
 import java.util.Map;
