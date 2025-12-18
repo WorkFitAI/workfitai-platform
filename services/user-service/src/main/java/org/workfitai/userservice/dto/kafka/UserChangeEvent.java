@@ -69,7 +69,7 @@ public class UserChangeEvent {
         private EUserStatus userStatus;
         private boolean isBlocked;
         private boolean isDeleted;
-        private String companyId;
+        private String companyNo;
         private String companyName;
         private Instant createdDate;
         private Instant lastModifiedDate;

@@ -29,7 +29,7 @@ public class UserDocument {
     private boolean deleted;
 
     // Company information (for HR users)
-    private String companyId;
+    private String companyNo;
     private String companyName;
 
     private Instant createdDate;

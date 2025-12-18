@@ -135,12 +135,12 @@ public class UserSearchService {
                             .value(FieldValue.of(request.getBlocked())))));
         }
 
-        // Company ID filter (for HR filtering by company)
-        if (request.getCompanyId() != null && !request.getCompanyId().isBlank()) {
+        // Company No filter (for HR filtering by company number/code)
+        if (request.getCompanyNo() != null && !request.getCompanyNo().isBlank()) {
             boolQuery.filter(Query.of(q -> q
                     .term(t -> t
-                            .field("companyId.keyword")
-                            .value(FieldValue.of(request.getCompanyId())))));
+                            .field("companyNo.keyword")
+                            .value(FieldValue.of(request.getCompanyNo())))));
         }
 
         // Company Name filter (for HR filtering by company name)
@@ -148,7 +148,7 @@ public class UserSearchService {
             boolQuery.filter(Query.of(q -> q
                     .match(m -> m
                             .field("companyName")
-                            .query(request.getCompanyName())))));
+                            .query(request.getCompanyName()))));
         }
 
         // Deleted filter (default: exclude deleted users)

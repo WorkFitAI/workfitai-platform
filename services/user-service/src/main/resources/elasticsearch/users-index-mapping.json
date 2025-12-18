@@ -72,7 +72,7 @@
             "deleted": {
                 "type": "boolean"
             },
-            "companyId": {
+            "companyNo": {
                 "type": "text",
                 "fields": {
                     "keyword": {

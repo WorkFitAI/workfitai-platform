@@ -37,9 +37,9 @@ public class UserSearchRequest {
     private Boolean blocked;
 
     /**
-     * Filter by company ID (for HR filtering)
+     * Filter by company number/code (for HR filtering)
      */
-    private String companyId;
+    private String companyNo;
 
     /**
      * Filter by company name (for HR filtering)
