@@ -72,7 +72,7 @@ echo ""
 echo "🔐 Populating secrets..."
 create_service_secrets "auth-service" '{
   "data": {
-    "jwt.access.expiration": "900000",
+    "jwt.access.expiration": "1800000",
     "jwt.refresh.expiration": "604800000",
     "mongodb.uri": "mongodb://auth-mongo:27017/auth-db",
     "redis.host": "auth-redis",

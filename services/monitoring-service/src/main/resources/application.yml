@@ -4,7 +4,7 @@ server:
 spring:
   application:
     name: monitoring-service
-  
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
@@ -42,11 +42,20 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  # Exclude MongoDB auto-configuration (not used in this service)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+  health:
+    mongo:
+      enabled: false # Disable MongoDB health check
 
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}

@@ -89,7 +89,8 @@ public class AuthController {
                                                                 issued.getAccessToken(),
                                                                 issued.getExpiresIn(),
                                                                 issued.getUsername(),
-                                                                issued.getRoles())));
+                                                                issued.getRoles(),
+                                                                issued.getCompanyId())));
         }
 
         @PostMapping("/verify-2fa-login")
@@ -153,6 +154,7 @@ public class AuthController {
                                                                 issued.getAccessToken(),
                                                                 issued.getExpiresIn(),
                                                                 issued.getUsername(),
-                                                                issued.getRoles())));
+                                                                issued.getRoles(),
+                                                                issued.getCompanyId())));
         }
 }

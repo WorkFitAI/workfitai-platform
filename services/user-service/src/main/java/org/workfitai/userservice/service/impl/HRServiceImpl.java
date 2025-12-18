@@ -165,6 +165,8 @@ public class HRServiceImpl implements HRService {
       return;
     }
 
+    String companyName = "";
+
     // For HR role: lookup company from HR Manager's email
     if (role == EUserRole.HR) {
       String hrManagerEmail = hrProfile.getHrManagerEmail();
@@ -191,6 +193,7 @@ public class HRServiceImpl implements HRService {
 
       companyId = hrManager.getCompanyId();
       companyNo = hrManager.getCompanyNo(); // Inherit companyNo from HR Manager
+      companyName = hrManager.getCompanyName();
       log.info("HR will be assigned to company {} (companyNo: {}) from HR Manager: {}", companyId, companyNo,
           hrManagerEmail);
     }
@@ -210,6 +213,7 @@ public class HRServiceImpl implements HRService {
 
       companyId = UUID.fromString(userData.getCompany().getCompanyId());
       companyNo = userData.getCompany().getCompanyNo();
+      companyName = userData.getCompany().getName();
       log.info("Using companyId {} and companyNo {} from auth-service for HR Manager: {}", companyId, companyNo,
           userData.getEmail());
     }
@@ -231,6 +235,7 @@ public class HRServiceImpl implements HRService {
         .department(hrProfile.getDepartment())
         .companyId(companyId)
         .companyNo(companyNo)
+        .companyName(companyName)
         .address(hrProfile.getAddress())
         .build();
 
@@ -364,7 +369,7 @@ public class HRServiceImpl implements HRService {
         .company(CompanySyncEvent.CompanyData.builder()
             .companyId(hrManager.getCompanyId().toString())
             .companyNo(hrManager.getCompanyNo()) // Add companyNo (primary key for job-service)
-            .name(hrManager.getFullName() + "'s Company") // Will be overwritten if company data exists
+            .name(hrManager.getCompanyName()) // Company name from registration
             .address(hrManager.getAddress())
             .build())
         .build();

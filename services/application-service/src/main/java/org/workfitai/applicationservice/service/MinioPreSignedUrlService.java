@@ -48,6 +48,7 @@ public class MinioPreSignedUrlService {
         try {
             log.info("Generating pre-signed URL for: bucket={}, key={}", minioConfig.getBucket(), objectKey);
 
+            // Generate pre-signed URL using internal endpoint
             String url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
@@ -55,6 +56,16 @@ public class MinioPreSignedUrlService {
                             .object(objectKey)
                             .expiry(EXPIRY_SECONDS, TimeUnit.SECONDS)
                             .build());
+
+            // Replace internal endpoint with external endpoint if configured
+            // The signature in the URL remains valid because it's calculated based on
+            // the request parameters (bucket, key, expiry), not the hostname
+            if (minioConfig.getExternalEndpoint() != null && !minioConfig.getExternalEndpoint().isEmpty()) {
+                String internalEndpoint = minioConfig.getEndpoint();
+                url = url.replace(internalEndpoint, minioConfig.getExternalEndpoint());
+                log.debug("Replaced internal endpoint {} with external endpoint {} in pre-signed URL",
+                    internalEndpoint, minioConfig.getExternalEndpoint());
+            }
 
             Instant expiresAt = Instant.now().plusSeconds(EXPIRY_SECONDS);
 
@@ -70,6 +81,34 @@ public class MinioPreSignedUrlService {
         } catch (Exception e) {
             log.error("Failed to generate pre-signed URL: {}", e.getMessage(), e);
             throw new FileStorageException("Failed to generate download URL: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Download file from MinIO as byte array.
+     *
+     * @param objectKey The object key in MinIO
+     * @return File content as byte array
+     * @throws FileStorageException if download fails
+     */
+    public byte[] downloadFile(String objectKey) {
+        try {
+            log.info("Downloading file from MinIO: bucket={}, key={}", minioConfig.getBucket(), objectKey);
+
+            try (var stream = minioClient.getObject(
+                    io.minio.GetObjectArgs.builder()
+                            .bucket(minioConfig.getBucket())
+                            .object(objectKey)
+                            .build())) {
+
+                byte[] content = stream.readAllBytes();
+                log.info("Successfully downloaded file: {} bytes", content.length);
+                return content;
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to download file from MinIO: {}", e.getMessage(), e);
+            throw new FileStorageException("Failed to download file: " + e.getMessage(), e);
         }
     }
 

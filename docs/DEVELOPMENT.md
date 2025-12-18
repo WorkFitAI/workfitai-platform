@@ -236,7 +236,6 @@ Email templates are located in `services/notification-service/src/main/resources
 
 Template variables:
 - Candidate email: `candidateName`, `jobTitle`, `companyName`, `applicationId`, `appliedAt`
-- HR email: `hrName`, `candidateName`, `jobTitle`, `companyName`, `applicationId`, `cvFileUrl`, `appliedAt`
 
 ### Graceful Degradation
 
