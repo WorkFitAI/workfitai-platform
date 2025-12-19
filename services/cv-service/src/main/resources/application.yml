@@ -3,14 +3,17 @@
 # =============================================================================
 spring:
   application:
-    name: cv
+    name: cv-service
   profiles:
     active: docker # Default profile cho containers
   config:
     import: "optional:vault://secret/cv-service"
   cloud:
     vault:
-      uri: ${VAULT_URI:http://vault:8200}
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:dev-token}
       kv:
         enabled: true
@@ -20,24 +23,13 @@ spring:
         enabled: false
         import-check:
           enabled: false
-      discovery:
-        service-name: cv
-        instance-id: ${spring.application.name}:${server.port}
-        health-check-path: /actuator/health
-        prefer-ip-address: true
-        deregister: true
-        health-check-critical-timeout: 1m
-  data:
-    mongodb:
-      host: ${mongodb.host:cv-mongo}
-      port: ${mongodb.port:27017}
-      database: ${mongodb.database:cv-db}
-      username: ${mongodb.username:user}
-      password: ${mongodb.password:123456}
-      authentication-database: ${mongodb.auth-database:cv-db}
-    redis:
-      host: ${SPRING_DATA_REDIS_HOST:cv-redis}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+  # Multipart file upload configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB # Maximum file size for a single file
+      max-request-size: 15MB # Maximum request size (file + other data)
+      file-size-threshold: 2KB # Files larger than this are written to disk temporarily
 
 logging:
   level:
@@ -101,16 +93,23 @@ spring:
     activate:
       on-profile: docker
   cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
     consul:
       host: consul
       port: 8500
-      config:
-        enabled: false
       discovery:
         enabled: true
         register: true
-        deregister: true
-        health-check-critical-timeout: 1m
+        service-name: cv
+        health-check-path: /actuator/health
 # Service URLs for Docker environment
 service:
   auth:
@@ -126,14 +125,21 @@ spring:
       on-profile: local
   cloud:
     vault:
-      uri: http://localhost:8200
+      host: localhost
+      port: 8200
+      scheme: http
+      authentication: TOKEN
       token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
     consul:
       host: localhost
       port: 8500
       discovery:
         enabled: true
         register: true
+        service-name: cv
         health-check-path: /actuator/health
   data:
     mongodb:
@@ -143,3 +149,11 @@ spring:
       username: user
       password: "123456"
       authentication-database: cv-db
+
+# Override logging for local development
+logging:
+  level:
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG

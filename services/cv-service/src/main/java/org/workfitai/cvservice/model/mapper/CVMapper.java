@@ -25,6 +25,7 @@ public interface CVMapper {
     void updateFromDto(ReqCvDTO req, @MappingTarget CV cv);
 
     // ---------------- Entity → Response DTO ----------------
+    @Mapping(target = "isExist", source = "exist")
     ResCvDTO toResDTO(CV cv);
 
     @Mapping(target = "updatedAt", ignore = true)

@@ -16,6 +16,8 @@ public class ResCvDTO {
 
     private String cvId;
 
+    private String objectName;
+
     private String headline;
 
     private String summary;
