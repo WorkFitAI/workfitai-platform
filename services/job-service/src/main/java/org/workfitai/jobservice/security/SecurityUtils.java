@@ -78,4 +78,15 @@ public final class SecurityUtils {
         Jwt jwt = (Jwt) authentication.getPrincipal();
         return jwt.getClaimAsString("sub");
     }
+
+    public static String getValidCompanyNo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt)) {
+            return null;
+        }
+
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        return jwt.getClaimAsString("companyId");
+    }
 }

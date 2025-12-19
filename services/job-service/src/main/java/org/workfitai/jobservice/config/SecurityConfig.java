@@ -1,7 +1,6 @@
 package org.workfitai.jobservice.config;
 
-import java.util.HashSet;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,7 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.workfitai.jobservice.security.SecurityJwtConfiguration;
 
-import lombok.RequiredArgsConstructor;
+import java.util.HashSet;
 
 @Configuration
 @EnableMethodSecurity
@@ -32,6 +31,30 @@ public class SecurityConfig {
                         .requestMatchers("/hr/**").hasRole("HR")
                         .requestMatchers("/candidate/**").hasRole("CANDIDATE")
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setStatus(401);
+                            res.setContentType("application/json");
+                            res.getWriter().write("""
+                                        {
+                                          "status": 401,
+                                          "message": "Unauthorized",
+                                          "source": "job"
+                                        }
+                                    """);
+                        })
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setStatus(403);
+                            res.setContentType("application/json");
+                            res.getWriter().write("""
+                                        {
+                                          "status": 403,
+                                          "message": "Access Denied",
+                                          "source": "job"
+                                        }
+                                    """);
+                        })
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> {
                                     try {

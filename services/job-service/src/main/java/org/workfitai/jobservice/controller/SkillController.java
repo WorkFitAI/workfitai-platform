@@ -1,25 +1,25 @@
 package org.workfitai.jobservice.controller;
 
 import com.turkraft.springfilter.boot.Filter;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.jobservice.model.Skill;
-import org.workfitai.jobservice.model.dto.request.Skill.ReqCreateSkillDTO;
-import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
-import org.workfitai.jobservice.model.dto.response.Skill.ResSkillDTO;
-import org.workfitai.jobservice.model.dto.response.Skill.ResUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.model.dto.response.Skill.ResSkillDTO;
 import org.workfitai.jobservice.service.iSkillService;
 import org.workfitai.jobservice.util.ApiMessage;
 
 import java.util.UUID;
 
-import static org.workfitai.jobservice.util.MessageConstant.*;
+import static org.workfitai.jobservice.util.MessageConstant.SKILL_ALL_FETCHED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.SKILL_DETAIL_FETCHED_SUCCESSFULLY;
 
 @RestController
 @RequestMapping("/public/skills")
@@ -41,22 +41,5 @@ public class SkillController {
         return RestResponse.success(skillService.fetchAll(spec, pageable));
     }
 
-    @PostMapping()
-    @ApiMessage(SKILL_CREATED_SUCCESSFULLY)
-    public RestResponse<ResSkillDTO> createSkill(@Valid @RequestBody ReqCreateSkillDTO dto) {
-        return RestResponse.success(skillService.create(dto));
-    }
 
-    @PutMapping()
-    @ApiMessage(SKILL_UPDATED_SUCCESSFULLY)
-    public RestResponse<ResUpdateSkillDTO> updateSkill(@Valid @RequestBody ReqUpdateSkillDTO dto) {
-        return RestResponse.success(skillService.update(dto));
-    }
-
-    @DeleteMapping("/{id}")
-    @ApiMessage(SKILL_DELETED_SUCCESSFULLY)
-    public RestResponse<Void> deleteSkill(@PathVariable UUID id) {
-        skillService.delete(id);
-        return RestResponse.success(null);
-    }
 }
