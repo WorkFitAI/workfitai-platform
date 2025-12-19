@@ -40,6 +40,12 @@ spring:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb://notif-mongo:27017/notification-db}
 server:
   port: ${SERVER_PORT:9005}
+  tomcat:
+    threads:
+      max: 200          # Max concurrent connections
+      min-spare: 20     # Min idle threads
+    max-connections: 10000  # Max concurrent TCP connections
+    accept-count: 100   # Queue size when all threads busy
 
 app:
   mail:

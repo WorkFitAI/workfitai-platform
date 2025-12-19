@@ -16,13 +16,11 @@ public class CorsGlobalConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Explicit origin list to support credentials and avoid wildcard rejection
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Allow all origins for WebSocket/SockJS compatibility
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(Duration.ofHours(1));
 
