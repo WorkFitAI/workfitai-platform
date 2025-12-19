@@ -34,18 +34,28 @@ public class AccountApprovalStrategy implements NotificationStrategy {
         log.info("[APPROVAL] Processing approval notification: {} for {}",
                 event.getTemplateType(), event.getRecipientEmail());
 
-        // Send email
-        boolean emailSent = emailService.sendEmail(event);
-
-        // Create in-app notification for user dashboard
+        boolean emailSent = false;
         boolean inAppCreated = false;
-        try {
-            inAppCreated = persistenceService.createNotification(event) != null;
-        } catch (Exception e) {
-            log.error("Failed to create in-app notification: {}", e.getMessage());
+
+        // Check sendEmail flag (default true for backward compatibility)
+        if (event.getSendEmail() == null || Boolean.TRUE.equals(event.getSendEmail())) {
+            emailSent = emailService.sendEmail(event);
+            persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+        } else {
+            log.debug("Skipping email for {} - sendEmail=false", event.getRecipientEmail());
         }
 
-        persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+        // Check createInAppNotification flag
+        if (Boolean.TRUE.equals(event.getCreateInAppNotification())) {
+            try {
+                inAppCreated = persistenceService.createNotification(event) != null;
+            } catch (Exception e) {
+                log.error("Failed to create in-app notification: {}", e.getMessage());
+            }
+        } else {
+            log.debug("Skipping in-app notification for {} - createInAppNotification={}",
+                    event.getRecipientEmail(), event.getCreateInAppNotification());
+        }
 
         return emailSent || inAppCreated;
     }

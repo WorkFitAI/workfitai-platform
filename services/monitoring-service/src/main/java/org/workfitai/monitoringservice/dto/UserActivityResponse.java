@@ -49,43 +49,4 @@ public class UserActivityResponse {
      * Summary statistics
      */
     private ActivitySummary summary;
-
-    /**
-     * Activity summary for dashboard widgets
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ActivitySummary {
-        /**
-         * Unique active users in the time range
-         */
-        private long activeUsers;
-
-        /**
-         * Total requests/actions
-         */
-        private long totalActions;
-
-        /**
-         * Number of errors
-         */
-        private long errorCount;
-
-        /**
-         * Actions grouped by user
-         */
-        private Map<String, Long> actionsByUser;
-
-        /**
-         * Actions grouped by service
-         */
-        private Map<String, Long> actionsByService;
-
-        /**
-         * Most common actions
-         */
-        private Map<String, Long> topActions;
-    }
 }

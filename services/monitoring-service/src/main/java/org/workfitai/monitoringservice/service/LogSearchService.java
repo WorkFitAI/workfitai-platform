@@ -1,6 +1,7 @@
 package org.workfitai.monitoringservice.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
@@ -175,18 +176,58 @@ public class LogSearchService {
 
     /**
      * Get log statistics for dashboard.
+     * Only includes user activity logs, excludes system/infrastructure logs.
      */
     public LogStatistics getStatistics(int hours) {
         try {
             Instant from = Instant.now().minus(hours, ChronoUnit.HOURS);
 
+            // Build query to filter only user activities
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+
+            // Time range
+            boolQuery.must(Query.of(q -> q
+                    .range(r -> r
+                            .field("@timestamp")
+                            .gte(JsonData.of(from.toString())))));
+
+            // Must have a username (not anonymous or system)
+            boolQuery.mustNot(Query.of(q -> q
+                    .terms(t -> t
+                            .field("username.keyword")
+                            .terms(tf -> tf.value(Arrays.asList(
+                                    FieldValue.of(""),
+                                    FieldValue.of("anonymous"),
+                                    FieldValue.of("system")))))));
+
+            // Exclude system endpoints
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w
+                            .field("path.keyword")
+                            .wildcard("*/actuator*"))));
+
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w
+                            .field("path.keyword")
+                            .wildcard("*/health*"))));
+
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w
+                            .field("path.keyword")
+                            .wildcard("*/api/logs/*"))));
+
+            // Exclude DEBUG and TRACE levels
+            boolQuery.mustNot(Query.of(q -> q
+                    .terms(t -> t
+                            .field("level.keyword")
+                            .terms(tf -> tf.value(Arrays.asList(
+                                    FieldValue.of("DEBUG"),
+                                    FieldValue.of("TRACE")))))));
+
             SearchRequest searchRequest = SearchRequest.of(s -> s
                     .index(indexPattern)
                     .size(0)
-                    .query(Query.of(q -> q
-                            .range(r -> r
-                                    .field("@timestamp")
-                                    .gte(JsonData.of(from.toString())))))
+                    .query(Query.of(q -> q.bool(boolQuery.build())))
                     .aggregations("by_level", a -> a
                             .terms(t -> t.field("level.keyword").size(10)))
                     .aggregations("by_service", a -> a
@@ -252,6 +293,7 @@ public class LogSearchService {
 
     /**
      * Get recent errors for alerting.
+     * Only returns user-related errors, excludes system/infrastructure errors.
      */
     public List<LogEntry> getRecentErrors(int minutes) {
         LogSearchRequest request = LogSearchRequest.builder()
@@ -261,7 +303,11 @@ public class LogSearchService {
                 .size(100)
                 .sortOrder("desc")
                 .build();
-        return searchLogs(request).getLogs();
+
+        // Filter to only include user activity errors
+        return searchLogs(request).getLogs().stream()
+                .filter(this::isUserActivity)
+                .collect(Collectors.toList());
     }
 
     private LogEntry mapToLogEntry(String id, Map<String, Object> source) {
@@ -364,12 +410,16 @@ public class LogSearchService {
                     .map(UserActivityEntry::fromLogEntry)
                     .collect(Collectors.toList());
 
+            // Calculate correct total and pages based on filtered activities
+            long filteredTotal = activities.size();
+            int filteredTotalPages = (int) Math.ceil((double) filteredTotal / activityRequest.getSize());
+
             // Build response
             UserActivityResponse.UserActivityResponseBuilder responseBuilder = UserActivityResponse.builder()
-                    .total(logResponse.getTotal())
+                    .total(filteredTotal)
                     .page(logResponse.getPage())
                     .size(logResponse.getSize())
-                    .totalPages(logResponse.getTotalPages())
+                    .totalPages(filteredTotalPages)
                     .activities(activities);
 
             // Add summary if requested
@@ -390,11 +440,28 @@ public class LogSearchService {
 
     /**
      * Check if a log entry represents user activity (not system/health check).
+     * 
+     * User activities include:
+     * - Login/logout actions
+     * - Profile updates
+     * - Job applications
+     * - HR approvals
+     * - User management (block, delete, approve)
+     * - Business-related CRUD operations
+     * 
+     * Excluded:
+     * - System/infrastructure logs
+     * - Health checks and monitoring endpoints
+     * - Background jobs (reindex, sync, scheduled tasks)
+     * - Internal service-to-service calls
+     * - Auto-refresh and polling requests
      */
     private boolean isUserActivity(LogEntry log) {
         // Must have a username (not anonymous or system)
         String username = log.getUsername();
-        if (username == null || username.isBlank() || "anonymous".equalsIgnoreCase(username)) {
+        if (username == null || username.isBlank() ||
+                "anonymous".equalsIgnoreCase(username) ||
+                "system".equalsIgnoreCase(username)) {
             return false;
         }
 
@@ -402,18 +469,75 @@ public class LogSearchService {
         String path = log.getPath();
         if (path != null) {
             String lowerPath = path.toLowerCase();
+
+            // System/monitoring endpoints
             if (lowerPath.contains("/health") ||
                     lowerPath.contains("/actuator") ||
                     lowerPath.contains("/metrics") ||
-                    lowerPath.contains("/prometheus")) {
+                    lowerPath.contains("/prometheus") ||
+                    lowerPath.contains("/info")) {
+                return false;
+            }
+
+            // Background jobs and scheduled tasks
+            if (lowerPath.contains("/reindex") ||
+                    lowerPath.contains("/sync") ||
+                    lowerPath.contains("/scheduler") ||
+                    lowerPath.contains("/cron") ||
+                    lowerPath.contains("/batch")) {
+                return false;
+            }
+
+            // Auto-refresh and polling endpoints (common patterns)
+            if (lowerPath.contains("/poll") ||
+                    lowerPath.contains("/refresh") ||
+                    lowerPath.contains("/heartbeat") ||
+                    lowerPath.contains("/ping")) {
+                return false;
+            }
+
+            // Monitoring service's own activity tracking (prevent recursive logging)
+            if (lowerPath.contains("/api/logs/activity") ||
+                    lowerPath.contains("/api/logs/stats") ||
+                    lowerPath.contains("/api/logs/online") ||
+                    lowerPath.contains("/api/logs/search") ||
+                    lowerPath.contains("/api/logs/errors")) {
+                return false;
+            }
+
+            // Filter out auto-refresh/polling endpoints that create noise
+            if (lowerPath.contains("/notification/unread-count") ||
+                    lowerPath.contains("/unread-count")) {
                 return false;
             }
         }
 
-        // Exclude DEBUG level logs for cleaner activity view
+        // Exclude DEBUG and TRACE level logs for cleaner activity view
         String level = log.getLevel();
         if ("DEBUG".equalsIgnoreCase(level) || "TRACE".equalsIgnoreCase(level)) {
             return false;
+        }
+
+        // Exclude logs with certain messages indicating system operations
+        String message = log.getMessage();
+        if (message != null) {
+            String lowerMessage = message.toLowerCase();
+            if (lowerMessage.contains("health check") ||
+                    lowerMessage.contains("scheduled task") ||
+                    lowerMessage.contains("background job") ||
+                    lowerMessage.contains("auto-refresh") ||
+                    lowerMessage.contains("elasticsearch health")) {
+                return false;
+            }
+        }
+
+        // Only include HTTP methods that represent user actions
+        String method = log.getMethod();
+        if (method != null) {
+            // Accept standard HTTP methods used by users
+            if (!method.matches("GET|POST|PUT|PATCH|DELETE")) {
+                return false;
+            }
         }
 
         return true;
@@ -422,26 +546,32 @@ public class LogSearchService {
     /**
      * Calculate activity summary for dashboard widgets.
      */
-    private UserActivityResponse.ActivitySummary calculateActivitySummary(
+    private ActivitySummary calculateActivitySummary(
             List<UserActivityEntry> activities,
             LogSearchRequest request) {
         try {
             // Calculate from the activities we have
-            Map<String, Long> actionsByUser = activities.stream()
+            Map<String, Integer> actionsByUser = activities.stream()
                     .filter(a -> a.getUsername() != null)
-                    .collect(Collectors.groupingBy(UserActivityEntry::getUsername, Collectors.counting()));
+                    .collect(Collectors.groupingBy(
+                            UserActivityEntry::getUsername,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
 
-            Map<String, Long> actionsByService = activities.stream()
+            Map<String, Integer> actionsByService = activities.stream()
                     .filter(a -> a.getService() != null)
-                    .collect(Collectors.groupingBy(UserActivityEntry::getService, Collectors.counting()));
+                    .collect(Collectors.groupingBy(
+                            UserActivityEntry::getService,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
 
-            Map<String, Long> topActions = activities.stream()
+            Map<String, Integer> topActions = activities.stream()
                     .filter(a -> a.getAction() != null)
-                    .collect(Collectors.groupingBy(UserActivityEntry::getAction, Collectors.counting()));
+                    .collect(Collectors.groupingBy(
+                            UserActivityEntry::getAction,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
 
             // Sort and limit top actions
             topActions = topActions.entrySet().stream()
-                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                     .limit(10)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
@@ -449,11 +579,11 @@ public class LogSearchService {
                             (e1, e2) -> e1,
                             LinkedHashMap::new));
 
-            long errorCount = activities.stream()
+            int errorCount = (int) activities.stream()
                     .filter(a -> Boolean.TRUE.equals(a.getIsError()))
                     .count();
 
-            return UserActivityResponse.ActivitySummary.builder()
+            return ActivitySummary.builder()
                     .activeUsers(actionsByUser.size())
                     .totalActions(activities.size())
                     .errorCount(errorCount)

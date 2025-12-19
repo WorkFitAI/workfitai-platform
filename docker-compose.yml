@@ -244,6 +244,11 @@ services:
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
+      - ELASTICSEARCH_SCHEME=http
     depends_on:
       consul:
         condition: service_started
@@ -451,6 +456,9 @@ services:
       - CONSUL_PORT=8500
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
+      - ELASTICSEARCH_SCHEME=http
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     depends_on:
       consul:

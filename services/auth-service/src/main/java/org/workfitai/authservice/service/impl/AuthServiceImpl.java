@@ -671,6 +671,8 @@ public class AuthServiceImpl implements iAuthService {
                         "fullName", fullName,
                         "validUntil", "24 hours",
                         "loginUrl", frontendBaseUrl + "/login"))
+                .sendEmail(true)
+                .createInAppNotification(false) // Transactional email only
                 .build());
     }
 
@@ -688,6 +690,9 @@ public class AuthServiceImpl implements iAuthService {
                         "role", "Candidate",
                         "loginUrl", frontendBaseUrl + "/login",
                         "isCandidate", "true"))
+                .sendEmail(true)
+                .createInAppNotification(true) // Important account event - send both email and in-app
+                .notificationType("ACCOUNT_ACTIVATED")
                 .build());
     }
 
@@ -708,6 +713,9 @@ public class AuthServiceImpl implements iAuthService {
                         "role", role.getRoleName(),
                         "approverType", approverType,
                         "loginUrl", frontendBaseUrl + "/login"))
+                .sendEmail(true)
+                .createInAppNotification(true) // Important status update - send both
+                .notificationType("ACCOUNT_PENDING")
                 .build());
     }
 

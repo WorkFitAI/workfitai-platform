@@ -207,6 +207,9 @@ public class ApprovalServiceImpl implements ApprovalService {
                         "isHRManager", String.valueOf(isHRManager),
                         "isHR", String.valueOf(isHR),
                         "isCandidate", "false"))
+                .sendEmail(true)
+                .createInAppNotification(true)
+                .notificationType("ACCOUNT_APPROVED")
                 .build());
     }
 
@@ -219,7 +222,10 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .subject("Account Registration Rejected - WorkFitAI")
                 .content("Your account registration has been rejected. Reason: "
                         + (reason != null ? reason : "Not specified"))
-                .metadata(Map.of("username", username))
+                .metadata(Map.of("username", username, "reason", (reason != null ? reason : "Not specified")))
+                .sendEmail(true)
+                .createInAppNotification(true)
+                .notificationType("ACCOUNT_REJECTED")
                 .build());
     }
 }

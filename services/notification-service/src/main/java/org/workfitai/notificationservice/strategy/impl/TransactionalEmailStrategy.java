@@ -33,8 +33,15 @@ public class TransactionalEmailStrategy implements NotificationStrategy {
         log.info("[TRANSACTIONAL] Processing transactional email: {} for {}",
                 event.getTemplateType(), event.getRecipientEmail());
 
-        boolean emailSent = emailService.sendEmail(event);
-        persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+        boolean emailSent = false;
+
+        // Check sendEmail flag (default true for transactional emails)
+        if (event.getSendEmail() == null || Boolean.TRUE.equals(event.getSendEmail())) {
+            emailSent = emailService.sendEmail(event);
+            persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
+        } else {
+            log.debug("Skipping transactional email for {} - sendEmail=false", event.getRecipientEmail());
+        }
 
         return emailSent;
     }

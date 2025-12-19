@@ -1,21 +1,20 @@
-# =====================
-# RUNTIME STAGE
-# =====================
-# Runtime-only stage: sử dụng JAR đã build sẵn từ máy local
+# Build stage
+FROM maven:latest AS builder
+WORKDIR /app
+COPY pom.xml /app/
+COPY src /app/src
+RUN mvn clean package -DskipTests
+
+# Stage 2: runtime
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
-# Copy jar đã build sẵn từ target/ folder (chạy mvn clean install trước)
-COPY ./target/api-gateway-*.jar /app/app.jar
+# Copy jar artifact từ builder
+COPY --from=builder /app/target/*.jar /app.jar
 
-# Expose port for API Gateway
-EXPOSE 8080
-
-# Run
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-
-# Expose port (must match `server.port` in application.properties)
+# Mở port 8088
 EXPOSE 8088
 
-# Run the jar
+# Chạy ứng dụng
+ENTRYPOINT ["java","-jar","/app.jar"]
 ENTRYPOINT ["java", "-jar", "app.jar"]

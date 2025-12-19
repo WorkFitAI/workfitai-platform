@@ -31,17 +31,21 @@ public class DefaultNotificationStrategy implements NotificationStrategy {
 
     @Override
     public boolean process(NotificationEvent event) {
-        log.info("[DEFAULT] Processing notification: type={}, to={}",
-                event.getEventType(), event.getRecipientEmail());
+        log.info("[DEFAULT] Processing notification: type={}, to={}, sendEmail={}, createInApp={}",
+                event.getEventType(), event.getRecipientEmail(), event.getSendEmail(),
+                event.getCreateInAppNotification());
 
-        // ✅ NEW: Check user notification preferences
+        // ✅ Check user notification preferences
         NotificationSettings settings = userServiceClient.getNotificationSettings(event.getRecipientEmail());
 
         boolean emailSent = false;
         boolean inAppCreated = false;
 
         // Handle email sending - check if user enabled email notifications
-        if (Boolean.TRUE.equals(event.getSendEmail()) || event.getSendEmail() == null) {
+        // Default to true if not specified (backward compatibility)
+        boolean shouldSendEmail = event.getSendEmail() == null || Boolean.TRUE.equals(event.getSendEmail());
+
+        if (shouldSendEmail) {
             if (Boolean.TRUE.equals(settings.getEmailEnabled())) {
                 emailSent = emailService.sendEmail(event);
                 persistenceService.saveEmailLog(event, emailSent, emailSent ? null : "delivery_failed");
@@ -49,14 +53,18 @@ public class DefaultNotificationStrategy implements NotificationStrategy {
                 log.info("Skipping email for {} - email notifications disabled by user", event.getRecipientEmail());
                 persistenceService.saveEmailLog(event, false, "user_disabled_email_notifications");
             }
+        } else {
+            log.debug("Skipping email for {} - sendEmail=false in event", event.getRecipientEmail());
         }
 
-        // Handle in-app notification creation - check if user enabled push
-        // notifications
+        // Handle in-app notification creation
+        // Only create if explicitly set to true (to avoid creating notifications for
+        // transactional emails)
         if (Boolean.TRUE.equals(event.getCreateInAppNotification())) {
             if (Boolean.TRUE.equals(settings.getPushEnabled())) {
                 try {
                     inAppCreated = persistenceService.createNotification(event) != null;
+                    log.debug("Created in-app notification for {}", event.getRecipientEmail());
                 } catch (Exception e) {
                     log.error("Failed to create in-app notification: {}", e.getMessage());
                 }
@@ -64,6 +72,9 @@ public class DefaultNotificationStrategy implements NotificationStrategy {
                 log.info("Skipping in-app notification for {} - push notifications disabled by user",
                         event.getRecipientEmail());
             }
+        } else {
+            log.debug("Skipping in-app notification for {} - createInAppNotification={}",
+                    event.getRecipientEmail(), event.getCreateInAppNotification());
         }
 
         return emailSent || inAppCreated;

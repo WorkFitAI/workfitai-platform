@@ -15,7 +15,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.workfitai.userservice.security.PublicKeyProvider;
+import org.workfitai.userservice.security.UserIdExtractionFilter;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ import java.util.HashSet;
 public class SecurityConfig {
 
   private final PublicKeyProvider publicKeyProvider;
+  private final UserIdExtractionFilter userIdExtractionFilter;
 
   @Value("${auth.jwt.issuer:auth-service}")
   private String expectedIssuer;
@@ -43,7 +46,8 @@ public class SecurityConfig {
         .oauth2ResourceServer(oauth2 -> oauth2
             .jwt(jwt -> jwt
                 .decoder(jwtDecoder()) // ✅ verify chữ ký bằng public key
-                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
+        .addFilterAfter(userIdExtractionFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
