@@ -2,6 +2,8 @@ package org.workfitai.cvservice.service.impl;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,11 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.constant.ErrorConst;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
+import org.workfitai.cvservice.errors.ResourceNotFoundException;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
@@ -37,7 +39,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CVService implements iCVService {
@@ -62,7 +64,11 @@ public class CVService implements iCVService {
 
 
         CV saved = repository.save(cv);
-        return CVMapper.INSTANCE.toResCreateDTO(saved);
+
+        ResCvDTO created = CVMapper.INSTANCE.toResDTO(saved);
+
+        log.info("Created CV with ID: {} with {}", created.getCvId(), created.isExist());
+        return created;
     }
 
 
@@ -71,7 +77,7 @@ public class CVService implements iCVService {
     public ResCvDTO getById(String cvId) {
         CV cv = repository.findById(cvId)
                 .filter(CV::isExist)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ErrorConst.CV_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorConst.CV_NOT_FOUND));
 
 
         return CVMapper.INSTANCE.toResDTO(cv);

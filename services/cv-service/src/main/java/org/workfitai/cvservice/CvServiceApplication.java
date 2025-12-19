@@ -2,10 +2,11 @@ package org.workfitai.cvservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication(exclude = {MongoAutoConfiguration.class})
+@SpringBootApplication
+@EnableDiscoveryClient
 @EnableFeignClients(basePackages = "org.workfitai.cvservice.client")
 public class CvServiceApplication {
 

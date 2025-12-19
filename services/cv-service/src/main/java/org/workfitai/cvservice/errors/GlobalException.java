@@ -1,5 +1,7 @@
 package org.workfitai.cvservice.errors;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -21,6 +23,12 @@ public class GlobalException {
                 .body(RestResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<RestResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(RestResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<RestResponse<Object>> handleBusinessException(BusinessException ex) {
         return ResponseEntity.status(ex.getStatus())
@@ -40,6 +48,18 @@ public class GlobalException {
 
         List<String> errors = fieldErrors.stream()
                 .map(FieldError::getDefaultMessage)
+                .collect(Collectors.toList());
+
+        String message = errors.size() > 1 ? errors.toString() : errors.get(0);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(RestResponse.error(HttpStatus.BAD_REQUEST.value(), message));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<RestResponse<Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        List<String> errors = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toList());
 
         String message = errors.size() > 1 ? errors.toString() : errors.get(0);
