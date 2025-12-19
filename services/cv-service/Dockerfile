@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM maven:latest AS builder
 WORKDIR /app
 COPY pom.xml /app/
 COPY src /app/src
@@ -12,7 +12,7 @@ WORKDIR /app
 # Copy jar artifact từ builder
 COPY --from=builder /app/target/*.jar /app.jar
 
-# Mở port 8084
+# Mở port 8080
 EXPOSE 8084
 
 # Chạy ứng dụng

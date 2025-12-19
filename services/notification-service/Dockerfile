@@ -1,19 +1,13 @@
 # Build stage
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
 WORKDIR /app
 COPY pom.xml /app/
 COPY src /app/src
 RUN mvn clean package -DskipTests
 
-# Stage 2: runtime
+# Runtime stage
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
-
-# Copy jar artifact từ builder
 COPY --from=builder /app/target/*.jar /app.jar
-
-# Mở port 9007
 EXPOSE 9007
-
-# Chạy ứng dụng
 ENTRYPOINT ["java","-jar","/app.jar"]
