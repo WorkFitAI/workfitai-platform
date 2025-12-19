@@ -2,6 +2,7 @@ package org.workfitai.jobservice.controller.Admin;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.model.dto.request.Company.ReqCreateCompanyDTO;
@@ -22,6 +23,7 @@ public class CompanyController {
 
     private final iCompanyService companyService;
 
+    @PreAuthorize("hasAuthority('company:create')")
     @PostMapping()
     @ApiMessage(COMPANY_CREATED_SUCCESSFULLY)
     public RestResponse<ResCompanyDTO> createCompany(
@@ -30,6 +32,7 @@ public class CompanyController {
         return RestResponse.success(created);
     }
 
+    @PreAuthorize("hasAuthority('company:update')")
     @PutMapping()
     @ApiMessage(COMPANY_UPDATED_SUCCESSFULLY)
     public RestResponse<ResUpdateCompanyDTO> updateCompany(
@@ -38,6 +41,7 @@ public class CompanyController {
         return RestResponse.success(updated);
     }
 
+    @PreAuthorize("hasAuthority('company:delete')")
     @DeleteMapping()
     @ApiMessage(COMPANY_DELETED_SUCCESSFULLY)
     public RestResponse<Void> deleteCompany(@PathVariable("id") String id) {

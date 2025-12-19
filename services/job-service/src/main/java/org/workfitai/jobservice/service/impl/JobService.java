@@ -10,6 +10,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
+import org.workfitai.jobservice.config.errors.NoPermissionException;
 import org.workfitai.jobservice.config.errors.ResourceConflictException;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
@@ -118,6 +119,9 @@ public class JobService implements iJobService {
     @Override
     public ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id) {
         String currentUser = SecurityUtils.getCurrentUser();
+        String validCompanyNo = SecurityUtils.getValidCompanyNo();
+
+        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to get the job!"));
 
         Job job = jobRepository.findByIdAndCreatedBy(id, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
@@ -145,6 +149,9 @@ public class JobService implements iJobService {
 
     @Override
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
+        String validCompanyNo = SecurityUtils.getValidCompanyNo();
+
+        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to create job with this company"));
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
             Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
@@ -163,6 +170,9 @@ public class JobService implements iJobService {
 
     @Override
     public ResUpdateJobDTO updateJob(ReqUpdateJobDTO jobDTO, Job dbJob) {
+        String validCompanyNo = SecurityUtils.getValidCompanyNo();
+        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to update job with this company"));
+
         Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
@@ -190,6 +200,10 @@ public class JobService implements iJobService {
 
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
+        String validCompanyNo = SecurityUtils.getValidCompanyNo();
+
+        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to update stats with this company"));
+
         if (status == job.getStatus()) {
             throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }

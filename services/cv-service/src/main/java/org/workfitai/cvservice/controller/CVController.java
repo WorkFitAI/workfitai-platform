@@ -1,11 +1,13 @@
 package org.workfitai.cvservice.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
@@ -27,6 +29,7 @@ import static org.workfitai.cvservice.constant.MessageConst.*;
 @RestController
 @RequestMapping()
 @AllArgsConstructor
+@Validated
 public class CVController {
     private final iCVService service;
 
@@ -52,7 +55,9 @@ public class CVController {
     // ---------------- Read by ID ----------------
     @GetMapping("/candidate/id/{cvId}")
     @ApiMessage(CV_FETCHED_SUCCESSFULLY)
-    public ResponseEntity<ResCvDTO> getCV(@PathVariable String cvId) {
+    public ResponseEntity<ResCvDTO> getCV(
+            @PathVariable @NotBlank(message = "CV ID cannot be blank") String cvId
+    ) {
         ResCvDTO res = service.getById(cvId);
         return ResponseEntity.ok(res);
     }
@@ -62,7 +67,7 @@ public class CVController {
     @GetMapping("/candidate/{username}")
     @ApiMessage(CV_DETAIL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO<ResCvDTO>> getCVsByUsernameWithFilter(
-            @PathVariable String username,
+            @PathVariable @NotBlank(message = "Username cannot be blank") String username,
             @RequestParam Map<String, Object> allParams
     ) {
 
@@ -93,7 +98,7 @@ public class CVController {
     @PatchMapping("/candidate/{cvId}")
     @ApiMessage(CV_UPDATED_SUCCESSFULLY)
     public RestResponse<ResCvDTO> updateCV(
-            @PathVariable String cvId,
+            @PathVariable @NotBlank(message = "CV ID cannot be blank") String cvId,
             @Valid @RequestBody ReqCvDTO cv
     ) throws InvalidDataException, CVConflictException {
         ResCvDTO updated = null;
@@ -105,7 +110,19 @@ public class CVController {
     // ---------------- Delete (soft delete) ----------------
     @DeleteMapping("/candidate/{cvId}")
     @ApiMessage(CV_DELETED_SUCCESSFULLY)
-    public RestResponse<Void> deleteCV(@PathVariable String cvId) throws InvalidDataException, CVConflictException {
+    public RestResponse<Void> deleteCV(
+            @PathVariable @NotBlank(message = "CV ID cannot be blank") String cvId
+    ) throws InvalidDataException, CVConflictException {
+        service.delete(cvId);
+        return RestResponse.deleted();
+    }
+
+    // Alternative DELETE endpoint for direct access (used by API Gateway)
+    @DeleteMapping("/{cvId}")
+    @ApiMessage(CV_DELETED_SUCCESSFULLY)
+    public RestResponse<Void> deleteCVById(
+            @PathVariable @NotBlank(message = "CV ID cannot be blank") String cvId
+    ) throws InvalidDataException, CVConflictException {
         service.delete(cvId);
         return RestResponse.deleted();
     }
@@ -113,7 +130,9 @@ public class CVController {
 
     // ---------------- DOWNLOAD ----------------
     @GetMapping("/candidate/download/{objectName}")
-    public ResponseEntity<InputStreamResource> downloadCv(@PathVariable String objectName) throws Exception {
+    public ResponseEntity<InputStreamResource> downloadCv(
+            @PathVariable @NotBlank(message = "Object name cannot be blank") String objectName
+    ) throws Exception {
         InputStream inputStream = service.downloadCV(objectName);
 
 

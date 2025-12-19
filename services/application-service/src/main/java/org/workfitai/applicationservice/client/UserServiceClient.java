@@ -79,6 +79,29 @@ public interface UserServiceClient {
     RestResponse<List<UserInfo>> getUsersByUsernames(@RequestParam("usernames") List<String> usernames);
 
     /**
+     * Get all users in a specific company by companyId.
+     *
+     * Endpoint: GET /by-company?companyId={companyId}
+     *
+     * Response format:
+     * {
+     * "statusCode": 200,
+     * "message": "Users fetched successfully",
+     * "data": [
+     * { "userId": "uuid1", "fullName": "John Doe", "email": "john@example.com",
+     * "userRole": "HR", ... },
+     * { "userId": "uuid2", "fullName": "Jane Manager", "email": "jane@example.com",
+     * "userRole": "HR_MANAGER", ... }
+     * ]
+     * }
+     *
+     * @param companyId Company ID to filter users
+     * @return List of users in the company wrapped in RestResponse
+     */
+    @GetMapping("/by-company")
+    RestResponse<List<UserInfo>> getUsersByCompanyId(@RequestParam("companyId") String companyId);
+
+    /**
      * DTO for user information from user-service.
      * Minimal fields needed for notifications and company validation.
      */
@@ -88,6 +111,7 @@ public interface UserServiceClient {
             String fullName,
             String email,
             String phoneNumber,
+            String userRole,
             String companyId) {
     }
 }

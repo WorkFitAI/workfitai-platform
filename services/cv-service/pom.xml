@@ -88,6 +88,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
         </dependency>
+        <!-- Vault Config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+        </dependency>
         <!-- Actuator endpoints (/actuator/**) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
