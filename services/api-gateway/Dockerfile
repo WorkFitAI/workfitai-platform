@@ -16,5 +16,4 @@ COPY --from=builder /app/target/*.jar /app.jar
 EXPOSE 8088
 
 # Chạy ứng dụng
-ENTRYPOINT ["java","-jar","/app.jar"]
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
