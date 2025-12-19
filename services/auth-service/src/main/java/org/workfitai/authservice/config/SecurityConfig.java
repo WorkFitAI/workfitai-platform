@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .logout(logout -> logout.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp", "verify-2fa-login",
+                                "/reset-password", "/forgot-password",
                                 "/actuator/**", "/error",
                                 "/api/v1/auth/**",
                                 "/api/v1/keys/public",

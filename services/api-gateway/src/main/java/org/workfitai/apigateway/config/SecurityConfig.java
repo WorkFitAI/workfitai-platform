@@ -52,6 +52,10 @@ public class SecurityConfig {
                                                                 "/auth/logout",
                                                                 "/auth/verify-otp",
                                                                 "/auth/verify-2fa-login",
+                                                                "/auth/forgot-password",
+                                                                "/auth/reset-password",
+                                                                "/notification/ws/**", // WebSocket endpoint for
+                                                                                       // notifications
                                                                 "/cv/public/**",
                                                                 "/job/public/**",
                                                                 "/monitoring-service/**",

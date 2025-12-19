@@ -64,6 +64,7 @@ public class JwtService {
     /**
      * Issues an access token containing:
      * - subject = username
+     * - claim "email" = user email
      * - claim "roles" = list of role names
      * - claim "perms" = union of all permissions for those roles
      * - claim "companyId" = company UUID (only for HR/HR_MANAGER)
@@ -78,20 +79,22 @@ public class JwtService {
                 .flatMap(r -> roleService.getPermissions(r).stream())
                 .collect(Collectors.toSet());
 
+        // Get user entity to access email
+        User userEntity = userRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new IllegalStateException("User not found: " + user.getUsername()));
+
         var builder = Jwts.builder()
                 .subject(user.getUsername())
                 .issuer(Messages.JWT.ISSUER)
                 .claim(Messages.JWT.ROLES_CLAIM, roles)
-                .claim(Messages.JWT.PERMISSIONS_CLAIM, perms);
+                .claim(Messages.JWT.PERMISSIONS_CLAIM, perms)
+                .claim("email", userEntity.getEmail()); // ✅ Add email claim
 
         // Add companyId claim for HR/HR_MANAGER users
         if (roles.contains("HR") || roles.contains("HR_MANAGER")) {
-            userRepository.findByUsername(user.getUsername())
-                    .ifPresent(userEntity -> {
-                        if (userEntity.getCompanyNo() != null) {
-                            builder.claim("companyId", userEntity.getCompanyNo());
-                        }
-                    });
+            if (userEntity.getCompanyNo() != null) {
+                builder.claim("companyId", userEntity.getCompanyNo());
+            }
         }
 
         return builder

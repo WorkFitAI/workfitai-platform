@@ -12,5 +12,4 @@ import lombok.experimental.SuperBuilder;
 public class HRResponse extends UserBaseResponse {
   private String department;
   private String address;
-  private String companyId;
 }

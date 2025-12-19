@@ -26,15 +26,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
-                .anyRequest().authenticated())
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .decoder(jwtDecoder())
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // Allow WebSocket endpoints (auth handled by
+                                                               // WebSocketAuthInterceptor)
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder())
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
         return http.build();
     }
 
@@ -43,7 +45,8 @@ public class SecurityConfig {
         try {
             RSAPublicKey publicKey = publicKeyProvider.getPublicKey();
             NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
-            decoder.setJwtValidator(jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
+            decoder.setJwtValidator(
+                    jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
             return decoder;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load public key from auth-service", e);

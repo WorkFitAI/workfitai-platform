@@ -27,6 +27,13 @@ public class UserBaseResponse {
   private EUserRole userRole;
   private EUserStatus userStatus;
 
+  // Company information (for HR and HR_MANAGER roles)
+  private UUID companyId;
+  private String companyName;
+  private String companyNo;
+  private String department;
+  private String address;
+
   // auditing info
   private String createdBy;
   private Instant createdDate;

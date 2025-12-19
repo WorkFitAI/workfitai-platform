@@ -61,6 +61,8 @@ public class UserIndexConsumer {
                 .status(data.getUserStatus().name())
                 .blocked(data.isBlocked())
                 .deleted(data.isDeleted())
+                .companyNo(data.getCompanyNo())
+                .companyName(data.getCompanyName())
                 .createdDate(data.getCreatedDate())
                 .lastModifiedDate(data.getLastModifiedDate())
                 .version(data.getVersion())

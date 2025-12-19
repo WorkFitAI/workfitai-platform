@@ -1,6 +1,7 @@
 package org.workfitai.notificationservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationPersistenceService {
 
     private final EmailLogRepository emailLogRepository;
     private final NotificationRepository notificationRepository;
+    private final RealtimeNotificationService realtimeService;
 
     /**
      * Save email delivery log
@@ -45,7 +48,7 @@ public class NotificationPersistenceService {
     }
 
     /**
-     * Create in-app notification
+     * Create in-app notification and push to user in real-time
      */
     public Notification createNotification(NotificationEvent event) {
         NotificationType type = NotificationType.GENERAL;
@@ -67,7 +70,19 @@ public class NotificationPersistenceService {
                 .read(false)
                 .createdAt(Instant.now())
                 .build();
-        return notificationRepository.save(notification);
+
+        Notification saved = notificationRepository.save(notification);
+
+        // Push notification to user via WebSocket in real-time
+        try {
+            realtimeService.pushToUser(saved.getUserEmail(), saved);
+            log.debug("Pushed notification to WebSocket: user={}, id={}", saved.getUserEmail(), saved.getId());
+        } catch (Exception e) {
+            log.error("Failed to push notification via WebSocket: {}", e.getMessage());
+            // Continue execution even if WebSocket push fails
+        }
+
+        return saved;
     }
 
     /**
@@ -78,21 +93,14 @@ public class NotificationPersistenceService {
     }
 
     /**
-     * Get notifications for a user by ID
-     */
-    public Page<Notification> getNotificationsByUserId(String userId, Pageable pageable) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-    }
-
-    /**
-     * Get unread notification count
+     * Get unread notification count for a user
      */
     public long getUnreadCount(String userEmail) {
         return notificationRepository.countByUserEmailAndReadFalse(userEmail);
     }
 
     /**
-     * Mark notification as read
+     * Mark notification as read and update unread count via WebSocket
      */
     public Notification markAsRead(String notificationId) {
         return notificationRepository.findById(notificationId)
@@ -100,13 +108,24 @@ public class NotificationPersistenceService {
                     n.setRead(true);
                     n.setReadAt(Instant.now());
                     n.setUpdatedAt(Instant.now());
-                    return notificationRepository.save(n);
+                    Notification saved = notificationRepository.save(n);
+
+                    // Update unread count for user via WebSocket
+                    try {
+                        long unreadCount = getUnreadCount(saved.getUserEmail());
+                        realtimeService.pushUnreadCountUpdate(saved.getUserEmail(), unreadCount);
+                        log.debug("Pushed unread count update: user={}, count={}", saved.getUserEmail(), unreadCount);
+                    } catch (Exception e) {
+                        log.error("Failed to push unread count update: {}", e.getMessage());
+                    }
+
+                    return saved;
                 })
                 .orElse(null);
     }
 
     /**
-     * Mark all notifications as read for a user
+     * Mark all notifications as read and update unread count via WebSocket
      */
     public void markAllAsRead(String userEmail) {
         List<Notification> unread = notificationRepository.findByUserEmailAndReadFalseOrderByCreatedAtDesc(userEmail);
@@ -117,6 +136,14 @@ public class NotificationPersistenceService {
             n.setUpdatedAt(now);
         });
         notificationRepository.saveAll(unread);
+
+        // Push unread count update (should be 0 now)
+        try {
+            realtimeService.pushUnreadCountUpdate(userEmail, 0L);
+            log.debug("Pushed unread count update after marking all read: user={}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to push unread count update: {}", e.getMessage());
+        }
     }
 
     /**
@@ -138,7 +165,8 @@ public class NotificationPersistenceService {
     /**
      * Save email log for application events
      */
-    public EmailLog saveEmailLogForApplication(String applicationId, String email, String subject, boolean delivered, String error) {
+    public EmailLog saveEmailLogForApplication(String applicationId, String email, String subject, boolean delivered,
+            String error) {
         EmailLog log = EmailLog.builder()
                 .eventId(applicationId)
                 .eventType("APPLICATION_CREATED")

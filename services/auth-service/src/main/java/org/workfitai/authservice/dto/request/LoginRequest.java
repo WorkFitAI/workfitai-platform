@@ -18,4 +18,17 @@ public class LoginRequest {
     @NotBlank(message = Messages.Validation.PASSWORD_REQUIRED)
     @Size(min = 8, max = 64, message = Messages.Validation.PASSWORD_LENGTH)
     private String password;
+
+    // Optional geolocation from browser
+    private GeolocationData geolocation;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class GeolocationData {
+        private Double latitude;
+        private Double longitude;
+        private Double accuracy;
+    }
 }

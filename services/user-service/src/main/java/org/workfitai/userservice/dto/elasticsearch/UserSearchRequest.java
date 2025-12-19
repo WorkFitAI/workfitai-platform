@@ -37,6 +37,16 @@ public class UserSearchRequest {
     private Boolean blocked;
 
     /**
+     * Filter by company number/code (for HR filtering)
+     */
+    private String companyNo;
+
+    /**
+     * Filter by company name (for HR filtering)
+     */
+    private String companyName;
+
+    /**
      * Include deleted users in results
      */
     private Boolean includeDeleted;

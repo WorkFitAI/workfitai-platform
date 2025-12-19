@@ -14,6 +14,8 @@ public interface HRMapper
   HREntity toEntity(HRCreateRequest dto);
 
   @Override
+  @Mapping(target = "companyName", source = "companyNo") // Map companyNo to companyName field (TODO: get actual company
+                                                         // name from company service)
   HRResponse toResponse(HREntity entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

@@ -139,6 +139,24 @@ public class AuthServiceImpl implements iAuthService {
             // Continue with registration - will be caught by Kafka consumer if duplicate
         }
 
+        // Check if phone number already exists in user-service (cross-service
+        // validation)
+        if (req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank()) {
+            try {
+                Boolean phoneExistsInUserService = userServiceClient.existsByPhoneNumber(req.getPhoneNumber());
+                if (Boolean.TRUE.equals(phoneExistsInUserService)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Phone number is already registered in the system");
+                }
+            } catch (ResponseStatusException e) {
+                throw e; // Re-throw our validation errors
+            } catch (Exception e) {
+                log.warn("Could not validate phone number with user-service: {}. Proceeding with registration.",
+                        e.getMessage());
+                // Continue with registration - will be caught by Kafka consumer if duplicate
+            }
+        }
+
         // Generate unique username from email (part before @)
         String username = generateUniqueUsername(req.getEmail());
 
@@ -303,8 +321,17 @@ public class AuthServiceImpl implements iAuthService {
                 return initiate2FALogin(user, twoFactorAuth.get(), deviceId);
             }
 
+            // Extract geolocation from request if available
+            Double latitude = null;
+            Double longitude = null;
+            if (req.getGeolocation() != null) {
+                latitude = req.getGeolocation().getLatitude();
+                longitude = req.getGeolocation().getLongitude();
+                log.info("Browser geolocation provided: lat={}, lon={}", latitude, longitude);
+            }
+
             // ✅ No 2FA - proceed with normal login
-            return completeLogin(user, ud, deviceId, request);
+            return completeLogin(user, ud, deviceId, request, latitude, longitude);
 
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.INVALID_CREDENTIALS);
@@ -410,13 +437,15 @@ public class AuthServiceImpl implements iAuthService {
                 .authorities(user.getRoles().toArray(new String[0]))
                 .build();
 
-        return completeLogin(user, ud, deviceId, httpRequest);
+        // 2FA verification happens after initial login, no new geolocation needed
+        return completeLogin(user, ud, deviceId, httpRequest, null, null);
     }
 
     /**
      * Complete normal login (no 2FA) - generate tokens and create session
      */
-    private IssuedTokens completeLogin(User user, UserDetails ud, String deviceId, HttpServletRequest request) {
+    private IssuedTokens completeLogin(User user, UserDetails ud, String deviceId, HttpServletRequest request,
+            Double latitude, Double longitude) {
         String access = jwt.generateAccessToken(ud);
         String jti = jwt.newJti();
         String refresh = jwt.generateRefreshTokenWithJti(ud, jti);
@@ -424,8 +453,9 @@ public class AuthServiceImpl implements iAuthService {
         String dev = normalizeDevice(deviceId);
         refreshStore.saveJti(user.getId(), dev, jti); // Redis: Store refresh token JTI
 
-        // MongoDB: Create session with request context for device/IP detection
-        sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request);
+        // MongoDB: Create session with request context for device/IP detection and
+        // optional browser geolocation
+        sessionService.createSession(user.getId(), jti, jwt.getRefreshExpMs(), request, latitude, longitude);
 
         Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
         return IssuedTokens.of(access, refresh, jwt.getAccessExpMs(), user.getUsername(), roles, user.getCompanyNo());
@@ -513,7 +543,8 @@ public class AuthServiceImpl implements iAuthService {
         Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
         refreshStore.saveJti(userId, dev, newJti); // overwrites + resets TTL
 
-        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles, user.getCompanyNo());
+        return IssuedTokens.of(access, newRefresh, jwt.getAccessExpMs(), user.getUsername(), roles,
+                user.getCompanyNo());
     }
 
     @Override
@@ -640,6 +671,8 @@ public class AuthServiceImpl implements iAuthService {
                         "fullName", fullName,
                         "validUntil", "24 hours",
                         "loginUrl", frontendBaseUrl + "/login"))
+                .sendEmail(true)
+                .createInAppNotification(false) // Transactional email only
                 .build());
     }
 
@@ -657,6 +690,9 @@ public class AuthServiceImpl implements iAuthService {
                         "role", "Candidate",
                         "loginUrl", frontendBaseUrl + "/login",
                         "isCandidate", "true"))
+                .sendEmail(true)
+                .createInAppNotification(true) // Important account event - send both email and in-app
+                .notificationType("ACCOUNT_ACTIVATED")
                 .build());
     }
 
@@ -677,6 +713,9 @@ public class AuthServiceImpl implements iAuthService {
                         "role", role.getRoleName(),
                         "approverType", approverType,
                         "loginUrl", frontendBaseUrl + "/login"))
+                .sendEmail(true)
+                .createInAppNotification(true) // Important status update - send both
+                .notificationType("ACCOUNT_PENDING")
                 .build());
     }
 

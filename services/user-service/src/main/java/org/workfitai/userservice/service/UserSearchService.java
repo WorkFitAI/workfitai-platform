@@ -18,10 +18,7 @@ import org.workfitai.userservice.dto.elasticsearch.UserSearchRequest;
 import org.workfitai.userservice.dto.elasticsearch.UserSearchResponse;
 import org.workfitai.userservice.dto.kafka.UserDocument;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,8 +31,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserSearchService {
 
-    private final ElasticsearchClient elasticsearchClient;
     private static final String INDEX_NAME = "users-index";
+    private final ElasticsearchClient elasticsearchClient;
 
     /**
      * Search users with advanced filtering and aggregations
@@ -55,18 +52,50 @@ public class UserSearchService {
     private SearchRequest buildSearchRequest(UserSearchRequest request) {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
+        boolean hasQuery = request.getQuery() != null && !request.getQuery().isBlank();
+
         // Add search query
-        if (request.getQuery() != null && !request.getQuery().isBlank()) {
+        if (hasQuery) {
             Query multiMatchQuery = Query.of(q -> q
                     .multiMatch(m -> m
                             .query(request.getQuery())
-                            .fields("username^3", "email^2", "fullName^2", "phoneNumber")
+                            .fields("username^3", "email^2", "fullName^2")
                             .fuzziness("AUTO")));
             boolQuery.must(multiMatchQuery);
         }
 
         // Add filters
         addFilters(boolQuery, request);
+
+        // Determine sort field
+        // CRITICAL: Only sort by _score when there's a query (has relevance)
+        // Otherwise, sort by a field like createdDate to avoid "all shards failed"
+        // error
+        String sortField = request.getSortField();
+
+        // map alias FE → ES
+        Map<String, String> SORT_FIELD_MAPPING = Map.of(
+                "createdAt", "createdDate",
+                "score", "_score");
+
+        if (sortField == null || sortField.isBlank()) {
+            sortField = hasQuery ? "_score" : "createdDate";
+        }
+
+        sortField = SORT_FIELD_MAPPING.getOrDefault(sortField, sortField);
+
+        // whitelist field cho ES
+        Set<String> ALLOWED_SORT_FIELDS = Set.of(
+                "_score",
+                "createdDate",
+                "lastModifiedDate");
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortField)) {
+            log.warn("Invalid sortField '{}', fallback to createdDate", sortField);
+            sortField = "createdDate";
+        }
+
+        final String finalSortField = sortField;
 
         // Build search request
         SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
@@ -75,7 +104,7 @@ public class UserSearchService {
                 .from(request.getFrom())
                 .size(request.getSize())
                 .sort(s -> s.field(f -> f
-                        .field(request.getSortField())
+                        .field(finalSortField)
                         .order("desc".equalsIgnoreCase(request.getSortOrder()) ? SortOrder.Desc : SortOrder.Asc)));
 
         // Add aggregations if requested
@@ -123,11 +152,29 @@ public class UserSearchService {
                             .value(FieldValue.of(request.getBlocked())))));
         }
 
+        // Company No filter (for HR filtering by company number/code)
+        if (request.getCompanyNo() != null && !request.getCompanyNo().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("companyNo.keyword")
+                            .value(FieldValue.of(request.getCompanyNo())))));
+        }
+
+        // Company Name filter (for HR filtering by company name)
+        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
+            boolQuery.filter(Query.of(q -> q
+                    .match(m -> m
+                            .field("companyName")
+                            .query(request.getCompanyName()))));
+        }
+
         // Deleted filter (default: exclude deleted users)
-        boolQuery.filter(Query.of(q -> q
-                .term(t -> t
-                        .field("deleted")
-                        .value(FieldValue.of(request.getIncludeDeleted() != null && request.getIncludeDeleted())))));
+        if (request.getIncludeDeleted() == null || !request.getIncludeDeleted()) {
+            boolQuery.filter(Query.of(q -> q
+                    .term(t -> t
+                            .field("deleted")
+                            .value(FieldValue.of(false)))));
+        }
 
         // Date range filters
         if (request.getCreatedAfter() != null || request.getCreatedBefore() != null) {
@@ -198,10 +245,13 @@ public class UserSearchService {
                 .email(doc.getEmail())
                 .fullName(doc.getFullName())
                 .phoneNumber(doc.getPhoneNumber())
+                .avatarUrl(doc.getAvatarUrl())
                 .role(doc.getRole())
                 .status(doc.getStatus())
                 .blocked(doc.isBlocked())
                 .deleted(doc.isDeleted())
+                .companyNo(doc.getCompanyNo())
+                .companyName(doc.getCompanyName())
                 .createdAt(doc.getCreatedDate())
                 .updatedAt(doc.getLastModifiedDate())
                 .score(hit.score() != null ? hit.score() : 0.0)

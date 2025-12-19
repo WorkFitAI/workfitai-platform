@@ -259,6 +259,9 @@ public class HRServiceImpl implements HRService {
         .subject("Your account is pending approval")
         .content("Your " + role.name() + " account is pending approval.")
         .metadata(Map.of("role", role.name(), "companyId", metadataCompanyId))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_PENDING")
         .build());
   }
 
@@ -277,6 +280,9 @@ public class HRServiceImpl implements HRService {
     entity.setApprovedAt(Instant.now());
     HREntity saved = hrRepository.save(entity);
 
+    // Publish USER_UPDATED event for Elasticsearch sync
+    userEventPublisher.publishUserUpdated(saved);
+
     // Publish event to sync status with auth-service
     publishUserStatusUpdate(saved, "HR_MANAGER_APPROVED");
 
@@ -294,6 +300,9 @@ public class HRServiceImpl implements HRService {
             "role", "HR Manager",
             "loginUrl", "https://workfitai.com/login",
             "isHRManager", "true"))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_APPROVED")
         .build());
 
     // Publish company sync event to job-service
@@ -320,6 +329,9 @@ public class HRServiceImpl implements HRService {
     entity.setApprovedAt(Instant.now());
     HREntity saved = hrRepository.save(entity);
 
+    // Publish USER_UPDATED event for Elasticsearch sync
+    userEventPublisher.publishUserUpdated(saved);
+
     // Publish event to sync status with auth-service
     publishUserStatusUpdate(saved, "HR_APPROVED");
 
@@ -337,6 +349,9 @@ public class HRServiceImpl implements HRService {
             "role", "HR",
             "loginUrl", "https://workfitai.com/login",
             "isHR", "true"))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_APPROVED")
         .build());
 
     return hrMapper.toResponse(saved);

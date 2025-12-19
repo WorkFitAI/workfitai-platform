@@ -32,7 +32,16 @@ public class CriticalNotificationStrategy implements NotificationStrategy {
         log.warn("[CRITICAL] Processing critical notification: {} for {}",
                 event.getEventType(), event.getRecipientEmail());
 
-        // Force both channels for critical notifications
+        // Log warning if flags suggest not sending, but force anyway for security
+        if (Boolean.FALSE.equals(event.getSendEmail())) {
+            log.warn("[CRITICAL] sendEmail=false but forcing email for critical security notification");
+        }
+        if (Boolean.FALSE.equals(event.getCreateInAppNotification())) {
+            log.warn("[CRITICAL] createInAppNotification=false but forcing in-app for critical notification");
+        }
+
+        // Force both channels for critical notifications (security events must be
+        // delivered)
         boolean emailSent = emailService.sendEmail(event);
         boolean inAppCreated = false;
 

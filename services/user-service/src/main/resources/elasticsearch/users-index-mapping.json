@@ -72,6 +72,23 @@
             "deleted": {
                 "type": "boolean"
             },
+            "companyNo": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "companyName": {
+                "type": "text",
+                "analyzer": "vietnamese_analyzer",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
             "createdDate": {
                 "type": "date"
             },

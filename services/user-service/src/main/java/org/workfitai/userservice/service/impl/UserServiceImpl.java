@@ -1,16 +1,11 @@
 package org.workfitai.userservice.service.impl;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +17,8 @@ import org.workfitai.userservice.exception.ApiException;
 import org.workfitai.userservice.mapper.AdminMapper;
 import org.workfitai.userservice.mapper.CandidateMapper;
 import org.workfitai.userservice.mapper.HRMapper;
+import org.workfitai.userservice.messaging.UserEventPublisher;
+import org.workfitai.userservice.messaging.SessionInvalidationProducer;
 import org.workfitai.userservice.model.AdminEntity;
 import org.workfitai.userservice.model.CandidateEntity;
 import org.workfitai.userservice.model.HREntity;
@@ -33,11 +30,14 @@ import org.workfitai.userservice.repository.UserRepository;
 import org.workfitai.userservice.service.AdminService;
 import org.workfitai.userservice.service.CandidateService;
 import org.workfitai.userservice.service.HRService;
-import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.service.UserService;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final HRMapper hrMapper;
     private final AdminMapper adminMapper;
     private final UserEventPublisher eventPublisher;
+    private final SessionInvalidationProducer sessionInvalidationProducer;
     private final CandidateService candidateService;
     private final HRService hrService;
     private final AdminService adminService;
@@ -137,6 +138,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            return false;
+        }
+        return userRepository.existsByPhoneNumber(phoneNumber);
+    }
+
+    @Override
     public UUID findUserIdByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(UserEntity::getId)
@@ -155,7 +164,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserBaseResponse mapToBaseResponse(UserEntity user) {
-        return UserBaseResponse.builder()
+        UserBaseResponse.UserBaseResponseBuilder builder = UserBaseResponse.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
@@ -168,8 +177,20 @@ public class UserServiceImpl implements UserService {
                 .createdDate(user.getCreatedDate())
                 .lastModifiedBy(user.getLastModifiedBy())
                 .lastModifiedDate(user.getLastModifiedDate())
-                .isDeleted(user.isDeleted())
-                .build();
+                .isDeleted(user.isDeleted());
+
+        // Add company information for HR and HR_MANAGER roles
+        if (user.getUserRole() == EUserRole.HR || user.getUserRole() == EUserRole.HR_MANAGER) {
+            hrRepository.findById(user.getUserId()).ifPresent(hr -> {
+                builder.companyId(hr.getCompanyId())
+                        .companyName(hr.getCompanyName())
+                        .companyNo(hr.getCompanyNo())
+                        .department(hr.getDepartment())
+                        .address(hr.getAddress());
+            });
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -261,27 +282,34 @@ public class UserServiceImpl implements UserService {
         return mapToBaseResponse(user);
     }
 
+    @Override
+    public UserBaseResponse getUserByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+        return mapToBaseResponse(user);
+    }
+
     /*
      * // TODO: Requires getByUserId() methods in CandidateService, HRService,
      * AdminService
-     * 
+     *
      * @Override
      * public Object getFullUserProfile(UUID userId) {
      * UserEntity user = userRepository.findById(userId)
      * .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
-     * 
+     *
      * // Delegate to role-specific service
      * switch (user.getUserRole()) {
      * case CANDIDATE:
      * return candidateService.getByUserId(userId);
-     * 
+     *
      * case HR:
      * case HR_MANAGER:
      * return hrService.getByUserId(userId);
-     * 
+     *
      * case ADMIN:
      * return adminService.getByUserId(userId);
-     * 
+     *
      * default:
      * throw new ApiException("Unknown user role: " + user.getUserRole(),
      * HttpStatus.BAD_REQUEST);
@@ -301,6 +329,12 @@ public class UserServiceImpl implements UserService {
         if (blocked) {
             user.setUserStatus(EUserStatus.SUSPENDED);
             log.info("User {} blocked by admin", user.getUsername());
+
+            // Invalidate all sessions when blocking user
+            sessionInvalidationProducer.publishSessionInvalidation(
+                    user.getUserId(),
+                    user.getUsername(),
+                    "BLOCKED");
         } else {
             user.setUserStatus(EUserStatus.ACTIVE);
             log.info("User {} unblocked by admin", user.getUsername());
@@ -326,6 +360,12 @@ public class UserServiceImpl implements UserService {
             throw new ApiException("User already deleted", HttpStatus.CONFLICT);
         }
 
+        // Invalidate all sessions when deleting user
+        sessionInvalidationProducer.publishSessionInvalidation(
+                user.getUserId(),
+                user.getUsername(),
+                "DELETED");
+
         // Soft delete
         user.setDeleted(true);
         user.setDeletedAt(Instant.now());
@@ -336,5 +376,33 @@ public class UserServiceImpl implements UserService {
 
         // Publish event to Kafka for Elasticsearch sync
         eventPublisher.publishUserDeleted(user);
+    }
+
+    @Override
+    @Transactional
+    public void setUserBlockStatusByUsername(String username, boolean blocked, String currentUserId) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        // Prevent self-blocking
+        if (user.getUserId().toString().equals(currentUserId)) {
+            throw new ApiException("You cannot block yourself", HttpStatus.BAD_REQUEST);
+        }
+
+        setUserBlockStatus(user.getUserId(), blocked);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserByUsername(String username, String currentUserId) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        // Prevent self-deletion
+        if (user.getUserId().toString().equals(currentUserId)) {
+            throw new ApiException("You cannot delete yourself", HttpStatus.BAD_REQUEST);
+        }
+
+        deleteUser(user.getUserId());
     }
 }

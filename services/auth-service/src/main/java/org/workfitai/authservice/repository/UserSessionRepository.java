@@ -18,7 +18,7 @@ public interface UserSessionRepository extends MongoRepository<UserSession, Stri
 
     long countByUserId(String userId);
 
-    void deleteByUserId(String userId);
+    int deleteByUserId(String userId);
 
     void deleteByUserIdAndSessionId(String userId, String sessionId);
 

@@ -1,11 +1,10 @@
 package org.workfitai.userservice.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -58,6 +57,11 @@ public interface UserService {
     boolean existsByUsername(String username);
 
     /**
+     * Check if phone number exists.
+     */
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    /**
      * Find user ID by username.
      * Used to convert username from JWT to user ID for service operations.
      *
@@ -79,7 +83,7 @@ public interface UserService {
      * Check if deactivated account can be reactivated (within 30 days) and
      * auto-reactivate.
      * Called by auth-service during login.
-     * 
+     *
      * @param username the username to check
      * @return true if account was reactivated, false if beyond 30 days or deleted
      */
@@ -103,6 +107,8 @@ public interface UserService {
      * @return user base response
      */
     UserBaseResponse getByUserId(UUID userId);
+
+    UserBaseResponse getUserByUsername(String username);
 
     /**
      * Get full user profile with role-specific details.
@@ -129,4 +135,21 @@ public interface UserService {
      * @param blocked true to block, false to unblock
      */
     void setUserBlockStatus(UUID userId, boolean blocked);
+
+    /**
+     * Block or unblock user account by username.
+     *
+     * @param username      the username
+     * @param blocked       true to block, false to unblock
+     * @param currentUserId current logged-in user ID (to prevent self-blocking)
+     */
+    void setUserBlockStatusByUsername(String username, boolean blocked, String currentUserId);
+
+    /**
+     * Delete user by username (soft delete).
+     *
+     * @param username      the username to delete
+     * @param currentUserId current logged-in user ID (to prevent self-deletion)
+     */
+    void deleteUserByUsername(String username, String currentUserId);
 }
