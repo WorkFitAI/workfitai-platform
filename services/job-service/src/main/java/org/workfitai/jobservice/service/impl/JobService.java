@@ -50,12 +50,12 @@ public class JobService implements iJobService {
     private final CompanyRepository companyRepository;
 
     private final CloudinaryService cloudinaryService;
-    
+
     private final JobEventProducer jobEventProducer;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-                      SkillRepository skillRepository, CompanyRepository companyRepository, 
-                      CloudinaryService cloudinaryService, JobEventProducer jobEventProducer) {
+            SkillRepository skillRepository, CompanyRepository companyRepository,
+            CloudinaryService cloudinaryService, JobEventProducer jobEventProducer) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -98,7 +98,6 @@ public class JobService implements iJobService {
         return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
     }
 
-
     @Override
     public ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageJob = jobRepository.findAll(spec, pageable);
@@ -109,7 +108,8 @@ public class JobService implements iJobService {
     public ResJobDetailsDTO fetchJobById(UUID id) {
         Optional<Job> jobOptional = getJobById(id);
 
-        if (jobOptional.isEmpty()) return null;
+        if (jobOptional.isEmpty())
+            return null;
 
         Job job = jobOptional.get();
 
@@ -120,13 +120,13 @@ public class JobService implements iJobService {
         return jobMapper.toResJobDetailsDTO(job);
     }
 
-
     @Override
     public ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id) {
         String currentUser = SecurityUtils.getCurrentUser();
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to get the job!"));
+        companyRepository.findById(validCompanyNo)
+                .orElseThrow(() -> new NoPermissionException("You don't have permission to get the job!"));
 
         Job job = jobRepository.findByIdAndCreatedBy(id, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
@@ -146,7 +146,6 @@ public class JobService implements iJobService {
         return jobMapper.toResJobDetailsForAdminDTO(job);
     }
 
-
     @Override
     public Optional<Job> getJobById(UUID id) {
         return this.jobRepository.findById(id);
@@ -154,9 +153,11 @@ public class JobService implements iJobService {
 
     @Override
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
-        String validCompanyNo = SecurityUtils.getValidCompanyNo();
+        // String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to create job with this company"));
+        // companyRepository.findById(validCompanyNo).orElseThrow(
+        // () -> new NoPermissionException("You don't have permission to create job with
+        // this company"));
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
             Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
@@ -166,10 +167,10 @@ public class JobService implements iJobService {
             log.debug("Saving job to database");
             Job currentJob = this.jobRepository.save(job);
             log.debug("Job saved successfully with ID: {}", currentJob.getJobId());
-            
+
             // Publish job created event to Kafka
             jobEventProducer.publishJobCreated(currentJob);
-            
+
             return jobMapper.toResCreateJobDTO(currentJob);
         } catch (Exception e) {
             log.error("Error creating job: {}", e.getMessage(), e);
@@ -180,11 +181,12 @@ public class JobService implements iJobService {
     @Override
     public ResUpdateJobDTO updateJob(ReqUpdateJobDTO jobDTO, Job dbJob) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
-        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to update job with this company"));
+        companyRepository.findById(validCompanyNo).orElseThrow(
+                () -> new NoPermissionException("You don't have permission to update job with this company"));
 
         // Clone the old job for change detection
         Job oldJob = cloneJobForComparison(dbJob);
-        
+
         Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
@@ -206,31 +208,31 @@ public class JobService implements iJobService {
         dbJob.setExpiresAt(job.getExpiresAt());
 
         this.jobRepository.save(dbJob);
-        
+
         // Publish job updated event with changes
         Map<String, Object> changes = detectChanges(oldJob, dbJob);
         if (!changes.isEmpty()) {
             jobEventProducer.publishJobUpdated(dbJob, changes);
         }
-        
+
         return jobMapper.toResUpdateJobDTO(dbJob);
     }
-
 
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to update stats with this company"));
+        companyRepository.findById(validCompanyNo).orElseThrow(
+                () -> new NoPermissionException("You don't have permission to update stats with this company"));
 
         if (status == job.getStatus()) {
             throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }
-        
+
         JobStatus oldStatus = job.getStatus();
         job.setStatus(status);
         this.jobRepository.save(job);
-        
+
         // Publish update event for status change
         Map<String, Object> changes = new HashMap<>();
         changes.put("status", Map.of("old", oldStatus.toString(), "new", status.toString()));
@@ -249,7 +251,7 @@ public class JobService implements iJobService {
 
         job.setDeleted(true);
         this.jobRepository.save(job);
-        
+
         // Publish job deleted event
         jobEventProducer.publishJobDeleted(job, "Soft deleted by user");
     }
@@ -272,8 +274,8 @@ public class JobService implements iJobService {
         if (job.getSkills() != null) {
             List<UUID> reqSkills = job.getSkills().stream()
                     .map(Skill::getId)
-                    .filter(Objects::nonNull)   // tránh null id
-                    .distinct()                  // loại bỏ trùng
+                    .filter(Objects::nonNull) // tránh null id
+                    .distinct() // loại bỏ trùng
                     .collect(Collectors.toList());
 
             if (!reqSkills.isEmpty()) {
@@ -339,8 +341,7 @@ public class JobService implements iJobService {
                 skillIds,
                 job.getLocation(),
                 job.getTitle(),
-                job.getExperienceLevel()
-        );
+                job.getExperienceLevel());
 
         Collections.shuffle(list);
 
@@ -369,7 +370,7 @@ public class JobService implements iJobService {
 
         return bannerUrl;
     }
-    
+
     /**
      * Clone job for comparison before update
      */
@@ -394,13 +395,13 @@ public class JobService implements iJobService {
         clone.setStatus(job.getStatus());
         return clone;
     }
-    
+
     /**
      * Detect changes between old and new job
      */
     private Map<String, Object> detectChanges(Job oldJob, Job newJob) {
         Map<String, Object> changes = new HashMap<>();
-        
+
         if (!Objects.equals(oldJob.getTitle(), newJob.getTitle())) {
             changes.put("title", Map.of("old", oldJob.getTitle(), "new", newJob.getTitle()));
         }
@@ -420,7 +421,8 @@ public class JobService implements iJobService {
             changes.put("salaryMax", Map.of("old", oldJob.getSalaryMax(), "new", newJob.getSalaryMax()));
         }
         if (!Objects.equals(oldJob.getExperienceLevel(), newJob.getExperienceLevel())) {
-            changes.put("experienceLevel", Map.of("old", oldJob.getExperienceLevel(), "new", newJob.getExperienceLevel()));
+            changes.put("experienceLevel",
+                    Map.of("old", oldJob.getExperienceLevel(), "new", newJob.getExperienceLevel()));
         }
         if (!Objects.equals(oldJob.getEmploymentType(), newJob.getEmploymentType())) {
             changes.put("employmentType", Map.of("old", oldJob.getEmploymentType(), "new", newJob.getEmploymentType()));
@@ -428,7 +430,7 @@ public class JobService implements iJobService {
         if (!Objects.equals(oldJob.getStatus(), newJob.getStatus())) {
             changes.put("status", Map.of("old", oldJob.getStatus().toString(), "new", newJob.getStatus().toString()));
         }
-        
+
         return changes;
     }
 

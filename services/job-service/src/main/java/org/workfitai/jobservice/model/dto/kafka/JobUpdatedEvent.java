@@ -17,12 +17,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobUpdatedEvent {
-    
-    private String eventType;  // "JOB_UPDATED"
+
+    private String eventType; // "JOB_UPDATED"
     private Instant timestamp;
     private UUID jobId;
     private JobEventData data;
-    
+
     // Optional: track changed fields
     private Map<String, Object> changes;
 }

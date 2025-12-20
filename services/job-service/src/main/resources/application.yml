@@ -69,6 +69,15 @@ app:
       job-updated: ${KAFKA_TOPIC_JOB_UPDATED:job.updated}
       job-deleted: ${KAFKA_TOPIC_JOB_DELETED:job.deleted}
 
+# Service URLs for Feign clients
+service:
+  recommendation:
+    url: ${RECOMMENDATION_ENGINE_URL:http://localhost:8001}
+  cv:
+    url: ${CV_SERVICE_URL:http://localhost:9083}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://localhost:9080}
+
 server:
   port: ${SERVER_PORT:9005}
 
@@ -137,6 +146,10 @@ spring:
 
 # Service URLs for Docker environment
 service:
+  recommendation:
+    url: ${RECOMMENDATION_ENGINE_URL:http://recommendation-engine:8000}
+  cv:
+    url: ${CV_SERVICE_URL:http://cv-service:9005}
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
 

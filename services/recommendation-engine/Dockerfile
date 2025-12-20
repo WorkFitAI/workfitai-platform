@@ -31,8 +31,8 @@ RUN mkdir -p /app/models /app/data /app/logs
 # Expose FastAPI port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Health check (increase start-period for model loading)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Set environment variables
@@ -42,5 +42,5 @@ ENV PYTHONUNBUFFERED=1 \
     FAISS_INDEX_PATH=/app/data/faiss_index \
     LOG_LEVEL=INFO
 
-# Run FastAPI with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-level", "info"]
+# Run FastAPI with Uvicorn (increase timeout for model loading)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-level", "info", "--timeout-keep-alive", "300"]

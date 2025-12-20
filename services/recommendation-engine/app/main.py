@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     
     try:
-        # Initialize model
+        # Initialize model (blocking but safer than threading)
         logger.info("Loading Sentence Transformer model...")
         from app.services.embedding_service import EmbeddingGenerator
         app_state["model"] = EmbeddingGenerator(settings.MODEL_PATH)
@@ -83,14 +83,26 @@ async def lifespan(app: FastAPI):
             logger.info("Starting Kafka consumer...")
             try:
                 from app.kafka_consumer.consumer import JobEventConsumer
+                from app.services import job_formatter
+                
+                # Kafka configuration
+                kafka_config = {
+                    "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                    "group_id": settings.KAFKA_CONSUMER_GROUP,
+                    "topic_job_created": settings.KAFKA_TOPIC_JOB_CREATED,
+                    "topic_job_updated": settings.KAFKA_TOPIC_JOB_UPDATED,
+                    "topic_job_deleted": settings.KAFKA_TOPIC_JOB_DELETED
+                }
+                
                 app_state["kafka_consumer"] = JobEventConsumer(
+                    kafka_config=kafka_config,
                     faiss_manager=app_state["faiss_manager"],
-                    model=app_state["model"]
+                    job_formatter=job_formatter,
+                    embedding_generator=app_state["model"]
                 )
-                # Start consumer in background task
-                asyncio.create_task(
-                    asyncio.to_thread(app_state["kafka_consumer"].start_consuming)
-                )
+                
+                # Start consumer in background
+                app_state["kafka_consumer"].start_consuming()
                 logger.info("✓ Kafka consumer started")
             except Exception as e:
                 logger.error(f"Failed to start Kafka consumer: {e}", exc_info=True)
@@ -246,6 +258,7 @@ async def root():
 
 # Make app_state accessible to routes
 app.state.model = lambda: app_state["model"]
+app.state.embedding_generator = lambda: app_state["model"]  # Alias for clarity
 app.state.faiss_manager = lambda: app_state["faiss_manager"]
 app.state.resume_parser = lambda: app_state["resume_parser"]
 

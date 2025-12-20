@@ -204,7 +204,8 @@ public class AuthServiceImpl implements iAuthService {
                 .roles(Set.of(role.getRoleName()))
                 .status(UserStatus.PENDING)
                 .companyId(companyId)
-                .companyNo(role == UserRole.HR_MANAGER && req.getCompany() != null ? req.getCompany().getCompanyNo()
+                .companyNo((role == UserRole.HR_MANAGER || role == UserRole.HR) && req.getCompany() != null
+                        ? req.getCompany().getCompanyNo()
                         : null)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())

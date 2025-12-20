@@ -24,18 +24,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class JobEventProducer {
-    
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    
+
     @Value("${app.kafka.topics.job-created:job.created}")
     private String jobCreatedTopic;
-    
+
     @Value("${app.kafka.topics.job-updated:job.updated}")
     private String jobUpdatedTopic;
-    
+
     @Value("${app.kafka.topics.job-deleted:job.deleted}")
     private String jobDeletedTopic;
-    
+
     /**
      * Publish event khi tạo job mới
      */
@@ -47,23 +47,23 @@ public class JobEventProducer {
                     .jobId(job.getJobId())
                     .data(mapJobToEventData(job))
                     .build();
-            
+
             kafkaTemplate.send(jobCreatedTopic, job.getJobId().toString(), event);
             log.info("Published JOB_CREATED event for jobId: {}", job.getJobId());
-            
+
         } catch (Exception e) {
             log.error("Failed to publish JOB_CREATED event for jobId: {}", job.getJobId(), e);
             // Don't throw exception - event publishing shouldn't break the main flow
         }
     }
-    
+
     /**
      * Publish event khi update job
      */
     public void publishJobUpdated(Job job) {
         publishJobUpdated(job, null);
     }
-    
+
     /**
      * Publish event khi update job với tracking changes
      */
@@ -76,15 +76,15 @@ public class JobEventProducer {
                     .data(mapJobToEventData(job))
                     .changes(changes)
                     .build();
-            
+
             kafkaTemplate.send(jobUpdatedTopic, job.getJobId().toString(), event);
             log.info("Published JOB_UPDATED event for jobId: {}", job.getJobId());
-            
+
         } catch (Exception e) {
             log.error("Failed to publish JOB_UPDATED event for jobId: {}", job.getJobId(), e);
         }
     }
-    
+
     /**
      * Publish event khi xóa/đóng job
      */
@@ -97,15 +97,15 @@ public class JobEventProducer {
                     .reason(reason)
                     .status(job.getStatus().name())
                     .build();
-            
+
             kafkaTemplate.send(jobDeletedTopic, job.getJobId().toString(), event);
             log.info("Published JOB_DELETED event for jobId: {} with reason: {}", job.getJobId(), reason);
-            
+
         } catch (Exception e) {
             log.error("Failed to publish JOB_DELETED event for jobId: {}", job.getJobId(), e);
         }
     }
-    
+
     /**
      * Map Job entity sang JobEventData
      */
@@ -126,11 +126,9 @@ public class JobEventProducer {
                 .salaryMin(job.getSalaryMin() != null ? job.getSalaryMin().doubleValue() : null)
                 .salaryMax(job.getSalaryMax() != null ? job.getSalaryMax().doubleValue() : null)
                 .currency(job.getCurrency())
-                .skills(job.getSkills() != null ? 
-                        job.getSkills().stream()
-                                .map(Skill::getName)
-                                .collect(Collectors.toList()) : 
-                        null)
+                .skills(job.getSkills() != null ? job.getSkills().stream()
+                        .map(Skill::getName)
+                        .collect(Collectors.toList()) : null)
                 .company(mapCompanyData(job))
                 .status(job.getStatus() != null ? job.getStatus().name() : null)
                 .expiresAt(job.getExpiresAt())
@@ -138,7 +136,7 @@ public class JobEventProducer {
                 .updatedAt(job.getLastModifiedDate())
                 .build();
     }
-    
+
     /**
      * Map company data
      */
@@ -146,36 +144,36 @@ public class JobEventProducer {
         if (job.getCompany() == null) {
             return null;
         }
-        
+
         return JobEventData.CompanyData.builder()
                 .companyId(job.getCompany().getCompanyNo())
                 .companyName(job.getCompany().getName())
-                .industry(null)  // Not available in current Company model
+                .industry(null) // Not available in current Company model
                 .companySize(job.getCompany().getSize())
                 .description(job.getCompany().getDescription())
                 .build();
     }
-    
+
     /**
      * Detect changes giữa old và new job (helper method for tracking changes)
      */
     public Map<String, Object> detectChanges(Job oldJob, Job newJob) {
         Map<String, Object> changes = new HashMap<>();
-        
+
         if (!oldJob.getTitle().equals(newJob.getTitle())) {
             changes.put("title", Map.of("old", oldJob.getTitle(), "new", newJob.getTitle()));
         }
-        
+
         if (oldJob.getDescription() != null && !oldJob.getDescription().equals(newJob.getDescription())) {
             changes.put("description", Map.of("old", oldJob.getDescription(), "new", newJob.getDescription()));
         }
-        
+
         if (oldJob.getSalaryMax() != null && !oldJob.getSalaryMax().equals(newJob.getSalaryMax())) {
             changes.put("salaryMax", Map.of("old", oldJob.getSalaryMax(), "new", newJob.getSalaryMax()));
         }
-        
+
         // Add more fields as needed
-        
+
         return changes.isEmpty() ? null : changes;
     }
 }

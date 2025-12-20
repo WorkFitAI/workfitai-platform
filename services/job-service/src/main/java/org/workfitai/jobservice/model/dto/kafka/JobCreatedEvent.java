@@ -16,8 +16,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobCreatedEvent {
-    
-    private String eventType;  // "JOB_CREATED"
+
+    private String eventType; // "JOB_CREATED"
     private Instant timestamp;
     private UUID jobId;
     private JobEventData data;
