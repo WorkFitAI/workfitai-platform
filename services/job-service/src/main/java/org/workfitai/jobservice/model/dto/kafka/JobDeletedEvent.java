@@ -16,10 +16,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobDeletedEvent {
-    
-    private String eventType;  // "JOB_DELETED"
+
+    private String eventType; // "JOB_DELETED"
     private Instant timestamp;
     private UUID jobId;
-    private String reason;  // EXPIRED, HR_REMOVED, ADMIN_FLAGGED
-    private String status;  // CLOSED, REMOVED
+    private String reason; // EXPIRED, HR_REMOVED, ADMIN_FLAGGED
+    private String status; // CLOSED, REMOVED
 }

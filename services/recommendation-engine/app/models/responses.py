@@ -10,8 +10,23 @@ from datetime import datetime
 class JobRecommendation(BaseModel):
     """Single job recommendation with score and metadata"""
     jobId: str = Field(..., description="Job ID")
-    score: float = Field(..., description="Similarity score (0-1)", ge=0, le=1)
-    rank: int = Field(..., description="Ranking position (1-based)", ge=1)
+    score: float = Field(..., description="Final similarity score (0-1)", ge=0, le=1.01)  # Allow slight float precision overflow
+    rank: int = Field(default=1, description="Ranking position (1-based)", ge=1)
+    
+    # Scoring details (for 2-stage pipeline)
+    biEncoderScore: Optional[float] = Field(default=None, description="Bi-encoder (FAISS) score")
+    crossEncoderScore: Optional[float] = Field(default=None, description="Cross-encoder reranking score")
+    
+    # Job details (optional, from metadata)
+    title: Optional[str] = Field(default=None, description="Job title")
+    company: Optional[str] = Field(default=None, description="Company name")
+    location: Optional[str] = Field(default=None, description="Job location")
+    salary: Optional[str] = Field(default=None, description="Salary range")
+    experienceLevel: Optional[str] = Field(default=None, description="Experience level required")
+    jobType: Optional[str] = Field(default=None, description="Job type (Full-time, Part-time, etc.)")
+    skills: Optional[List[str]] = Field(default=None, description="Required skills")
+    
+    # Matching metadata
     matchedSkills: Optional[List[str]] = Field(default=None, description="Skills that matched")
     matchReasons: Optional[List[str]] = Field(default=None, description="Reasons for the match")
 
