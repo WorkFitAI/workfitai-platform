@@ -50,9 +50,6 @@ public class LoggingMdcFilter implements GlobalFilter, Ordered {
 
         final String finalRequestId = requestId;
 
-        // Add request ID to response headers for client correlation
-        exchange.getResponse().getHeaders().add(REQUEST_ID_HEADER, finalRequestId);
-
         // Build mutated request with X-Request-Id header for downstream services
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header(REQUEST_ID_HEADER, finalRequestId)
@@ -60,7 +57,7 @@ public class LoggingMdcFilter implements GlobalFilter, Ordered {
 
         ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
 
-        // Extract username from security context and set MDC
+        // Extract username from security context (JWT) and set MDC
         return ReactiveSecurityContextHolder.getContext()
                 .map(ctx -> ctx.getAuthentication())
                 .filter(auth -> auth != null && auth.isAuthenticated())
@@ -69,19 +66,25 @@ public class LoggingMdcFilter implements GlobalFilter, Ordered {
                 .map(jwt -> jwt.getSubject())
                 .defaultIfEmpty("anonymous")
                 .flatMap(username -> {
+                    // Auto-detect log type
+                    String logType = detectLogType(path, username);
+
                     // Set MDC context for this request (reactive context)
                     return chain.filter(mutatedExchange)
                             .contextWrite(ctx -> ctx
                                     .put("requestId", finalRequestId)
                                     .put("username", username)
                                     .put("path", path)
-                                    .put("method", method))
+                                    .put("method", method)
+                                    .put("log_type", logType))
                             .doOnSubscribe(sub -> {
                                 MDC.put("requestId", finalRequestId);
                                 MDC.put("username", username);
                                 MDC.put("path", path);
                                 MDC.put("method", method);
-                                log.info("🚀 {} {} started [requestId={}]", method, path, finalRequestId);
+                                MDC.put("log_type", logType);
+                                log.info("🚀 {} {} started [requestId={}, type={}]", method, path, finalRequestId,
+                                        logType);
                             })
                             .doFinally(signalType -> {
                                 log.info("✅ {} {} completed [requestId={}, signal={}]",
@@ -93,7 +96,30 @@ public class LoggingMdcFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        // Run before JwtClaimsExtractionFilter to have requestId available first
-        return -100;
+        // Run AFTER JwtClaimsExtractionFilter (-50) to have username available
+        return -40;
+    }
+
+    /**
+     * Auto-detect log type based on request characteristics.
+     */
+    private String detectLogType(String path, String username) {
+        // Health checks and actuator endpoints
+        if (path.contains("/actuator/") || path.endsWith("/health") || path.endsWith("/metrics")) {
+            return "HEALTH_CHECK";
+        }
+
+        // Authentication endpoints (Gateway paths before stripping prefix)
+        if (path.startsWith("/auth/")) {
+            return "AUTH";
+        }
+
+        // User-initiated actions (authenticated users on business endpoints)
+        if (username != null && !username.equals("anonymous") && !username.equals("system")) {
+            return "USER_ACTION";
+        }
+
+        // Default to system logs
+        return "SYSTEM";
     }
 }

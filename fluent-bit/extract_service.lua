@@ -161,6 +161,28 @@ function normalize_log_fields(tag, timestamp, record)
     end
     
     -- ==========================================================================
+    -- LOG CLASSIFICATION: Extract log type and action context
+    -- ==========================================================================
+    if record["log_type"] and record["log_type"] ~= "" then
+        new_record["log_type"] = record["log_type"]
+    else
+        -- Default to SYSTEM if not specified
+        new_record["log_type"] = "SYSTEM"
+    end
+    
+    if record["action"] and record["action"] ~= "" then
+        new_record["action"] = record["action"]
+    end
+    
+    if record["entity_type"] and record["entity_type"] ~= "" then
+        new_record["entity_type"] = record["entity_type"]
+    end
+    
+    if record["entity_id"] and record["entity_id"] ~= "" then
+        new_record["entity_id"] = record["entity_id"]
+    end
+    
+    -- ==========================================================================
     -- REQUEST TRACING: Extract request/trace information
     -- ==========================================================================
     if record["requestId"] and record["requestId"] ~= "" then

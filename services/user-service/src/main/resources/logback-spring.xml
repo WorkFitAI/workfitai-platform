@@ -24,6 +24,12 @@
             <includeMdcKeyName>method</includeMdcKeyName>
             <includeMdcKeyName>roles</includeMdcKeyName>
             
+            <!-- Log classification fields -->
+            <includeMdcKeyName>log_type</includeMdcKeyName>
+            <includeMdcKeyName>action</includeMdcKeyName>
+            <includeMdcKeyName>entity_type</includeMdcKeyName>
+            <includeMdcKeyName>entity_id</includeMdcKeyName>
+            
             <fieldNames>
                 <timestamp>@timestamp</timestamp>
                 <version>[ignore]</version>

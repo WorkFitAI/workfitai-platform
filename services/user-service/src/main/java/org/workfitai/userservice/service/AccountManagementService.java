@@ -14,6 +14,7 @@ import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
 import org.workfitai.userservice.repository.UserRepository;
+import org.workfitai.userservice.util.LogContext;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -38,6 +39,10 @@ public class AccountManagementService {
     public AccountManagementResponse deactivateAccount(String username, DeactivateAccountRequest request) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+        LogContext.setAction("DEACTIVATE_ACCOUNT");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId().toString());
 
         // Check if account is already deactivated
         if (user.getDeactivatedAt() != null) {

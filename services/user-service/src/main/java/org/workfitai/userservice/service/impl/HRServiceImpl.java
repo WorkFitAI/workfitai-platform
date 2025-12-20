@@ -28,6 +28,7 @@ import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.messaging.UserRegistrationProducer;
 import org.workfitai.userservice.service.HRService;
 import org.workfitai.userservice.specification.HRSpecification;
+import org.workfitai.userservice.util.LogContext;
 
 import java.time.Instant;
 import java.util.Map;
@@ -269,6 +270,9 @@ public class HRServiceImpl implements HRService {
   public HRResponse approveHrManager(UUID id, String approver) {
     HREntity entity = hrRepository.findById(id)
         .orElseThrow(() -> new ApiException("HR Manager not found", HttpStatus.NOT_FOUND));
+    LogContext.setAction("APPROVE_HR_MANAGER");
+    LogContext.setEntityType("User");
+    LogContext.setEntityId(entity.getId().toString());
     if (entity.getUserRole() != EUserRole.HR_MANAGER) {
       throw new ApiException("Only HR Manager can be approved via this endpoint", HttpStatus.BAD_REQUEST);
     }
@@ -317,6 +321,9 @@ public class HRServiceImpl implements HRService {
   public HRResponse approveHr(UUID id, String approver) {
     HREntity entity = hrRepository.findById(id)
         .orElseThrow(() -> new ApiException("HR not found", HttpStatus.NOT_FOUND));
+    LogContext.setAction("APPROVE_HR");
+    LogContext.setEntityType("User");
+    LogContext.setEntityId(entity.getId().toString());
     if (entity.getUserRole() != EUserRole.HR) {
       throw new ApiException("Only HR can be approved via this endpoint", HttpStatus.BAD_REQUEST);
     }

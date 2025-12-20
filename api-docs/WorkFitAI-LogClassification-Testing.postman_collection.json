@@ -1,0 +1,741 @@
+{
+    "info": {
+        "name": "WorkFitAI - Log Classification Testing",
+        "_postman_id": "log-classification-test-001",
+        "description": "Test collection for verifying log classification system (USER_ACTION vs SYSTEM logs).\n\n**Features:**\n- Test log type filtering (USER_ACTION, SYSTEM, HEALTH_CHECK)\n- Verify Elasticsearch log_type field\n- Count logs by classification\n- Test activity monitoring endpoints\n\n**How to use:**\n1. Import this collection\n2. Run 'Admin Login' to get access token\n3. Execute other requests to test log classification\n\n**API Gateway Base URL:** http://localhost:9085\n**Elasticsearch Direct:** http://localhost:9200",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string"
+        },
+        {
+            "key": "elasticsearch_url",
+            "value": "http://localhost:9200",
+            "type": "string"
+        },
+        {
+            "key": "adminEmail",
+            "value": "admin@workfitai.com",
+            "type": "string"
+        },
+        {
+            "key": "adminPassword",
+            "value": "Admin123!@",
+            "type": "string"
+        },
+        {
+            "key": "adminToken",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "0. SETUP - Admin Login",
+            "item": [
+                {
+                    "name": "0.1 Admin Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Save access token from response",
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set('adminToken', jsonData.accessToken);",
+                                    "    console.log('✓ Admin token saved:', jsonData.accessToken.substring(0, 20) + '...');",
+                                    "}",
+                                    "",
+                                    "// Test assertions",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has accessToken', function () {",
+                                    "    pm.expect(pm.response.json()).to.have.property('accessToken');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"usernameOrEmail\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as admin to get JWT access token for monitoring endpoints"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "1. USER ACTIVITY LOGS",
+            "item": [
+                {
+                    "name": "1.1 Get User Activities Only",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has activities array', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('activities');",
+                                    "    pm.expect(jsonData.activities).to.be.an('array');",
+                                    "});",
+                                    "",
+                                    "pm.test('All activities are USER_ACTION type', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    jsonData.activities.forEach(activity => {",
+                                    "        pm.expect(activity.logType).to.equal('USER_ACTION');",
+                                    "    });",
+                                    "});",
+                                    "",
+                                    "// Log summary",
+                                    "var data = pm.response.json();",
+                                    "console.log('✓ Total USER_ACTION logs:', data.total);",
+                                    "console.log('✓ Activities in page:', data.activities.length);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?hours=24&page=0&size=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "24"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Returns only USER_ACTION logs. Should exclude:\n- Health checks\n- System logs\n- Anonymous requests"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "1.2 Get Activity by Specific User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('All activities belong to specified user', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    var username = pm.request.url.query.get('username');",
+                                    "    jsonData.activities.forEach(activity => {",
+                                    "        pm.expect(activity.username).to.equal(username);",
+                                    "    });",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?username=hr_user123&hours=168",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "username",
+                                    "value": "hr_user123"
+                                },
+                                {
+                                    "key": "hours",
+                                    "value": "168"
+                                }
+                            ]
+                        },
+                        "description": "Filter user activities by specific username"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "1.3 Get Activity Summary",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has summary', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('summary');",
+                                    "    pm.expect(jsonData.summary).to.have.property('activeUsers');",
+                                    "    pm.expect(jsonData.summary).to.have.property('totalActions');",
+                                    "    pm.expect(jsonData.summary).to.have.property('topActions');",
+                                    "});",
+                                    "",
+                                    "// Log statistics",
+                                    "var data = pm.response.json();",
+                                    "console.log('📊 Active Users:', data.summary.activeUsers);",
+                                    "console.log('📊 Total Actions:', data.summary.totalActions);",
+                                    "console.log('📊 Top Actions:', data.summary.topActions);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?hours=24&includeSummary=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "24"
+                                },
+                                {
+                                    "key": "includeSummary",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Get statistics: active users, top actions, errors"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "2. ALL LOGS SEARCH",
+            "item": [
+                {
+                    "name": "2.1 Search All Logs (Including System)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has logs', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('logs');",
+                                    "    pm.expect(jsonData.logs).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"levels\": [\"INFO\", \"WARN\", \"ERROR\"],\n  \"service\": \"job-service\",\n  \"page\": 0,\n  \"size\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/search",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "search"
+                            ]
+                        },
+                        "description": "Search all logs (both USER_ACTION and SYSTEM)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "3. ELASTICSEARCH DIRECT QUERIES",
+            "item": [
+                {
+                    "name": "3.1 Verify Log Types in Elasticsearch",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Results have log_type field', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    if (jsonData.hits.hits.length > 0) {",
+                                    "        pm.expect(jsonData.hits.hits[0]._source).to.have.property('log_type');",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?size=10&q=log_type:USER_ACTION&sort=@timestamp:desc&pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "log_type:USER_ACTION"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "@timestamp:desc"
+                                },
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Direct Elasticsearch query to verify log_type field exists"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.2 Count Logs by Type",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has aggregation results', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.aggregations).to.have.property('by_log_type');",
+                                    "});",
+                                    "",
+                                    "// Log distribution",
+                                    "var data = pm.response.json();",
+                                    "console.log('📊 Log Type Distribution:');",
+                                    "data.aggregations.by_log_type.buckets.forEach(bucket => {",
+                                    "    console.log(`  ${bucket.key}: ${bucket.doc_count}`);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"size\": 0,\n  \"aggs\": {\n    \"by_log_type\": {\n      \"terms\": {\n        \"field\": \"log_type.keyword\",\n        \"size\": 10\n      }\n    }\n  },\n  \"query\": {\n    \"range\": {\n      \"@timestamp\": {\n        \"gte\": \"now-24h\"\n      }\n    }\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Aggregation query to count logs by type (USER_ACTION, SYSTEM, etc.)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.3 Get Actions on Specific Entity",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?q=entity_type:Job AND entity_id:job-12345&sort=@timestamp:desc&pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "entity_type:Job AND entity_id:job-12345"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "@timestamp:desc"
+                                },
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Find all actions performed on a specific entity (e.g., job-12345)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.4 Get User Errors Only",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?q=log_type:USER_ACTION AND level:ERROR&sort=@timestamp:desc&size=20&pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "log_type:USER_ACTION AND level:ERROR"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "@timestamp:desc"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Find errors that occurred during user actions"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.5 Get Activity by Action Type",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?q=action:CREATE_JOB&sort=@timestamp:desc&size=20&pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "action:CREATE_JOB"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "@timestamp:desc"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Find specific action types (e.g., all job creations)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.6 Compare Log Counts by Type",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "// Log comparison",
+                                    "var data = pm.response.json();",
+                                    "var userActions = data.aggregations.user_actions.doc_count;",
+                                    "var systemLogs = data.aggregations.system_logs.doc_count;",
+                                    "var healthChecks = data.aggregations.health_checks.doc_count;",
+                                    "",
+                                    "console.log('📊 Log Type Comparison (last 1 hour):');",
+                                    "console.log(`  USER_ACTION:   ${userActions}`);",
+                                    "console.log(`  SYSTEM:        ${systemLogs}`);",
+                                    "console.log(`  HEALTH_CHECK:  ${healthChecks}`);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"size\": 0,\n  \"aggs\": {\n    \"user_actions\": {\n      \"filter\": {\n        \"term\": {\"log_type.keyword\": \"USER_ACTION\"}\n      }\n    },\n    \"system_logs\": {\n      \"filter\": {\n        \"term\": {\"log_type.keyword\": \"SYSTEM\"}\n      }\n    },\n    \"health_checks\": {\n      \"filter\": {\n        \"term\": {\"log_type.keyword\": \"HEALTH_CHECK\"}\n      }\n    }\n  },\n  \"query\": {\n    \"range\": {\n      \"@timestamp\": {\n        \"gte\": \"now-1h\"\n      }\n    }\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{elasticsearch_url}}/workfitai-logs-*/_search?pretty",
+                            "host": [
+                                "{{elasticsearch_url}}"
+                            ],
+                            "path": [
+                                "workfitai-logs-*",
+                                "_search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "pretty",
+                                    "value": null
+                                }
+                            ]
+                        },
+                        "description": "Compare counts: USER_ACTION vs SYSTEM vs HEALTH_CHECK"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "4. VERIFICATION TESTS",
+            "item": [
+                {
+                    "name": "4.1 Verify Health Checks Excluded",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('No health check logs in activities', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    jsonData.activities.forEach(activity => {",
+                                    "        pm.expect(activity.path).to.not.include('/actuator/');",
+                                    "        pm.expect(activity.path).to.not.include('/health');",
+                                    "        pm.expect(activity.path).to.not.include('/metrics');",
+                                    "    });",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{adminToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/monitoring/api/logs/activity?hours=1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "monitoring",
+                                "api",
+                                "logs",
+                                "activity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hours",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Should NOT contain /actuator/health or /metrics logs"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

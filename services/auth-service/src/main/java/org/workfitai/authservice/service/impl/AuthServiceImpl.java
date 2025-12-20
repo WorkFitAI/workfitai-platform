@@ -36,7 +36,6 @@ import org.workfitai.authservice.enums.UserStatus;
 
 import org.workfitai.authservice.messaging.NotificationProducer;
 import org.workfitai.authservice.document.TwoFactorAuth;
-
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
@@ -52,6 +51,7 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.workfitai.authservice.util.LogContext;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +83,9 @@ public class AuthServiceImpl implements iAuthService {
     @Override
     public void register(RegisterRequest req) {
         UserRole role = req.getRole() == null ? UserRole.CANDIDATE : req.getRole();
+        LogContext.setAction("REGISTER");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(req.getEmail());
         if (role == UserRole.ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Admin accounts cannot be registered through this endpoint");
@@ -317,6 +320,9 @@ public class AuthServiceImpl implements iAuthService {
             // ✅ NEW: Check if 2FA is enabled
             Optional<TwoFactorAuth> twoFactorAuth = twoFactorAuthRepository.findByUserId(user.getId());
             if (twoFactorAuth.isPresent() && Boolean.TRUE.equals(twoFactorAuth.get().getEnabled())) {
+                LogContext.setAction("LOGIN_2FA_REQUIRED");
+                LogContext.setEntityType("User");
+                LogContext.setEntityId(user.getId());
                 log.info("2FA enabled for user: {}. Initiating 2FA flow", user.getUsername());
                 return initiate2FALogin(user, twoFactorAuth.get(), deviceId);
             }
@@ -331,6 +337,9 @@ public class AuthServiceImpl implements iAuthService {
             }
 
             // ✅ No 2FA - proceed with normal login
+            LogContext.setAction("LOGIN");
+            LogContext.setEntityType("User");
+            LogContext.setEntityId(user.getId());
             return completeLogin(user, ud, deviceId, request, latitude, longitude);
 
         } catch (BadCredentialsException ex) {
@@ -430,6 +439,10 @@ public class AuthServiceImpl implements iAuthService {
         // Delete temp token (one-time use)
         redisTemplate.delete(redisKey);
 
+        LogContext.setAction("LOGIN_2FA_VERIFIED");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId());
+
         // Complete login
         UserDetails ud = org.springframework.security.core.userdetails.User
                 .withUsername(username)
@@ -498,6 +511,9 @@ public class AuthServiceImpl implements iAuthService {
         String userId = users.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.USER_NOT_FOUND))
                 .getId();
+        LogContext.setAction("LOGOUT");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(userId);
         refreshStore.delete(userId, normalizeDevice(deviceId));
     }
 
@@ -561,6 +577,10 @@ public class AuthServiceImpl implements iAuthService {
 
         User user = users.findByEmail(req.getEmail())
                 .orElseGet(() -> createUserFromPending(pendingData));
+
+        LogContext.setAction("VERIFY_OTP");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId());
 
         if (user.getStatus() != UserStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not in pending status");
