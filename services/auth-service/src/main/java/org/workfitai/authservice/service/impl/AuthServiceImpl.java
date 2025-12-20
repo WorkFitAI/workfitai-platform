@@ -33,9 +33,8 @@ import org.workfitai.authservice.dto.response.IssuedTokens;
 import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
-
 import org.workfitai.authservice.messaging.NotificationProducer;
-import org.workfitai.authservice.document.TwoFactorAuth;
+import org.workfitai.authservice.messaging.UserRegistrationProducer;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.TwoFactorAuthRepository;
 import org.workfitai.authservice.repository.UserRepository;
@@ -44,14 +43,13 @@ import org.workfitai.authservice.service.OtpService;
 import org.workfitai.authservice.service.RefreshTokenService;
 import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.TwoFactorAuthService;
-import org.workfitai.authservice.messaging.UserRegistrationProducer;
 import org.workfitai.authservice.service.iAuthService;
+import org.workfitai.authservice.util.LogContext;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.workfitai.authservice.util.LogContext;
 
 @Service
 @RequiredArgsConstructor
@@ -102,11 +100,24 @@ public class AuthServiceImpl implements iAuthService {
         }
         // HR role must have hrManagerEmail (they will be assigned to HR Manager's
         // company)
+        String companyNo = null;
         if (role == UserRole.HR && req.getHrProfile() != null) {
             String hrManagerEmail = req.getHrProfile().getHrManagerEmail();
             if (hrManagerEmail == null || hrManagerEmail.isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "HR Manager email is required for HR registration. Please provide the email of your HR Manager.");
+            }
+
+            // Find HR Manager by email and get their companyNo
+            User hrManager = users.findByEmailForCompanyNo(hrManagerEmail)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "HR Manager with email " + hrManagerEmail
+                                    + " not found. Please verify the email address."));
+
+            companyNo = hrManager.getCompanyNo();
+            if (companyNo == null || companyNo.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "HR Manager account does not have a company number. Please contact your administrator.");
             }
         }
         if (role == UserRole.HR_MANAGER && req.getHrProfile() != null && req.getCompany() != null) {
@@ -197,6 +208,14 @@ public class AuthServiceImpl implements iAuthService {
             otpService.savePendingRegistration(req.getEmail(), pendingData); // Re-save with companyId
         }
 
+        // Determine companyNo based on role
+        String finalCompanyNo = null;
+        if (role == UserRole.HR_MANAGER && req.getCompany() != null) {
+            finalCompanyNo = req.getCompany().getCompanyNo();
+        } else if (role == UserRole.HR) {
+            finalCompanyNo = companyNo; // Already looked up from HR Manager
+        }
+
         var user = User.builder()
                 .username(username)
                 .email(req.getEmail())
@@ -207,6 +226,7 @@ public class AuthServiceImpl implements iAuthService {
                 .companyNo((role == UserRole.HR_MANAGER || role == UserRole.HR) && req.getCompany() != null
                         ? req.getCompany().getCompanyNo()
                         : null)
+                .companyNo(finalCompanyNo)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
@@ -231,7 +251,7 @@ public class AuthServiceImpl implements iAuthService {
         // case)
         // This handles scenario where user registers without complete data, then
         // resends with company
-        if ((role == UserRole.HR_MANAGER || role == UserRole.HR) && req.getCompany() != null) {
+        if (role == UserRole.HR_MANAGER && req.getCompany() != null) {
             // Only generate new companyId if user doesn't have one yet
             if (existingUser.getCompanyId() == null) {
                 existingUser.setCompanyId(UUID.randomUUID().toString());
@@ -239,6 +259,20 @@ public class AuthServiceImpl implements iAuthService {
                         req.getEmail());
             }
             existingUser.setCompanyNo(req.getCompany().getCompanyNo());
+        } else if (role == UserRole.HR && req.getHrProfile() != null) {
+            // For HR role, look up HR Manager's companyNo
+            String hrManagerEmail = req.getHrProfile().getHrManagerEmail();
+            if (hrManagerEmail != null && !hrManagerEmail.isBlank()) {
+                User hrManager = users.findByEmailForCompanyNo(hrManagerEmail)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "HR Manager with email " + hrManagerEmail
+                                        + " not found. Please verify the email address."));
+
+                String hrCompanyNo = hrManager.getCompanyNo();
+                if (hrCompanyNo != null && !hrCompanyNo.isBlank()) {
+                    existingUser.setCompanyNo(hrCompanyNo);
+                }
+            }
         }
 
         existingUser.setUpdatedAt(Instant.now());

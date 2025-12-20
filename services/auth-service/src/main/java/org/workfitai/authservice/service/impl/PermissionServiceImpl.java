@@ -1,10 +1,12 @@
 package org.workfitai.authservice.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.model.Permission;
@@ -54,5 +56,15 @@ public class PermissionServiceImpl implements iPermissionService {
         Permission existing = perms.findByName(name)
                 .orElseThrow(() -> new NoSuchElementException(Messages.Error.PERMISSION_NOT_FOUND));
         perms.delete(existing);
+    }
+
+    @Override
+    @Transactional
+    public List<Permission> createBatch(List<Permission> permissions) {
+        List<Permission> createdPermissions = new ArrayList<>();
+        for (Permission p : permissions) {
+            createdPermissions.add(create(p));
+        }
+        return createdPermissions;
     }
 }

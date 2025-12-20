@@ -34,7 +34,7 @@ public class RegisterRequest {
 
     // ===== Required fields from UserEntity =====
     @NotBlank(message = "Full name is required")
-    @Size(min = 3, max = 255, message = "Full name must be between 3-255 characters")
+    @Size(min = 2, max = 255, message = "Full name must be between 2-255 characters")
     private String fullName;
 
     @NotBlank(message = "Phone number is required")

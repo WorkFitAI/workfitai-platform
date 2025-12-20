@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.workfitai.userservice.security.PublicKeyProvider;
 import org.workfitai.userservice.security.UserIdExtractionFilter;
 
@@ -28,69 +27,69 @@ import java.util.HashSet;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final PublicKeyProvider publicKeyProvider;
-  private final UserIdExtractionFilter userIdExtractionFilter;
+    private final PublicKeyProvider publicKeyProvider;
+    private final UserIdExtractionFilter userIdExtractionFilter;
 
-  @Value("${auth.jwt.issuer:auth-service}")
-  private String expectedIssuer;
+    @Value("${auth.jwt.issuer:auth-service}")
+    private String expectedIssuer;
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/actuator/**", "/api/v1/users/public/**", "/api/v1/internal/**", "/exists/**")
-            .permitAll()
-            .anyRequest().authenticated())
-        .oauth2ResourceServer(oauth2 -> oauth2
-            .jwt(jwt -> jwt
-                .decoder(jwtDecoder()) // ✅ verify chữ ký bằng public key
-                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
-        .addFilterAfter(userIdExtractionFilter, UsernamePasswordAuthenticationFilter.class);
-    return http.build();
-  }
-
-  @Bean
-  public JwtDecoder jwtDecoder() {
-    try {
-      RSAPublicKey publicKey = publicKeyProvider.getPublicKey();
-      NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
-
-      // ✅ Only validate signature and expiry, skip issuer validation
-      decoder.setJwtValidator(jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
-
-      return decoder;
-    } catch (Exception e) {
-      throw new IllegalStateException("❌ Failed to load public key from auth-service", e);
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**", "/api/v1/users/public/**", "/api/v1/internal/**", "/exists/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder()) // ✅ verify chữ ký bằng public key
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .addFilterAfter(userIdExtractionFilter, org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter.class);
+        return http.build();
     }
-  }
 
-  @Bean
-  public JwtAuthenticationConverter jwtAuthenticationConverter() {
-    JwtGrantedAuthoritiesConverter rolesConverter = new JwtGrantedAuthoritiesConverter();
-    rolesConverter.setAuthoritiesClaimName("roles");
-    rolesConverter.setAuthorityPrefix("ROLE_");
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        try {
+            RSAPublicKey publicKey = publicKeyProvider.getPublicKey();
+            NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
 
-    JwtGrantedAuthoritiesConverter permsConverter = new JwtGrantedAuthoritiesConverter();
-    permsConverter.setAuthoritiesClaimName("perms");
-    permsConverter.setAuthorityPrefix("");
+            // ✅ Only validate signature and expiry, skip issuer validation
+            decoder.setJwtValidator(jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
 
-    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-    converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-      var authorities = new HashSet<>(rolesConverter.convert(jwt));
-      authorities.addAll(permsConverter.convert(jwt));
-      return authorities;
-    });
+            return decoder;
+        } catch (Exception e) {
+            throw new IllegalStateException("❌ Failed to load public key from auth-service", e);
+        }
+    }
 
-    // ✅ Extract username from "sub" claim as principal
-    converter.setPrincipalClaimName("sub");
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter rolesConverter = new JwtGrantedAuthoritiesConverter();
+        rolesConverter.setAuthoritiesClaimName("roles");
+        rolesConverter.setAuthorityPrefix("ROLE_");
 
-    return converter;
-  }
+        JwtGrantedAuthoritiesConverter permsConverter = new JwtGrantedAuthoritiesConverter();
+        permsConverter.setAuthoritiesClaimName("perms");
+        permsConverter.setAuthorityPrefix("");
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            var authorities = new HashSet<>(rolesConverter.convert(jwt));
+            authorities.addAll(permsConverter.convert(jwt));
+            return authorities;
+        });
+
+        // ✅ Extract username from "sub" claim as principal
+        converter.setPrincipalClaimName("sub");
+
+        return converter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }

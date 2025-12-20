@@ -1,11 +1,13 @@
 package org.workfitai.authservice.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.model.Role;
 import org.workfitai.authservice.repository.PermissionRepository;
@@ -75,5 +77,67 @@ public class RoleServiceImpl implements iRoleService {
     @Override
     public List<Role> listAll() {
         return roles.findAll();
+    }
+
+    @Override
+    @Transactional
+    public List<Role> createBatch(List<Role> roleList) {
+        List<Role> createdRoles = new ArrayList<>();
+        for (Role r : roleList) {
+            createdRoles.add(create(r));
+        }
+        return createdRoles;
+    }
+
+    @Override
+    public Role getByName(String roleName) {
+        return roles.findByName(roleName)
+                .orElseThrow(() -> new NoSuchElementException(Messages.Error.ROLE_NOT_FOUND));
+    }
+
+    @Override
+    public Role updateDescription(String roleName, String description) {
+        Role existing = getByName(roleName);
+        existing.setDescription(description);
+        return roles.save(existing);
+    }
+
+    @Override
+    public void deleteByName(String roleName) {
+        Role existing = getByName(roleName);
+        roles.delete(existing);
+    }
+
+    @Override
+    @Transactional
+    public Role addPermissions(String roleName, List<String> permNames) {
+        Role r = getByName(roleName);
+
+        // Validate all permissions exist
+        for (String permName : permNames) {
+            if (perms.findByName(permName).isEmpty()) {
+                throw new NoSuchElementException(String.format(Messages.Error.UNKNOWN_PERMISSION, permName));
+            }
+        }
+
+        Set<String> permissions = r.getPermissions();
+        if (permissions == null) {
+            permissions = new HashSet<>();
+            r.setPermissions(permissions);
+        }
+
+        permissions.addAll(permNames);
+        return roles.save(r);
+    }
+
+    @Override
+    @Transactional
+    public Role removePermissions(String roleName, List<String> permNames) {
+        Role r = getByName(roleName);
+        Set<String> permissions = r.getPermissions();
+        if (permissions != null) {
+            permissions.removeAll(permNames);
+        }
+        return roles.save(r);
     }
 }
