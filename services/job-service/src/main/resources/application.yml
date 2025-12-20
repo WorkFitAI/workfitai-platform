@@ -147,7 +147,8 @@ spring:
 # Service URLs for Docker environment
 service:
   recommendation:
-    url: ${RECOMMENDATION_ENGINE_URL:http://recommendation-engine:8000}
+    url: ${RECOMMENDATION_ENGINE_URL:http://host.docker.internal:8000} # Use host.docker.internal to access host machine
+    # url: ${RECOMMENDATION_ENGINE_URL:http://recommendation-engine:8000} # Use this line if both services are in the same Docker network
   cv:
     url: ${CV_SERVICE_URL:http://cv-service:9005}
   auth:
