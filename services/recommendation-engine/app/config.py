@@ -68,6 +68,12 @@ class Settings(BaseSettings):
     MODEL_DIMENSION: int = Field(default=1024, env="MODEL_DIMENSION")
     BATCH_SIZE: int = Field(default=32, env="BATCH_SIZE")
     
+    # Cross-Encoder Reranking
+    ENABLE_RERANKING: bool = Field(default=True, env="ENABLE_RERANKING")
+    CROSS_ENCODER_PATH: str = Field(default="/app/models/cross-encoder", env="CROSS_ENCODER_PATH")
+    RERANK_TOP_K: int = Field(default=50, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
+    RERANK_TOP_N: int = Field(default=20, env="RERANK_TOP_N")  # Return top-N after reranking
+    
     # FAISS Configuration
     FAISS_INDEX_PATH: str = Field(default="/app/data/faiss_index", env="FAISS_INDEX_PATH")
     FAISS_INDEX_TYPE: str = Field(default="IndexFlatIP", env="FAISS_INDEX_TYPE")

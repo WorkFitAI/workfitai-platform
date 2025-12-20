@@ -29,7 +29,8 @@ app_state = {
     "model": None,
     "faiss_manager": None,
     "kafka_consumer": None,
-    "resume_parser": None
+    "resume_parser": None,
+    "reranker": None
 }
 
 
@@ -63,6 +64,21 @@ async def lifespan(app: FastAPI):
         from app.services.resume_parser import ResumeParser
         app_state["resume_parser"] = ResumeParser()
         logger.info("✓ Resume Parser initialized")
+        
+        # Initialize reranker (cross-encoder) if enabled
+        if settings.ENABLE_RERANKING:
+            logger.info("Initializing Cross-Encoder Reranker...")
+            try:
+                from app.services.reranker import JobReranker
+                app_state["reranker"] = JobReranker(settings.CROSS_ENCODER_PATH)
+                logger.info(f"✓ Reranker initialized: {settings.CROSS_ENCODER_PATH}")
+            except Exception as e:
+                logger.error(f"Failed to load reranker: {e}", exc_info=True)
+                logger.warning("Service will continue without reranking (bi-encoder only)")
+                app_state["reranker"] = None
+        else:
+            logger.info("Reranking disabled (bi-encoder only)")
+            app_state["reranker"] = None
         
         # Initial sync from Job Service (if enabled)
         if settings.ENABLE_INITIAL_SYNC and app_state["faiss_manager"].index.ntotal == 0:
@@ -220,6 +236,11 @@ async def health_check() -> Dict[str, Any]:
                 "totalJobs": app_state["faiss_manager"].index.ntotal if app_state["faiss_manager"] else 0,
                 "dimension": settings.MODEL_DIMENSION
             },
+            "reranker": {
+                "enabled": settings.ENABLE_RERANKING,
+                "loaded": app_state["reranker"] is not None,
+                "path": settings.CROSS_ENCODER_PATH if app_state["reranker"] else None
+            },
             "resumeParser": {
                 "loaded": app_state["resume_parser"] is not None
             },
@@ -261,6 +282,7 @@ app.state.model = lambda: app_state["model"]
 app.state.embedding_generator = lambda: app_state["model"]  # Alias for clarity
 app.state.faiss_manager = lambda: app_state["faiss_manager"]
 app.state.resume_parser = lambda: app_state["resume_parser"]
+app.state.reranker = lambda: app_state["reranker"]
 
 
 if __name__ == "__main__":

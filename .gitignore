@@ -62,6 +62,7 @@ api-docs/.json.backup
 # Models Job recomendation
 /services/recommendation-engine/models/
 /services/recommendation-engine/venv/
+/services/recommendation-engine/data/
 
 #add _pycache_ to gitignore in Job recomendation engine
 /services/recommendation-engine/**/__pycache__/

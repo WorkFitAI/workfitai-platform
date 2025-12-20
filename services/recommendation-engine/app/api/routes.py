@@ -182,8 +182,12 @@ async def recommend_by_profile(request: RecommendByProfileRequest, req: Request)
     """
     Get job recommendations based on text profile
     
+    Pipeline:
+    1. Bi-encoder retrieves top-K candidates from FAISS (fast)
+    2. Cross-encoder reranks to top-N (accurate) - if enabled
+    
     - **profileText**: User profile text (skills, experience)
-    - **topK**: Number of recommendations
+    - **topK**: Number of final recommendations (default: 20)
     - **filters**: Optional filters
     """
     start_time = time.time()
@@ -191,12 +195,16 @@ async def recommend_by_profile(request: RecommendByProfileRequest, req: Request)
     try:
         faiss_manager = req.app.state.faiss_manager()
         embedding_generator = req.app.state.embedding_generator()
+        reranker = req.app.state.reranker()
         
         if not faiss_manager or not embedding_generator:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Service not ready"
             )
+        
+        from app.config import get_settings
+        settings = get_settings()
         
         logger.info(f"Recommend by profile (text length: {len(request.profileText)}, topK={request.topK})")
         
@@ -206,18 +214,48 @@ async def recommend_by_profile(request: RecommendByProfileRequest, req: Request)
         # Prepare filters
         filters = _prepare_filters(request.filters)
         
-        # Search FAISS
+        # Step 1: Bi-encoder retrieval (fast, retrieve more candidates for reranking)
+        retrieve_k = settings.RERANK_TOP_K if reranker else request.topK
         results = faiss_manager.search(
             query_embedding=query_embedding,
-            top_k=request.topK,
+            top_k=retrieve_k,
             filters=filters
         )
         
-        # Convert to response format
-        recommendations = [
+        # Convert to dictionaries for reranking
+        candidates = [
             _create_job_recommendation(result, idx + 1)
             for idx, result in enumerate(results)
         ]
+        
+        # Step 2: Cross-encoder reranking (if enabled and available)
+        if reranker and len(candidates) > 0:
+            logger.info(f"Reranking {len(candidates)} candidates with cross-encoder")
+            rerank_start = time.time()
+            
+            try:
+                # Convert JobRecommendation objects to dicts
+                candidates_dict = [c.model_dump() if hasattr(c, 'model_dump') else c for c in candidates]
+                
+                # Rerank with cross-encoder
+                reranked = reranker.rerank(
+                    resume_text=request.profileText,
+                    candidates=candidates_dict,
+                    top_n=request.topK
+                )
+                
+                # Convert back to JobRecommendation objects
+                from app.models.responses import JobRecommendation
+                recommendations = [JobRecommendation(**r) for r in reranked]
+                
+                rerank_time = int((time.time() - rerank_start) * 1000)
+                logger.info(f"✓ Reranking completed in {rerank_time}ms")
+                
+            except Exception as e:
+                logger.error(f"Reranking failed, using bi-encoder results: {e}")
+                recommendations = candidates[:request.topK]
+        else:
+            recommendations = candidates[:request.topK]
         
         processing_time = f"{int((time.time() - start_time) * 1000)}ms"
         

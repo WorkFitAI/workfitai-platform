@@ -95,6 +95,30 @@ if [ ! -d "models/bi-encoder-e5-large" ]; then
     echo "The model will be downloaded on first run (may take time)"
 fi
 
+# Clean FAISS index if model dimension changed
+echo ""
+echo -e "${YELLOW}🔍 Checking FAISS index compatibility...${NC}"
+if [ -f "data/.model_dimension" ]; then
+    LAST_DIMENSION=$(cat data/.model_dimension)
+    CURRENT_DIMENSION=${MODEL_DIMENSION:-1024}
+    
+    if [ "$LAST_DIMENSION" != "$CURRENT_DIMENSION" ]; then
+        echo -e "${YELLOW}⚠️  Model dimension changed: ${LAST_DIMENSION}d → ${CURRENT_DIMENSION}d${NC}"
+        echo -e "${YELLOW}🗑️  Removing old FAISS index...${NC}"
+        rm -f data/faiss_index*
+        echo -e "${GREEN}✅ Old index removed. Will rebuild on startup.${NC}"
+    else
+        echo -e "${GREEN}✅ Model dimension unchanged (${CURRENT_DIMENSION}d)${NC}"
+    fi
+else
+    # First run, clean any existing index to be safe
+    echo -e "${YELLOW}First run detected, cleaning any existing FAISS index...${NC}"
+    rm -f data/faiss_index*
+fi
+
+# Save current dimension for next run
+echo "${MODEL_DIMENSION:-1024}" > data/.model_dimension
+
 # Print configuration
 echo ""
 echo -e "${GREEN}📋 Configuration:${NC}"
@@ -118,55 +142,3 @@ python -m uvicorn app.main:app \
     --port ${PORT:-8000} \
     --reload \
     --log-level ${LOG_LEVEL_LOWER}
-export KAFKA_CONSUMER_GROUP=recommendation-engine
-export KAFKA_TOPIC_JOB_CREATED=job.created
-export KAFKA_TOPIC_JOB_UPDATED=job.updated
-export KAFKA_TOPIC_JOB_DELETED=job.deleted
-
-# Job Service configuration (connect via API Gateway)
-export JOB_SERVICE_URL=http://localhost:9085
-export JOB_SERVICE_TIMEOUT=30
-
-# Model configuration
-export MODEL_PATH=sentence-transformers/all-MiniLM-L6-v2
-export MODEL_DIMENSION=384  # MiniLM dimension
-export BATCH_SIZE=32
-
-# FAISS configuration (local data directory)
-export FAISS_INDEX_PATH=./data/faiss_index
-export ENABLE_INDEX_PERSISTENCE=true
-
-# Create data directory
-mkdir -p data logs
-
-# Download model first (to avoid blocking startup)
-echo "📥 Pre-downloading Sentence Transformer model..."
-python3 -c "
-from sentence_transformers import SentenceTransformer
-import os
-model_path = os.getenv('MODEL_PATH', 'sentence-transformers/all-MiniLM-L6-v2')
-print(f'Downloading {model_path}...')
-model = SentenceTransformer(model_path)
-print(f'✓ Model downloaded: {model_path}')
-print(f'  Dimension: {model.get_sentence_embedding_dimension()}')
-print(f'  Max sequence length: {model.max_seq_length}')
-"
-
-echo ""
-echo "================================================"
-echo "✅ Ready to start!"
-echo "================================================"
-echo ""
-echo "Starting Uvicorn server..."
-echo "API will be available at: http://localhost:8001"
-echo "Health check: http://localhost:8001/health"
-echo ""
-echo "Press Ctrl+C to stop"
-echo ""
-
-# Run FastAPI with Uvicorn
-uvicorn app.main:app \
-    --host $HOST \
-    --port $PORT \
-    --reload \
-    --log-level info

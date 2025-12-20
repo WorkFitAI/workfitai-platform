@@ -63,20 +63,35 @@ public class RecommendationServiceImpl implements iRecommendationService {
             // Call Recommendation Engine via Feign
             Map<String, Object> response = recommendationFeignClient.getRecommendationsByProfile(request);
 
-            if (response == null || !response.containsKey("recommendations")) {
-                log.warn("No recommendations returned from engine");
+            if (response == null || !response.containsKey("data")) {
+                log.warn("No data returned from engine");
+                return buildEmptyResponse();
+            }
+
+            // Extract data wrapper
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+
+            if (!data.containsKey("recommendations")) {
+                log.warn("No recommendations in data");
                 return buildEmptyResponse();
             }
 
             // Extract job IDs and scores
             @SuppressWarnings("unchecked")
-            List<Map<String, Object>> recommendations = (List<Map<String, Object>>) response.get("recommendations");
+            List<Map<String, Object>> recommendations = (List<Map<String, Object>>) data.get("recommendations");
+
+            if (recommendations == null || recommendations.isEmpty()) {
+                log.warn("Empty recommendations list");
+                return buildEmptyResponse();
+            }
+
             List<String> jobIds = new ArrayList<>();
             Map<String, Double> scoreMap = new HashMap<>();
             Map<String, Integer> rankMap = new HashMap<>();
 
             for (Map<String, Object> rec : recommendations) {
-                String jobId = (String) rec.get("id");
+                String jobId = (String) rec.get("jobId"); // Changed from "id" to "jobId"
                 double score = rec.get("score") instanceof Number ? ((Number) rec.get("score")).doubleValue() : 0.0;
                 int rank = rec.containsKey("rank") && rec.get("rank") instanceof Number
                         ? ((Number) rec.get("rank")).intValue()
@@ -132,20 +147,29 @@ public class RecommendationServiceImpl implements iRecommendationService {
 
             Map<String, Object> response = recommendationFeignClient.getSimilarJobs(requestBody);
 
-            if (response == null || !response.containsKey("recommendations")) {
+            if (response == null || !response.containsKey("data")) {
+                log.warn("No data returned from engine for jobId: {}", jobId);
+                return buildEmptyResponse();
+            }
+
+            // Extract data wrapper
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+
+            if (!data.containsKey("recommendations")) {
                 log.warn("No similar jobs found for jobId: {}", jobId);
                 return buildEmptyResponse();
             }
 
             // Extract and process similar jobs
             @SuppressWarnings("unchecked")
-            List<Map<String, Object>> recommendations = (List<Map<String, Object>>) response.get("recommendations");
+            List<Map<String, Object>> recommendations = (List<Map<String, Object>>) data.get("recommendations");
             List<String> similarJobIds = new ArrayList<>();
             Map<String, Double> scoreMap = new HashMap<>();
             Map<String, Integer> rankMap = new HashMap<>();
 
             for (Map<String, Object> rec : recommendations) {
-                String similarJobId = (String) rec.get("id");
+                String similarJobId = (String) rec.get("jobId"); // Changed from "id" to "jobId"
                 double score = rec.get("score") instanceof Number ? ((Number) rec.get("score")).doubleValue() : 0.0;
                 int rank = rec.containsKey("rank") && rec.get("rank") instanceof Number
                         ? ((Number) rec.get("rank")).intValue()
