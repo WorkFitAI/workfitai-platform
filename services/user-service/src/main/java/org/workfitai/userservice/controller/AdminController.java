@@ -32,177 +32,177 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class AdminController {
 
-  private final AdminService adminService;
-  private final UserService userService;
-  private final UserSearchService userSearchService;
-  private final UserIndexManagementService indexManagementService;
+    private final AdminService adminService;
+    private final UserService userService;
+    private final UserSearchService userSearchService;
+    private final UserIndexManagementService indexManagementService;
 
-  @PostMapping
-  public ResponseEntity<ResponseData<AdminResponse>> create(@RequestBody AdminCreateRequest dto) {
-    return ResponseEntity.ok(ResponseData.success(Messages.Admin.CREATED, adminService.create(dto)));
-  }
-
-  @PutMapping("/{id}")
-  public ResponseEntity<ResponseData<AdminResponse>> update(@PathVariable UUID id,
-      @RequestBody AdminUpdateRequest dto) {
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.Admin.UPDATED, adminService.update(id, dto)));
-  }
-
-  @DeleteMapping("/{id}")
-  public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
-    adminService.delete(id);
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.Admin.DELETED, null));
-  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<ResponseData<AdminResponse>> getById(@PathVariable UUID id) {
-    return ResponseEntity.ok(ResponseData.success(adminService.getById(id)));
-  }
-
-  @GetMapping
-  public ResponseEntity<ResponseData<Page<AdminResponse>>> search(
-      @RequestParam(required = false) String keyword, Pageable pageable) {
-    return ResponseEntity.ok(ResponseData.success(adminService.search(keyword, pageable)));
-  }
-
-  /**
-   * Get all users across all roles (ADMIN, HR_MANAGER, HR, CANDIDATE)
-   * For admin user management dashboard
-   */
-  @GetMapping("/all-users")
-  public ResponseEntity<ResponseData<Page<UserBaseResponse>>> getAllUsers(
-      @RequestParam(required = false) String keyword,
-      @RequestParam(required = false) String role,
-      Pageable pageable) {
-    Page<UserBaseResponse> users = userService.searchAllUsers(keyword, role, pageable);
-    return ResponseEntity.ok(ResponseData.success(users));
-  }
-
-  /**
-   * Block or unblock user account
-   */
-  @PutMapping("/users/{id}/block")
-  public ResponseEntity<ResponseData<Void>> blockUser(
-      @PathVariable UUID id,
-      @RequestParam boolean blocked,
-      @RequestAttribute("userId") String currentUserId) {
-    // Prevent blocking self
-    if (id.toString().equals(currentUserId)) {
-      throw new org.workfitai.userservice.exception.ApiException(
-          "You cannot block yourself",
-          org.springframework.http.HttpStatus.BAD_REQUEST);
+    @PostMapping
+    public ResponseEntity<ResponseData<AdminResponse>> create(@RequestBody AdminCreateRequest dto) {
+        return ResponseEntity.ok(ResponseData.success(Messages.Admin.CREATED, adminService.create(dto)));
     }
 
-    userService.setUserBlockStatus(id, blocked);
-    String message = blocked ? "User blocked successfully" : "User unblocked successfully";
-    return ResponseEntity.ok(ResponseData.success(message, null));
-  }
-
-  /**
-   * Delete user account (soft delete)
-   */
-  @DeleteMapping("/users/{id}")
-  public ResponseEntity<ResponseData<Void>> deleteUser(
-      @PathVariable UUID id,
-      @RequestAttribute("userId") String currentUserId) {
-    // Prevent deleting self
-    if (id.toString().equals(currentUserId)) {
-      throw new org.workfitai.userservice.exception.ApiException(
-          "You cannot delete yourself",
-          org.springframework.http.HttpStatus.BAD_REQUEST);
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseData<AdminResponse>> update(@PathVariable UUID id,
+                                                              @RequestBody AdminUpdateRequest dto) {
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.Admin.UPDATED, adminService.update(id, dto)));
     }
 
-    userService.deleteUser(id);
-    return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
-  }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
+        adminService.delete(id);
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.Admin.DELETED, null));
+    }
 
-  /**
-   * Block or unblock user account by username
-   */
-  @PutMapping("/users/username/{username}/block")
-  public ResponseEntity<ResponseData<Void>> blockUserByUsername(
-      @PathVariable String username,
-      @RequestParam boolean blocked,
-      @RequestAttribute("userId") String currentUserId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseData<AdminResponse>> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ResponseData.success(adminService.getById(id)));
+    }
 
-    userService.setUserBlockStatusByUsername(username, blocked, currentUserId);
-    String message = blocked ? "User blocked successfully" : "User unblocked successfully";
-    return ResponseEntity.ok(ResponseData.success(message, null));
-  }
+    @GetMapping
+    public ResponseEntity<ResponseData<Page<AdminResponse>>> search(
+            @RequestParam(required = false) String keyword, Pageable pageable) {
+        return ResponseEntity.ok(ResponseData.success(adminService.search(keyword, pageable)));
+    }
 
-  /**
-   * Delete user account by username (soft delete)
-   */
-  @DeleteMapping("/users/username/{username}")
-  public ResponseEntity<ResponseData<Void>> deleteUserByUsername(
-      @PathVariable String username,
-      @RequestAttribute("userId") String currentUserId) {
+    /**
+     * Get all users across all roles (ADMIN, HR_MANAGER, HR, CANDIDATE)
+     * For admin user management dashboard
+     */
+    @GetMapping("/all-users")
+    public ResponseEntity<ResponseData<Page<UserBaseResponse>>> getAllUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            Pageable pageable) {
+        Page<UserBaseResponse> users = userService.searchAllUsers(keyword, role, pageable);
+        return ResponseEntity.ok(ResponseData.success(users));
+    }
 
-    userService.deleteUserByUsername(username, currentUserId);
-    return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
-  }
+    /**
+     * Block or unblock user account
+     */
+    @PutMapping("/users/{id}/block")
+    public ResponseEntity<ResponseData<Void>> blockUser(
+            @PathVariable UUID id,
+            @RequestParam boolean blocked,
+            @RequestAttribute("userId") String currentUserId) {
+        // Prevent blocking self
+        if (id.toString().equals(currentUserId)) {
+            throw new org.workfitai.userservice.exception.ApiException(
+                    "You cannot block yourself",
+                    org.springframework.http.HttpStatus.BAD_REQUEST);
+        }
 
-  /**
-   * Get user details by ID
-   */
-  @GetMapping("/users/{id}")
-  public ResponseEntity<ResponseData<UserBaseResponse>> getUserById(@PathVariable UUID id) {
-    UserBaseResponse user = userService.getByUserId(id);
-    return ResponseEntity.ok(ResponseData.success(user));
-  }
+        userService.setUserBlockStatus(id, blocked);
+        String message = blocked ? "User blocked successfully" : "User unblocked successfully";
+        return ResponseEntity.ok(ResponseData.success(message, null));
+    }
 
-  /**
-   * Get user details by username
-   */
-  @GetMapping("/users/username/{username}")
-  public ResponseEntity<ResponseData<UserBaseResponse>> getUserByUsername(
-      @PathVariable String username) {
-    UserBaseResponse user = userService.getUserByUsername(username);
-    return ResponseEntity.ok(ResponseData.success(user));
-  }
+    /**
+     * Delete user account (soft delete)
+     */
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<ResponseData<Void>> deleteUser(
+            @PathVariable UUID id,
+            @RequestAttribute("userId") String currentUserId) {
+        // Prevent deleting self
+        if (id.toString().equals(currentUserId)) {
+            throw new org.workfitai.userservice.exception.ApiException(
+                    "You cannot delete yourself",
+                    org.springframework.http.HttpStatus.BAD_REQUEST);
+        }
 
-  /**
-   * Get full user profile with role-specific details
-   */
-  @GetMapping("/users/{id}/full-profile")
-  public ResponseEntity<ResponseData<Object>> getFullUserProfile(@PathVariable UUID id) {
-    Object profile = userService.getCurrentUserProfile(id);
-    return ResponseEntity.ok(ResponseData.success(profile));
-  }
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
+    }
 
-  /**
-   * Advanced user search using Elasticsearch with filters and aggregations
-   */
-  @PostMapping("/users/search")
-  public ResponseEntity<ResponseData<UserSearchResponse>> searchUsersAdvanced(
-      @RequestBody UserSearchRequest searchRequest) {
-    UserSearchResponse result = userSearchService.searchUsers(searchRequest);
-    return ResponseEntity.ok(ResponseData.success(result));
-  }
+    /**
+     * Block or unblock user account by username
+     */
+    @PutMapping("/users/username/{username}/block")
+    public ResponseEntity<ResponseData<Void>> blockUserByUsername(
+            @PathVariable String username,
+            @RequestParam boolean blocked,
+            @RequestAttribute("userId") String userId) {
 
-  /**
-   * Trigger bulk reindex of all users from PostgreSQL to Elasticsearch
-   * This is an async operation that returns immediately with a job ID
-   */
-  @PostMapping("/users/reindex")
-  public ResponseEntity<ResponseData<String>> triggerReindex(
-      @RequestBody(required = false) ReindexRequest reindexRequest) {
-    ReindexRequest request = reindexRequest != null ? reindexRequest : new ReindexRequest();
-    CompletableFuture<ReindexJobResponse> future = indexManagementService.triggerReindex(request);
+        userService.setUserBlockStatusByUsername(username, blocked, userId);
+        String message = blocked ? "User blocked successfully" : "User unblocked successfully";
+        return ResponseEntity.ok(ResponseData.success(message, null));
+    }
 
-    // Get job ID from the future (it's available immediately)
-    future.thenAccept(response -> {
-      if ("COMPLETED".equals(response.getStatus())) {
-        log.info("Reindex completed: {}", response);
-      } else {
-        log.error("Reindex failed: {}", response.getErrorMessage());
-      }
-    });
+    /**
+     * Delete user account by username (soft delete)
+     */
+    @DeleteMapping("/users/username/{username}")
+    public ResponseEntity<ResponseData<Void>> deleteUserByUsername(
+            @PathVariable String username,
+            @RequestAttribute("userId") String userId) {
 
-    return ResponseEntity.ok(ResponseData.success(
-        "Reindex job started. Check logs for progress.",
-        null));
-  }
+        userService.deleteUserByUsername(username, userId);
+        return ResponseEntity.ok(ResponseData.success("User deleted successfully", null));
+    }
+
+    /**
+     * Get user details by ID
+     */
+    @GetMapping("/users/{id}")
+    public ResponseEntity<ResponseData<UserBaseResponse>> getUserById(@PathVariable UUID id) {
+        UserBaseResponse user = userService.getByUserId(id);
+        return ResponseEntity.ok(ResponseData.success(user));
+    }
+
+    /**
+     * Get user details by username
+     */
+    @GetMapping("/users/username/{username}")
+    public ResponseEntity<ResponseData<UserBaseResponse>> getUserByUsername(
+            @PathVariable String username) {
+        UserBaseResponse user = userService.getUserByUsername(username);
+        return ResponseEntity.ok(ResponseData.success(user));
+    }
+
+    /**
+     * Get full user profile with role-specific details
+     */
+    @GetMapping("/users/{id}/full-profile")
+    public ResponseEntity<ResponseData<Object>> getFullUserProfile(@PathVariable UUID id) {
+        Object profile = userService.getCurrentUserProfile(id);
+        return ResponseEntity.ok(ResponseData.success(profile));
+    }
+
+    /**
+     * Advanced user search using Elasticsearch with filters and aggregations
+     */
+    @PostMapping("/users/search")
+    public ResponseEntity<ResponseData<UserSearchResponse>> searchUsersAdvanced(
+            @RequestBody UserSearchRequest searchRequest) {
+        UserSearchResponse result = userSearchService.searchUsers(searchRequest);
+        return ResponseEntity.ok(ResponseData.success(result));
+    }
+
+    /**
+     * Trigger bulk reindex of all users from PostgreSQL to Elasticsearch
+     * This is an async operation that returns immediately with a job ID
+     */
+    @PostMapping("/users/reindex")
+    public ResponseEntity<ResponseData<String>> triggerReindex(
+            @RequestBody(required = false) ReindexRequest reindexRequest) {
+        ReindexRequest request = reindexRequest != null ? reindexRequest : new ReindexRequest();
+        CompletableFuture<ReindexJobResponse> future = indexManagementService.triggerReindex(request);
+
+        // Get job ID from the future (it's available immediately)
+        future.thenAccept(response -> {
+            if ("COMPLETED".equals(response.getStatus())) {
+                log.info("Reindex completed: {}", response);
+            } else {
+                log.error("Reindex failed: {}", response.getErrorMessage());
+            }
+        });
+
+        return ResponseEntity.ok(ResponseData.success(
+                "Reindex job started. Check logs for progress.",
+                null));
+    }
 }
