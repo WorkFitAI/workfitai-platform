@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface iPermissionService {
     Permission create(Permission p);
+    List<Permission> createBatch(List<Permission> permissions);
     List<Permission> listAll();
-
     Permission getByName(String name);
     Permission updateDescription(String name, String description);
     void deleteByName(String name);

@@ -30,7 +30,7 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   private UUID userId;
 
   @NotBlank(message = "Full name is required")
-  @Pattern(regexp = "^[a-zA-Z\\s]{3,255}$", message = "Full name must be at least 3 characters long and can contain letters and spaces only")
+  @Size(min = 2, max = 255, message = "Full name must be between 2 and 255 characters")
   @Column(name = "full_name", nullable = false)
   private String fullName;
 

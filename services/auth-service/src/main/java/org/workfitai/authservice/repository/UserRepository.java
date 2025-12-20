@@ -1,6 +1,7 @@
 package org.workfitai.authservice.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.enums.UserStatus;
@@ -21,4 +22,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByStatus(UserStatus status);
 
     List<User> findByRolesContainingAndCompanyNo(String role, String companyNo);
+
+    @Query(value = "{'email': ?0}", fields = "{'companyNo': 1}")
+    Optional<User> findByEmailForCompanyNo(String hrManagerEmail);
 }
