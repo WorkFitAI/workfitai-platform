@@ -10,6 +10,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.workfitai.authservice.constants.LogType;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -22,6 +23,8 @@ import java.util.UUID;
  * - X-Request-Id: Unique request correlation ID
  * - X-Username: Authenticated user's username
  * - X-User-Roles: User's roles (comma-separated)
+ * 
+ * Auto-detects log_type based on request characteristics.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -62,10 +65,14 @@ public class LoggingMdcFilter extends OncePerRequestFilter {
                 MDC.put("roles", roles);
             }
 
+            // Auto-detect and set log type based on request characteristics
+            LogType logType = detectLogType(path, username);
+            MDC.put("log_type", logType.name());
+
             // Add request ID to response for client correlation
             response.addHeader(REQUEST_ID_HEADER, requestId);
 
-            log.debug("📥 {} {} [requestId={}, user={}]", method, path, requestId, username);
+            log.debug("📥 {} {} [requestId={}, user={}, type={}]", method, path, requestId, username, logType);
 
             filterChain.doFilter(request, response);
 
@@ -73,5 +80,31 @@ public class LoggingMdcFilter extends OncePerRequestFilter {
             // Always clear MDC to prevent memory leaks
             MDC.clear();
         }
+    }
+
+    /**
+     * Auto-detect log type based on request characteristics.
+     */
+    private LogType detectLogType(String path, String username) {
+        // Health checks and actuator endpoints
+        if (path.startsWith("/actuator/") || path.equals("/health") || path.equals("/metrics")) {
+            return LogType.HEALTH_CHECK;
+        }
+
+        // Authentication endpoints (auth-service paths after gateway strips /auth
+        // prefix)
+        if (path.startsWith("/login") || path.startsWith("/register") ||
+                path.startsWith("/verify") || path.startsWith("/forgot-password") ||
+                path.startsWith("/reset-password") || path.startsWith("/refresh")) {
+            return LogType.AUTH;
+        }
+
+        // User-initiated actions (authenticated users on business endpoints)
+        if (username != null && !username.equals("anonymous") && !username.equals("system")) {
+            return LogType.USER_ACTION;
+        }
+
+        // Default to system logs
+        return LogType.SYSTEM;
     }
 }

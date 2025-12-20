@@ -58,3 +58,6 @@ repomix-output.xml
 
 # Api documentation .backup
 api-docs/.json.backup
+
+# Models Job recomendation
+/services/recommendation-engine/models/

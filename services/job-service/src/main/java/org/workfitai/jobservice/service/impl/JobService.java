@@ -26,6 +26,7 @@ import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.security.SecurityUtils;
 import org.workfitai.jobservice.service.CloudinaryService;
+import org.workfitai.jobservice.service.JobEventProducer;
 import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.service.specifications.JobSpecifications;
 import org.workfitai.jobservice.util.HtmlSanitizer;
@@ -49,14 +50,18 @@ public class JobService implements iJobService {
     private final CompanyRepository companyRepository;
 
     private final CloudinaryService cloudinaryService;
+    
+    private final JobEventProducer jobEventProducer;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-                      SkillRepository skillRepository, CompanyRepository companyRepository, CloudinaryService cloudinaryService) {
+                      SkillRepository skillRepository, CompanyRepository companyRepository, 
+                      CloudinaryService cloudinaryService, JobEventProducer jobEventProducer) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
         this.cloudinaryService = cloudinaryService;
+        this.jobEventProducer = jobEventProducer;
     }
 
     @Override
@@ -161,6 +166,10 @@ public class JobService implements iJobService {
             log.debug("Saving job to database");
             Job currentJob = this.jobRepository.save(job);
             log.debug("Job saved successfully with ID: {}", currentJob.getJobId());
+            
+            // Publish job created event to Kafka
+            jobEventProducer.publishJobCreated(currentJob);
+            
             return jobMapper.toResCreateJobDTO(currentJob);
         } catch (Exception e) {
             log.error("Error creating job: {}", e.getMessage(), e);
@@ -173,6 +182,9 @@ public class JobService implements iJobService {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
         companyRepository.findById(validCompanyNo).orElseThrow(() -> new NoPermissionException("You don't have permission to update job with this company"));
 
+        // Clone the old job for change detection
+        Job oldJob = cloneJobForComparison(dbJob);
+        
         Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
@@ -194,6 +206,13 @@ public class JobService implements iJobService {
         dbJob.setExpiresAt(job.getExpiresAt());
 
         this.jobRepository.save(dbJob);
+        
+        // Publish job updated event with changes
+        Map<String, Object> changes = detectChanges(oldJob, dbJob);
+        if (!changes.isEmpty()) {
+            jobEventProducer.publishJobUpdated(dbJob, changes);
+        }
+        
         return jobMapper.toResUpdateJobDTO(dbJob);
     }
 
@@ -207,8 +226,15 @@ public class JobService implements iJobService {
         if (status == job.getStatus()) {
             throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }
+        
+        JobStatus oldStatus = job.getStatus();
         job.setStatus(status);
         this.jobRepository.save(job);
+        
+        // Publish update event for status change
+        Map<String, Object> changes = new HashMap<>();
+        changes.put("status", Map.of("old", oldStatus.toString(), "new", status.toString()));
+        jobEventProducer.publishJobUpdated(job, changes);
 
         return new ResModifyStatus().builder()
                 .status(String.valueOf(job.getStatus()))
@@ -223,6 +249,9 @@ public class JobService implements iJobService {
 
         job.setDeleted(true);
         this.jobRepository.save(job);
+        
+        // Publish job deleted event
+        jobEventProducer.publishJobDeleted(job, "Soft deleted by user");
     }
 
     private void checkCompany(Job job, Job dbJob) {
@@ -339,6 +368,68 @@ public class JobService implements iJobService {
         jobRepository.save(dbJob);
 
         return bannerUrl;
+    }
+    
+    /**
+     * Clone job for comparison before update
+     */
+    private Job cloneJobForComparison(Job job) {
+        Job clone = new Job();
+        clone.setJobId(job.getJobId());
+        clone.setTitle(job.getTitle());
+        clone.setDescription(job.getDescription());
+        clone.setShortDescription(job.getShortDescription());
+        clone.setLocation(job.getLocation());
+        clone.setSalaryMin(job.getSalaryMin());
+        clone.setSalaryMax(job.getSalaryMax());
+        clone.setExperienceLevel(job.getExperienceLevel());
+        clone.setEducationLevel(job.getEducationLevel());
+        clone.setCurrency(job.getCurrency());
+        clone.setRequirements(job.getRequirements());
+        clone.setResponsibilities(job.getResponsibilities());
+        clone.setBenefits(job.getBenefits());
+        clone.setEmploymentType(job.getEmploymentType());
+        clone.setQuantity(job.getQuantity());
+        clone.setExpiresAt(job.getExpiresAt());
+        clone.setStatus(job.getStatus());
+        return clone;
+    }
+    
+    /**
+     * Detect changes between old and new job
+     */
+    private Map<String, Object> detectChanges(Job oldJob, Job newJob) {
+        Map<String, Object> changes = new HashMap<>();
+        
+        if (!Objects.equals(oldJob.getTitle(), newJob.getTitle())) {
+            changes.put("title", Map.of("old", oldJob.getTitle(), "new", newJob.getTitle()));
+        }
+        if (!Objects.equals(oldJob.getDescription(), newJob.getDescription())) {
+            changes.put("description", "updated");
+        }
+        if (!Objects.equals(oldJob.getShortDescription(), newJob.getShortDescription())) {
+            changes.put("shortDescription", "updated");
+        }
+        if (!Objects.equals(oldJob.getLocation(), newJob.getLocation())) {
+            changes.put("location", Map.of("old", oldJob.getLocation(), "new", newJob.getLocation()));
+        }
+        if (!Objects.equals(oldJob.getSalaryMin(), newJob.getSalaryMin())) {
+            changes.put("salaryMin", Map.of("old", oldJob.getSalaryMin(), "new", newJob.getSalaryMin()));
+        }
+        if (!Objects.equals(oldJob.getSalaryMax(), newJob.getSalaryMax())) {
+            changes.put("salaryMax", Map.of("old", oldJob.getSalaryMax(), "new", newJob.getSalaryMax()));
+        }
+        if (!Objects.equals(oldJob.getExperienceLevel(), newJob.getExperienceLevel())) {
+            changes.put("experienceLevel", Map.of("old", oldJob.getExperienceLevel(), "new", newJob.getExperienceLevel()));
+        }
+        if (!Objects.equals(oldJob.getEmploymentType(), newJob.getEmploymentType())) {
+            changes.put("employmentType", Map.of("old", oldJob.getEmploymentType(), "new", newJob.getEmploymentType()));
+        }
+        if (!Objects.equals(oldJob.getStatus(), newJob.getStatus())) {
+            changes.put("status", Map.of("old", oldJob.getStatus().toString(), "new", newJob.getStatus().toString()));
+        }
+        
+        return changes;
     }
 
 }

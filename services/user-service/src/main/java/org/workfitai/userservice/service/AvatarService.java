@@ -15,6 +15,7 @@ import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
 import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.repository.UserRepository;
+import org.workfitai.userservice.util.LogContext;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -43,6 +44,10 @@ public class AvatarService {
 
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+        LogContext.setAction("UPLOAD_AVATAR");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId().toString());
 
         try {
             // Remove old avatar if exists
@@ -85,6 +90,10 @@ public class AvatarService {
     public void deleteAvatar(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+        LogContext.setAction("DELETE_AVATAR");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId().toString());
 
         if (user.getAvatarPublicId() == null) {
             throw new BadRequestException("No avatar to delete");

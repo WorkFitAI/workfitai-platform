@@ -66,6 +66,7 @@ create_service_policy "job-service"
 create_service_policy "cv-service"
 create_service_policy "application-service"
 create_service_policy "notification-service"
+create_service_policy "recommendation-engine"
 
 # Create secrets for auth-service
 echo ""
@@ -138,13 +139,47 @@ create_service_secrets "notification-service" '{
   }
 }'
 
+# Create secrets for recommendation-engine
+create_service_secrets "recommendation-engine" '{
+  "data": {
+    "model.path": "'"${RECOMMENDATION_MODEL_PATH:-/app/models/bi-encoder-e5-large}"'",
+    "model.dimension": "'"${RECOMMENDATION_MODEL_DIMENSION:-1024}"'",
+    "batch.size": "'"${RECOMMENDATION_BATCH_SIZE:-32}"'",
+    "faiss.index.path": "/app/data/faiss_index",
+    "faiss.index.type": "IndexFlatIP",
+    "faiss.enable.persistence": "true",
+    "kafka.bootstrap.servers": "kafka:29092",
+    "kafka.consumer.group": "recommendation-engine",
+    "kafka.topic.job-created": "job.created",
+    "kafka.topic.job-updated": "job.updated",
+    "kafka.topic.job-deleted": "job.deleted",
+    "kafka.auto.offset.reset": "earliest",
+    "kafka.enable.consumer": "'"${RECOMMENDATION_ENABLE_KAFKA:-true}"'",
+    "job.service.url": "http://job-service:9082",
+    "job.service.timeout": "30",
+    "resume.max.size.mb": "'"${RECOMMENDATION_MAX_RESUME_SIZE_MB:-5}"'",
+    "search.default.top-k": "'"${RECOMMENDATION_DEFAULT_TOP_K:-20}"'",
+    "search.max.top-k": "'"${RECOMMENDATION_MAX_TOP_K:-100}"'",
+    "search.min.similarity.score": "0.0",
+    "cache.enable": "true",
+    "cache.ttl.seconds": "3600",
+    "workers.max": "4",
+    "metrics.enable": "true",
+    "metrics.port": "9090",
+    "sync.enable.initial": "'"${RECOMMENDATION_ENABLE_INITIAL_SYNC:-true}"'",
+    "sync.initial.batch.size": "50",
+    "rebuild.enable.periodic": "false",
+    "rebuild.interval.hours": "24"
+  }
+}'
+
 echo ""
 echo "✅ Vault initialization completed successfully!"
 echo ""
 echo "📊 Summary:"
 echo "  - KV v2 secrets engine: enabled"
-echo "  - Service policies: 6 created"
-echo "  - Service secrets: 6 populated"
+echo "  - Service policies: 7 created"
+echo "  - Service secrets: 7 populated"
 echo ""
 echo "🔒 All services can now use token 'dev-token' to read their secrets"
 echo "   (In production, each service should have its own token with restricted policy)"

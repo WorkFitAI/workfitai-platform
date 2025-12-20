@@ -55,11 +55,19 @@ spring:
       auto-offset-reset: earliest
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
     api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+
+# Kafka topics configuration
+app:
+  kafka:
+    topics:
+      job-created: ${KAFKA_TOPIC_JOB_CREATED:job.created}
+      job-updated: ${KAFKA_TOPIC_JOB_UPDATED:job.updated}
+      job-deleted: ${KAFKA_TOPIC_JOB_DELETED:job.deleted}
 
 server:
   port: ${SERVER_PORT:9005}

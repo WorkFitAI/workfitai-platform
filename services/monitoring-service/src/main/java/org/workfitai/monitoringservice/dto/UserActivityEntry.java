@@ -55,11 +55,6 @@ public class UserActivityEntry {
     private String path;
 
     /**
-     * Human-readable action description
-     */
-    private String action;
-
-    /**
      * Request ID for tracing
      */
     private String requestId;
@@ -73,6 +68,47 @@ public class UserActivityEntry {
      * Whether this was an error
      */
     private Boolean isError;
+
+    /**
+     * Log type classification (USER_ACTION, SYSTEM, etc.)
+     */
+    private String logType;
+
+    /**
+     * Action code (e.g., CREATE_JOB, UPDATE_PROFILE)
+     */
+    private String action;
+
+    /**
+     * Entity type being operated on (e.g., Job, User, Application)
+     */
+    private String entityType;
+
+    /**
+     * Entity ID being operated on
+     */
+    private String entityId;
+
+    /**
+     * Log message / description (technical)
+     */
+    private String message;
+
+    /**
+     * Human-readable Vietnamese message for end users
+     * Example: "Đăng nhập vào hệ thống", "Tạo tin tuyển dụng mới"
+     */
+    private String displayMessage;
+
+    /**
+     * Relative time description (e.g., "5 phút trước")
+     */
+    private String relativeTime;
+
+    /**
+     * Icon/emoji representing the action
+     */
+    private String icon;
 
     /**
      * Convert from LogEntry to UserActivityEntry

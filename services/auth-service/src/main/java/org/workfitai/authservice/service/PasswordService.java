@@ -12,6 +12,7 @@ import org.workfitai.authservice.config.PasswordPolicyConfig;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.dto.kafka.NotificationEvent;
 import org.workfitai.authservice.dto.kafka.PasswordChangeEvent;
+import org.workfitai.authservice.util.LogContext;
 import org.workfitai.authservice.dto.request.ChangePasswordRequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.ResetPasswordRequest;
@@ -92,6 +93,10 @@ public class PasswordService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordChangedAt(Instant.now());
         userRepository.save(user);
+
+        LogContext.setAction("CHANGE_PASSWORD");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId());
 
         // Invalidate all refresh tokens (logout from all devices)
         // Use userId instead of username to match the key format:
@@ -193,6 +198,10 @@ public class PasswordService {
         // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordChangedAt(Instant.now());
+
+        LogContext.setAction("RESET_PASSWORD");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId());
         userRepository.save(user);
 
         // Mark token as used

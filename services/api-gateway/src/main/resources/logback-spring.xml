@@ -23,6 +23,10 @@
             <includeMdcKeyName>path</includeMdcKeyName>
             <includeMdcKeyName>method</includeMdcKeyName>
             <includeMdcKeyName>roles</includeMdcKeyName>
+            <includeMdcKeyName>log_type</includeMdcKeyName>
+            <includeMdcKeyName>action</includeMdcKeyName>
+            <includeMdcKeyName>entity_type</includeMdcKeyName>
+            <includeMdcKeyName>entity_id</includeMdcKeyName>
             
             <fieldNames>
                 <timestamp>@timestamp</timestamp>

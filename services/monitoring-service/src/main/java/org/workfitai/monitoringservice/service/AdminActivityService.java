@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class AdminActivityService {
 
     private final ElasticsearchClient elasticsearchClient;
+    private final ActivityMessageFormatter messageFormatter;
 
     @Value("${elasticsearch.index-pattern:workfitai-logs-*}")
     private String indexPattern;
@@ -60,6 +61,10 @@ public class AdminActivityService {
                             .field("@timestamp")
                             .gte(JsonData.of(from.toString()))
                             .lte(JsonData.of(to.toString())))));
+
+            // FILTER: Only USER_ACTION log types
+            boolQuery.must(Query.of(q -> q
+                    .term(t -> t.field("log_type.keyword").value("USER_ACTION"))));
 
             // Must have username (exclude anonymous/system)
             boolQuery.mustNot(Query.of(q -> q
@@ -96,6 +101,31 @@ public class AdminActivityService {
                                     FieldValue.of("/actuator/info"),
                                     FieldValue.of("/metrics"),
                                     FieldValue.of("/health")))))));
+
+            // Must have request_id for tracking
+            boolQuery.must(Query.of(q -> q.exists(e -> e.field("request_id"))));
+
+            // Exclude internal/debug messages using wildcard queries (more reliable than regex)
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*\\[DEBUG\\]*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*completed \\[requestId=*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*✅*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*JwtClaimsFilter*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*X-Token-Source*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*X-Original-Opaque*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("message").value("*Authorization: Bearer*"))));
+
+            // Exclude logger names from filters (internal logs)
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("logger_name").value("*filter*"))));
+            boolQuery.mustNot(Query.of(q -> q
+                    .wildcard(w -> w.field("logger_name").value("*Filter*"))));
 
             // Build aggregations for statistics
             SearchRequest searchRequest = SearchRequest.of(s -> s
@@ -172,18 +202,38 @@ public class AdminActivityService {
             }
         }
 
+        String method = getStringValue(source, "method", "http_method");
+        String path = getStringValue(source, "path", "request_path");
+        String action = getStringValue(source, "action");
+        String entityType = getStringValue(source, "entity_type");
+        String service = getStringValue(source, "service", "service_name");
+
+        // Format human-readable message
+        String displayMessage = messageFormatter.formatActivityMessage(method, path, action, entityType, service);
+        String relativeTime = messageFormatter.formatRelativeTime(timestamp);
+        String icon = messageFormatter.getActivityIcon(action, entityType);
+
         return UserActivityEntry.builder()
                 .id(id)
                 .timestamp(timestamp)
                 .username(getStringValue(source, "username", "user"))
                 .roles(getStringValue(source, "roles"))
-                .service(getStringValue(source, "service", "service_name"))
-                .method(getStringValue(source, "method", "http_method"))
-                .path(getStringValue(source, "path", "request_path"))
-                .action(getStringValue(source, "action", "log_message", "message"))
+                .service(service)
+                .method(method)
+                .path(path)
                 .requestId(getStringValue(source, "request_id", "requestId"))
                 .level(getStringValue(source, "level", "log_level"))
                 .isError("ERROR".equalsIgnoreCase(getStringValue(source, "level", "log_level")))
+                // Log classification fields
+                .logType(getStringValue(source, "log_type"))
+                .action(action)
+                .entityType(entityType)
+                .entityId(getStringValue(source, "entity_id"))
+                .message(getStringValue(source, "log_message", "message"))
+                // User-friendly fields
+                .displayMessage(displayMessage)
+                .relativeTime(relativeTime)
+                .icon(icon)
                 .build();
     }
 

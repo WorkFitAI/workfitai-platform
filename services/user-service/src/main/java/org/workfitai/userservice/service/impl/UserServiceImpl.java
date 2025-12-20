@@ -31,6 +31,7 @@ import org.workfitai.userservice.service.AdminService;
 import org.workfitai.userservice.service.CandidateService;
 import org.workfitai.userservice.service.HRService;
 import org.workfitai.userservice.service.UserService;
+import org.workfitai.userservice.util.LogContext;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -322,6 +323,10 @@ public class UserServiceImpl implements UserService {
     public void setUserBlockStatus(UUID userId, boolean blocked) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> ApiException.notFound(Messages.User.NOT_FOUND));
+
+        LogContext.setAction(blocked ? "BLOCK_USER" : "UNBLOCK_USER");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(userId.toString());
 
         boolean wasBlocked = user.isBlocked();
         user.setBlocked(blocked);
