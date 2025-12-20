@@ -1,5 +1,22 @@
 package org.workfitai.monitoringservice.service;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.workfitai.monitoringservice.dto.ActivitySummary;
+import org.workfitai.monitoringservice.dto.UserActivityEntry;
+import org.workfitai.monitoringservice.dto.UserActivityResponse;
+
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -12,15 +29,6 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.workfitai.monitoringservice.dto.*;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Service for admin-facing user activity queries.
@@ -105,7 +113,8 @@ public class AdminActivityService {
             // Must have request_id for tracking
             boolQuery.must(Query.of(q -> q.exists(e -> e.field("request_id"))));
 
-            // Exclude internal/debug messages using wildcard queries (more reliable than regex)
+            // Exclude internal/debug messages using wildcard queries (more reliable than
+            // regex)
             boolQuery.mustNot(Query.of(q -> q
                     .wildcard(w -> w.field("message").value("*\\[DEBUG\\]*"))));
             boolQuery.mustNot(Query.of(q -> q
@@ -243,46 +252,82 @@ public class AdminActivityService {
     private ActivitySummary buildSummary(SearchResponse<Map> response, List<UserActivityEntry> activities) {
         ActivitySummary.ActivitySummaryBuilder summaryBuilder = ActivitySummary.builder();
 
-        // Active users count
+        // Total actions - use total from search response, not paginated activities list
+        long totalActions = response.hits().total() != null ? response.hits().total().value() : 0;
+        summaryBuilder.totalActions(totalActions);
+
+        log.debug("Building activity summary - total actions: {}", totalActions);
+
+        // Active users count and actions by user
+        Map<String, Integer> actionsByUser = new LinkedHashMap<>();
         var userBuckets = response.aggregations().get("by_user");
         if (userBuckets != null && userBuckets.isSterms()) {
-            int activeUsers = userBuckets.sterms().buckets().array().size();
-            summaryBuilder.activeUsers(activeUsers);
+            var buckets = userBuckets.sterms().buckets();
+            List<StringTermsBucket> bucketList = buckets.array();
 
-            // Actions by user
-            Map<String, Integer> actionsByUser = userBuckets.sterms().buckets().array().stream()
-                    .collect(Collectors.toMap(
-                            bucket -> bucket.key().stringValue(),
-                            bucket -> (int) bucket.docCount()));
-            summaryBuilder.actionsByUser(actionsByUser);
+            if (!bucketList.isEmpty()) {
+                summaryBuilder.activeUsers(bucketList.size());
+
+                for (StringTermsBucket bucket : bucketList) {
+                    String username = bucket.key().stringValue();
+                    int count = (int) bucket.docCount();
+                    actionsByUser.put(username, count);
+                }
+                log.debug("Found {} active users with actions: {}", bucketList.size(), actionsByUser);
+            } else {
+                summaryBuilder.activeUsers(0);
+                log.debug("No user buckets found in aggregation");
+            }
         } else {
-            summaryBuilder.activeUsers(0).actionsByUser(Collections.emptyMap());
+            summaryBuilder.activeUsers(0);
+            log.warn("User aggregation not found or not sterms type");
         }
+        summaryBuilder.actionsByUser(actionsByUser);
 
         // Actions by service
+        Map<String, Integer> actionsByService = new LinkedHashMap<>();
         var serviceBuckets = response.aggregations().get("by_service");
         if (serviceBuckets != null && serviceBuckets.isSterms()) {
-            Map<String, Integer> actionsByService = serviceBuckets.sterms().buckets().array().stream()
-                    .collect(Collectors.toMap(
-                            bucket -> bucket.key().stringValue(),
-                            bucket -> (int) bucket.docCount()));
-            summaryBuilder.actionsByService(actionsByService);
-        } else {
-            summaryBuilder.actionsByService(Collections.emptyMap());
-        }
+            var buckets = serviceBuckets.sterms().buckets();
+            List<StringTermsBucket> bucketList = buckets.array();
 
-        // Top actions
+            for (StringTermsBucket bucket : bucketList) {
+                String service = bucket.key().stringValue();
+                int count = (int) bucket.docCount();
+                actionsByService.put(service, count);
+            }
+            log.debug("Found {} services with actions: {}", bucketList.size(), actionsByService);
+        } else {
+            log.debug("Service aggregation not found or not sterms type");
+        }
+        summaryBuilder.actionsByService(actionsByService);
+
+        // Top actions - format with human-readable Vietnamese messages
+        Map<String, Integer> topActions = new LinkedHashMap<>();
         var actionBuckets = response.aggregations().get("by_action");
         if (actionBuckets != null && actionBuckets.isSterms()) {
-            Map<String, Integer> topActions = actionBuckets.sterms().buckets().array().stream()
-                    .limit(10)
-                    .collect(Collectors.toMap(
-                            bucket -> bucket.key().stringValue(),
-                            bucket -> (int) bucket.docCount()));
-            summaryBuilder.topActions(topActions);
+            var buckets = actionBuckets.sterms().buckets();
+            List<StringTermsBucket> bucketList = buckets.array();
+
+            int limit = Math.min(10, bucketList.size());
+            for (int i = 0; i < limit; i++) {
+                StringTermsBucket bucket = bucketList.get(i);
+                String action = bucket.key().stringValue();
+                int count = (int) bucket.docCount();
+
+                // Find a matching activity to get entity_type for proper formatting
+                String entityType = findEntityTypeForAction(activities, action);
+
+                // Format the action for display
+                String formattedAction = formatActionForDisplay(action, entityType);
+
+                topActions.put(formattedAction, count);
+            }
+            log.debug("Found {} top actions (formatted): {}", limit, topActions);
         } else {
-            summaryBuilder.topActions(Collections.emptyMap());
+            log.debug("Action aggregation not found or not sterms type");
         }
+        summaryBuilder.topActions(topActions);
 
         // Error count
         var errorAgg = response.aggregations().get("error_count");
@@ -291,10 +336,6 @@ public class AdminActivityService {
             errorCount = (int) errorAgg.filter().docCount();
         }
         summaryBuilder.errorCount(errorCount);
-
-        // Total actions - use total from search response, not paginated activities list
-        long totalActions = response.hits().total() != null ? response.hits().total().value() : 0;
-        summaryBuilder.totalActions(totalActions);
 
         return summaryBuilder.build();
     }
@@ -310,5 +351,55 @@ public class AdminActivityService {
             }
         }
         return null;
+    }
+
+    /**
+     * Find entity_type for a given action from the activities list.
+     * Returns the first matching entity_type, or null if not found.
+     */
+    private String findEntityTypeForAction(List<UserActivityEntry> activities, String action) {
+        if (activities == null || action == null) {
+            return null;
+        }
+
+        return activities.stream()
+                .filter(activity -> action.equals(activity.getAction()))
+                .map(UserActivityEntry::getEntityType)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Format action for display using ActivityMessageFormatter.
+     * Tries different formatting strategies:
+     * 1. If entityType exists, try formatByAction(action, entityType)
+     * 2. Try the action as a standalone key (for APPROVE_HR, ENABLE_2FA, etc.)
+     * 3. Otherwise, return the raw action
+     */
+    private String formatActionForDisplay(String action, String entityType) {
+        if (action == null) {
+            return "Unknown";
+        }
+
+        // Try to format with entityType if available
+        if (entityType != null && !entityType.isBlank()) {
+            String formatted = messageFormatter.formatByAction(action, entityType);
+            if (formatted != null) {
+                return formatted;
+            }
+        }
+
+        // Try standalone action by looking it up directly (the action itself is the
+        // key)
+        // This handles cases like APPROVE_HR, APPROVE_HR_MANAGER, ENABLE_2FA, etc.
+        // which are stored without an entity type suffix in the mappings
+        String formatted = messageFormatter.formatByAction(action, "");
+        if (formatted != null) {
+            return formatted;
+        }
+
+        // Fallback: return raw action
+        return action;
     }
 }

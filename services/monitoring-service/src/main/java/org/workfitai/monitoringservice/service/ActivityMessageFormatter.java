@@ -1,13 +1,14 @@
 package org.workfitai.monitoringservice.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Formats technical log entries into human-readable messages for end users.
@@ -54,9 +55,18 @@ public class ActivityMessageFormatter {
 
     /**
      * Format by business action.
+     * Made package-private so it can be used by AdminActivityService.
      */
-    private String formatByAction(String action, String entityType) {
-        String key = action + "_" + entityType;
+    String formatByAction(String action, String entityType) {
+        // Handle null/empty cases
+        if (action == null) {
+            return null;
+        }
+
+        // Build key - if entityType is empty/null, just use action alone
+        String key = (entityType != null && !entityType.isEmpty())
+                ? action + "_" + entityType
+                : action;
 
         Map<String, String> actionMessages = new HashMap<>();
 
@@ -90,7 +100,7 @@ public class ActivityMessageFormatter {
         actionMessages.put("FILTER_Application", "Lọc hồ sơ ứng tuyển");
         actionMessages.put("EXPORT_Application", "Xuất danh sách hồ sơ");
 
-        // Auth/Security actions
+        // Auth/Security actions (standalone - no entity type needed)
         actionMessages.put("ENABLE_2FA", "Bật xác thực hai yếu tố");
         actionMessages.put("DISABLE_2FA", "Tắt xác thực hai yếu tố");
         actionMessages.put("VERIFY_2FA", "Xác thực mã 2FA");
@@ -115,7 +125,7 @@ public class ActivityMessageFormatter {
         actionMessages.put("UPDATE_Privacy", "Cập nhật cài đặt riêng tư");
         actionMessages.put("UPDATE_Notification", "Cập nhật cài đặt thông báo");
 
-        // HR Management actions
+        // HR Management actions (standalone - no entity type needed)
         actionMessages.put("APPROVE_HR", "Phê duyệt tài khoản HR");
         actionMessages.put("APPROVE_HR_MANAGER", "Phê duyệt tài khoản HR Manager");
         actionMessages.put("REJECT_HR", "Từ chối tài khoản HR");
