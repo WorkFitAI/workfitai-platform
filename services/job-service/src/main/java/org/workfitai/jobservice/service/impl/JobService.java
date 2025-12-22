@@ -105,6 +105,16 @@ public class JobService implements iJobService {
     }
 
     @Override
+    public ResultPaginationDTO fetchJobsByCompany(String companyId, Pageable pageable) {
+        Specification<Job> spec = Specification.where(JobSpecifications.hasCompanyId(companyId))
+                .and(JobSpecifications.statusPublished())
+                .and(JobSpecifications.isNoDeleted());
+
+        Page<Job> pageJob = jobRepository.findAll(spec, pageable);
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+    }
+
+    @Override
     public ResJobDetailsDTO fetchJobById(UUID id) {
         Optional<Job> jobOptional = getJobById(id);
 

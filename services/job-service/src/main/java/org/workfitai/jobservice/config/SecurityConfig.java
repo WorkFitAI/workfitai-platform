@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**", "/api/v1/jobs/public/**", "/public/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/hr/**").hasRole("HR")
+                        .requestMatchers("/hr/**").hasAnyRole("HR", "HR_MANAGER")
                         .requestMatchers("/candidate/**").hasRole("CANDIDATE")
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex

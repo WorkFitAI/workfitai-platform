@@ -11,6 +11,7 @@ import org.workfitai.jobservice.model.dto.response.Company.ResCompanyDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.service.iCompanyService;
+import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.util.ApiMessage;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
@@ -23,12 +24,23 @@ import static org.workfitai.jobservice.util.MessageConstant.*;
 public class CompanyController {
 
     private final iCompanyService companyService;
+    private final iJobService jobService;
 
     @GetMapping("/{id}")
     @ApiMessage(COMPANY_DETAIL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResCompanyDTO> getCompany(@PathVariable("id") String id) {
         ResCompanyDTO dto = companyService.getById(id);
         return RestResponse.success(dto);
+    }
+
+    @GetMapping("/{id}/jobs")
+    @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
+    public RestResponse<ResultPaginationDTO> getCompanyJobs(
+            @PathVariable("id") String id,
+            Pageable pageable) {
+
+        ResultPaginationDTO result = jobService.fetchJobsByCompany(id, pageable);
+        return RestResponse.success(result);
     }
 
     @GetMapping()

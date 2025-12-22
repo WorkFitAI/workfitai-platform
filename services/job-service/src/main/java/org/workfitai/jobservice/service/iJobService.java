@@ -23,6 +23,8 @@ public interface iJobService {
 
     ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable);
 
+    ResultPaginationDTO fetchJobsByCompany(String companyId, Pageable pageable);
+
     ResJobDetailsDTO fetchJobById(UUID id);
 
     ResJobDetailsForHrDTO fetchJobByIdForHr(UUID id);
