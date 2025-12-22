@@ -95,6 +95,12 @@ if [ ! -d "models/bi-encoder-e5-large" ]; then
     echo "The model will be downloaded on first run (may take time)"
 fi
 
+# Clean FAISS index on every run to force resync
+echo ""
+echo -e "${YELLOW}🗑️  Cleaning FAISS index for fresh sync...${NC}"
+find data/ -type f \( -name 'faiss_index*' -o -name '*.pkl' -o -name '*.json' \) -delete 2>/dev/null || true
+echo -e "${GREEN}✅ FAISS index cleaned. Will resync from Job Service on startup.${NC}"
+
 # Clean FAISS index if model dimension changed
 echo ""
 echo -e "${YELLOW}🔍 Checking FAISS index compatibility...${NC}"

@@ -761,65 +761,64 @@ services:
       /bin/sh -c " sleep 5 && mc alias set local $${MINIO_ENDPOINT} $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY} && mc mb -p local/$${MINIO_BUCKET} || true && tail -f /dev/null "
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
-
   ### Recommendation Engine Service (Python FastAPI) ###
-  recommendation-engine:
-    build:
-      context: ./services/recommendation-engine
-      dockerfile: Dockerfile
-    container_name: recommendation-engine
-    labels:
-      - "workfitai.service=recommendation-engine"
-      - "workfitai.logs=enabled"
-    logging:
-      driver: json-file
-      options:
-        tag: "{{.Name}}/recommendation-engine"
-        max-size: "10m"
-        max-file: "3"
-    ports:
-      - "8001:8000"
-    env_file:
-      - .env.local
-    environment:
-      # Service Configuration
-      - SERVICE_NAME=recommendation-engine
-      - VERSION=1.0.0
-      - ENVIRONMENT=docker
-      - HOST=0.0.0.0
-      - PORT=8000
-      - LOG_LEVEL=INFO
-      # Vault Configuration
-      - VAULT_ENABLED=true
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
-      # Override critical paths (not in Vault)
-      - MODEL_PATH=/app/models/bi-encoder-e5-large
-      - FAISS_INDEX_PATH=/app/data/faiss_index
-    volumes:
-      # Mount pre-trained model (read-only)
-      - ./services/recommendation-engine/models:/app/models:ro
-      # Mount data directory for FAISS index persistence
-      - recommendation-data:/app/data
-      # Mount logs directory
-      - ./services/recommendation-engine/logs:/app/logs
-    depends_on:
-      vault:
-        condition: service_healthy
-      vault-init:
-        condition: service_completed_successfully
-      kafka:
-        condition: service_healthy
-      consul:
-        condition: service_started
-    networks: [ workfitai-net ]
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    profiles: [ "services", "full" ]
+  # recommendation-engine:
+  #   build:
+  #     context: ./services/recommendation-engine
+  #     dockerfile: Dockerfile
+  #   container_name: recommendation-engine
+  #   labels:
+  #     - "workfitai.service=recommendation-engine"
+  #     - "workfitai.logs=enabled"
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       tag: "{{.Name}}/recommendation-engine"
+  #       max-size: "10m"
+  #       max-file: "3"
+  #   ports:
+  #     - "8001:8000"
+  #   env_file:
+  #     - .env.local
+  #   environment:
+  #     # Service Configuration
+  #     - SERVICE_NAME=recommendation-engine
+  #     - VERSION=1.0.0
+  #     - ENVIRONMENT=docker
+  #     - HOST=0.0.0.0
+  #     - PORT=8000
+  #     - LOG_LEVEL=INFO
+  #     # Vault Configuration
+  #     - VAULT_ENABLED=true
+  #     - VAULT_ADDR=http://vault:8200
+  #     - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+  #     # Override critical paths (not in Vault)
+  #     - MODEL_PATH=/app/models/bi-encoder-e5-large
+  #     - FAISS_INDEX_PATH=/app/data/faiss_index
+  #   volumes:
+  #     # Mount pre-trained model (read-only)
+  #     - ./services/recommendation-engine/models:/app/models:ro
+  #     # Mount data directory for FAISS index persistence
+  #     - recommendation-data:/app/data
+  #     # Mount logs directory
+  #     - ./services/recommendation-engine/logs:/app/logs
+  #   depends_on:
+  #     vault:
+  #       condition: service_healthy
+  #     vault-init:
+  #       condition: service_completed_successfully
+  #     kafka:
+  #       condition: service_healthy
+  #     consul:
+  #       condition: service_started
+  #   networks: [ workfitai-net ]
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 60s
+  #   profiles: [ "services", "full" ]
 
 volumes:
   user-postgres-data:
