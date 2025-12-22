@@ -29,8 +29,6 @@ public class CorsGlobalConfig {
         return source;
     }
 
-    @Bean
-    public CorsWebFilter corsWebFilter(CorsConfigurationSource corsConfigurationSource) {
-        return new CorsWebFilter(corsConfigurationSource);
-    }
+    // ❌ REMOVED: CorsWebFilter bean - CORS is now handled in SecurityConfig
+    // Duplicate CORS configuration causes conflicts and 403 errors
 }

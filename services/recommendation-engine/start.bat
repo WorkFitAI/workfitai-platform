@@ -38,6 +38,15 @@ if not exist "data" mkdir data
 if not exist "logs" mkdir logs
 if not exist "models" mkdir models
 
+REM Clean FAISS index on every run to force resync
+echo.
+echo 🗑️  Cleaning FAISS index for fresh sync...
+if exist "data\faiss_index*" del /q "data\faiss_index*" 2>nul
+if exist "data\*.pkl" del /q "data\*.pkl" 2>nul
+if exist "data\*.json" del /q "data\*.json" 2>nul
+echo ✅ FAISS index cleaned. Will resync from Job Service on startup.
+echo.
+
 REM Load environment variables (optional check)
 echo ✅ Loading configuration from .env.local
 echo.

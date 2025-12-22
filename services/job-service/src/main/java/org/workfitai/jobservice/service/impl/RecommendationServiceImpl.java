@@ -14,6 +14,7 @@ import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.service.iRecommendationService;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -102,22 +103,58 @@ public class RecommendationServiceImpl implements iRecommendationService {
                 rankMap.put(jobId, rank);
             }
 
-            // Fetch full job details from database
-            List<Job> jobs = jobRepository.findActiveJobsByIds(
-                    jobIds.stream().map(UUID::fromString).collect(Collectors.toList()));
+            log.info("Received {} job IDs from recommendation engine: {}", jobIds.size(), jobIds);
 
-            // Map to response DTOs with scores
-            List<ResJobRecommendationDTO.JobRecommendation> jobRecommendations = jobs.stream()
-                    .map(job -> {
-                        String jobIdStr = job.getJobId().toString();
-                        return ResJobRecommendationDTO.JobRecommendation.builder()
-                                .job(jobMapper.toResJobDTO(job))
-                                .score(scoreMap.getOrDefault(jobIdStr, 0.0))
-                                .rank(rankMap.getOrDefault(jobIdStr, 1))
-                                .build();
-                    })
-                    .sorted(Comparator.comparingInt(ResJobRecommendationDTO.JobRecommendation::getRank))
-                    .collect(Collectors.toList());
+            // Debug: Check if jobs exist in database (without filters)
+            List<UUID> uuidList = jobIds.stream().map(UUID::fromString).collect(Collectors.toList());
+            List<Job> allJobs = jobRepository.findAllById(uuidList);
+            log.info("DEBUG: Found {} jobs in database (before filtering), missing {} jobs",
+                    allJobs.size(), jobIds.size() - allJobs.size());
+
+            if (!allJobs.isEmpty()) {
+                // Log status of found jobs
+                Map<String, Long> statusCounts = allJobs.stream()
+                        .collect(Collectors.groupingBy(j -> j.getStatus().name(), Collectors.counting()));
+                long deletedCount = allJobs.stream().filter(Job::isDeleted).count();
+                long expiredCount = allJobs.stream()
+                        .filter(j -> j.getExpiresAt().isBefore(Instant.now())).count();
+
+                log.info("DEBUG: Job status breakdown - Status: {}, Deleted: {}, Expired: {}",
+                        statusCounts, deletedCount, expiredCount);
+            }
+
+            // Fetch full job details from database (with active filters)
+            List<Job> jobs = jobRepository.findActiveJobsByIds(uuidList);
+
+            log.info("Query returned {} jobs from database (after active filters)", jobs.size());
+
+            if (jobs.isEmpty()) {
+                log.warn("No active jobs found in database for recommended job IDs");
+                return buildEmptyResponse();
+            }
+
+            // Create job map for quick lookup
+            Map<String, Job> jobMap = jobs.stream()
+                    .collect(Collectors.toMap(job -> job.getJobId().toString(), job -> job));
+
+            log.info("Found {}/{} active jobs in database", jobs.size(), jobIds.size());
+
+            // Map to response DTOs with scores, preserving recommendation order
+            List<ResJobRecommendationDTO.JobRecommendation> jobRecommendations = new ArrayList<>();
+
+            for (String jobId : jobIds) {
+                Job job = jobMap.get(jobId);
+                if (job != null) {
+                    jobRecommendations.add(
+                            ResJobRecommendationDTO.JobRecommendation.builder()
+                                    .job(jobMapper.toResJobDTO(job))
+                                    .score(scoreMap.getOrDefault(jobId, 0.0))
+                                    .rank(rankMap.getOrDefault(jobId, 1))
+                                    .build());
+                } else {
+                    log.warn("Job {} from recommendations not found in active jobs (may be expired/deleted)", jobId);
+                }
+            }
 
             String processingTime = response.containsKey("processingTime")
                     ? response.get("processingTime").toString()
@@ -180,21 +217,41 @@ public class RecommendationServiceImpl implements iRecommendationService {
                 rankMap.put(similarJobId, rank);
             }
 
+            log.info("Received {} similar job IDs from recommendation engine: {}", similarJobIds.size(), similarJobIds);
+
             // Fetch job details
             List<Job> jobs = jobRepository.findActiveJobsByIds(
                     similarJobIds.stream().map(UUID::fromString).collect(Collectors.toList()));
 
-            List<ResJobRecommendationDTO.JobRecommendation> jobRecommendations = jobs.stream()
-                    .map(job -> {
-                        String jobIdStr = job.getJobId().toString();
-                        return ResJobRecommendationDTO.JobRecommendation.builder()
-                                .job(jobMapper.toResJobDTO(job))
-                                .score(scoreMap.getOrDefault(jobIdStr, 0.0))
-                                .rank(rankMap.getOrDefault(jobIdStr, 1))
-                                .build();
-                    })
-                    .sorted(Comparator.comparingInt(ResJobRecommendationDTO.JobRecommendation::getRank))
-                    .collect(Collectors.toList());
+            log.info("Query returned {} jobs from database", jobs.size());
+
+            if (jobs.isEmpty()) {
+                log.warn("No active similar jobs found in database for job ID: {}", jobId);
+                return buildEmptyResponse();
+            }
+
+            // Create job map for quick lookup
+            Map<String, Job> jobMap = jobs.stream()
+                    .collect(Collectors.toMap(job -> job.getJobId().toString(), job -> job));
+
+            log.info("Found {}/{} active similar jobs in database", jobs.size(), similarJobIds.size());
+
+            // Map to response DTOs, preserving recommendation order
+            List<ResJobRecommendationDTO.JobRecommendation> jobRecommendations = new ArrayList<>();
+
+            for (String similarJobId : similarJobIds) {
+                Job job = jobMap.get(similarJobId);
+                if (job != null) {
+                    jobRecommendations.add(
+                            ResJobRecommendationDTO.JobRecommendation.builder()
+                                    .job(jobMapper.toResJobDTO(job))
+                                    .score(scoreMap.getOrDefault(similarJobId, 0.0))
+                                    .rank(rankMap.getOrDefault(similarJobId, 1))
+                                    .build());
+                } else {
+                    log.warn("Similar job {} not found in active jobs (may be expired/deleted)", similarJobId);
+                }
+            }
 
             String processingTime = response.containsKey("processingTime")
                     ? response.get("processingTime").toString()

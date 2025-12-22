@@ -45,9 +45,11 @@ public class SecurityConfig {
          */
         /**
          * WebSocket Security Chain - COMPLETELY BYPASS Spring Security
-         * Uses negateServerWebExchangeMatcher to exclude WebSocket paths from ALL security processing
+         * Uses negateServerWebExchangeMatcher to exclude WebSocket paths from ALL
+         * security processing
          */
-        // NOTE: WebSocket paths are excluded from this chain, see apiSecurityChain below
+        // NOTE: WebSocket paths are excluded from this chain, see apiSecurityChain
+        // below
 
         /*
          * =========================================================
@@ -58,7 +60,8 @@ public class SecurityConfig {
         @Order(0)
         public SecurityWebFilterChain apiSecurityChain(ServerHttpSecurity http) {
                 return http
-                                .cors(ServerHttpSecurity.CorsSpec::disable) // ❌ Disable - let CorsWebFilter handle it
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // ✅ Enable CORS with
+                                                                                                 // custom config
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .logout(ServerHttpSecurity.LogoutSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
@@ -80,7 +83,9 @@ public class SecurityConfig {
                                                                 "/monitoring-service/**",
                                                                 "/debug/**",
                                                                 "/user/actuator/**",
-                                                                "/notification/ws/**")  // ✅ WebSocket permitAll
+                                                                "/notification/ws/**",
+                                                                "/notification/actuator/**") // ✅ WebSocket + actuator
+                                                                                             // permitAll
                                                 .permitAll()
 
                                                 // 🔒 EVERYTHING ELSE REQUIRES JWT

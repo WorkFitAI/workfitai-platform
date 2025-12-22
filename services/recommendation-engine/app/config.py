@@ -6,7 +6,7 @@ Loads settings from environment variables and Vault
 import os
 import logging
 from typing import Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 # Setup logging before importing vault_client
@@ -47,6 +47,13 @@ _vault_config = load_vault_config()
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
+
+    model_config = SettingsConfigDict(
+        env_file=".env.local",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
     
     # Service Info
     SERVICE_NAME: str = "recommendation-engine"
@@ -117,11 +124,6 @@ class Settings(BaseSettings):
     # Periodic Rebuild
     ENABLE_PERIODIC_REBUILD: bool = Field(default=False, env="ENABLE_PERIODIC_REBUILD")
     REBUILD_INTERVAL_HOURS: int = Field(default=24, env="REBUILD_INTERVAL_HOURS")
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
     
     def get_kafka_topics(self) -> list[str]:
         """Get list of Kafka topics to subscribe to"""
