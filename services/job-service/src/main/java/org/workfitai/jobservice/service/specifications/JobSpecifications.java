@@ -21,5 +21,10 @@ public class JobSpecifications {
         return (root, query, cb) ->
                 cb.equal(root.get("isDeleted"), false);
     }
+
+    public static Specification<Job> hasCompanyId(String companyId) {
+        return (root, query, cb) ->
+                cb.equal(root.get("company").get("id"), companyId);
+    }
 }
 
