@@ -37,6 +37,12 @@ public class RealtimeNotificationService {
         try {
             // Send to user-specific queue
             // Destination: /user/{userEmail}/queue/notifications
+            log.info(
+                    "[WebSocket] Attempting to push notification to user: {}, destination: /user/{}/queue/notifications",
+                    userEmail, userEmail);
+            log.info("[WebSocket] Notification details: id={}, title={}, type={}, createdAt={}",
+                    notification.getId(), notification.getTitle(), notification.getType(), notification.getCreatedAt());
+
             messagingTemplate.convertAndSendToUser(
                     userEmail,
                     "/queue/notifications",

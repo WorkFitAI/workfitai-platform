@@ -8,246 +8,625 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background: #f5f5f5;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .app-header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .container {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
         }
 
-        h1 {
-            color: #333;
-            border-bottom: 3px solid #4CAF50;
-            padding-bottom: 10px;
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
         }
 
         h2 {
-            color: #666;
-            font-size: 1.2em;
-            margin-top: 0;
+            color: #2d3748;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
         }
 
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.95em;
         }
 
         input[type="text"],
         input[type="password"],
         textarea {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             font-size: 14px;
-            box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: inherit;
         }
 
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
             margin-right: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
-            background-color: #ccc;
+            background: #cbd5e0;
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         button.disconnect {
-            background-color: #f44336;
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
         }
 
         button.disconnect:hover {
-            background-color: #da190b;
+            box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6);
+        }
+
+        button.test-btn {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
+        }
+
+        button.test-btn:hover {
+            box-shadow: 0 6px 20px rgba(237, 137, 54, 0.6);
+        }
+
+        button.clear-btn {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.4);
         }
 
         .status {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            font-weight: bold;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.05em;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: statusBlink 2s ease-in-out infinite;
         }
 
         .status.disconnected {
-            background-color: #ffebee;
-            color: #c62828;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+        }
+
+        .status.disconnected::before {
+            background: #c53030;
         }
 
         .status.connected {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            color: #22543d;
+        }
+
+        .status.connected::before {
+            background: #22543d;
         }
 
         .status.connecting {
-            background-color: #fff3e0;
-            color: #ef6c00;
+            background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%);
+            color: #c05621;
+        }
+
+        .status.connecting::before {
+            background: #c05621;
         }
 
         #log {
-            background-color: #263238;
-            color: #aed581;
-            padding: 15px;
-            border-radius: 4px;
-            height: 400px;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #68d391;
+            padding: 20px;
+            border-radius: 12px;
+            height: 450px;
             overflow-y: auto;
-            font-family: 'Courier New', monospace;
+            font-family: 'Fira Code', 'Courier New', monospace;
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.8;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #log::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        #log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        #log::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .log-entry {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             word-wrap: break-word;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .log-entry:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .log-error {
-            color: #ff6b6b;
+            color: #fc8181;
         }
 
         .log-success {
-            color: #51cf66;
+            color: #68d391;
         }
 
         .log-info {
-            color: #74c0fc;
+            color: #63b3ed;
         }
 
         .notification-card {
-            background: #f9f9f9;
-            border-left: 4px solid #4CAF50;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .notification-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
         .notification-card.unread {
-            background: #e3f2fd;
-            border-left-color: #2196F3;
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border-left-color: #3182ce;
+            animation: slideInLeft 0.5s ease-out;
         }
 
         .notification-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 1.05em;
         }
 
         .notification-body {
-            color: #666;
+            color: #4a5568;
             font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 4px;
         }
 
         .notification-time {
-            color: #999;
-            font-size: 12px;
-            margin-top: 5px;
+            color: #a0aec0;
+            font-size: 11px;
+            margin-top: 8px;
+            font-weight: 500;
         }
 
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 25px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
             }
+
+            .app-header h1 {
+                font-size: 1.8em;
+            }
+
+            body {
+                padding: 10px;
+            }
         }
 
         .badge {
-            display: inline-block;
-            padding: 3px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
             border-radius: 12px;
-            background: #ff5252;
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
             color: white;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
             margin-left: 10px;
+            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.4);
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        .unread-counter {
+            font-size: 4em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            padding: 40px 0;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        small {
+            display: block;
+            color: #718096;
+            font-size: 13px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-text {
+            display: inline-block;
+            margin-left: 15px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes statusBlink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
         }
     </style>
 </head>
 
 <body>
-    <h1>🔔 WorkFitAI - WebSocket Notification Test</h1>
-
-    <div class="container">
-        <h2>Connection Configuration</h2>
-        <div class="control-group">
-            <label for="wsUrl">WebSocket URL (via Gateway):</label>
-            <input type="text" id="wsUrl" value="http://localhost:9085/notification/ws/notifications">
-        </div>
-
-        <div class="control-group">
-            <label for="token">Access Token (JWT or Opaque - optional for testing):</label>
-            <input type="password" id="token"
-                placeholder="Paste JWT or opaque token here, or leave empty for anonymous test">
-            <small style="color: #666; font-size: 12px;">
-                ℹ️ Gateway auto-converts opaque → JWT. Get token from POST /auth/login response.
-            </small>
-        </div>
-
-        <div class="control-group">
-            <label for="userEmail">User Email (for subscription):</label>
-            <input type="text" id="userEmail" placeholder="candidate_123@test.com"
-                value="candidate_1766387574781@test.com">
-        </div>
-
-        <div id="status" class="status disconnected">
-            ⚪ Disconnected
-        </div>
-
-        <div>
-            <button id="connectBtn" onclick="connect()">Connect</button>
-            <button id="disconnectBtn" onclick="disconnect()" disabled class="disconnect">Disconnect</button>
-            <button onclick="clearLog()">Clear Log</button>
-        </div>
+    <div class="app-header">
+        <h1>🔔 WorkFitAI</h1>
+        <p>Real-time WebSocket Notification Testing Dashboard</p>
     </div>
 
-    <div class="grid">
+    <div class="main-container">
         <div class="container">
-            <h2>📨 Received Notifications <span id="notifCount" class="badge" style="display:none;">0</span></h2>
-            <div id="notifications"></div>
+            <h2>🔐 Authentication</h2>
+            <div class="grid">
+                <div class="control-group">
+                    <label for="loginUsername">📧 Username/Email</label>
+                    <input type="text" id="loginUsername" placeholder="candidate_123@test.com"
+                        value="candidate_1766407484729@test.com">
+                </div>
+                <div class="control-group">
+                    <label for="loginPassword">🔑 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" value="Test@123416">
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="login()" id="loginBtn">
+                    <span>🔓 Login</span>
+                </button>
+                <span id="loginStatus" class="status-text"></span>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="container">
+                <h2>🔌 Connection</h2>
+                <div id="status" class="status disconnected">
+                    Disconnected
+                </div>
+                <div class="button-group">
+                    <button id="connectBtn" onclick="connect()">Connect</button>
+                    <button id="disconnectBtn" onclick="disconnect()" disabled class="disconnect">Disconnect</button>
+                </div>
+            </div>
+
+            <div class="container">
+                <h2>📊 Unread Notifications</h2>
+                <div id="unreadCount" class="unread-counter">--</div>
+            </div>
+
+            <div class="container">
+                <h2>🧪 Quick Test</h2>
+                <button onclick="sendTestNotification()" class="test-btn" style="width: 100%; margin: 0;">
+                    🚀 Send Test Notification
+                </button>
+                <span id="testStatus" class="status-text"
+                    style="margin-left: 0; margin-top: 10px; display: inline-block;"></span>
+            </div>
+        </div>
+
+        <div class="container" style="display: none;" id="advancedSettings">
+            <h2>⚙️ Advanced Configuration</h2>
+            <div class="control-group">
+                <label for="wsUrl">WebSocket URL (via Gateway)</label>
+                <input type="text" id="wsUrl" value="http://localhost:9085/notification/ws/notifications">
+            </div>
+
+            <div class="control-group">
+                <label for="token">Access Token (JWT or Opaque)</label>
+                <input type="password" id="token" placeholder="Auto-filled after login">
+                <small>ℹ️ Auto-filled after login. Gateway converts opaque → JWT.</small>
+            </div>
+
+            <div class="control-group">
+                <label for="userEmail">Username (for subscription)</label>
+                <input type="text" id="userEmail" placeholder="candidate_1766407484729" value="candidate_1766407484729">
+                <small>ℹ️ JWT contains username, not email. Auto-filled after login.</small>
+            </div>
         </div>
 
         <div class="container">
-            <h2>📊 Unread Count Updates</h2>
-            <div id="unreadCount" style="font-size: 2em; text-align: center; padding: 20px; color: #4CAF50;">
-                --
+            <h2>🎯 Custom Test Notification</h2>
+            <div class="grid">
+                <div class="control-group">
+                    <label for="testTitle">Title</label>
+                    <input type="text" id="testTitle" placeholder="Enter notification title"
+                        value="🎉 Test Notification">
+                </div>
+                <div class="control-group">
+                    <label for="testMessage">Message</label>
+                    <textarea id="testMessage" rows="3"
+                        placeholder="Enter notification message...">This is a real-time test notification!</textarea>
+                </div>
+            </div>
+            <small>ℹ️ Send a custom notification via REST API. If WebSocket is connected, it will appear
+                instantly!</small>
+        </div>
+
+        <div class="grid">
+            <div class="container">
+                <h2>📨 Received Notifications <span id="notifCount" class="badge" style="display:none;">0</span></h2>
+                <div id="notifications">
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                            </path>
+                        </svg>
+                        <div style="font-size: 16px; font-weight: 600;">No notifications yet</div>
+                        <div style="font-size: 14px; margin-top: 8px;">Connect WebSocket and send a test notification
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <h2>📋 Connection Log</h2>
+                <div class="button-group" style="margin-bottom: 15px;">
+                    <button onclick="clearLog()" class="clear-btn">🗑️ Clear Log</button>
+                    <button onclick="toggleAdvanced()" class="clear-btn">⚙️ Advanced Settings</button>
+                </div>
+                <div id="log"></div>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <h2>📋 Connection Log</h2>
-        <div id="log"></div>
-    </div>
-
     <script>
+        function toggleAdvanced() {
+            const el = document.getElementById('advancedSettings');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
         let stompClient = null;
         let userSubscription = null;
         let queueSubscription = null;
@@ -290,16 +669,31 @@
             const userEmail = document.getElementById('userEmail').value;
 
             if (!userEmail) {
-                alert('Please enter a user email for subscription');
+                alert('Please enter a username for subscription');
                 return;
             }
 
             updateStatus('connecting', 'Connecting...');
-            log(`🔌 Connecting to ${wsUrl}`, 'info');
+
+            // Convert HTTP URL to WebSocket URL
+            const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
+            const wsPath = wsUrl.replace(/^https?:\/\//, '');
+            let nativeWsUrl = `${wsProtocol}://${wsPath}`;
+
+            // Add token as query parameter (optional - only for JWT tokens)
+            if (token && token.length > 100) {
+                const separator = nativeWsUrl.includes('?') ? '&' : '?';
+                nativeWsUrl = `${nativeWsUrl}${separator}token=${encodeURIComponent(token)}`;
+                log('🔑 JWT token added for authentication', 'info');
+            } else {
+                log('ℹ️ Connecting without authentication (public WebSocket)', 'info');
+            }
+
+            log(`🔌 Connecting to ${nativeWsUrl.split('?')[0]} (native WebSocket)`, 'info');
 
             try {
-                // Create SockJS connection
-                const socket = new SockJS(wsUrl);
+                // Create native WebSocket connection (no SockJS)
+                const socket = new WebSocket(nativeWsUrl);
                 stompClient = Stomp.over(socket);
 
                 // Debug mode
@@ -310,11 +704,17 @@
                     }
                 };
 
-                // Connect headers (optional JWT token)
-                const connectHeaders = {};
-                if (token) {
+                // Connect headers - send username for user session tracking
+                const connectHeaders = {
+                    'X-Username': userEmail  // Send username for server-side session tracking
+                };
+
+                console.log('🔍 Sending username in CONNECT:', userEmail);
+
+                if (token && token.length > 100) {
                     connectHeaders['Authorization'] = `Bearer ${token}`;
-                    log('🔑 Using JWT token for authentication', 'info');
+                    console.log('🔍 JWT token provided for optional auth');
+                    log('🔑 Using optional JWT authentication', 'info');
                 }
 
                 // Connect to WebSocket
@@ -354,25 +754,78 @@
             }
 
             // Subscribe to user-specific notification queue
-            const userDestination = `/user/${userEmail}/queue/notifications`;
+            // 🚨 IMPORTANT: Do NOT include username in destination!
+            // Spring STOMP automatically maps /user/queue/* to current Principal
+            const userDestination = `/user/queue/notifications`;
+            console.log('🔍 Subscribing to:', userDestination);
+            console.log('🔍 Spring will map this to Principal:', userEmail);
             log(`📬 Subscribing to ${userDestination}`, 'info');
 
             userSubscription = stompClient.subscribe(userDestination, (message) => {
                 log('📨 Received notification on user queue', 'success');
-                handleNotification(JSON.parse(message.body));
+                console.log('🔍 Raw message received:', message);
+                console.log('🔍 Message body type:', typeof message.body);
+                console.log('🔍 Message body length:', message.body?.length);
+                console.log('🔍 Message body:', message.body);
+                try {
+                    const notification = JSON.parse(message.body);
+                    console.log('✅ Parsed notification successfully:', notification);
+                    handleNotification(notification);
+                } catch (e) {
+                    log(`❌ Error parsing notification: ${e.message}`, 'error');
+                    console.error('Parse error:', e, 'Body:', message.body);
+                }
+            }, (error) => {
+                log(`❌ Subscription error: ${JSON.stringify(error)}`, 'error');
             });
 
             // Subscribe to unread count updates
-            const unreadDestination = `/user/${userEmail}/queue/unread-count`;
+            const unreadDestination = `/user/queue/unread-count`;
             log(`📊 Subscribing to ${unreadDestination}`, 'info');
 
             queueSubscription = stompClient.subscribe(unreadDestination, (message) => {
-                const data = JSON.parse(message.body);
-                log(`📊 Unread count updated: ${data.count}`, 'info');
-                document.getElementById('unreadCount').textContent = data.count;
+                try {
+                    const data = JSON.parse(message.body);
+                    log(`📊 Unread count updated: ${data.count}`, 'info');
+                    console.log('🔍 Unread count data:', data);
+                    document.getElementById('unreadCount').textContent = data.count;
+                    updateNotificationBadge(data.count);
+                } catch (e) {
+                    log(`❌ Error parsing unread count: ${e.message}`, 'error');
+                }
+            }, (error) => {
+                log(`❌ Unread count subscription error: ${JSON.stringify(error)}`, 'error');
             });
 
             log('✅ Subscriptions established', 'success');
+
+            // Fetch initial unread count via REST API (Gateway doesn't forward SUBSCRIBE events)
+            fetchUnreadCount();
+        }
+
+        async function fetchUnreadCount() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                log('⚠️ No token available to fetch unread count', 'warn');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:9085/notification/unread-count', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const count = data.data?.count || 0;
+                    document.getElementById('unreadCount').textContent = count;
+                    updateNotificationBadge(count);
+                    log(`📊 Initial unread count: ${count}`, 'info');
+                } else {
+                    log(`⚠️ Failed to fetch unread count: ${response.status}`, 'warn');
+                }
+            } catch (e) {
+                log(`❌ Error fetching unread count: ${e.message}`, 'error');
+            }
         }
 
         function handleNotification(notification) {
@@ -424,9 +877,168 @@
             }
         });
 
+        // Login function
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loginStatus = document.getElementById('loginStatus');
+
+            if (!username || !password) {
+                loginStatus.textContent = '❌ Please enter username and password';
+                loginStatus.style.color = '#f44336';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginStatus.textContent = '⏳ Logging in...';
+            loginStatus.style.color = '#ff9800';
+            log(`🔐 Attempting login for: ${username}`, 'info');
+
+            try {
+                const response = await fetch('http://localhost:9085/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        usernameOrEmail: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.data) {
+                    const accessToken = result.data.accessToken;
+                    // JWT subject contains username, not email - use it for WebSocket subscription
+                    const username = result.data.username;
+
+                    // Auto-fill token and username for subscription
+                    document.getElementById('token').value = accessToken;
+                    document.getElementById('userEmail').value = username;  // This field is actually username for subscription
+
+                    loginStatus.textContent = `✅ Logged in as ${username}`;
+                    loginStatus.style.color = '#4CAF50';
+
+                    log(`✅ Login successful: ${username} (${result.data.role})`, 'success');
+                    log(`🔑 Access Token: ${accessToken.substring(0, 20)}...`, 'info');
+                    log(`👤 Username (for subscription): ${username}`, 'info');
+                    log(`⏰ Token expires in: ${result.data.expiresIn || 'N/A'}`, 'info');
+
+                    // Show success message
+                    setTimeout(() => {
+                        alert(`✅ Login successful!\n\nUsername: ${username}\nRole: ${result.data.role}\n\nToken and username auto-filled. Click "Connect" to establish WebSocket connection.`);
+                    }, 100);
+                } else {
+                    loginStatus.textContent = '❌ Login failed';
+                    loginStatus.style.color = '#f44336';
+                    log(`❌ Login failed: ${result.message || 'Unknown error'}`, 'error');
+                    alert(`❌ Login failed\n\n${result.message || 'Invalid credentials'}`);
+                }
+            } catch (error) {
+                loginStatus.textContent = '❌ Connection error';
+                loginStatus.style.color = '#f44336';
+                log(`❌ Login error: ${error.message}`, 'error');
+                alert(`❌ Connection Error\n\n${error.message}\n\nMake sure the API Gateway is running at http://localhost:9085`);
+            } finally {
+                loginBtn.disabled = false;
+            }
+        }
+
+        // Send test notification
+        async function sendTestNotification() {
+            const token = document.getElementById('token').value;
+            const title = document.getElementById('testTitle').value;
+            const message = document.getElementById('testMessage').value;
+            const testStatus = document.getElementById('testStatus');
+
+            if (!token) {
+                testStatus.textContent = '❌ Please login first';
+                testStatus.style.color = '#f44336';
+                alert('❌ Please login to get authentication token');
+                return;
+            }
+
+            testStatus.textContent = '⏳ Sending...';
+            testStatus.style.color = '#ff9800';
+            log('🧪 Sending test notification...', 'info');
+
+            try {
+                const requestBody = {};
+                if (title) requestBody.title = title;
+                if (message) requestBody.message = message;
+
+                const response = await fetch('http://localhost:9085/notification/test', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+                console.log('🔍 Test notification response:', result);
+
+                // Check if response has standard wrapper format {status, data, message}
+                const data = result.data || result;
+                const success = data.success || response.ok;
+
+                if (response.ok && success) {
+                    const unreadCount = data.unreadCount || 0;
+                    const notification = data.notification;
+
+                    testStatus.textContent = `✅ Sent! Unread: ${unreadCount}`;
+                    testStatus.style.color = '#4CAF50';
+                    log(`✅ Test notification sent successfully`, 'success');
+                    log(`📊 Notification ID: ${notification?.id}`, 'info');
+                    log(`📊 Unread count: ${unreadCount}`, 'info');
+
+                    // Update unread count display
+                    document.getElementById('unreadCount').textContent = unreadCount;
+
+                    // If not connected to WebSocket, manually add to UI
+                    if (!stompClient || !stompClient.connected) {
+                        log('ℹ️ Not connected to WebSocket, adding notification manually', 'info');
+                        handleNotification(result.notification);
+                    } else {
+                        log('ℹ️ WebSocket connected - notification will arrive via real-time push', 'info');
+                    }
+                } else {
+                    testStatus.textContent = '❌ Failed';
+                    testStatus.style.color = '#f44336';
+                    log(`❌ Failed to send notification: ${result.message || 'Unknown error'}`, 'error');
+                    alert(`❌ Failed\n\n${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                testStatus.textContent = '❌ Error';
+                testStatus.style.color = '#f44336';
+                log(`❌ Error sending notification: ${error.message}`, 'error');
+                alert(`❌ Error\n\n${error.message}`);
+            }
+
+            // Clear status after 5 seconds
+            setTimeout(() => {
+                testStatus.textContent = '';
+            }, 5000);
+        }
+
+        // Allow Enter key to submit login
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordField = document.getElementById('loginPassword');
+            passwordField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+
         // Initial log message
         log('ℹ️ WebSocket Test Client Ready', 'info');
-        log('ℹ️ Configure connection settings and click "Connect"', 'info');
+        log('ℹ️ Step 1: Login with your credentials', 'info');
+        log('ℹ️ Step 2: Click "Connect" to establish WebSocket', 'info');
+        log('ℹ️ Step 3: Send test notification to see real-time updates', 'info');
     </script>
 </body>
 
