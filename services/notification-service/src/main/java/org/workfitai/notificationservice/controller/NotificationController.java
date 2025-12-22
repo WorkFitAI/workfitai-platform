@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.workfitai.notificationservice.model.EmailLog;
 import org.workfitai.notificationservice.model.Notification;
 import org.workfitai.notificationservice.service.NotificationPersistenceService;
+import org.workfitai.notificationservice.service.RealtimeNotificationService;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationPersistenceService persistenceService;
+    private final RealtimeNotificationService realtimeService;
 
     /**
      * Get notifications for the current authenticated user
@@ -96,17 +99,60 @@ public class NotificationController {
     }
 
     /**
-     * Extract email from JWT authentication
+     * TEST ENDPOINT: Send a test notification to current user
+     * POST /notification/test
+     */
+    @PostMapping("/test")
+    public ResponseEntity<Map<String, Object>> sendTestNotification(
+            Authentication authentication,
+            @RequestBody(required = false) Map<String, String> request) {
+        String userEmail = extractEmailFromAuth(authentication);
+        if (userEmail == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Create test notification using Builder pattern
+        Notification notification = Notification.builder()
+                .userEmail(userEmail)
+                .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
+                .title(request != null && request.containsKey("title")
+                        ? request.get("title")
+                        : "🧪 Test Notification")
+                .message(request != null && request.containsKey("message")
+                        ? request.get("message")
+                        : "This is a test notification sent at " + Instant.now())
+                .read(false)
+                .sourceService("notification-service")
+                .build();
+
+        // Save to database (this will also push to WebSocket)
+        Notification saved = persistenceService.createNotification(
+                org.workfitai.notificationservice.dto.kafka.NotificationEvent.builder()
+                        .recipientEmail(userEmail)
+                        .notificationType("general")
+                        .subject(notification.getTitle())
+                        .content(notification.getMessage())
+                        .sourceService("notification-service")
+                        .build());
+
+        // Update unread count
+        long unreadCount = persistenceService.getUnreadCount(userEmail);
+        realtimeService.pushUnreadCountUpdate(userEmail, unreadCount);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "notification", saved,
+                "unreadCount", unreadCount));
+    }
+
+    /**
+     * Extract username from JWT authentication.
+     * JWT subject contains username (not email).
      */
     private String extractEmailFromAuth(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof Jwt) {
             Jwt jwt = (Jwt) authentication.getPrincipal();
-            // ✅ Get email from "email" claim (added in auth-service JwtService)
-            String email = jwt.getClaimAsString("email");
-            if (email != null) {
-                return email;
-            }
-            // Fallback to subject for backward compatibility
+            // JWT subject contains username
             return jwt.getSubject();
         }
         return null;

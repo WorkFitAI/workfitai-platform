@@ -51,10 +51,10 @@ case $ACTION in
         echo -e "${GREEN}✅ All services stopped${NC}"
         ;;
     "restart")
-        echo -e "${YELLOW}🔄 Restarting services...${NC}"
-        docker-compose --profile $PROFILE down
+        echo -e "${YELLOW}🔄 Restarting services (removing volumes)...${NC}"
+        docker-compose --profile $PROFILE down -v
         docker-compose --profile $PROFILE up --build -d
-        echo -e "${GREEN}✅ Services restarted${NC}"
+        echo -e "${GREEN}✅ Services restarted (fresh volumes)${NC}"
         ;;
     "logs")
         SERVICE=${3:-""}

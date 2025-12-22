@@ -94,6 +94,12 @@ spring:
         enabled: true
         backend: secret
 
+logging:
+  level:
+    org.springframework.messaging: TRACE
+    org.springframework.web.socket: TRACE
+    org.workfitai.notificationservice: DEBUG
+
 ---
 spring:
   config:
@@ -124,3 +130,8 @@ service:
 
 server:
   port: ${SERVER_PORT:9005}
+
+logging:
+  level:
+    org.springframework.messaging: DEBUG
+    org.springframework.web.socket: DEBUG

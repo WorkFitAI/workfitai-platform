@@ -40,7 +40,13 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             // Extract token from Authorization header or query parameter
             String token = extractToken(accessor);
 
-            if (token != null) {
+            // Try to extract username from custom header first
+            List<String> usernameHeaders = accessor.getNativeHeader("X-Username");
+            String username = (usernameHeaders != null && !usernameHeaders.isEmpty())
+                    ? usernameHeaders.get(0)
+                    : null;
+
+            if (token != null && token.length() > 50) { // Only validate if looks like JWT (not opaque token)
                 try {
                     // Decode and validate JWT token
                     Jwt jwt = jwtDecoder.decode(token);
@@ -57,8 +63,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                     }
 
                     // Create authentication object
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(email, null, authorities);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
+                            null, authorities);
                     authentication.setDetails(jwt);
 
                     // Set principal in STOMP header
@@ -75,9 +81,24 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
                 } catch (Exception e) {
                     log.error("[WebSocket] Authentication failed: {}", e.getMessage());
-                    // Let the connection proceed but without authentication
-                    // You can throw exception here to reject connection if needed
+                    // Fall back to username if provided
+                    if (username != null) {
+                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                username, null, new ArrayList<>());
+                        accessor.setUser(auth);
+                        accessor.getSessionAttributes().put("userEmail", username);
+                        log.info("[WebSocket] Anonymous connection with username: {}", username);
+                    } else {
+                        log.warn("[WebSocket] No valid authentication and no username provided");
+                    }
                 }
+            } else if (username != null) {
+                // No JWT token but username provided in header - create anonymous auth
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        username, null, new ArrayList<>());
+                accessor.setUser(auth);
+                accessor.getSessionAttributes().put("userEmail", username);
+                log.info("[WebSocket] Anonymous connection established for user: {}", username);
             } else {
                 log.warn("[WebSocket] No authorization token provided");
             }

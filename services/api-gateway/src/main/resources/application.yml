@@ -23,6 +23,7 @@ spring:
     gateway:
       discovery:
         locator:
+          # Re-enabled with manual WebSocket route exclusion in WebSocketRoutesConfig
           enabled: true
           lower-case-service-id: true
   data:
