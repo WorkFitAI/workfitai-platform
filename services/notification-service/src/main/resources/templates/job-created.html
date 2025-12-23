@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Created Successfully</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .job-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .job-details h2 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 22px;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+            width: 150px;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: #212529;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-published {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-draft {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🎉 Job Posted Successfully</h1>
+        </div>
+
+        <div class="content">
+            <p>Your job posting has been created successfully and is now live on WorkFitAI!</p>
+
+            <div class="job-details">
+                <h2 th:text="${jobTitle}">Job Title</h2>
+
+                <div class="detail-row">
+                    <div class="detail-label">Job ID:</div>
+                    <div class="detail-value" th:text="${jobId}">job-id-123</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Company:</div>
+                    <div class="detail-value" th:text="${companyName}">Company Name</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value" th:text="${location}">Ho Chi Minh City</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Employment Type:</div>
+                    <div class="detail-value" th:text="${employmentType}">Full-time</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">
+                        <span th:class="${'status-badge status-' + #strings.toLowerCase(status)}"
+                            th:text="${status}">Published</span>
+                    </div>
+                </div>
+            </div>
+
+            <p><strong>What's Next?</strong></p>
+            <ul>
+                <li>Your job posting is now visible to qualified candidates</li>
+                <li>You'll receive email notifications when candidates apply</li>
+                <li>Track applications in your HR dashboard</li>
+            </ul>
+
+            <a href="http://localhost:3000/hr/jobs" class="button">View Job Dashboard</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 WorkFitAI. All rights reserved.</p>
+            <p>You received this email because you posted a job on WorkFitAI.</p>
+        </div>
+    </div>
+</body>
+
+</html>
