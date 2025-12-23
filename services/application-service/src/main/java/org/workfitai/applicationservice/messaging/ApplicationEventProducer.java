@@ -11,6 +11,7 @@ import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
 import org.workfitai.applicationservice.dto.kafka.JobStatsUpdateEvent;
+import org.workfitai.applicationservice.dto.kafka.NotificationEvent;
 import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 
 import lombok.RequiredArgsConstructor;
@@ -123,7 +124,6 @@ public class ApplicationEventProducer implements EventPublisherPort {
         log.info("Publishing candidate notification: applicationId={}, email={}", applicationId, candidateEmail);
 
         try {
-            // Build NotificationEvent for candidate
             Map<String, Object> metadata = new java.util.HashMap<>();
             metadata.put("candidateName", candidateName);
             metadata.put("jobTitle", jobTitle);
@@ -131,22 +131,23 @@ public class ApplicationEventProducer implements EventPublisherPort {
             metadata.put("applicationId", applicationId);
             metadata.put("appliedAt", appliedAt.toString());
 
-            Map<String, Object> notificationEvent = new java.util.HashMap<>();
-            notificationEvent.put("eventId", UUID.randomUUID().toString());
-            notificationEvent.put("eventType", "APPLICATION_SUBMITTED");
-            notificationEvent.put("timestamp", Instant.now().toString());
-            notificationEvent.put("recipientEmail", candidateEmail);
-            notificationEvent.put("recipientRole", "CANDIDATE");
-            notificationEvent.put("subject", "Application Submitted: " + jobTitle);
-            notificationEvent.put("templateType", "APPLICATION_CONFIRMATION");
-            notificationEvent.put("sendEmail", true);
-            notificationEvent.put("createInAppNotification", false);
-            notificationEvent.put("referenceId", applicationId);
-            notificationEvent.put("referenceType", "APPLICATION");
-            notificationEvent.put("sourceService", "application-service");
-            notificationEvent.put("metadata", metadata);
+            NotificationEvent event = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .eventType("APPLICATION_SUBMITTED")
+                    .timestamp(Instant.now())
+                    .recipientEmail(candidateEmail)
+                    .recipientRole("CANDIDATE")
+                    .subject("Application Submitted: " + jobTitle)
+                    .templateType("APPLICATION_CONFIRMATION")
+                    .sendEmail(true)
+                    .createInAppNotification(false)
+                    .referenceId(applicationId)
+                    .referenceType("APPLICATION")
+                    .sourceService("application-service")
+                    .metadata(metadata)
+                    .build();
 
-            kafkaTemplate.send(notificationEventsTopic, applicationId + "-candidate", notificationEvent);
+            kafkaTemplate.send(notificationEventsTopic, applicationId + "-candidate", event);
             log.debug("Candidate notification published to topic '{}'", notificationEventsTopic);
         } catch (Exception e) {
             log.error("Failed to publish candidate notification (non-critical): {}", e.getMessage());
@@ -159,7 +160,6 @@ public class ApplicationEventProducer implements EventPublisherPort {
         log.info("Publishing HR notification: applicationId={}, email={}", applicationId, hrEmail);
 
         try {
-            // Build NotificationEvent for HR
             Map<String, Object> metadata = new java.util.HashMap<>();
             metadata.put("hrName", hrName);
             metadata.put("candidateName", candidateName);
@@ -168,22 +168,23 @@ public class ApplicationEventProducer implements EventPublisherPort {
             metadata.put("applicationId", applicationId);
             metadata.put("appliedAt", appliedAt.toString());
 
-            Map<String, Object> notificationEvent = new java.util.HashMap<>();
-            notificationEvent.put("eventId", UUID.randomUUID().toString());
-            notificationEvent.put("eventType", "NEW_APPLICATION");
-            notificationEvent.put("timestamp", Instant.now().toString());
-            notificationEvent.put("recipientEmail", hrEmail);
-            notificationEvent.put("recipientRole", "HR");
-            notificationEvent.put("subject", "New Application: " + jobTitle);
-            notificationEvent.put("templateType", "NEW_APPLICATION_HR");
-            notificationEvent.put("sendEmail", true);
-            notificationEvent.put("createInAppNotification", false);
-            notificationEvent.put("referenceId", applicationId);
-            notificationEvent.put("referenceType", "APPLICATION");
-            notificationEvent.put("sourceService", "application-service");
-            notificationEvent.put("metadata", metadata);
+            NotificationEvent event = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .eventType("NEW_APPLICATION")
+                    .timestamp(Instant.now())
+                    .recipientEmail(hrEmail)
+                    .recipientRole("HR")
+                    .subject("New Application: " + jobTitle)
+                    .templateType("NEW_APPLICATION_HR")
+                    .sendEmail(true)
+                    .createInAppNotification(false)
+                    .referenceId(applicationId)
+                    .referenceType("APPLICATION")
+                    .sourceService("application-service")
+                    .metadata(metadata)
+                    .build();
 
-            kafkaTemplate.send(notificationEventsTopic, applicationId + "-hr", notificationEvent);
+            kafkaTemplate.send(notificationEventsTopic, applicationId + "-hr", event);
             log.debug("HR notification published to topic '{}'", notificationEventsTopic);
         } catch (Exception e) {
             log.error("Failed to publish HR notification (non-critical): {}", e.getMessage());
