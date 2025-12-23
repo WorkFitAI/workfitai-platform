@@ -217,13 +217,32 @@ public class CandidateServiceImpl implements CandidateService {
         return;
       }
 
+      // Detect registration type: OAuth users have no password
+      boolean isOAuthRegistration = userData.getPasswordHash() == null || userData.getPasswordHash().isBlank();
+
+      // Validate required fields based on registration type
+      if (!isOAuthRegistration) {
+        // Traditional registration: require phone and password
+        if (userData.getPhoneNumber() == null || userData.getPhoneNumber().isBlank()) {
+          log.error("Phone number is required for traditional registration: {}", userData.getEmail());
+          throw new ApiException("Phone number is required for traditional registration", HttpStatus.BAD_REQUEST);
+        }
+        if (userData.getPasswordHash() == null || userData.getPasswordHash().isBlank()) {
+          log.error("Password is required for traditional registration: {}", userData.getEmail());
+          throw new ApiException("Password is required for traditional registration", HttpStatus.BAD_REQUEST);
+        }
+      } else {
+        // OAuth registration: phone and password are optional
+        log.info("Creating OAuth user without password/phone: {}", userData.getEmail());
+      }
+
       // Create new candidate entity from user data
       CandidateEntity candidate = CandidateEntity.builder()
           .email(userData.getEmail())
           .username(userData.getUsername())
           .fullName(userData.getFullName())
-          .phoneNumber(userData.getPhoneNumber())
-          .passwordHash(userData.getPasswordHash())
+          .phoneNumber(userData.getPhoneNumber()) // Can be null for OAuth users
+          .passwordHash(userData.getPasswordHash()) // Can be null for OAuth users
           .userRole(EUserRole.CANDIDATE) // Set required user role
           .userStatus(status) // Use status from event
           .isDeleted(false) // Set deleted flag to false

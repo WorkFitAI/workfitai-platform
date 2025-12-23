@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import org.workfitai.authservice.dto.request.ChangePasswordRequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.ResetPasswordRequest;
+import org.workfitai.authservice.dto.request.SetPasswordRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.PasswordResetResponse;
 import org.workfitai.authservice.service.PasswordService;
 
@@ -49,6 +51,17 @@ public class PasswordController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/verify-reset-otp")
+    public ResponseEntity<Map<String, String>> verifyResetOtp(
+            @Valid @RequestBody VerifyOtpRequest request) {
+
+        log.info("Verifying reset OTP for email: {}", request.getEmail());
+
+        Map<String, String> response = passwordService.verifyResetOtp(request);
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {
@@ -59,6 +72,26 @@ public class PasswordController {
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Password reset successfully. Please login with your new password");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Set password for OAuth-only users
+     * This allows users who registered via OAuth to enable traditional login
+     */
+    @PostMapping("/set-password")
+    public ResponseEntity<Map<String, String>> setPassword(
+            @Valid @RequestBody SetPasswordRequest request,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        log.info("Set password request for OAuth user: {}", username);
+
+        passwordService.setPassword(username, request);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password set successfully. You can now login with username and password");
 
         return ResponseEntity.ok(response);
     }

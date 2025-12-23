@@ -19,6 +19,7 @@ import org.workfitai.authservice.enums.UserStatus;
 import org.workfitai.authservice.messaging.UserRegistrationProducer;
 import org.workfitai.authservice.exception.InvalidOAuthStateException;
 import org.workfitai.authservice.exception.OAuthProviderException;
+import org.workfitai.authservice.exception.NotFoundException;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.oauth.provider.GitHubOAuthService;
@@ -54,11 +55,11 @@ public class OAuthService {
     /**
      * Generate authorization URL for OAuth flow
      */
-    public OAuthAuthorizeResponse authorize(Provider provider, OAuthAuthorizeRequest request) {
+    public OAuthAuthorizeResponse authorize(Provider provider, OAuthAuthorizeRequest request, String userId) {
         IOAuthProviderService providerService = getProviderService(provider);
 
-        // Generate and store CSRF state
-        String state = generateState(provider, request.getState());
+        // Generate and store CSRF state with userId context for LINK mode
+        String state = generateState(provider, request.getState(), userId);
         storeState(state, request.getRedirectUri());
 
         // Generate authorization URL
@@ -67,7 +68,7 @@ public class OAuthService {
                 : providerService.getDefaultScope();
         String authUrl = providerService.getAuthorizationUrl(request.getRedirectUri(), state, scope);
 
-        log.info("Generated OAuth authorization URL for provider: {}", provider);
+        log.info("Generated OAuth authorization URL for provider: {} (LINK mode: {})", provider, userId != null);
 
         return OAuthAuthorizeResponse.builder()
                 .authorizationUrl(authUrl)
@@ -78,15 +79,14 @@ public class OAuthService {
     }
 
     /**
-     * Handle OAuth callback and create/login user
+     * Handle OAuth callback and create/login user OR link provider
      */
     @Transactional
     public OAuthCallbackResponse handleCallback(Provider provider, String code, String state,
             String redirectUri, HttpServletRequest request) {
-        // Validate CSRF state and get stored redirectUri
-        String storedRedirectUri = validateState(state);
-        // Use stored redirectUri if parameter is null
-        String finalRedirectUri = redirectUri != null ? redirectUri : storedRedirectUri;
+        // Validate CSRF state and get mode + userId
+        OAuthStateInfo stateInfo = validateState(state);
+        String finalRedirectUri = redirectUri != null ? redirectUri : stateInfo.redirectUri();
 
         IOAuthProviderService providerService = getProviderService(provider);
 
@@ -94,6 +94,21 @@ public class OAuthService {
         OAuthCallbackResponse response = providerService.handleCallback(code, finalRedirectUri);
         OAuthCallbackResponse.UserInfo userInfo = response.getUserInfo();
 
+        // Check mode: LINK or LOGIN
+        if ("LINK".equals(stateInfo.mode()) && stateInfo.userId() != null) {
+            // LINK mode: Link provider to existing user
+            return handleLinkMode(stateInfo.userId(), provider, response, userInfo, request);
+        } else {
+            // LOGIN mode: Find or create user and login
+            return handleLoginMode(provider, response, userInfo, request);
+        }
+    }
+
+    /**
+     * Handle LOGIN mode: Create/login user
+     */
+    private OAuthCallbackResponse handleLoginMode(Provider provider, OAuthCallbackResponse response,
+            OAuthCallbackResponse.UserInfo userInfo, HttpServletRequest request) {
         // Find or create user
         User user = findOrCreateUser(provider, userInfo);
 
@@ -124,18 +139,61 @@ public class OAuthService {
         log.info("OAuth callback successful for user: {} via {}", user.getUsername(), provider);
 
         // Return response with JWT tokens (not OAuth tokens)
-        // Access token expiration is configurable, default 15 minutes (900 seconds)
         return OAuthCallbackResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(900L) // 15 minutes default
+                .expiresIn(900L) // 15 minutes
                 .tokenType("Bearer")
                 .userInfo(userInfo)
                 .build();
     }
 
     /**
-     * Link OAuth provider to existing user account
+     * Handle LINK mode: Link provider to existing user
+     */
+    private OAuthCallbackResponse handleLinkMode(String userId, Provider provider,
+            OAuthCallbackResponse response, OAuthCallbackResponse.UserInfo userInfo, HttpServletRequest request) {
+        // Get existing user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new OAuthProviderException("User not found"));
+
+        // Check if this OAuth account is already linked to another user
+        Optional<OAuthProvider> existingProvider = oauthProviderService
+                .findByProviderAndProviderId(provider, userInfo.getProviderId());
+
+        if (existingProvider.isPresent() && !existingProvider.get().getUserId().equals(userId)) {
+            throw new OAuthProviderException("This " + provider + " account is already linked to another user");
+        }
+
+        // Link provider
+        OAuthProvider oauthProvider = buildOAuthProvider(user, provider, response, userInfo);
+        oauthProviderService.linkProvider(userId, oauthProvider);
+
+        // Update user's OAuth providers set
+        if (user.getOauthProviders() == null) {
+            user.setOauthProviders(new HashSet<>());
+        }
+        user.getOauthProviders().add(provider.name());
+        userRepository.save(user);
+
+        // Publish event
+        oauthEventPublisher.publishAccountLinkedEvent(user, oauthProvider);
+
+        log.info("Linked {} account to user: {} via callback", provider, user.getUsername());
+
+        // Return success response (no new tokens needed, user already authenticated)
+        return OAuthCallbackResponse.builder()
+                .token(null) // No token - user already has valid session
+                .refreshToken(null)
+                .expiresIn(null)
+                .tokenType("LINK_SUCCESS")
+                .userInfo(userInfo)
+                .build();
+    }
+
+    /**
+     * Link OAuth provider to existing user account (deprecated - use callback LINK
+     * mode instead)
      */
     @Transactional
     public OAuthLinkResponse linkProvider(String username, Provider provider, OAuthLinkRequest request) {
@@ -225,6 +283,54 @@ public class OAuthService {
                 .hasPassword(user.getPassword() != null)
                 .canUnlinkAll(user.getPassword() != null || providers.size() > 1)
                 .build();
+    }
+
+    /**
+     * Get user's authentication status
+     */
+    public AuthStatusResponse getAuthStatus(String username) {
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+
+            List<LinkedProviderResponse> providers = oauthProviderService.getLinkedProviders(user.getId());
+
+            boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
+            int oauthCount = providers.size();
+            int totalAuthMethods = (hasPassword ? 1 : 0) + oauthCount;
+            boolean canUnlinkOAuth = hasPassword || oauthCount > 1;
+
+            String message;
+            if (!hasPassword && oauthCount == 1) {
+                message = "You only have 1 OAuth provider and no password. Please set a password using /set-password before unlinking.";
+            } else if (!hasPassword && oauthCount > 1) {
+                message = "You can unlink OAuth providers, but keep at least one authentication method.";
+            } else if (hasPassword && oauthCount == 0) {
+                message = "You're using traditional login with password only.";
+            } else {
+                message = "You have multiple authentication methods. You can safely unlink OAuth providers.";
+            }
+
+            return AuthStatusResponse.builder()
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .hasPassword(hasPassword)
+                    .oauthProviders(providers.stream()
+                            .map(LinkedProviderResponse::getProvider)
+                            .toList())
+                    .totalAuthMethods(totalAuthMethods)
+                    .canUnlinkOAuth(canUnlinkOAuth)
+                    .message(message)
+                    .build();
+
+        } catch (NotFoundException e) {
+            log.error("User not found: {}", username);
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to get auth status for user {}: {}", username, e.getMessage(), e);
+            throw new OAuthProviderException("Failed to retrieve authentication status", e);
+        }
     }
 
     /**
@@ -380,11 +486,14 @@ public class OAuthService {
     }
 
     /**
-     * Generate CSRF state token
+     * Generate CSRF state token with optional userId for LINK mode
      */
-    private String generateState(Provider provider, String clientState) {
+    private String generateState(Provider provider, String clientState, String userId) {
         String randomState = UUID.randomUUID().toString();
-        return provider.name() + ":" + randomState + ":" + (clientState != null ? clientState : "");
+        String mode = userId != null ? "LINK" : "LOGIN";
+        String userContext = userId != null ? userId : "";
+        return provider.name() + ":" + randomState + ":" + mode + ":" + userContext + ":"
+                + (clientState != null ? clientState : "");
     }
 
     /**
@@ -392,7 +501,7 @@ public class OAuthService {
      */
     private void storeState(String state, String redirectUri) {
         String key = OAUTH_STATE_PREFIX + state;
-        // Store redirectUri so we can retrieve it during callback
+        // Store redirectUri (userId already embedded in state)
         redisTemplate.opsForValue().set(key, redirectUri != null ? redirectUri : "",
                 STATE_EXPIRATION_MINUTES, TimeUnit.MINUTES);
     }
@@ -400,9 +509,9 @@ public class OAuthService {
     /**
      * Validate and consume CSRF state
      * 
-     * @return stored redirectUri
+     * @return OAuthStateInfo containing redirectUri, mode, and userId
      */
-    private String validateState(String state) {
+    private OAuthStateInfo validateState(String state) {
         String key = OAUTH_STATE_PREFIX + state;
         String redirectUri = redisTemplate.opsForValue().get(key);
 
@@ -413,7 +522,18 @@ public class OAuthService {
         // Delete state after validation (one-time use)
         redisTemplate.delete(key);
 
-        return redirectUri.isEmpty() ? null : redirectUri;
+        // Parse state: PROVIDER:uuid:MODE:userId:clientState
+        String[] parts = state.split(":", 5);
+        String mode = parts.length > 2 ? parts[2] : "LOGIN";
+        String userId = parts.length > 3 && !parts[3].isEmpty() ? parts[3] : null;
+
+        return new OAuthStateInfo(redirectUri.isEmpty() ? null : redirectUri, mode, userId);
+    }
+
+    /**
+     * Inner class to hold OAuth state information
+     */
+    private record OAuthStateInfo(String redirectUri, String mode, String userId) {
     }
 
     /**

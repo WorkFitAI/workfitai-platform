@@ -14,6 +14,9 @@ public interface PasswordResetTokenRepository extends MongoRepository<PasswordRe
 
     Optional<PasswordResetToken> findByTokenAndUsedFalseAndExpiresAtAfter(String token, LocalDateTime now);
 
+    Optional<PasswordResetToken> findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByCreatedAtDesc(
+            String email, LocalDateTime now);
+
     void deleteByEmail(String email);
 
     long countByEmailAndCreatedAtAfter(String email, LocalDateTime since);

@@ -9,7 +9,9 @@ import org.workfitai.authservice.enums.Provider;
 import org.workfitai.authservice.exception.CannotUnlinkLastAuthMethodException;
 import org.workfitai.authservice.exception.ProviderAlreadyLinkedException;
 import org.workfitai.authservice.model.OAuthProvider;
+import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.OAuthProviderRepository;
+import org.workfitai.authservice.repository.UserRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +28,7 @@ public class OAuthProviderService {
 
     private final OAuthProviderRepository oauthProviderRepository;
     private final OAuthTokenService oauthTokenService;
+    private final UserRepository userRepository;
 
     /**
      * Save or update OAuth provider connection
@@ -94,15 +97,29 @@ public class OAuthProviderService {
      */
     @Transactional
     public void unlinkProvider(String userId, Provider provider) {
-        // Check if this is the last authentication method
+        // Get user to check password
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
         long linkedProviders = oauthProviderRepository.countByUserId(userId);
-        if (linkedProviders <= 1) {
-            throw new CannotUnlinkLastAuthMethodException(
-                    "Cannot unlink the last authentication method. Please link another provider or set a password first.");
+
+        log.info("Unlink check - userId: {}, username: {}, provider: {}, hasPassword: {}, linkedProviders: {}",
+                userId, user.getUsername(), provider, hasPassword, linkedProviders);
+
+        // Cannot unlink if this is the ONLY auth method (no password and only 1
+        // provider)
+        if (!hasPassword && linkedProviders <= 1) {
+            String errorMsg = String.format(
+                    "Cannot unlink %s - this is your only login method. Please set a password first using /set-password endpoint, or link another OAuth provider.",
+                    provider);
+            log.warn("Unlink blocked for user {}: {}", user.getUsername(), errorMsg);
+            throw new CannotUnlinkLastAuthMethodException(errorMsg);
         }
 
         oauthProviderRepository.deleteByUserIdAndProvider(userId, provider);
-        log.info("Unlinked provider {} for user {}", provider, userId);
+        log.info("Successfully unlinked provider {} for user {} (hasPassword={}, remainingProviders={})",
+                provider, user.getUsername(), hasPassword, linkedProviders - 1);
     }
 
     /**
@@ -113,6 +130,8 @@ public class OAuthProviderService {
                 .map(p -> LinkedProviderResponse.builder()
                         .provider(p.getProvider().name())
                         .email(p.getEmail())
+                        .displayName(p.getDisplayName())
+                        .profilePicture(p.getProfilePicture())
                         .linkedAt(p.getCreatedAt())
                         .lastUsed(p.getLastUsedAt())
                         .build())

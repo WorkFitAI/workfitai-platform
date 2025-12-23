@@ -10,11 +10,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.authservice.dto.request.OAuthAuthorizeRequest;
 import org.workfitai.authservice.dto.request.OAuthLinkRequest;
+import org.workfitai.authservice.dto.response.AuthStatusResponse;
 import org.workfitai.authservice.dto.response.LinkedAccountsResponse;
 import org.workfitai.authservice.dto.response.OAuthAuthorizeResponse;
 import org.workfitai.authservice.dto.response.OAuthCallbackResponse;
 import org.workfitai.authservice.dto.response.OAuthLinkResponse;
 import org.workfitai.authservice.enums.Provider;
+import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.service.oauth.OAuthService;
 
 import java.util.Arrays;
@@ -29,14 +32,27 @@ import java.util.Arrays;
 public class OAuthController {
 
     private final OAuthService oauthService;
+    private final UserRepository userRepository;
 
     @PostMapping("/authorize/{provider}")
     public ResponseEntity<OAuthAuthorizeResponse> authorize(
             @PathVariable Provider provider,
-            @Valid @RequestBody OAuthAuthorizeRequest request) {
+            @Valid @RequestBody OAuthAuthorizeRequest request,
+            @AuthenticationPrincipal(errorOnInvalidType = false) String username) {
 
-        log.info("OAuth authorization request for provider: {}", provider);
-        OAuthAuthorizeResponse response = oauthService.authorize(provider, request);
+        log.info("OAuth authorization request for provider: {} (authenticated: {})", provider, username != null);
+
+        // If authenticated, lookup userId from username for LINK mode
+        String userId = null;
+        if (username != null) {
+            User user = userRepository.findByUsername(username).orElse(null);
+            if (user != null) {
+                userId = user.getId();
+                log.debug("Resolved username {} to userId: {}", username, userId);
+            }
+        }
+
+        OAuthAuthorizeResponse response = oauthService.authorize(provider, request, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -81,6 +97,19 @@ public class OAuthController {
 
         log.info("Getting linked accounts for user: {}", username);
         LinkedAccountsResponse response = oauthService.getLinkedAccounts(username);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get user's authentication status
+     * Shows hasPassword, OAuth providers, and whether can unlink
+     */
+    @GetMapping("/auth-status")
+    public ResponseEntity<AuthStatusResponse> getAuthStatus(
+            @AuthenticationPrincipal String username) {
+
+        log.info("Getting auth status for user: {}", username);
+        AuthStatusResponse response = oauthService.getAuthStatus(username);
         return ResponseEntity.ok(response);
     }
 }

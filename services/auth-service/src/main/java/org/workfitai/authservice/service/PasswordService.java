@@ -16,6 +16,7 @@ import org.workfitai.authservice.util.LogContext;
 import org.workfitai.authservice.dto.request.ChangePasswordRequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.ResetPasswordRequest;
+import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.PasswordResetResponse;
 import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
@@ -164,6 +165,43 @@ public class PasswordService {
                 .build();
     }
 
+    /**
+     * Verify OTP for password reset
+     */
+    @Transactional
+    public Map<String, String> verifyResetOtp(VerifyOtpRequest request) {
+        // Find valid reset token by email
+        PasswordResetToken resetToken = resetTokenRepository
+                .findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByCreatedAtDesc(
+                        request.getEmail(),
+                        LocalDateTime.now())
+                .orElseThrow(() -> new BadRequestException("No active reset request found for this email"));
+
+        // Check attempts
+        if (resetToken.getAttempts() >= 5) {
+            throw new BadRequestException("Too many failed attempts. Please request a new reset token");
+        }
+
+        // Verify OTP
+        if (!resetToken.getOtp().equals(request.getOtp())) {
+            resetToken.setAttempts(resetToken.getAttempts() + 1);
+            resetTokenRepository.save(resetToken);
+            throw new BadRequestException(
+                    "Invalid OTP code. " + (5 - resetToken.getAttempts()) + " attempts remaining");
+        }
+
+        // Mark as verified (reset attempts)
+        resetToken.setAttempts(0);
+        resetTokenRepository.save(resetToken);
+
+        log.info("OTP verified successfully for email: {}", maskEmail(request.getEmail()));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "OTP verified successfully");
+        response.put("resetToken", resetToken.getToken());
+        return response;
+    }
+
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         // Validate password match
@@ -179,16 +217,9 @@ public class PasswordService {
                 .findByTokenAndUsedFalseAndExpiresAtAfter(request.getToken(), LocalDateTime.now())
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
-        // Check attempts
-        if (resetToken.getAttempts() >= 5) {
-            throw new BadRequestException("Too many failed attempts. Please request a new reset token");
-        }
-
-        // Verify OTP
-        if (!resetToken.getOtp().equals(request.getOtp())) {
-            resetToken.setAttempts(resetToken.getAttempts() + 1);
-            resetTokenRepository.save(resetToken);
-            throw new BadRequestException("Invalid OTP code");
+        // Check if OTP was verified (attempts should be 0 after verification)
+        if (resetToken.getAttempts() != 0) {
+            throw new BadRequestException("Please verify OTP first");
         }
 
         // Find user
@@ -456,5 +487,68 @@ public class PasswordService {
         }
 
         return sb.length() > 0 ? sb.toString() : "Unknown Location";
+    }
+
+    /**
+     * Set password for OAuth-only users
+     * This allows users who registered via OAuth to enable traditional login
+     */
+    @Transactional
+    public void setPassword(String username, org.workfitai.authservice.dto.request.SetPasswordRequest request) {
+        // Get user
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Check if user already has a password
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            throw new BadRequestException("User already has a password. Use change-password endpoint instead");
+        }
+
+        // Validate password policy
+        validatePasswordPolicy(request.getNewPassword());
+
+        // Set password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordChangedAt(Instant.now());
+
+        LogContext.setAction("SET_PASSWORD");
+        LogContext.setEntityType("User");
+        LogContext.setEntityId(user.getId());
+        userRepository.save(user);
+
+        log.info("Password set successfully for OAuth user: {}", username);
+
+        // Publish password change event to sync with user-service
+        publishPasswordChangeEvent(user, "PASSWORD_SET");
+
+        // Send notification email
+        sendPasswordSetNotification(user);
+    }
+
+    /**
+     * Send password set notification email to user
+     */
+    private void sendPasswordSetNotification(User user) {
+        try {
+            Map<String, Object> data = new HashMap<>();
+            data.put("username", user.getUsername());
+            data.put("email", user.getEmail());
+            data.put("fullName", user.getFullName() != null ? user.getFullName() : user.getUsername());
+            data.put("timestamp", Instant.now().toString());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .recipientEmail(user.getEmail())
+                    .templateType("password-set")
+                    .sendEmail(true)
+                    .createInAppNotification(false)
+                    .metadata(data)
+                    .build();
+
+            notificationProducer.send(event);
+            log.info("Password set notification sent to: {}", user.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send password set notification to {}: {}", user.getEmail(), e.getMessage());
+        }
     }
 }

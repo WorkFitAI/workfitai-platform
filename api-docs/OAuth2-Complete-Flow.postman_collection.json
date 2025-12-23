@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "OAuth2 Complete Flow (Google + GitHub)",
-        "description": "Complete OAuth2 flow including authorize, callback, link, unlink, and password reset flows",
+        "description": "Complete OAuth2 flow with automatic LINK mode detection.\n\n**LOGIN Mode** (no Bearer token):\n1. POST /authorize/{PROVIDER} → Get authorization URL\n2. Open in browser → Authorize\n3. Callback detects LOGIN mode → Creates/logs in user → Returns JWT tokens\n\n**LINK Mode** (with Bearer token):\n1. POST /authorize/{PROVIDER} with Bearer token → Get authorization URL\n2. Backend embeds userId in state: PROVIDER:uuid:LINK:userId:clientState\n3. Open in browser → Authorize\n4. Callback detects LINK mode → Links provider to existing user → Returns LINK_SUCCESS\n\n**Key Changes:**\n- OAuth codes are single-use, consumed by callback\n- No manual POST /link needed (automatic in callback)\n- State format includes mode detection\n- Deprecated manual link endpoints (kept for backward compatibility)",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "auth": {
@@ -155,7 +155,7 @@
             "name": "🔗 Link Additional OAuth Providers",
             "item": [
                 {
-                    "name": "Google - Get Authorization URL",
+                    "name": "Google - Link Account (Auto via Callback)",
                     "event": [
                         {
                             "listen": "test",
@@ -174,10 +174,10 @@
                                     "    pm.environment.set('googleStateExpiry', data.expiresIn);",
                                     "    ",
                                     "    console.log('✅ Google Auth URL:', data.authorizationUrl);",
-                                    "    console.log('✅ State:', data.state);",
+                                    "    console.log('✅ State (contains userId for LINK mode):', data.state);",
                                     "    console.log('✅ Expires in:', data.expiresIn, 'seconds');",
-                                    "    console.log('⚠️  Please open the URL in browser and complete OAuth flow');",
-                                    "    console.log('⚠️  After authorization, copy the \"code\" parameter from callback URL');",
+                                    "    console.log('⚠️  Open URL in browser → Authorize → Callback will AUTO-LINK');",
+                                    "    console.log('⚠️  No manual link step needed! Check browser response after callback');",
                                     "}"
                                 ],
                                 "type": "text/javascript"
@@ -218,73 +218,11 @@
                                 "GOOGLE"
                             ]
                         },
-                        "description": "**Step 1: Get Google auth URL to link**\n\n**Prerequisites:** Must be logged in (have valid accessToken)\n\n**Required Fields:**\n- `state` (string): Random UUID for CSRF protection\n- `redirectUri` (string): Callback URL\n\n**Optional Fields:**\n- `scope` (array): OAuth scopes\n\n**Response:**\n- `authorizationUrl`: URL to open in browser\n- `state`: Save for Step 2\n\n**Next:** Open URL, authorize Google account, copy `code` from callback."
+                        "description": "**Link Google Account (Automatic via Callback)**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**How it works:**\n1. Send this request WITH Bearer token\n2. Backend detects you're authenticated → Embeds your userId in state\n3. State format: `GOOGLE:uuid:LINK:userId:clientState`\n4. Open authorizationUrl in browser → Authorize Google\n5. Google redirects to callback → Backend detects LINK mode from state\n6. **Callback AUTO-LINKS** provider to your account (no manual step)\n7. Browser receives response: `{tokenType: \"LINK_SUCCESS\", userInfo: {...}}`\n\n**Required Fields:**\n- `state` (string): Random UUID for CSRF protection\n- `redirectUri` (string): Callback URL\n\n**Optional Fields:**\n- `scope` (array): OAuth scopes\n\n**Response:**\n- `authorizationUrl`: URL to open in browser\n- `state`: Contains LINK mode + userId (validated by backend)\n\n**Important Notes:**\n- ✅ OAuth code is single-use, consumed by callback for linking\n- ✅ No need for manual POST /link endpoint\n- ✅ Callback response will NOT return new JWT tokens (you already have one)\n- ❌ Cannot link if Google email already used by another account"
                     }
                 },
                 {
-                    "name": "Google - Link to Account",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    const data = response.data;",
-                                    "    ",
-                                    "    console.log('✅ Google account linked successfully');",
-                                    "    console.log('✅ Provider:', data.provider);",
-                                    "    console.log('✅ Email:', data.email);",
-                                    "    console.log('✅ Linked at:', data.linkedAt);",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{accessToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"code\": \"{{googleAuthCode}}\",\n  \"redirectUri\": \"{{googleRedirectUri}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/oauth/link/GOOGLE",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "oauth",
-                                "link",
-                                "GOOGLE"
-                            ]
-                        },
-                        "description": "**Step 2: Link Google account**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**Required Fields:**\n- `code` (string): Authorization code from Google callback URL\n- `redirectUri` (string): Must match Step 1 redirectUri\n\n**Response:**\n- `provider`: \"GOOGLE\"\n- `email`: Google account email\n- `linkedAt`: Timestamp of linking\n\n**Note:** Cannot link if email already used by another account."
-                    }
-                },
-                {
-                    "name": "GitHub - Get Authorization URL",
+                    "name": "GitHub - Link Account (Auto via Callback)",
                     "event": [
                         {
                             "listen": "test",
@@ -303,10 +241,10 @@
                                     "    pm.environment.set('githubStateExpiry', data.expiresIn);",
                                     "    ",
                                     "    console.log('✅ GitHub Auth URL:', data.authorizationUrl);",
-                                    "    console.log('✅ State:', data.state);",
+                                    "    console.log('✅ State (contains userId for LINK mode):', data.state);",
                                     "    console.log('✅ Expires in:', data.expiresIn, 'seconds');",
-                                    "    console.log('⚠️  Please open the URL in browser and complete OAuth flow');",
-                                    "    console.log('⚠️  After authorization, copy the \"code\" parameter from callback URL');",
+                                    "    console.log('⚠️  Open URL in browser → Authorize → Callback will AUTO-LINK');",
+                                    "    console.log('⚠️  No manual link step needed! Check browser response after callback');",
                                     "}"
                                 ],
                                 "type": "text/javascript"
@@ -347,69 +285,7 @@
                                 "GITHUB"
                             ]
                         },
-                        "description": "**Step 1: Get GitHub auth URL to link**\n\n**Prerequisites:** Must be logged in (have valid accessToken)\n\n**Required Fields:**\n- `state` (string): Random UUID for CSRF protection\n- `redirectUri` (string): Callback URL\n\n**Optional Fields:**\n- `scope` (array): OAuth scopes\n\n**Response:**\n- `authorizationUrl`: URL to open in browser\n- `state`: Save for Step 2\n\n**Next:** Open URL, authorize GitHub account, copy `code` from callback."
-                    }
-                },
-                {
-                    "name": "GitHub - Link to Account",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Status code is 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "if (pm.response.code === 200) {",
-                                    "    const response = pm.response.json();",
-                                    "    const data = response.data;",
-                                    "    ",
-                                    "    console.log('✅ GitHub account linked successfully');",
-                                    "    console.log('✅ Provider:', data.provider);",
-                                    "    console.log('✅ Email:', data.email);",
-                                    "    console.log('✅ Linked at:', data.linkedAt);",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{accessToken}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"code\": \"{{githubAuthCode}}\",\n  \"redirectUri\": \"{{githubRedirectUri}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/auth/oauth/link/GITHUB",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "oauth",
-                                "link",
-                                "GITHUB"
-                            ]
-                        },
-                        "description": "**Step 2: Link GitHub account**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**Required Fields:**\n- `code` (string): Authorization code from GitHub callback URL\n- `redirectUri` (string): Must match Step 1 redirectUri\n\n**Response:**\n- `provider`: \"GITHUB\"\n- `email`: GitHub account email\n- `linkedAt`: Timestamp of linking\n\n**Note:** Cannot link if email already used by another account."
+                        "description": "**Link GitHub Account (Automatic via Callback)**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**How it works:**\n1. Send this request WITH Bearer token\n2. Backend detects you're authenticated → Embeds your userId in state\n3. State format: `GITHUB:uuid:LINK:userId:clientState`\n4. Open authorizationUrl in browser → Authorize GitHub\n5. GitHub redirects to callback → Backend detects LINK mode from state\n6. **Callback AUTO-LINKS** provider to your account (no manual step)\n7. Browser receives response: `{tokenType: \"LINK_SUCCESS\", userInfo: {...}}`\n\n**Required Fields:**\n- `state` (string): Random UUID for CSRF protection\n- `redirectUri` (string): Callback URL\n\n**Optional Fields:**\n- `scope` (array): OAuth scopes. Default: [\"read:user\", \"user:email\"]\n\n**Response:**\n- `authorizationUrl`: URL to open in browser\n- `state`: Contains LINK mode + userId (validated by backend)\n\n**Important Notes:**\n- ✅ OAuth code is single-use, consumed by callback for linking\n- ✅ No need for manual POST /link endpoint\n- ✅ Callback response will NOT return new JWT tokens (you already have one)\n- ❌ Cannot link if GitHub email already used by another account"
                     }
                 }
             ]
@@ -562,6 +438,122 @@
                             ]
                         },
                         "description": "Unlink GitHub account from current user"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔒 OAuth User Management",
+            "item": [
+                {
+                    "name": "Get Auth Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ User ID:', response.userId);",
+                                    "    console.log('✅ Username:', response.username);",
+                                    "    console.log('✅ Has Password:', response.hasPassword);",
+                                    "    console.log('✅ OAuth Providers:', response.oauthProviders);",
+                                    "    console.log('✅ Total Auth Methods:', response.totalAuthMethods);",
+                                    "    console.log('✅ Can Unlink OAuth:', response.canUnlinkOAuth);",
+                                    "    console.log('📝 Message:', response.message);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/auth-status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "auth-status"
+                            ]
+                        },
+                        "description": "**Get user's authentication status**\n\n**Response:**\n- `hasPassword` (boolean): Whether user has set a password\n- `oauthProviders` (array): List of linked OAuth providers (GOOGLE, GITHUB)\n- `totalAuthMethods` (number): Total authentication methods available\n- `canUnlinkOAuth` (boolean): Whether user can unlink OAuth providers\n- `message` (string): Guidance message\n\n**Use cases:**\n- Check before attempting to unlink OAuth provider\n- Determine if user should set password\n- Display user's authentication options in UI"
+                    }
+                },
+                {
+                    "name": "Set Password (OAuth Users)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ Password set successfully');",
+                                    "    console.log('✅ Message:', response.message);",
+                                    "    console.log('⚠️  You can now login with username/password');",
+                                    "    console.log('⚠️  You can now safely unlink OAuth providers');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"newPassword\": \"{{newPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/set-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "set-password"
+                            ]
+                        },
+                        "description": "**Set password for OAuth-only users**\n\n**Purpose:**\nAllows users who registered via OAuth (Google/GitHub) to set a password, enabling traditional login method.\n\n**Required:**\n- Must be authenticated (Bearer token)\n- User must NOT already have a password (use `/change-password` if already has password)\n\n**Password Requirements:**\n- Minimum 8 characters\n- At least 1 uppercase letter\n- At least 1 lowercase letter\n- At least 1 number\n- At least 1 special character (@$!%*?&)\n\n**Benefits after setting password:**\n- Can login with username/password (traditional method)\n- Can unlink OAuth providers safely\n- Have backup login method if OAuth provider has issues\n\n**Error Cases:**\n- 400: User already has password (use `/change-password` instead)\n- 400: Password doesn't meet requirements"
                     }
                 }
             ]

@@ -46,14 +46,12 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Column(name = "username", unique = true, nullable = false)
   private String username;
 
-  @NotBlank(message = "Phone number is required")
   @Pattern(regexp = "^(\\+84)?\\d{10}$", message = "Phone number must be 10 digits long and can optionally start with a '+84' country code")
-  @Column(name = "phone_number", unique = true, nullable = false)
+  @Column(name = "phone_number", unique = true)
   private String phoneNumber;
 
   @JsonIgnore
-  @Column(name = "password_hash", nullable = false)
-  @NotBlank(message = "Password hash is required")
+  @Column(name = "password_hash")
   private String passwordHash;
 
   @Enumerated(EnumType.STRING)

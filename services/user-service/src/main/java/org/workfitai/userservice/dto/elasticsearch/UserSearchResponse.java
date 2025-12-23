@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Response DTO for Elasticsearch user search.
@@ -36,7 +35,7 @@ public class UserSearchResponse {
     @AllArgsConstructor
     @Builder
     public static class UserSearchHit {
-        private UUID userId;
+        private String userId;
         private String username;
         private String fullName;
         private String email;

@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Elasticsearch document for user index.
@@ -18,7 +17,7 @@ import java.util.UUID;
 @Builder
 public class UserDocument {
 
-    private UUID userId;
+    private String userId;
     private String username;
     private String fullName;
     private String email;
