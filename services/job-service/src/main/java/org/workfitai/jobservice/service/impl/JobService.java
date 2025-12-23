@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.config.errors.NoPermissionException;
 import org.workfitai.jobservice.config.errors.ResourceConflictException;
+import org.workfitai.jobservice.dto.kafka.NotificationEvent;
+import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
@@ -33,6 +35,7 @@ import org.workfitai.jobservice.util.HtmlSanitizer;
 import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,15 +56,19 @@ public class JobService implements iJobService {
 
     private final JobEventProducer jobEventProducer;
 
+    private final NotificationProducer notificationProducer;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
             SkillRepository skillRepository, CompanyRepository companyRepository,
-            CloudinaryService cloudinaryService, JobEventProducer jobEventProducer) {
+            CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
+            NotificationProducer notificationProducer) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
         this.cloudinaryService = cloudinaryService;
         this.jobEventProducer = jobEventProducer;
+        this.notificationProducer = notificationProducer;
     }
 
     @Override
@@ -171,10 +178,51 @@ public class JobService implements iJobService {
             // Publish job created event to Kafka
             jobEventProducer.publishJobCreated(currentJob);
 
+            // Send notification to HR
+            sendJobCreatedNotification(currentJob);
+
             return jobMapper.toResCreateJobDTO(currentJob);
         } catch (Exception e) {
             log.error("Error creating job: {}", e.getMessage(), e);
             throw e;
+        }
+    }
+
+    /**
+     * Send email notification to HR when job is created
+     */
+    private void sendJobCreatedNotification(Job job) {
+        try {
+            String hrEmail = job.getCompany() != null && job.getCompany().getEmail() != null
+                    ? job.getCompany().getEmail()
+                    : "hr@example.com"; // Fallback - should get from SecurityContext or Company
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("jobTitle", job.getTitle());
+            metadata.put("jobId", job.getJobId().toString());
+            metadata.put("companyName", job.getCompany() != null ? job.getCompany().getName() : "");
+            metadata.put("status", job.getStatus().toString());
+            metadata.put("location", job.getLocation());
+            metadata.put("employmentType", job.getEmploymentType() != null ? job.getEmploymentType().toString() : "");
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .eventType("JOB_CREATED")
+                    .timestamp(Instant.now())
+                    .recipientEmail(hrEmail)
+                    .recipientRole("HR")
+                    .templateType("job-created")
+                    .sendEmail(true)
+                    .createInAppNotification(false)
+                    .referenceId(job.getJobId().toString())
+                    .referenceType("JOB")
+                    .metadata(metadata)
+                    .build();
+
+            notificationProducer.send(event);
+            log.info("Sent job created notification for job: {} to {}", job.getJobId(), hrEmail);
+        } catch (Exception e) {
+            log.error("Failed to send job created notification for job: {}", job.getJobId(), e);
         }
     }
 

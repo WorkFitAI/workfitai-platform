@@ -17,9 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.constant.ErrorConst;
+import org.workfitai.cvservice.dto.kafka.NotificationEvent;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.errors.ResourceNotFoundException;
+import org.workfitai.cvservice.messaging.NotificationProducer;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
@@ -36,8 +38,11 @@ import org.workfitai.cvservice.utils.PaginationUtils;
 import org.workfitai.cvservice.validation.FileValidator;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -47,6 +52,7 @@ public class CVService implements iCVService {
     private final MongoTemplate mongoTemplate;
     private final CvCreationFactory cvCreationFactory;
     private final FileService fileService;
+    private final NotificationProducer notificationProducer;
 
 
     // ---------------- CREATE ----------------
@@ -68,7 +74,48 @@ public class CVService implements iCVService {
         ResCvDTO created = CVMapper.INSTANCE.toResDTO(saved);
 
         log.info("Created CV with ID: {} with {}", created.getCvId(), created.isExist());
+        
+        // Send notification after CV upload/creation
+        sendCvUploadNotification(saved, type);
+        
         return created;
+    }
+    
+    /**
+     * Send email notification after CV upload/parse
+     * Notification service will check user's notification and privacy settings
+     */
+    private void sendCvUploadNotification(CV cv, String type) {
+        try {
+            String username = getCurrentUsername();
+            
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("cvId", cv.getCvId());
+            metadata.put("fileName", cv.getFileName());
+            metadata.put("uploadedAt", cv.getCreatedAt() != null ? cv.getCreatedAt().toString() : Instant.now().toString());
+            metadata.put("belongTo", username);
+            metadata.put("type", type);
+            metadata.put("fileUrl", cv.getFileUrl());
+            
+            NotificationEvent event = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .eventType("CV_UPLOADED")
+                    .timestamp(Instant.now())
+                    .recipientUserId(username) // notification-service will fetch user email
+                    .recipientRole("CANDIDATE")
+                    .templateType("cv-upload-success")
+                    .sendEmail(true)
+                    .createInAppNotification(false)
+                    .referenceId(cv.getCvId())
+                    .referenceType("CV")
+                    .metadata(metadata)
+                    .build();
+            
+            notificationProducer.send(event);
+            log.info("Sent CV upload notification for CV: {} to user: {}", cv.getCvId(), username);
+        } catch (Exception e) {
+            log.error("Failed to send CV upload notification for CV: {}", cv.getCvId(), e);
+        }
     }
 
 

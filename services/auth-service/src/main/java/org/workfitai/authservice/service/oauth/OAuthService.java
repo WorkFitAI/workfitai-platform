@@ -22,6 +22,8 @@ import org.workfitai.authservice.exception.OAuthProviderException;
 import org.workfitai.authservice.exception.NotFoundException;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
+import org.workfitai.authservice.service.RefreshTokenService;
+import org.workfitai.authservice.service.SessionService;
 import org.workfitai.authservice.service.oauth.provider.GitHubOAuthService;
 import org.workfitai.authservice.service.oauth.provider.GoogleOAuthService;
 import org.workfitai.authservice.service.oauth.provider.IOAuthProviderService;
@@ -46,6 +48,8 @@ public class OAuthService {
     private final OAuthEventPublisher oauthEventPublisher;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final SessionService sessionService;
     private final UserRegistrationProducer userRegistrationProducer;
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -131,12 +135,19 @@ public class OAuthService {
         String jti = jwtService.newJti();
         String refreshToken = jwtService.generateRefreshTokenWithJti(userDetails, jti);
 
+        // Store refresh token JTI in Redis (use OAuth provider as deviceId)
+        String deviceId = provider.name().toLowerCase() + "-web";
+        refreshTokenService.saveJti(user.getId(), deviceId, jti);
+
+        // Create session in MongoDB
+        sessionService.createSession(user.getId(), jti, jwtService.getRefreshExpMs(), request, null, null);
+
         // Publish login event
         String ipAddress = IpAddressUtil.getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
         oauthEventPublisher.publishLoginEvent(user, provider, ipAddress, userAgent);
 
-        log.info("OAuth callback successful for user: {} via {}", user.getUsername(), provider);
+        log.info("OAuth callback successful for user: {} via {} (session created)", user.getUsername(), provider);
 
         // Return response with JWT tokens (not OAuth tokens)
         return OAuthCallbackResponse.builder()
