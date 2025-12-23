@@ -577,7 +577,46 @@
         </div>
 
         <div class="container">
-            <h2>🎯 Custom Test Notification</h2>
+            <h2>🎯 Test Notifications From Services</h2>
+            <div class="grid">
+                <div class="control-group">
+                    <label>🔐 Auth Service</label>
+                    <div class="button-group">
+                        <button onclick="testAuthNotification('PASSWORD_RESET')" class="test-btn">🔑 Password
+                            Reset</button>
+                        <button onclick="testAuthNotification('OTP')" class="test-btn">📧 OTP Code</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>💼 Job Service</label>
+                    <div class="button-group">
+                        <button onclick="testJobNotification()" class="test-btn">📋 Job Created</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid">
+                <div class="control-group">
+                    <label>📄 CV Service</label>
+                    <div class="button-group">
+                        <button onclick="testCVNotification()" class="test-btn">📤 CV Uploaded</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>📝 Application Service</label>
+                    <div class="button-group">
+                        <button onclick="testApplicationNotification('CANDIDATE')" class="test-btn">👤 Candidate
+                            Apply</button>
+                        <button onclick="testApplicationNotification('HR')" class="test-btn">🏢 HR New
+                            Application</button>
+                    </div>
+                </div>
+            </div>
+            <small>ℹ️ Test notifications from different services. Each button sends via Kafka to notification-service,
+                then pushes via WebSocket!</small>
+        </div>
+
+        <div class="container">
+            <h2>🎨 Custom Test Notification</h2>
             <div class="grid">
                 <div class="control-group">
                     <label for="testTitle">Title</label>
@@ -943,6 +982,123 @@
                 alert(`❌ Connection Error\n\n${error.message}\n\nMake sure the API Gateway is running at http://localhost:9085`);
             } finally {
                 loginBtn.disabled = false;
+            }
+        }
+
+        // Test notifications from specific services
+        async function testAuthNotification(type) {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('❌ Please login first');
+                return;
+            }
+
+            log(`🔐 Testing Auth Service notification: ${type}`, 'info');
+
+            try {
+                const response = await fetch(`http://localhost:9085/auth/test-noti?type=${type}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    log(`✅ Auth notification sent (${type})`, 'success');
+                    alert(`✅ ${type} notification sent!\n\n${result.message}\nCheck WebSocket panel for real-time update.`);
+                } else {
+                    log(`❌ Failed: ${result.message}`, 'error');
+                    alert(`❌ Failed: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testJobNotification() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('❌ Please login first');
+                return;
+            }
+
+            log('💼 Testing Job Service notification', 'info');
+
+            try {
+                const response = await fetch('http://localhost:9085/job/test-noti', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    log('✅ Job notification sent', 'success');
+                    alert(`✅ Job notification sent!\n\n${result.message}\nJob: ${result.jobTitle}\nCheck WebSocket panel!`);
+                } else {
+                    log(`❌ Failed: ${result.message}`, 'error');
+                    alert(`❌ Failed: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testCVNotification() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('❌ Please login first');
+                return;
+            }
+
+            log('📄 Testing CV Service notification', 'info');
+
+            try {
+                const response = await fetch('http://localhost:9085/cv/test-noti', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    log('✅ CV notification sent', 'success');
+                    alert(`✅ CV notification sent!\n\n${result.message}\nFile: ${result.fileName}\nCheck WebSocket panel!`);
+                } else {
+                    log(`❌ Failed: ${result.message}`, 'error');
+                    alert(`❌ Failed: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testApplicationNotification(role) {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('❌ Please login first');
+                return;
+            }
+
+            log(`📝 Testing Application Service notification (${role})`, 'info');
+
+            try {
+                const response = await fetch(`http://localhost:9085/application/test-noti?type=${role}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    log(`✅ Application notification sent (${role})`, 'success');
+                    alert(`✅ ${role} notification sent!\n\n${result.message}\nApp ID: ${result.applicationId}\nCheck WebSocket panel!`);
+                } else {
+                    log(`❌ Failed: ${result.message}`, 'error');
+                    alert(`❌ Failed: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert(`❌ Error: ${error.message}`);
             }
         }
 

@@ -87,12 +87,12 @@ public class CVService implements iCVService {
 
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("cvId", cv.getCvId());
-            metadata.put("fileName", cv.getFileName());
+            metadata.put("fileName", cv.getObjectName() != null ? cv.getObjectName() : "CV");
             metadata.put("uploadedAt",
                     cv.getCreatedAt() != null ? cv.getCreatedAt().toString() : Instant.now().toString());
             metadata.put("belongTo", username);
             metadata.put("type", type);
-            metadata.put("fileUrl", cv.getFileUrl());
+            metadata.put("fileUrl", cv.getPdfUrl() != null ? cv.getPdfUrl() : "");
 
             NotificationEvent event = NotificationEvent.builder()
                     .eventId(UUID.randomUUID().toString())

@@ -33,6 +33,7 @@ import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.service.specifications.JobSpecifications;
 import org.workfitai.jobservice.util.HtmlSanitizer;
 import org.workfitai.jobservice.util.PaginationUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -193,9 +194,9 @@ public class JobService implements iJobService {
      */
     private void sendJobCreatedNotification(Job job) {
         try {
-            String hrEmail = job.getCompany() != null && job.getCompany().getEmail() != null
-                    ? job.getCompany().getEmail()
-                    : "hr@example.com"; // Fallback - should get from SecurityContext or Company
+            // Get HR email from SecurityContext (current authenticated user who created the
+            // job)
+            String hrEmail = SecurityContextHolder.getContext().getAuthentication().getName(); // Username is email
 
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("jobTitle", job.getTitle());
