@@ -8,7 +8,6 @@ import org.workfitai.userservice.enums.EUserRole;
 import org.workfitai.userservice.enums.EUserStatus;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Kafka event for user data changes.
@@ -38,9 +37,10 @@ public class UserChangeEvent {
     private Instant timestamp;
 
     /**
-     * User ID affected by this change
+     * User ID affected by this change (can be PostgreSQL UUID or MongoDB ObjectId
+     * String)
      */
-    private UUID userId;
+    private String userId;
 
     /**
      * Version for optimistic locking
@@ -60,7 +60,7 @@ public class UserChangeEvent {
     @AllArgsConstructor
     @Builder
     public static class UserEventData {
-        private UUID userId;
+        private String userId;
         private String username;
         private String fullName;
         private String email;

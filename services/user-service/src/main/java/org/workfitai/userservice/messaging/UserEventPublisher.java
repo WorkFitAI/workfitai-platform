@@ -66,7 +66,7 @@ public class UserEventPublisher {
                     .eventId(UUID.randomUUID().toString())
                     .eventType(eventType)
                     .timestamp(Instant.now())
-                    .userId(user.getUserId())
+                    .userId(user.getUserId().toString())
                     .version(user.getVersion())
                     .data(mapToEventData(user))
                     .build();
@@ -96,7 +96,7 @@ public class UserEventPublisher {
         }
 
         return UserChangeEvent.UserEventData.builder()
-                .userId(user.getUserId())
+                .userId(user.getUserId().toString())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())

@@ -49,9 +49,28 @@ public class User {
     // job-service)
     private String companyNo;
 
+    // OAuth-related fields
+    private Set<String> oauthProviders; // List of linked OAuth providers: ["GOOGLE", "GITHUB"]
+
+    private LastOAuthLogin lastOAuthLogin;
+
     @CreatedDate
     private Instant createdAt;
 
     @LastModifiedDate
     private Instant updatedAt;
+
+    /**
+     * Last OAuth login metadata
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LastOAuthLogin {
+        private String provider; // GOOGLE | GITHUB
+        private Instant timestamp;
+        private String ipAddress;
+        private String deviceInfo;
+    }
 }

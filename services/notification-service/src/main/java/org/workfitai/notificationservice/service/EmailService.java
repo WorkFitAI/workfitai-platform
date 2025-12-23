@@ -20,6 +20,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateService templateService;
+    private final UserPreferenceService userPreferenceService;
 
     @Value("${spring.mail.username:}")
     private String mailUsername;
@@ -41,6 +42,13 @@ public class EmailService {
 
         if (!StringUtils.hasText(mailUsername) || !StringUtils.hasText(mailPassword)) {
             log.warn("Skip email: mail credentials are not configured");
+            return false;
+        }
+
+        // Check user notification preferences and privacy settings
+        if (!userPreferenceService.shouldSendNotification(event)) {
+            log.info("Skip email: user {} has disabled this notification type: {}",
+                    event.getRecipientEmail(), event.getTemplateType());
             return false;
         }
 

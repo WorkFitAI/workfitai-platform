@@ -410,4 +410,87 @@ public class UserServiceImpl implements UserService {
 
         deleteUser(user.getUserId());
     }
+
+    @Override
+    @Transactional
+    public void addOAuthProvider(String username, String provider, String providerEmail) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode currentProviders = user.getOauthProviders();
+
+            java.util.List<com.fasterxml.jackson.databind.JsonNode> providersList = new java.util.ArrayList<>();
+
+            // Add existing providers
+            if (currentProviders != null && currentProviders.isArray()) {
+                currentProviders.forEach(providersList::add);
+            }
+
+            // Check if provider already exists
+            boolean exists = providersList.stream()
+                    .anyMatch(p -> provider.equals(p.path("provider").asText()));
+
+            if (!exists) {
+                // Add new provider
+                com.fasterxml.jackson.databind.node.ObjectNode newProvider = mapper.createObjectNode();
+                newProvider.put("provider", provider);
+                newProvider.put("email", providerEmail);
+                newProvider.put("linkedAt", Instant.now().toString());
+                providersList.add(newProvider);
+
+                com.fasterxml.jackson.databind.node.ArrayNode updatedProviders = mapper.createArrayNode();
+                providersList.forEach(updatedProviders::add);
+
+                user.setOauthProviders(updatedProviders);
+                userRepository.save(user);
+
+                log.info("Added OAuth provider {} to user {}", provider, username);
+            } else {
+                log.debug("OAuth provider {} already linked to user {}", provider, username);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to add OAuth provider {} to user {}", provider, username, e);
+            throw new ApiException("Failed to update OAuth providers", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeOAuthProvider(String username, String provider) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ApiException.notFound("User not found with username: " + username));
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode currentProviders = user.getOauthProviders();
+
+            if (currentProviders != null && currentProviders.isArray()) {
+                java.util.List<com.fasterxml.jackson.databind.JsonNode> providersList = new java.util.ArrayList<>();
+
+                // Keep only providers that don't match the one to remove
+                currentProviders.forEach(p -> {
+                    if (!provider.equals(p.path("provider").asText())) {
+                        providersList.add(p);
+                    }
+                });
+
+                com.fasterxml.jackson.databind.node.ArrayNode updatedProviders = mapper.createArrayNode();
+                providersList.forEach(updatedProviders::add);
+
+                user.setOauthProviders(updatedProviders);
+                userRepository.save(user);
+
+                log.info("Removed OAuth provider {} from user {}", provider, username);
+            } else {
+                log.debug("No OAuth providers found for user {}", username);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to remove OAuth provider {} from user {}", provider, username, e);
+            throw new ApiException("Failed to update OAuth providers", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

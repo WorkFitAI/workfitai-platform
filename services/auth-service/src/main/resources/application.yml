@@ -31,6 +31,19 @@ server:
 app:
   frontend:
     base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+  kafka:
+    topics:
+      user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+      user-activity-events: ${KAFKA_TOPIC_USER_ACTIVITY_EVENTS:user-activity-events}
+  oauth2:
+    google:
+      client-id: ${oauth2.google.client-id:}
+      client-secret: ${oauth2.google.client-secret:}
+    github:
+      client-id: ${oauth2.github.client-id:}
+      client-secret: ${oauth2.github.client-secret:}
+    token-encryption-key: ${oauth2.token-encryption-key:}
 
 management:
   endpoint:

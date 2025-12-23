@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.response.ApiError;
 import org.workfitai.authservice.exception.BadRequestException;
+import org.workfitai.authservice.exception.CannotUnlinkLastAuthMethodException;
 import org.workfitai.authservice.exception.NotFoundException;
 
 import com.mongodb.MongoWriteConcernException;
@@ -114,6 +115,12 @@ public class RestExceptionHandler {
     public ResponseEntity<ApiError> handleNotFoundCustom(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of()));
+    }
+
+    @ExceptionHandler(CannotUnlinkLastAuthMethodException.class)
+    public ResponseEntity<ApiError> handleCannotUnlinkLastAuthMethod(CannotUnlinkLastAuthMethodException ex) {
+        return ResponseEntity.badRequest()
+                .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of()));
     }
 
     // 500 – last resort

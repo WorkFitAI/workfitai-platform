@@ -28,7 +28,8 @@ public class PasswordResetToken {
 
     private String otp;
 
-    @Indexed(expireAfterSeconds = 0)
+    // MongoDB TTL index - document will be auto-deleted when expiresAt is reached
+    @Indexed
     private LocalDateTime expiresAt;
 
     private LocalDateTime createdAt;

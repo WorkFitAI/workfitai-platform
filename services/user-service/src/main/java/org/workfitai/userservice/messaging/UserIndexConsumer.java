@@ -37,7 +37,7 @@ public class UserIndexConsumer {
 
                 case "USER_DELETED":
                 case "USER_BLOCKED":
-                    deleteUserFromIndex(event.getData().getUserId().toString());
+                    deleteUserFromIndex(event.getData().getUserId());
                     break;
 
                 default:

@@ -19,6 +19,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.workfitai.apigateway.security.PublicKeyProvider;
+import org.workfitai.apigateway.security.PublicPathsAuthenticationEntryPoint;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -37,6 +38,7 @@ public class SecurityConfig {
 
         private final PublicKeyProvider publicKeyProvider;
         private final CorsConfigurationSource corsConfigurationSource;
+        private final PublicPathsAuthenticationEntryPoint publicPathsEntryPoint;
 
         /*
          * =========================================================
@@ -78,6 +80,7 @@ public class SecurityConfig {
                                                                 "/auth/verify-2fa-login",
                                                                 "/auth/forgot-password",
                                                                 "/auth/reset-password",
+                                                                "/auth/oauth/**", // OAuth endpoints
                                                                 "/cv/public/**",
                                                                 "/job/public/**",
                                                                 "/monitoring-service/**",
@@ -91,8 +94,7 @@ public class SecurityConfig {
                                                 // 🔒 EVERYTHING ELSE REQUIRES JWT
                                                 .anyExchange().authenticated())
                                 .exceptionHandling(e -> e
-                                                .authenticationEntryPoint((swe, err) -> Mono.fromRunnable(() -> swe
-                                                                .getResponse().setStatusCode(HttpStatus.UNAUTHORIZED)))
+                                                .authenticationEntryPoint(publicPathsEntryPoint)
                                                 .accessDeniedHandler((swe,
                                                                 err) -> Mono.fromRunnable(() -> swe.getResponse()
                                                                                 .setStatusCode(HttpStatus.FORBIDDEN))))

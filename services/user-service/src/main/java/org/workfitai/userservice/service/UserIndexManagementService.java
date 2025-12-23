@@ -160,7 +160,7 @@ public class UserIndexManagementService {
         }
 
         UserDocument document = UserDocument.builder()
-                .userId(user.getUserId())
+                .userId(user.getUserId().toString())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
