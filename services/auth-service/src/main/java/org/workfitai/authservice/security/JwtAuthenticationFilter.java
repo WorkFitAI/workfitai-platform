@@ -31,6 +31,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/register",
             "/login",
             "/refresh",
+            "/verify-otp",
+            "/verify-2fa-login",
+            "/forgot-password",
+            "/reset-password",
+            "/verify-reset-otp",
+            "/oauth/**", // OAuth endpoints
+            "/auth/oauth/**", // OAuth endpoints (new path)
+            "/authorize/**", // OAuth authorize
+            "/callback/**", // OAuth callback
             "/actuator/**",
             "/error",
             "/v3/api-docs/**",

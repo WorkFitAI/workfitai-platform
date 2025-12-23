@@ -114,6 +114,12 @@ public abstract class UserEntity extends AbstractAuditingEntity<UUID> {
   @Builder.Default
   private boolean isBlocked = false;
 
+  // OAuth linked providers (metadata only - tokens stored in auth-service)
+  // Stores list of linked providers: ["GOOGLE", "GITHUB"]
+  @Column(name = "oauth_providers", columnDefinition = "jsonb")
+  @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+  private com.fasterxml.jackson.databind.JsonNode oauthProviders;
+
   // Note: isDeleted is inherited from AbstractAuditingEntity
 
   /**

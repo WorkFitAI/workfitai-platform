@@ -595,6 +595,12 @@ services:
       - RECOMMENDATION_MAX_RESUME_SIZE_MB=${RECOMMENDATION_MAX_RESUME_SIZE_MB:-5}
       - RECOMMENDATION_ENABLE_KAFKA=${RECOMMENDATION_ENABLE_KAFKA:-true}
       - RECOMMENDATION_ENABLE_INITIAL_SYNC=${RECOMMENDATION_ENABLE_INITIAL_SYNC:-true}
+      # OAuth2 Configuration
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-your-google-client-secret}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-your-github-client-id}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-your-github-client-secret}
+      - OAUTH2_TOKEN_ENCRYPTION_KEY=${OAUTH2_TOKEN_ENCRYPTION_KEY}
     volumes:
       - ./scripts/init-vault.sh:/scripts/init-vault.sh:ro
     entrypoint: [ "sh", "/scripts/init-vault.sh" ]

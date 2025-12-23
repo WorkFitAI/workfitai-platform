@@ -38,10 +38,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .logout(logout -> logout.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/register", "/login", "/refresh", "/verify-otp", "verify-2fa-login",
-                                "/reset-password", "/forgot-password",
-                                "/actuator/**", "/error",
+                        .requestMatchers("/", "/register",
+                                "/login",
+                                "/refresh",
+                                "/verify-otp",
+                                "verify-2fa-login",
+                                "/reset-password",
+                                "/forgot-password",
+                                "/oauth/**",
+                                "/actuator/**",
+                                "/error",
                                 "/api/v1/auth/**",
+                                "/auth/oauth/**", // OAuth endpoints (new path)
                                 "/api/v1/keys/public",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()

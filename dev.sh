@@ -10,6 +10,13 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🚀 WorkFitAI Platform - Development Script${NC}"
 echo "============================================="
 
+# Check if .env.local exists and use it
+ENV_FILE=".env"
+if [ -f ".env.local" ]; then
+    ENV_FILE=".env.local"
+    echo -e "${GREEN}✅ Using .env.local${NC}"
+fi
+
 # Check if profile is provided
 PROFILE=${1:-full}
 ACTION=${2:-up}
@@ -20,7 +27,7 @@ echo -e "${YELLOW}📋 Action: $ACTION${NC}"
 case $ACTION in
     "up"|"start")
         echo -e "${BLUE}🏗️  Building and starting services...${NC}"
-        docker-compose --profile $PROFILE up --build -d
+        docker-compose --env-file $ENV_FILE --profile $PROFILE up --build -d
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ Services started successfully!${NC}"
             echo ""
@@ -47,37 +54,37 @@ case $ACTION in
         ;;
     "down"|"stop")
         echo -e "${YELLOW}🛑 Stopping all services...${NC}"
-        docker-compose --profile $PROFILE down
+        docker-compose --env-file $ENV_FILE --profile $PROFILE down
         echo -e "${GREEN}✅ All services stopped${NC}"
         ;;
     "restart")
         echo -e "${YELLOW}🔄 Restarting services (removing volumes)...${NC}"
-        docker-compose --profile $PROFILE down -v
-        docker-compose --profile $PROFILE up --build -d
+        docker-compose --env-file $ENV_FILE --profile $PROFILE down -v
+        docker-compose --env-file $ENV_FILE --profile $PROFILE up --build -d
         echo -e "${GREEN}✅ Services restarted (fresh volumes)${NC}"
         ;;
     "logs")
         SERVICE=${3:-""}
         if [ -n "$SERVICE" ]; then
             echo -e "${BLUE}📝 Showing logs for $SERVICE...${NC}"
-            docker-compose logs -f $SERVICE
+            docker-compose --env-file $ENV_FILE logs -f $SERVICE
         else
             echo -e "${BLUE}📝 Showing logs for all services...${NC}"
-            docker-compose logs -f
+            docker-compose --env-file $ENV_FILE logs -f
         fi
         ;;
     "build")
         echo -e "${BLUE}🏗️  Building services...${NC}"
-        docker-compose --profile $PROFILE build --no-cache
+        docker-compose --env-file $ENV_FILE --profile $PROFILE build --no-cache
         echo -e "${GREEN}✅ Build completed${NC}"
         ;;
     "status")
         echo -e "${BLUE}📊 Service status:${NC}"
-        docker-compose ps
+        docker-compose --env-file $ENV_FILE ps
         ;;
     "clean")
         echo -e "${YELLOW}🧹 Cleaning up...${NC}"
-        docker-compose --profile $PROFILE down -v --remove-orphans
+        docker-compose --env-file $ENV_FILE --profile $PROFILE down -v --remove-orphans
         docker system prune -f
         echo -e "${GREEN}✅ Cleanup completed${NC}"
         ;;

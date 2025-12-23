@@ -17,6 +17,13 @@ public class KeyGenerator {
   }
 
   public static void generateKeysIfNotExist() {
+    generateRsaKeysIfNotExist();
+  }
+
+  /**
+   * Generate RSA key pair for JWT signing/verification
+   */
+  private static void generateRsaKeysIfNotExist() {
     try {
       // Determine where to create keys based on environment
       Path keyDir = getKeyDirectory();

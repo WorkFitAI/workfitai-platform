@@ -152,4 +152,24 @@ public interface UserService {
      * @param currentUserId current logged-in user ID (to prevent self-deletion)
      */
     void deleteUserByUsername(String username, String currentUserId);
+
+    /**
+     * Add OAuth provider to user's linked providers list.
+     * Called by Kafka consumer when auth-service publishes OAuthAccountLinkedEvent
+     *
+     * @param username      the username
+     * @param provider      the OAuth provider (GOOGLE | GITHUB)
+     * @param providerEmail email associated with OAuth provider
+     */
+    void addOAuthProvider(String username, String provider, String providerEmail);
+
+    /**
+     * Remove OAuth provider from user's linked providers list.
+     * Called by Kafka consumer when auth-service publishes
+     * OAuthAccountUnlinkedEvent
+     *
+     * @param username the username
+     * @param provider the OAuth provider to remove (GOOGLE | GITHUB)
+     */
+    void removeOAuthProvider(String username, String provider);
 }

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
@@ -46,7 +47,8 @@ public class UserSession {
 
     private LocalDateTime lastActivityAt;
 
-    @Indexed(expireAfterSeconds = 0)
+    // MongoDB TTL index - document will be auto-deleted when expiresAt is reached
+    @Indexed
     private LocalDateTime expiresAt;
 
     @Data

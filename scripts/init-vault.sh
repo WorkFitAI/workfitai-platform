@@ -79,7 +79,14 @@ create_service_secrets "auth-service" '{
     "redis.host": "auth-redis",
     "redis.port": "6379",
     "app.frontend.base-url": "'"${FRONTEND_BASE_URL:-http://localhost:3000}"'",
-    "app.session.max-sessions-per-user": "'"${MAX_SESSIONS_PER_USER:-5}"'"
+    "app.session.max-sessions-per-user": "'"${MAX_SESSIONS_PER_USER:-5}"'",
+    "oauth2.google.client-id": "'"${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}"'",
+    "oauth2.google.client-secret": "'"${GOOGLE_CLIENT_SECRET:-your-google-client-secret}"'",
+    "oauth2.linkedin.client-id": "'"${LINKEDIN_CLIENT_ID:-your-linkedin-client-id}"'",
+    "oauth2.linkedin.client-secret": "'"${LINKEDIN_CLIENT_SECRET:-your-linkedin-client-secret}"'",
+    "oauth2.github.client-id": "'"${GITHUB_CLIENT_ID:-your-github-client-id}"'",
+    "oauth2.github.client-secret": "'"${GITHUB_CLIENT_SECRET:-your-github-client-secret}"'",
+    "oauth2.token-encryption-key": "'"${OAUTH2_TOKEN_ENCRYPTION_KEY:-changeme-generate-a-secure-256-bit-key-here}"'"
   }
 }'
 
