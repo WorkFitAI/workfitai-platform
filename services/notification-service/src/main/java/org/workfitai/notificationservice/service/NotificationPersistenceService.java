@@ -74,9 +74,11 @@ public class NotificationPersistenceService {
         Notification saved = notificationRepository.save(notification);
 
         // Push notification to user via WebSocket in real-time
+        // Use userId (username) instead of email for WebSocket destination
         try {
-            realtimeService.pushToUser(saved.getUserEmail(), saved);
-            log.debug("Pushed notification to WebSocket: user={}, id={}", saved.getUserEmail(), saved.getId());
+            String username = saved.getUserId() != null ? saved.getUserId() : saved.getUserEmail();
+            realtimeService.pushToUser(username, saved);
+            log.debug("Pushed notification to WebSocket: user={}, id={}", username, saved.getId());
         } catch (Exception e) {
             log.error("Failed to push notification via WebSocket: {}", e.getMessage());
             // Continue execution even if WebSocket push fails
@@ -112,9 +114,10 @@ public class NotificationPersistenceService {
 
                     // Update unread count for user via WebSocket
                     try {
+                        String username = saved.getUserId() != null ? saved.getUserId() : saved.getUserEmail();
                         long unreadCount = getUnreadCount(saved.getUserEmail());
-                        realtimeService.pushUnreadCountUpdate(saved.getUserEmail(), unreadCount);
-                        log.debug("Pushed unread count update: user={}, count={}", saved.getUserEmail(), unreadCount);
+                        realtimeService.pushUnreadCountUpdate(username, unreadCount);
+                        log.debug("Pushed unread count update: user={}, count={}", username, unreadCount);
                     } catch (Exception e) {
                         log.error("Failed to push unread count update: {}", e.getMessage());
                     }
@@ -138,9 +141,12 @@ public class NotificationPersistenceService {
         notificationRepository.saveAll(unread);
 
         // Push unread count update (should be 0 now)
+        // Use userId from first notification, fallback to email
         try {
-            realtimeService.pushUnreadCountUpdate(userEmail, 0L);
-            log.debug("Pushed unread count update after marking all read: user={}", userEmail);
+            String username = unread.isEmpty() ? userEmail
+                    : (unread.get(0).getUserId() != null ? unread.get(0).getUserId() : userEmail);
+            realtimeService.pushUnreadCountUpdate(username, 0L);
+            log.debug("Pushed unread count update after marking all read: user={}", username);
         } catch (Exception e) {
             log.error("Failed to push unread count update: {}", e.getMessage());
         }

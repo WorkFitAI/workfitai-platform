@@ -36,16 +36,19 @@ public class WebSocketConnectionListener {
                 user != null ? user.getName() : "null");
 
         if (destination != null && destination.contains("/queue/unread-count") && user != null) {
-            String userEmail = user.getName();
-            log.info("[WebSocket] User subscribed to unread-count: {}", userEmail);
+            String username = user.getName(); // This is username, not email
+            log.info("[WebSocket] User subscribed to unread-count: {}", username);
 
             // Push initial unread count
+            // Note: getUnreadCount uses email, but pushUnreadCountUpdate uses username
             try {
-                long unreadCount = notificationPersistenceService.getUnreadCount(userEmail);
-                realtimeNotificationService.pushUnreadCountUpdate(userEmail, unreadCount);
-                log.info("[WebSocket] Pushed initial unread count to {}: {}", userEmail, unreadCount);
+                // Need to get email for query, but we only have username
+                // For now, use username as identifier (will work if username = email format)
+                long unreadCount = notificationPersistenceService.getUnreadCount(username);
+                realtimeNotificationService.pushUnreadCountUpdate(username, unreadCount);
+                log.info("[WebSocket] Pushed initial unread count to {}: {}", username, unreadCount);
             } catch (Exception e) {
-                log.error("[WebSocket] Failed to push initial unread count to {}: {}", userEmail, e.getMessage());
+                log.error("[WebSocket] Failed to push initial unread count to {}: {}", username, e.getMessage());
             }
         }
     }
