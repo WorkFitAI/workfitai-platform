@@ -37,6 +37,9 @@ public class TestNotificationController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("🧪 Application notification test triggered by: {} (type: {})", username, type);
 
+        // For test purposes, use username as email
+        String recipientEmail = username.contains("@") ? username : username + "@test.com";
+
         String applicationId = UUID.randomUUID().toString();
         String jobTitle = "Senior Java Developer (TEST)";
 
@@ -53,36 +56,42 @@ public class TestNotificationController {
         if ("HR".equalsIgnoreCase(type)) {
             // Test HR notification
             metadata.put("candidateName", username);
-            metadata.put("candidateEmail", username + "@test.com");
+            metadata.put("hrName", username);
 
             event = NotificationEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("NEW_APPLICATION")
                     .timestamp(Instant.now())
+                    .recipientEmail(recipientEmail)
                     .recipientUserId(username)
                     .recipientRole("HR")
                     .subject("New Application: " + jobTitle)
                     .templateType("NEW_APPLICATION_HR")
-                    .sendEmail(true)
+                    .sendEmail(false)
                     .createInAppNotification(true)
                     .referenceId(applicationId)
                     .referenceType("APPLICATION")
+                    .sourceService("application-service")
                     .metadata(metadata)
                     .build();
         } else {
             // Test CANDIDATE notification
+            metadata.put("candidateName", username);
+
             event = NotificationEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("APPLICATION_SUBMITTED")
                     .timestamp(Instant.now())
+                    .recipientEmail(recipientEmail)
                     .recipientUserId(username)
                     .recipientRole("CANDIDATE")
                     .subject("Application Submitted: " + jobTitle)
                     .templateType("APPLICATION_CONFIRMATION")
-                    .sendEmail(true)
+                    .sendEmail(false)
                     .createInAppNotification(true)
                     .referenceId(applicationId)
                     .referenceType("APPLICATION")
+                    .sourceService("application-service")
                     .metadata(metadata)
                     .build();
         }

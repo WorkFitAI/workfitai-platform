@@ -29,6 +29,9 @@ public class TestNotificationController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("🧪 Job notification test triggered by: {}", username);
 
+        // For test purposes, use username as email
+        String recipientEmail = username.contains("@") ? username : username + "@test.com";
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("jobTitle", "Senior Backend Developer (TEST)");
         metadata.put("jobId", UUID.randomUUID().toString());
@@ -36,19 +39,22 @@ public class TestNotificationController {
         metadata.put("status", "PUBLISHED");
         metadata.put("location", "Ho Chi Minh City");
         metadata.put("employmentType", "FULL_TIME");
+        metadata.put("hrName", username);
         metadata.put("testTrigger", true);
 
         NotificationEvent event = NotificationEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .eventType("JOB_CREATED")
                 .timestamp(Instant.now())
+                .recipientEmail(recipientEmail)
                 .recipientUserId(username)
                 .recipientRole("HR")
                 .subject("New Job Posted Successfully")
                 .templateType("job-created")
-                .sendEmail(true)
+                .sendEmail(false)
                 .createInAppNotification(true)
                 .referenceType("JOB")
+                .sourceService("job-service")
                 .metadata(metadata)
                 .build();
 
