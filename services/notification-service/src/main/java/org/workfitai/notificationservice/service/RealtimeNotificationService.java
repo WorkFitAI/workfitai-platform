@@ -25,46 +25,48 @@ public class RealtimeNotificationService {
      * Push notification to a specific user in real-time via WebSocket.
      * The notification will be delivered to all sessions of that user.
      * 
-     * @param userEmail    User's email address
+     * @param username     User's username (used for WebSocket session
+     *                     identification)
      * @param notification The notification object to send
      */
-    public void pushToUser(String userEmail, Notification notification) {
-        if (userEmail == null || notification == null) {
-            log.warn("[WebSocket] Cannot push notification: userEmail={}, notification={}", userEmail, notification);
+    public void pushToUser(String username, Notification notification) {
+        if (username == null || notification == null) {
+            log.warn("[WebSocket] Cannot push notification: username={}, notification={}", username, notification);
             return;
         }
 
         try {
             // Send to user-specific queue
-            // Destination: /user/{userEmail}/queue/notifications
+            // Destination: /user/{username}/queue/notifications
             log.info(
                     "[WebSocket] Attempting to push notification to user: {}, destination: /user/{}/queue/notifications",
-                    userEmail, userEmail);
+                    username, username);
             log.info("[WebSocket] Notification details: id={}, title={}, type={}, createdAt={}",
                     notification.getId(), notification.getTitle(), notification.getType(), notification.getCreatedAt());
 
             messagingTemplate.convertAndSendToUser(
-                    userEmail,
+                    username,
                     "/queue/notifications",
                     notification);
 
-            log.info("[WebSocket] Pushed notification to user: email={}, notificationId={}, type={}",
-                    userEmail, notification.getId(), notification.getType());
+            log.info("[WebSocket] Pushed notification to user: username={}, notificationId={}, type={}",
+                    username, notification.getId(), notification.getType());
 
         } catch (Exception e) {
             log.error("[WebSocket] Failed to push notification to user {}: {}",
-                    userEmail, e.getMessage(), e);
+                    username, e.getMessage(), e);
         }
     }
 
     /**
      * Push notification count update to user
      * 
-     * @param userEmail   User's email address
+     * @param username    User's username (used for WebSocket session
+     *                    identification)
      * @param unreadCount Current unread notification count
      */
-    public void pushUnreadCountUpdate(String userEmail, long unreadCount) {
-        if (userEmail == null) {
+    public void pushUnreadCountUpdate(String username, long unreadCount) {
+        if (username == null) {
             return;
         }
 
@@ -73,15 +75,15 @@ public class RealtimeNotificationService {
             payload.put("count", unreadCount);
 
             messagingTemplate.convertAndSendToUser(
-                    userEmail,
+                    username,
                     "/queue/unread-count",
                     payload);
 
-            log.debug("[WebSocket] Pushed unread count to user: email={}, count={}", userEmail, unreadCount);
+            log.debug("[WebSocket] Pushed unread count to user: username={}, count={}", username, unreadCount);
 
         } catch (Exception e) {
             log.error("[WebSocket] Failed to push unread count to user {}: {}",
-                    userEmail, e.getMessage(), e);
+                    username, e.getMessage(), e);
         }
     }
 

@@ -35,6 +35,10 @@ public class TestNotificationController {
         metadata.put("testType", type);
         metadata.put("triggeredAt", Instant.now().toString());
 
+        // For test purposes, use username as email (since username format is
+        // email-like)
+        String recipientEmail = username.contains("@") ? username : username + "@test.com";
+
         NotificationEvent event;
 
         switch (type.toUpperCase()) {
@@ -43,13 +47,16 @@ public class TestNotificationController {
                 metadata.put("validUntil", Instant.now().plusSeconds(300).toString());
                 event = NotificationEvent.builder()
                         .eventId(UUID.randomUUID().toString())
-                        .eventType("OTP_VERIFICATION")
+                        .eventType("REGISTRATION")
                         .timestamp(Instant.now())
+                        .recipientEmail(recipientEmail)
                         .recipientUserId(username)
+                        .recipientRole("CANDIDATE")
                         .subject("Your OTP Code")
                         .templateType("otp-verification")
                         .sendEmail(true)
                         .createInAppNotification(true)
+                        .sourceService("auth-service")
                         .metadata(metadata)
                         .build();
                 break;
@@ -62,11 +69,14 @@ public class TestNotificationController {
                         .eventId(UUID.randomUUID().toString())
                         .eventType("PASSWORD_RESET")
                         .timestamp(Instant.now())
+                        .recipientEmail(recipientEmail)
                         .recipientUserId(username)
+                        .recipientRole("CANDIDATE")
                         .subject("Password Reset Request")
                         .templateType("password-reset")
-                        .sendEmail(true)
+                        .sendEmail(false)
                         .createInAppNotification(true)
+                        .sourceService("auth-service")
                         .metadata(metadata)
                         .build();
                 break;

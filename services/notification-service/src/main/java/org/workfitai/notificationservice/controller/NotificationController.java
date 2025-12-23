@@ -113,6 +113,7 @@ public class NotificationController {
 
         // Create test notification using Builder pattern
         Notification notification = Notification.builder()
+                .userId(username) // Add userId for WebSocket routing
                 .userEmail(userEmail)
                 .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
                 .title(request != null && request.containsKey("title")
@@ -135,9 +136,9 @@ public class NotificationController {
                         .sourceService("notification-service")
                         .build());
 
-        // Update unread count
+        // Update unread count - use username for WebSocket
         long unreadCount = persistenceService.getUnreadCount(userEmail);
-        realtimeService.pushUnreadCountUpdate(userEmail, unreadCount);
+        realtimeService.pushUnreadCountUpdate(username, unreadCount);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,

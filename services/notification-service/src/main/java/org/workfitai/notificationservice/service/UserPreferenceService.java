@@ -45,7 +45,7 @@ public class UserPreferenceService {
 
         try {
             // Call user-service to get notification settings
-            String endpoint = String.format("%s/api/v1/profile/notification-settings", userServiceUrl);
+            String endpoint = String.format("%s/profile/notification-settings", userServiceUrl);
 
             // TODO: Add proper authentication header (service-to-service token)
             // For now, we'll use recipientEmail as identifier

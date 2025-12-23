@@ -29,11 +29,15 @@ public class TestNotificationController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("🧪 CV notification test triggered by: {}", username);
 
+        // For test purposes, use username as email
+        String recipientEmail = username.contains("@") ? username : username + "@test.com";
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("cvId", UUID.randomUUID().toString());
         metadata.put("fileName", "test-resume.pdf");
         metadata.put("uploadedAt", Instant.now().toString());
         metadata.put("belongTo", username);
+        metadata.put("candidateName", username);
         metadata.put("type", "test-upload");
         metadata.put("fileUrl", "http://localhost:9000/test-cv.pdf");
         metadata.put("testTrigger", true);
@@ -42,13 +46,15 @@ public class TestNotificationController {
                 .eventId(UUID.randomUUID().toString())
                 .eventType("CV_UPLOADED")
                 .timestamp(Instant.now())
+                .recipientEmail(recipientEmail)
                 .recipientUserId(username)
                 .recipientRole("CANDIDATE")
                 .subject("CV Uploaded Successfully")
                 .templateType("cv-upload-success")
-                .sendEmail(true)
+                .sendEmail(false)
                 .createInAppNotification(true)
                 .referenceType("CV")
+                .sourceService("cv-service")
                 .metadata(metadata)
                 .build();
 

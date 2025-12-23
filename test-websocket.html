@@ -514,7 +514,7 @@
                 <div class="control-group">
                     <label for="loginUsername">📧 Username/Email</label>
                     <input type="text" id="loginUsername" placeholder="candidate_123@test.com"
-                        value="candidate_1766407484729@test.com">
+                        value="candidate_1766517153869@test.com">
                 </div>
                 <div class="control-group">
                     <label for="loginPassword">🔑 Password</label>
@@ -629,8 +629,12 @@
                         placeholder="Enter notification message...">This is a real-time test notification!</textarea>
                 </div>
             </div>
-            <small>ℹ️ Send a custom notification via REST API. If WebSocket is connected, it will appear
-                instantly!</small>
+            <div class="button-group">
+                <button onclick="sendTestNotification()" class="test-btn">🚀 Send Custom Notification</button>
+                <span id="customTestStatus" class="status-text"></span>
+            </div>
+            <small>ℹ️ Send a custom notification via REST API (notification-service). If WebSocket is connected, it will
+                appear instantly!</small>
         </div>
 
         <div class="grid">
