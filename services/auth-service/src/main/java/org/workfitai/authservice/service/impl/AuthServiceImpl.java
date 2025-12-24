@@ -30,6 +30,7 @@ import org.workfitai.authservice.dto.request.RegisterRequest;
 import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.MeResponse;
 import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
@@ -886,5 +887,19 @@ public class AuthServiceImpl implements iAuthService {
 
     private String normalizeDevice(String deviceId) {
         return (deviceId == null || deviceId.isBlank()) ? DEFAULT_DEVICE : deviceId.trim();
+    }
+
+    @Override
+    public MeResponse getCurrentUser(String username) {
+        if (username == null || username.isBlank()) {
+            return MeResponse.unauthenticated();
+        }
+
+        return users.findByUsername(username)
+                .map(user -> {
+                    Set<String> roles = user.getRoles() != null ? user.getRoles() : Set.of();
+                    return MeResponse.authenticated(user.getUsername(), roles, user.getCompanyNo());
+                })
+                .orElse(MeResponse.unauthenticated());
     }
 }

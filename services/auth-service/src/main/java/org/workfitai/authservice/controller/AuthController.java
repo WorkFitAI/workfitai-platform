@@ -7,6 +7,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import org.workfitai.authservice.dto.request.RegisterRequest;
 import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.MeResponse;
 import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.dto.response.ResponseData;
 import org.workfitai.authservice.dto.response.TokensResponse;
@@ -43,6 +46,20 @@ public class AuthController {
         public ResponseData<String> healthCheck() {
                 return ResponseData.success(Messages.Success.AUTH_SERVICE_RUNNING,
                                 Messages.Success.AUTH_SERVICE_RUNNING);
+        }
+
+        @GetMapping("/me")
+        public ResponseData<MeResponse> me() {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+                if (auth == null || !auth.isAuthenticated() ||
+                    "anonymousUser".equals(auth.getPrincipal())) {
+                        return ResponseData.success("Not authenticated", MeResponse.unauthenticated());
+                }
+
+                MeResponse response = authService.getCurrentUser(auth.getName());
+                String message = response.isAuthenticated() ? "Session info" : "Not authenticated";
+                return ResponseData.success(message, response);
         }
 
         @PostMapping("/register")
