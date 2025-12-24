@@ -122,7 +122,10 @@ create_service_secrets "cv-service" '{
     "minio.endpoint": "http://minio:9000",
     "minio.access-key": "minioadmin",
     "minio.secret-key": "minioadmin",
-    "minio.bucket": "cvs-files"
+    "minio.bucket": "cvs-files",
+    "spring.kafka.bootstrap-servers": "kafka:29092",
+    "spring.kafka.producer.key-serializer": "org.apache.kafka.common.serialization.StringSerializer",
+    "spring.kafka.producer.value-serializer": "org.springframework.kafka.support.serializer.JsonSerializer"
   }
 }'
 

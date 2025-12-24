@@ -72,6 +72,12 @@ logging:
 server:
   port: ${SERVER_PORT:9005}
 
+# Application-specific configuration
+app:
+  kafka:
+    topics:
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+
 management:
   endpoints:
     web:
@@ -110,6 +116,15 @@ spring:
         register: true
         service-name: cv
         health-check-path: /actuator/health
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 # Service URLs for Docker environment
 service:
   auth:
@@ -149,6 +164,15 @@ spring:
       username: user
       password: "123456"
       authentication-database: cv-db
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 
 # Override logging for local development
 logging:
