@@ -79,6 +79,11 @@ public class NotificationPersistenceService {
             String username = saved.getUserId() != null ? saved.getUserId() : saved.getUserEmail();
             realtimeService.pushToUser(username, saved);
             log.debug("Pushed notification to WebSocket: user={}, id={}", username, saved.getId());
+
+            // Push updated unread count
+            long unreadCount = getUnreadCount(username);
+            realtimeService.pushUnreadCountUpdate(username, unreadCount);
+            log.debug("Pushed unread count update: user={}, count={}", username, unreadCount);
         } catch (Exception e) {
             log.error("Failed to push notification via WebSocket: {}", e.getMessage());
             // Continue execution even if WebSocket push fails
@@ -95,10 +100,19 @@ public class NotificationPersistenceService {
     }
 
     /**
-     * Get unread notification count for a user
+     * Get notifications for a user by userId (username)
      */
-    public long getUnreadCount(String userEmail) {
-        return notificationRepository.countByUserEmailAndReadFalse(userEmail);
+    public Page<Notification> getNotificationsByUserId(String userId, Pageable pageable) {
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    }
+
+    /**
+     * Get unread notification count for a user by userId (username)
+     * Note: We query by userId (username) not userEmail because WebSocket sessions
+     * use username
+     */
+    public long getUnreadCount(String userId) {
+        return notificationRepository.countByUserIdAndReadFalse(userId);
     }
 
     /**
@@ -115,7 +129,7 @@ public class NotificationPersistenceService {
                     // Update unread count for user via WebSocket
                     try {
                         String username = saved.getUserId() != null ? saved.getUserId() : saved.getUserEmail();
-                        long unreadCount = getUnreadCount(saved.getUserEmail());
+                        long unreadCount = getUnreadCount(username);
                         realtimeService.pushUnreadCountUpdate(username, unreadCount);
                         log.debug("Pushed unread count update: user={}, count={}", username, unreadCount);
                     } catch (Exception e) {
@@ -129,9 +143,11 @@ public class NotificationPersistenceService {
 
     /**
      * Mark all notifications as read and update unread count via WebSocket
+     * 
+     * @param userId The userId (username) to mark notifications for
      */
-    public void markAllAsRead(String userEmail) {
-        List<Notification> unread = notificationRepository.findByUserEmailAndReadFalseOrderByCreatedAtDesc(userEmail);
+    public void markAllAsRead(String userId) {
+        List<Notification> unread = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
         Instant now = Instant.now();
         unread.forEach(n -> {
             n.setRead(true);
@@ -141,12 +157,9 @@ public class NotificationPersistenceService {
         notificationRepository.saveAll(unread);
 
         // Push unread count update (should be 0 now)
-        // Use userId from first notification, fallback to email
         try {
-            String username = unread.isEmpty() ? userEmail
-                    : (unread.get(0).getUserId() != null ? unread.get(0).getUserId() : userEmail);
-            realtimeService.pushUnreadCountUpdate(username, 0L);
-            log.debug("Pushed unread count update after marking all read: user={}", username);
+            realtimeService.pushUnreadCountUpdate(userId, 0L);
+            log.debug("Pushed unread count update after marking all read: user={}", userId);
         } catch (Exception e) {
             log.error("Failed to push unread count update: {}", e.getMessage());
         }

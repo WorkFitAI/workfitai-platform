@@ -36,14 +36,11 @@ public class WebSocketConnectionListener {
                 user != null ? user.getName() : "null");
 
         if (destination != null && destination.contains("/queue/unread-count") && user != null) {
-            String username = user.getName(); // This is username, not email
+            String username = user.getName(); // This is username from JWT principal
             log.info("[WebSocket] User subscribed to unread-count: {}", username);
 
             // Push initial unread count
-            // Note: getUnreadCount uses email, but pushUnreadCountUpdate uses username
             try {
-                // Need to get email for query, but we only have username
-                // For now, use username as identifier (will work if username = email format)
                 long unreadCount = notificationPersistenceService.getUnreadCount(username);
                 realtimeNotificationService.pushUnreadCountUpdate(username, unreadCount);
                 log.info("[WebSocket] Pushed initial unread count to {}: {}", username, unreadCount);
