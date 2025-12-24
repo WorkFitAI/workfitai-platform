@@ -2,6 +2,7 @@ package org.workfitai.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.request.CandidateProfileSkillRequest;
@@ -18,44 +19,49 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CandidateProfileSkillController {
 
-  private final CandidateProfileSkillService candidateSkillService;
+    private final CandidateProfileSkillService candidateSkillService;
 
-  @PostMapping("/candidate/{candidateId}")
-  public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> create(
-      @PathVariable UUID candidateId,
-      @RequestBody CandidateProfileSkillRequest dto) {
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.CandidateSkill.CREATED,
-        candidateSkillService.create(candidateId, dto)));
-  }
+    @PostMapping("/candidate/{candidateId}")
+    @PreAuthorize("hasAuthority('candidate:create')")
+    public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> create(
+            @PathVariable UUID candidateId,
+            @RequestBody CandidateProfileSkillRequest dto) {
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.CandidateSkill.CREATED,
+                candidateSkillService.create(candidateId, dto)));
+    }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> update(
-      @PathVariable UUID id,
-      @RequestBody CandidateProfileSkillUpdateRequest dto) {
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.CandidateSkill.UPDATED,
-        candidateSkillService.update(id, dto)));
-  }
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('candidate:update')")
+    public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> update(
+            @PathVariable UUID id,
+            @RequestBody CandidateProfileSkillUpdateRequest dto) {
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.CandidateSkill.UPDATED,
+                candidateSkillService.update(id, dto)));
+    }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
-    candidateSkillService.delete(id);
-    return ResponseEntity.ok(ResponseData.success(Messages.CandidateSkill.DELETED, null));
-  }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('candidate:update')")
+    public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
+        candidateSkillService.delete(id);
+        return ResponseEntity.ok(ResponseData.success(Messages.CandidateSkill.DELETED, null));
+    }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> getById(@PathVariable UUID id) {
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.CandidateSkill.FETCHED,
-        candidateSkillService.getById(id)));
-  }
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('candidate:read')")
+    public ResponseEntity<ResponseData<CandidateProfileSkillResponse>> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.CandidateSkill.FETCHED,
+                candidateSkillService.getById(id)));
+    }
 
-  @GetMapping("/candidate/{candidateId}")
-  public ResponseEntity<ResponseData<List<CandidateProfileSkillResponse>>> getByCandidateId(
-      @PathVariable UUID candidateId) {
-    return ResponseEntity.ok(ResponseData.success(
-        Messages.CandidateSkill.FETCHED,
-        candidateSkillService.getAllByCandidate(candidateId)));
-  }
+    @GetMapping("/candidate/{candidateId}")
+    @PreAuthorize("hasAuthority('candidate:read')")
+    public ResponseEntity<ResponseData<List<CandidateProfileSkillResponse>>> getByCandidateId(
+            @PathVariable UUID candidateId) {
+        return ResponseEntity.ok(ResponseData.success(
+                Messages.CandidateSkill.FETCHED,
+                candidateSkillService.getAllByCandidate(candidateId)));
+    }
 }

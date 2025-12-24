@@ -1,18 +1,22 @@
 package org.workfitai.userservice.controller;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 import org.workfitai.userservice.service.UserService;
 
+import java.util.List;
+
 /**
  * Controller for user-related operations.
  * Provides endpoints for user lookup and validation.
- * 
+ * <p>
  * Note: Profile operations (get/update own profile) are in
  * UserProfileController.
  */
@@ -29,6 +33,7 @@ public class UserController {
      * @return user base response
      */
     @GetMapping("/by-email")
+    @PreAuthorize("hasAuthority('candidate:read')")
     public ResponseEntity<ResponseData<UserBaseResponse>> getByEmail(
             @RequestParam("email") String email) {
         UserBaseResponse user = userService.getByEmail(email);
@@ -42,6 +47,7 @@ public class UserController {
      * @return user base response
      */
     @GetMapping("/by-username")
+    @PreAuthorize("hasAuthority('candidate:read')")
     public ResponseEntity<ResponseData<UserBaseResponse>> getByUsername(
             @RequestParam("username") String username) {
         UserBaseResponse user = userService.getByUsername(username);
@@ -56,6 +62,7 @@ public class UserController {
      * @return list of user base responses
      */
     @GetMapping("/by-usernames")
+    @PreAuthorize("hasAuthority('candidate:read')")
     public ResponseEntity<ResponseData<List<UserBaseResponse>>> getByUsernames(
             @RequestParam("usernames") java.util.List<String> usernames) {
         List<UserBaseResponse> users = userService.getUsersByUsernames(usernames);
@@ -70,6 +77,7 @@ public class UserController {
      * @return true if email exists, false otherwise
      */
     @GetMapping("/exists/email")
+    @PreAuthorize("hasAuthority('candidate:read')")
     public ResponseEntity<Boolean> existsByEmail(@RequestParam("email") String email) {
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(exists);
@@ -105,10 +113,10 @@ public class UserController {
      * Internal endpoint: Check if deactivated account can be reactivated (within 30
      * days).
      * Called by auth-service during login.
-     * 
+     *
      * @param username the username to check
      * @return true if account was reactivated, false if beyond 30 days or already
-     *         deleted
+     * deleted
      */
     @GetMapping("/internal/check-reactivate")
     public ResponseEntity<Boolean> checkAndReactivateAccount(@RequestParam("username") String username) {

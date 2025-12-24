@@ -38,11 +38,13 @@ public class AdminController {
     private final UserIndexManagementService indexManagementService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('admin:create')")
     public ResponseEntity<ResponseData<AdminResponse>> create(@RequestBody AdminCreateRequest dto) {
         return ResponseEntity.ok(ResponseData.success(Messages.Admin.CREATED, adminService.create(dto)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin:update')")
     public ResponseEntity<ResponseData<AdminResponse>> update(@PathVariable UUID id,
                                                               @RequestBody AdminUpdateRequest dto) {
         return ResponseEntity.ok(ResponseData.success(
@@ -50,6 +52,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin:delete')")
     public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
         adminService.delete(id);
         return ResponseEntity.ok(ResponseData.success(
@@ -57,11 +60,13 @@ public class AdminController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<ResponseData<AdminResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ResponseData.success(adminService.getById(id)));
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('admin:search')")
     public ResponseEntity<ResponseData<Page<AdminResponse>>> search(
             @RequestParam(required = false) String keyword, Pageable pageable) {
         return ResponseEntity.ok(ResponseData.success(adminService.search(keyword, pageable)));
@@ -72,6 +77,7 @@ public class AdminController {
      * For admin user management dashboard
      */
     @GetMapping("/all-users")
+    @PreAuthorize("hasAuthority('user:list')")
     public ResponseEntity<ResponseData<Page<UserBaseResponse>>> getAllUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
@@ -84,6 +90,7 @@ public class AdminController {
      * Block or unblock user account
      */
     @PutMapping("/users/{id}/block")
+    @PreAuthorize("hasAuthority('user:block')")
     public ResponseEntity<ResponseData<Void>> blockUser(
             @PathVariable UUID id,
             @RequestParam boolean blocked,
@@ -104,6 +111,7 @@ public class AdminController {
      * Delete user account (soft delete)
      */
     @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:delete')")
     public ResponseEntity<ResponseData<Void>> deleteUser(
             @PathVariable UUID id,
             @RequestAttribute("userId") String currentUserId) {
@@ -122,6 +130,7 @@ public class AdminController {
      * Block or unblock user account by username
      */
     @PutMapping("/users/username/{username}/block")
+    @PreAuthorize("hasAuthority('user:block')")
     public ResponseEntity<ResponseData<Void>> blockUserByUsername(
             @PathVariable String username,
             @RequestParam boolean blocked,
@@ -136,6 +145,7 @@ public class AdminController {
      * Delete user account by username (soft delete)
      */
     @DeleteMapping("/users/username/{username}")
+    @PreAuthorize("hasAuthority('user:delete')")
     public ResponseEntity<ResponseData<Void>> deleteUserByUsername(
             @PathVariable String username,
             @RequestAttribute("userId") String userId) {
@@ -148,6 +158,7 @@ public class AdminController {
      * Get user details by ID
      */
     @GetMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<ResponseData<UserBaseResponse>> getUserById(@PathVariable UUID id) {
         UserBaseResponse user = userService.getByUserId(id);
         return ResponseEntity.ok(ResponseData.success(user));
@@ -157,6 +168,7 @@ public class AdminController {
      * Get user details by username
      */
     @GetMapping("/users/username/{username}")
+    @PreAuthorize("hasAuthority('user:list')")
     public ResponseEntity<ResponseData<UserBaseResponse>> getUserByUsername(
             @PathVariable String username) {
         UserBaseResponse user = userService.getUserByUsername(username);
@@ -167,6 +179,7 @@ public class AdminController {
      * Get full user profile with role-specific details
      */
     @GetMapping("/users/{id}/full-profile")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<ResponseData<Object>> getFullUserProfile(@PathVariable UUID id) {
         Object profile = userService.getCurrentUserProfile(id);
         return ResponseEntity.ok(ResponseData.success(profile));
@@ -176,6 +189,7 @@ public class AdminController {
      * Advanced user search using Elasticsearch with filters and aggregations
      */
     @PostMapping("/users/search")
+    @PreAuthorize("hasAuthority('admin:search')")
     public ResponseEntity<ResponseData<UserSearchResponse>> searchUsersAdvanced(
             @RequestBody UserSearchRequest searchRequest) {
         UserSearchResponse result = userSearchService.searchUsers(searchRequest);
