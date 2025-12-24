@@ -18,7 +18,7 @@ public class NotificationProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${app.kafka.topics.notification:notification-events}")
+    @Value("${app.kafka.topics.notification-events:notification-events}")
     private String notificationTopic;
 
     public void send(NotificationEvent event) {

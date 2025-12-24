@@ -31,11 +31,11 @@ public class NotificationController {
             Authentication authentication,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        String userEmail = extractEmailFromAuth(authentication);
-        if (userEmail == null) {
+        String username = extractEmailFromAuth(authentication);
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(persistenceService.getNotificationsByEmail(userEmail, PageRequest.of(page, size)));
+        return ResponseEntity.ok(persistenceService.getNotificationsByUserId(username, PageRequest.of(page, size)));
     }
 
     /**
@@ -43,11 +43,11 @@ public class NotificationController {
      */
     @GetMapping("/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(Authentication authentication) {
-        String userEmail = extractEmailFromAuth(authentication);
-        if (userEmail == null) {
+        String username = extractEmailFromAuth(authentication);
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
-        long count = persistenceService.getUnreadCount(userEmail);
+        long count = persistenceService.getUnreadCount(username);
         return ResponseEntity.ok(Map.of("count", count));
     }
 
@@ -58,8 +58,8 @@ public class NotificationController {
     public ResponseEntity<Notification> markAsRead(
             @PathVariable String id,
             Authentication authentication) {
-        String userEmail = extractEmailFromAuth(authentication);
-        if (userEmail == null) {
+        String username = extractEmailFromAuth(authentication);
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
 
@@ -69,7 +69,7 @@ public class NotificationController {
         }
 
         // Verify the notification belongs to the current user
-        if (!userEmail.equals(notification.getUserEmail())) {
+        if (!username.equals(notification.getUserId())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -81,11 +81,11 @@ public class NotificationController {
      */
     @PutMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
-        String userEmail = extractEmailFromAuth(authentication);
-        if (userEmail == null) {
+        String username = extractEmailFromAuth(authentication);
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
-        persistenceService.markAllAsRead(userEmail);
+        persistenceService.markAllAsRead(username);
         return ResponseEntity.ok().build();
     }
 
@@ -102,14 +102,18 @@ public class NotificationController {
      * TEST ENDPOINT: Send a test notification to current user
      * POST /notification/test
      */
-    // @PostMapping("/test")
-    // public ResponseEntity<Map<String, Object>> sendTestNotification(
-    //         Authentication authentication,
-    //         @RequestBody(required = false) Map<String, String> request) {
-    //     String userEmail = extractEmailFromAuth(authentication);
-    //     if (userEmail == null) {
-    //         return ResponseEntity.status(401).build();
-    //     }
+    @PostMapping("/test")
+    public ResponseEntity<Map<String, Object>> sendTestNotification(
+            Authentication authentication,
+            @RequestBody(required = false) Map<String, String> request) {
+        // extractEmailFromAuth actually returns username (JWT subject)
+        String username = extractEmailFromAuth(authentication);
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // For test, use username as both userId and userEmail
+        String userEmail = username.contains("@") ? username : username + "@test.com";
 
     //     // Create test notification using Builder pattern
     //     Notification notification = Notification.builder()
@@ -126,15 +130,16 @@ public class NotificationController {
     //             .sourceService("notification-service")
     //             .build();
 
-    //     // Save to database (this will also push to WebSocket)
-    //     Notification saved = persistenceService.createNotification(
-    //             org.workfitai.notificationservice.dto.kafka.NotificationEvent.builder()
-    //                     .recipientEmail(userEmail)
-    //                     .notificationType("general")
-    //                     .subject(notification.getTitle())
-    //                     .content(notification.getMessage())
-    //                     .sourceService("notification-service")
-    //                     .build());
+        // Save to database (this will also push to WebSocket)
+        Notification saved = persistenceService.createNotification(
+                org.workfitai.notificationservice.dto.kafka.NotificationEvent.builder()
+                        .recipientEmail(userEmail)
+                        .recipientUserId(username)
+                        .notificationType("general")
+                        .subject(notification.getTitle())
+                        .content(notification.getMessage())
+                        .sourceService("notification-service")
+                        .build());
 
     //     // Update unread count - use username for WebSocket
     //     long unreadCount = persistenceService.getUnreadCount(userEmail);
