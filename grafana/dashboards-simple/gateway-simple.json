@@ -1,0 +1,205 @@
+{
+    "title": "API Gateway - Simple Metrics",
+    "uid": "gateway-simple",
+    "panels": [
+        {
+            "title": "Gateway Health",
+            "type": "stat",
+            "gridPos": {
+                "h": 6,
+                "w": 6,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "up{job=\"api-gateway\"}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "value": "1",
+                            "text": "UP"
+                        },
+                        {
+                            "type": "value",
+                            "value": "0",
+                            "text": "DOWN"
+                        }
+                    ],
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "value": 0,
+                                "color": "red"
+                            },
+                            {
+                                "value": 1,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "title": "Total Requests/sec",
+            "type": "graph",
+            "gridPos": {
+                "h": 6,
+                "w": 9,
+                "x": 6,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"api-gateway\"}[1m]))",
+                    "refId": "A",
+                    "legendFormat": "Requests/sec"
+                }
+            ]
+        },
+        {
+            "title": "Success Rate %",
+            "type": "gauge",
+            "gridPos": {
+                "h": 6,
+                "w": 9,
+                "x": 15,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"api-gateway\",status=~\"2..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"api-gateway\"}[5m])) * 100",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "min": 0,
+                    "max": 100,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "value": 0,
+                                "color": "red"
+                            },
+                            {
+                                "value": 80,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 95,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "title": "Response Time (P95)",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 6
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"api-gateway\"}[5m])) by (le))",
+                    "refId": "A",
+                    "legendFormat": "P95 latency"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s"
+                }
+            }
+        },
+        {
+            "title": "Requests by Status",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 6
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"api-gateway\",status=~\"2..\"}[1m]))",
+                    "refId": "A",
+                    "legendFormat": "2xx Success"
+                },
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"api-gateway\",status=~\"4..\"}[1m]))",
+                    "refId": "B",
+                    "legendFormat": "4xx Client Error"
+                },
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"api-gateway\",status=~\"5..\"}[1m]))",
+                    "refId": "C",
+                    "legendFormat": "5xx Server Error"
+                }
+            ]
+        },
+        {
+            "title": "JVM Memory Usage",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 14
+            },
+            "targets": [
+                {
+                    "expr": "jvm_memory_used_bytes{application=\"api-gateway\",area=\"heap\"} / jvm_memory_max_bytes{application=\"api-gateway\",area=\"heap\"} * 100",
+                    "refId": "A",
+                    "legendFormat": "Heap Usage %"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent"
+                }
+            }
+        },
+        {
+            "title": "Redis Connections",
+            "type": "stat",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 14
+            },
+            "targets": [
+                {
+                    "expr": "lettuce_command_completion_seconds_count{application=\"api-gateway\"}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            }
+        }
+    ],
+    "refresh": "5s",
+    "time": {
+        "from": "now-15m",
+        "to": "now"
+    },
+    "timezone": "browser",
+    "schemaVersion": 36
+}

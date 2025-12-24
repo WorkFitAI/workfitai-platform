@@ -66,6 +66,18 @@ public class SecurityConfig {
                                                                                                  // custom config
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .logout(ServerHttpSecurity.LogoutSpec::disable)
+                                // Disable default security headers - let SecurityHeadersFilter handle it
+                                .headers(headers -> headers
+                                                .cache(ServerHttpSecurity.HeaderSpec.CacheSpec::disable)
+                                                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                                                "default-src 'self'; " +
+                                                                                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                                                                                +
+                                                                                "style-src 'self' 'unsafe-inline'; " +
+                                                                                "img-src 'self' data: https: blob:; " +
+                                                                                "font-src 'self' data:; " +
+                                                                                "connect-src 'self' ws: wss:; " +
+                                                                                "frame-ancestors 'none';")))
                                 .authorizeExchange(exchanges -> exchanges
                                                 .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -87,8 +99,8 @@ public class SecurityConfig {
                                                                 "/debug/**",
                                                                 "/user/actuator/**",
                                                                 "/notification/ws/**",
-                                                                "/notification/actuator/**") // ✅ WebSocket + actuator
-                                                                                             // permitAll
+                                                                "/notification/actuator/**", // ✅ WebSocket + actuator
+                                                                "/fallback/**") // ✅ Circuit breaker fallback endpoints
                                                 .permitAll()
 
                                                 // 🔒 EVERYTHING ELSE REQUIRES JWT
