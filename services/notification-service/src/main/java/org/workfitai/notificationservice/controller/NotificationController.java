@@ -115,20 +115,20 @@ public class NotificationController {
         // For test, use username as both userId and userEmail
         String userEmail = username.contains("@") ? username : username + "@test.com";
 
-    //     // Create test notification using Builder pattern
-    //     Notification notification = Notification.builder()
-    //             .userId(username) // Add userId for WebSocket routing
-    //             .userEmail(userEmail)
-    //             .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
-    //             .title(request != null && request.containsKey("title")
-    //                     ? request.get("title")
-    //                     : "🧪 Test Notification")
-    //             .message(request != null && request.containsKey("message")
-    //                     ? request.get("message")
-    //                     : "This is a test notification sent at " + Instant.now())
-    //             .read(false)
-    //             .sourceService("notification-service")
-    //             .build();
+        // Create test notification using Builder pattern
+        Notification notification = Notification.builder()
+                .userId(username) // Add userId for WebSocket routing
+                .userEmail(userEmail)
+                .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
+                .title(request != null && request.containsKey("title")
+                        ? request.get("title")
+                        : "🧪 Test Notification")
+                .message(request != null && request.containsKey("message")
+                        ? request.get("message")
+                        : "This is a test notification sent at " + Instant.now())
+                .read(false)
+                .sourceService("notification-service")
+                .build();
 
         // Save to database (this will also push to WebSocket)
         Notification saved = persistenceService.createNotification(
