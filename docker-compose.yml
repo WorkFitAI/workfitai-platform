@@ -630,6 +630,46 @@ services:
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
 
+  ### Nginx Reverse Proxy (with caching & compression) ###
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx-gateway
+    ports:
+      - "80:80" # Main entry point
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      - api-gateway
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/actuator/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  ### Zipkin - Distributed Tracing ###
+  zipkin:
+    image: openzipkin/zipkin:3.4
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mem
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    networks: [ workfitai-net ]
+    profiles: [ "infra", "full" ]
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9411/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
   grafana:
     image: grafana/grafana:11.1.0
     container_name: grafana
@@ -645,6 +685,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
+      - zipkin
     networks: [ workfitai-net ]
     profiles: [ "infra", "full" ]
 
@@ -849,6 +890,7 @@ volumes:
   minio-data:
   elasticsearch-data:
   recommendation-data:
+  nginx-cache:
 
 
 networks:

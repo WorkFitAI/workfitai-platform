@@ -55,6 +55,12 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling in dev (use 0.1 in production)
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
 ---
 # =============================================================================

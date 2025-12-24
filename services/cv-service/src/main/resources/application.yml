@@ -89,6 +89,12 @@ management:
   health:
     redis:
       enabled: false # Disable Redis health check
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
 ---
 # =============================================================================

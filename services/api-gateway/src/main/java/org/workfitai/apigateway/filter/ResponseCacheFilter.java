@@ -46,7 +46,7 @@ public class ResponseCacheFilter implements GlobalFilter, Ordered {
     private static final List<CachePattern> CACHE_PATTERNS = List.of(
             new CachePattern(".*/job/public/.*", Duration.ofMinutes(5)), // Public job listings
             new CachePattern(".*/cv/public/.*", Duration.ofMinutes(10)), // Public CV templates
-            new CachePattern(".*/actuator/health.*", Duration.ofSeconds(30)) // Health checks
+            new CachePattern("/actuator/health.*", Duration.ofSeconds(30)) // Health checks (exact path)
     );
 
     // Skip caching for these paths (user-specific or mutable)
