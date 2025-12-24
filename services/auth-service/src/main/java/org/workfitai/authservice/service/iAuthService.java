@@ -6,6 +6,7 @@ import org.workfitai.authservice.dto.request.RegisterRequest;
 import org.workfitai.authservice.dto.request.Verify2FALoginRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.dto.response.IssuedTokens;
+import org.workfitai.authservice.dto.response.MeResponse;
 
 public interface iAuthService {
     void register(RegisterRequest req);
@@ -20,4 +21,6 @@ public interface iAuthService {
     void logout(String deviceId, String username);
 
     void verifyOtp(VerifyOtpRequest req);
+
+    MeResponse getCurrentUser(String username);
 }

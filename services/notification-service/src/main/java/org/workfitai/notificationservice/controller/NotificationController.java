@@ -102,49 +102,49 @@ public class NotificationController {
      * TEST ENDPOINT: Send a test notification to current user
      * POST /notification/test
      */
-    @PostMapping("/test")
-    public ResponseEntity<Map<String, Object>> sendTestNotification(
-            Authentication authentication,
-            @RequestBody(required = false) Map<String, String> request) {
-        String userEmail = extractEmailFromAuth(authentication);
-        if (userEmail == null) {
-            return ResponseEntity.status(401).build();
-        }
+    // @PostMapping("/test")
+    // public ResponseEntity<Map<String, Object>> sendTestNotification(
+    //         Authentication authentication,
+    //         @RequestBody(required = false) Map<String, String> request) {
+    //     String userEmail = extractEmailFromAuth(authentication);
+    //     if (userEmail == null) {
+    //         return ResponseEntity.status(401).build();
+    //     }
 
-        // Create test notification using Builder pattern
-        Notification notification = Notification.builder()
-                .userId(username) // Add userId for WebSocket routing
-                .userEmail(userEmail)
-                .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
-                .title(request != null && request.containsKey("title")
-                        ? request.get("title")
-                        : "🧪 Test Notification")
-                .message(request != null && request.containsKey("message")
-                        ? request.get("message")
-                        : "This is a test notification sent at " + Instant.now())
-                .read(false)
-                .sourceService("notification-service")
-                .build();
+    //     // Create test notification using Builder pattern
+    //     Notification notification = Notification.builder()
+    //             .userId(username) // Add userId for WebSocket routing
+    //             .userEmail(userEmail)
+    //             .type(org.workfitai.notificationservice.model.NotificationType.GENERAL)
+    //             .title(request != null && request.containsKey("title")
+    //                     ? request.get("title")
+    //                     : "🧪 Test Notification")
+    //             .message(request != null && request.containsKey("message")
+    //                     ? request.get("message")
+    //                     : "This is a test notification sent at " + Instant.now())
+    //             .read(false)
+    //             .sourceService("notification-service")
+    //             .build();
 
-        // Save to database (this will also push to WebSocket)
-        Notification saved = persistenceService.createNotification(
-                org.workfitai.notificationservice.dto.kafka.NotificationEvent.builder()
-                        .recipientEmail(userEmail)
-                        .notificationType("general")
-                        .subject(notification.getTitle())
-                        .content(notification.getMessage())
-                        .sourceService("notification-service")
-                        .build());
+    //     // Save to database (this will also push to WebSocket)
+    //     Notification saved = persistenceService.createNotification(
+    //             org.workfitai.notificationservice.dto.kafka.NotificationEvent.builder()
+    //                     .recipientEmail(userEmail)
+    //                     .notificationType("general")
+    //                     .subject(notification.getTitle())
+    //                     .content(notification.getMessage())
+    //                     .sourceService("notification-service")
+    //                     .build());
 
-        // Update unread count - use username for WebSocket
-        long unreadCount = persistenceService.getUnreadCount(userEmail);
-        realtimeService.pushUnreadCountUpdate(username, unreadCount);
+    //     // Update unread count - use username for WebSocket
+    //     long unreadCount = persistenceService.getUnreadCount(userEmail);
+    //     realtimeService.pushUnreadCountUpdate(username, unreadCount);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "notification", saved,
-                "unreadCount", unreadCount));
-    }
+    //     return ResponseEntity.ok(Map.of(
+    //             "success", true,
+    //             "notification", saved,
+    //             "unreadCount", unreadCount));
+    // }
 
     /**
      * Extract username from JWT authentication.
