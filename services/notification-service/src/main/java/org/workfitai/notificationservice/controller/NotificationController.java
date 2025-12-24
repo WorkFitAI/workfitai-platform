@@ -141,15 +141,15 @@ public class NotificationController {
                         .sourceService("notification-service")
                         .build());
 
-        // Update unread count - use username for WebSocket
-        long unreadCount = persistenceService.getUnreadCount(userEmail);
-        realtimeService.pushUnreadCountUpdate(username, unreadCount);
+    //     // Update unread count - use username for WebSocket
+    //     long unreadCount = persistenceService.getUnreadCount(userEmail);
+    //     realtimeService.pushUnreadCountUpdate(username, unreadCount);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "notification", saved,
-                "unreadCount", unreadCount));
-    }
+    //     return ResponseEntity.ok(Map.of(
+    //             "success", true,
+    //             "notification", saved,
+    //             "unreadCount", unreadCount));
+    // }
 
     /**
      * Extract username from JWT authentication.
