@@ -21,27 +21,140 @@ spring:
         import-check:
           enabled: false
     gateway:
-      discovery:
-        locator:
-          # Re-enabled with manual WebSocket route exclusion in WebSocketRoutesConfig
-          enabled: true
-          lower-case-service-id: true
+      server:
+        webflux:
+          discovery:
+            locator:
+              # Re-enabled with manual WebSocket route exclusion in WebSocketRoutesConfig
+              enabled: true
+              lower-case-service-id: true
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 10s
+            max-header-size: 16KB
+            max-initial-line-length: 4KB
+            pool:
+              type: ELASTIC
+              max-idle-time: 30s
+              max-life-time: 60s
   data:
     redis:
       host: ${redis.host:api-redis}
       port: ${redis.port:6379}
+  http:
+    codecs:
+      max-in-memory-size: 10MB
 
+# =============================================================================
+# APPLICATION CONFIGURATION
+# =============================================================================
+app:
+  cors:
+    # Profile-specific origin lists
+    allowed-origins:
+      local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
+      docker: "http://localhost:3000,http://localhost:3001"
+      production: "${ALLOWED_ORIGINS:}"
+    # WebSocket origins (for SockJS compatibility)
+    websocket-origins:
+      local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
+      docker: "http://localhost:3000,http://localhost:3001"
+      production: "${WS_ALLOWED_ORIGINS:}"
+    max-age: 3600
+    allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+    allowed-headers: "*"
+    exposed-headers: "X-Total-Count,X-Page-Number,X-Page-Size,X-RateLimit-Remaining,X-RateLimit-Retry-After"
+  
+  rate-limit:
+    # Global rate limits (per IP)
+    global:
+      enabled: true
+      requests-per-second: 100
+      burst-capacity: 200
+    # Per-user rate limits (authenticated requests)
+    per-user:
+      enabled: true
+      requests-per-second: 50
+      burst-capacity: 100
+    # Per-endpoint rate limits
+    endpoints:
+      - path: "/auth/login"
+        requests-per-minute: 5
+        burst-capacity: 10
+      - path: "/auth/register"
+        requests-per-minute: 3
+        burst-capacity: 5
+      - path: "/cv/upload"
+        requests-per-minute: 10
+        burst-capacity: 20
+      - path: "/application"
+        requests-per-minute: 20
+        burst-capacity: 40
+  
+  # Phase 3: Response Caching Configuration
+  cache:
+    enabled: true
+    patterns:
+      - path: "/job/public/.*"
+        ttl-minutes: 5
+      - path: "/cv/public/.*"
+        ttl-minutes: 10
+      - path: "/actuator/health"
+        ttl-seconds: 30
+    # Skip caching for user-specific endpoints
+    skip-paths:
+      - "/user/profile"
+      - "/application/"
+      - "/auth/"
+      - "/notification/"
+
+# =============================================================================
+# SERVER CONFIGURATION (Phase 3: Compression)
+# =============================================================================
 server:
   port: ${SERVER_PORT:9005}
+  max-http-request-header-size: 16KB
+  compression:
+    enabled: true
+    mime-types:
+      - application/json
+      - application/xml
+      - text/html
+      - text/xml
+      - text/plain
+      - application/javascript
+      - text/css
+    min-response-size: 1024  # Only compress responses larger than 1KB
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+  # Enable Resilience4j metrics
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
 
 ---
 # =============================================================================
@@ -95,4 +208,98 @@ logging:
   level:
     org.workfitai: DEBUG
     org.springframework.cloud.vault: DEBUG
+
+# =============================================================================
+# RESILIENCE4J CONFIGURATION (Circuit Breaker, Retry, Rate Limiter)
+# =============================================================================
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        slowCallRateThreshold: 60
+        slowCallDurationThreshold: 3s
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+    instances:
+      auth:
+        baseConfig: default
+        slidingWindowSize: 20
+        failureRateThreshold: 30
+        slowCallDurationThreshold: 2s
+        waitDurationInOpenState: 60s
+      user:
+        baseConfig: default
+        slidingWindowSize: 15
+        failureRateThreshold: 40
+      job:
+        baseConfig: default
+        failureRateThreshold: 60
+        slowCallDurationThreshold: 5s
+      cv:
+        baseConfig: default
+        slowCallDurationThreshold: 10s # File uploads take longer
+      application:
+        baseConfig: default
+        failureRateThreshold: 45
+      notification:
+        baseConfig: default
+        failureRateThreshold: 70 # More tolerant
+  
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 10s
+        cancelRunningFuture: true
+    instances:
+      auth:
+        timeoutDuration: 5s
+      user:
+        timeoutDuration: 8s
+      job:
+        timeoutDuration: 15s
+      cv:
+        timeoutDuration: 30s # File uploads
+      application:
+        timeoutDuration: 12s
+      notification:
+        timeoutDuration: 8s
+  
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+        ignoreExceptions:
+          - java.lang.IllegalArgumentException
+    instances:
+      auth:
+        maxAttempts: 2
+        waitDuration: 300ms
+      user:
+        maxAttempts: 3
+        waitDuration: 500ms
+      job:
+        maxAttempts: 3
+        waitDuration: 1000ms
+      cv:
+        maxAttempts: 1 # Don't retry file uploads
+      application:
+        maxAttempts: 2
+      notification:
+        maxAttempts: 3
+
 

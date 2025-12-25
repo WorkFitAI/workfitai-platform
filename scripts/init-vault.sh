@@ -65,6 +65,7 @@ create_service_policy "user-service"
 create_service_policy "job-service"
 create_service_policy "cv-service"
 create_service_policy "application-service"
+create_service_policy "api-gateway"
 create_service_policy "notification-service"
 create_service_policy "recommendation-engine"
 
@@ -136,6 +137,30 @@ create_service_secrets "application-service" '{
   }
 }'
 
+# Create secrets for api-gateway
+create_service_secrets "api-gateway" '{
+  "data": {
+    "app.cors.allowed-origins.local": "'"${ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}"'",
+    "app.cors.allowed-origins.docker": "'"${ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}"'",
+    "app.cors.allowed-origins.production": "'"${ALLOWED_ORIGINS:-}"'",
+    "app.cors.websocket-origins.local": "'"${WS_ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}"'",
+    "app.cors.websocket-origins.docker": "'"${WS_ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}"'",
+    "app.cors.websocket-origins.production": "'"${WS_ALLOWED_ORIGINS:-}"'",
+    "app.rate-limit.global.enabled": "'"${RATE_LIMIT_GLOBAL_ENABLED:-true}"'",
+    "app.rate-limit.global.requests-per-second": "'"${RATE_LIMIT_GLOBAL_RPS:-100}"'",
+    "app.rate-limit.global.burst-capacity": "'"${RATE_LIMIT_GLOBAL_BURST:-200}"'",
+    "app.rate-limit.per-user.enabled": "'"${RATE_LIMIT_PER_USER_ENABLED:-true}"'",
+    "app.rate-limit.per-user.requests-per-second": "'"${RATE_LIMIT_PER_USER_RPS:-50}"'",
+    "app.rate-limit.per-user.burst-capacity": "'"${RATE_LIMIT_PER_USER_BURST:-100}"'",
+    "app.cache.enabled": "'"${API_GATEWAY_CACHE_ENABLED:-true}"'",
+    "app.cache.job-ttl-minutes": "'"${API_GATEWAY_CACHE_JOB_TTL_MINUTES:-5}"'",
+    "app.cache.cv-ttl-minutes": "'"${API_GATEWAY_CACHE_CV_TTL_MINUTES:-10}"'",
+    "app.cache.health-ttl-seconds": "'"${API_GATEWAY_CACHE_HEALTH_TTL_SECONDS:-30}"'",
+    "redis.host": "api-redis",
+    "redis.port": "6379"
+  }
+}'
+
 # Create secrets for notification-service
 create_service_secrets "notification-service" '{
   "data": {
@@ -188,8 +213,8 @@ echo "✅ Vault initialization completed successfully!"
 echo ""
 echo "📊 Summary:"
 echo "  - KV v2 secrets engine: enabled"
-echo "  - Service policies: 7 created"
-echo "  - Service secrets: 7 populated"
+echo "  - Service policies: 8 created"
+echo "  - Service secrets: 8 populated"
 echo ""
 echo "🔒 All services can now use token 'dev-token' to read their secrets"
 echo "   (In production, each service should have its own token with restricted policy)"
