@@ -1,6 +1,5 @@
 package org.workfitai.authservice.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +10,7 @@ import java.util.List;
 
 /**
  * Request DTO to initiate OAuth authorization flow
+ * All fields are optional - backend will generate defaults if not provided
  */
 @Data
 @Builder
@@ -18,11 +18,16 @@ import java.util.List;
 @AllArgsConstructor
 public class OAuthAuthorizeRequest {
 
-    @NotBlank(message = "Redirect URI is required")
-    @Pattern(regexp = "^https?://.*", message = "Invalid redirect URI")
+    /**
+     * Optional: Redirect URI (if not specified, uses configured default)
+     */
+    @Pattern(regexp = "^https?://.*", message = "Invalid redirect URI format")
     private String redirectUri;
 
-    @NotBlank(message = "State is required for CSRF protection")
+    /**
+     * Optional: State for CSRF protection (if not specified, backend generates
+     * random UUID)
+     */
     private String state;
 
     /**

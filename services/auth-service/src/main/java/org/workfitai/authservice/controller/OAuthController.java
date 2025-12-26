@@ -20,8 +20,6 @@ import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.service.oauth.OAuthService;
 
-import java.util.Arrays;
-
 /**
  * REST controller for OAuth2 authentication
  */
@@ -37,7 +35,7 @@ public class OAuthController {
     @PostMapping("/authorize/{provider}")
     public ResponseEntity<OAuthAuthorizeResponse> authorize(
             @PathVariable Provider provider,
-            @Valid @RequestBody OAuthAuthorizeRequest request,
+            @RequestBody(required = false) OAuthAuthorizeRequest request,
             @AuthenticationPrincipal(errorOnInvalidType = false) String username) {
 
         log.info("OAuth authorization request for provider: {} (authenticated: {})", provider, username != null);
@@ -52,6 +50,8 @@ public class OAuthController {
             }
         }
 
+        // If no request body provided, service will generate defaults (state,
+        // redirectUri, scope)
         OAuthAuthorizeResponse response = oauthService.authorize(provider, request, userId);
         return ResponseEntity.ok(response);
     }
