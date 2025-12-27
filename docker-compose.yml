@@ -644,7 +644,7 @@ services:
     depends_on:
       - api-gateway
     networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
+    profiles: [ "full" ]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost/actuator/health" ]
       interval: 30s
@@ -693,6 +693,8 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: elasticsearch
+    mem_limit: 2g
+    mem_reservation: 1536m
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
@@ -700,9 +702,9 @@ services:
       - xpack.security.http.ssl.enabled=false
       - xpack.security.transport.ssl.enabled=false
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - cluster.name=workfitai-logs
-      - bootstrap.memory_lock=true
+      - bootstrap.memory_lock=false
     ulimits:
       memlock:
         soft: -1

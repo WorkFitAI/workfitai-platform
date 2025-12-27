@@ -3,6 +3,7 @@ package org.workfitai.authservice.service.oauth;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,26 +54,55 @@ public class OAuthService {
     private final UserRegistrationProducer userRegistrationProducer;
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
+
     private static final String OAUTH_STATE_PREFIX = "oauth:state:";
     private static final long STATE_EXPIRATION_MINUTES = 10;
 
     /**
      * Generate authorization URL for OAuth flow
+     * If request is null or fields are null, generates defaults:
+     * - state: random UUID
+     * - redirectUri: frontend base URL + /oauth/callback/{provider}
+     * - scope: provider defaults
      */
     public OAuthAuthorizeResponse authorize(Provider provider, OAuthAuthorizeRequest request, String userId) {
         IOAuthProviderService providerService = getProviderService(provider);
 
-        // Generate and store CSRF state with userId context for LINK mode
-        String state = generateState(provider, request.getState(), userId);
-        storeState(state, request.getRedirectUri());
+        // Handle null request - create default
+        if (request == null) {
+            request = OAuthAuthorizeRequest.builder().build();
+        }
 
-        // Generate authorization URL
+        // Generate state if not provided (random UUID)
+        String clientState = request.getState();
+        if (clientState == null || clientState.isBlank()) {
+            clientState = UUID.randomUUID().toString();
+            log.debug("Generated random state: {}", clientState);
+        }
+
+        // Use default redirectUri if not provided
+        String redirectUri = request.getRedirectUri();
+        if (redirectUri == null || redirectUri.isBlank()) {
+            // Default: {frontend-base-url}/oauth/callback/{provider}
+            redirectUri = getFrontendBaseUrl() + "/oauth/callback/" + provider.name().toLowerCase();
+            log.debug("Using default redirect URI: {}", redirectUri);
+        }
+
+        // Generate and store CSRF state with userId context for LINK mode
+        String state = generateState(provider, clientState, userId);
+        storeState(state, redirectUri);
+
+        // Use custom scope or provider defaults
         String scope = request.getScope() != null && !request.getScope().isEmpty()
                 ? String.join(" ", request.getScope())
                 : providerService.getDefaultScope();
-        String authUrl = providerService.getAuthorizationUrl(request.getRedirectUri(), state, scope);
 
-        log.info("Generated OAuth authorization URL for provider: {} (LINK mode: {})", provider, userId != null);
+        String authUrl = providerService.getAuthorizationUrl(redirectUri, state, scope);
+
+        log.info("Generated OAuth authorization URL for provider: {} (LINK mode: {}, redirect: {})",
+                provider, userId != null, redirectUri);
 
         return OAuthAuthorizeResponse.builder()
                 .authorizationUrl(authUrl)
@@ -556,5 +586,12 @@ public class OAuthService {
             case GITHUB -> gitHubOAuthService;
             default -> throw new OAuthProviderException("Unsupported OAuth provider: " + provider);
         };
+    }
+
+    /**
+     * Get frontend base URL for default redirect URI
+     */
+    private String getFrontendBaseUrl() {
+        return frontendBaseUrl;
     }
 }
