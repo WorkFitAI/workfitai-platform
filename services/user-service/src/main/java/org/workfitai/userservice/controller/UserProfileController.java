@@ -4,12 +4,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.request.AdminUpdateRequest;
 import org.workfitai.userservice.dto.request.CandidateUpdateRequest;
 import org.workfitai.userservice.dto.request.HRUpdateRequest;
-import org.workfitai.userservice.dto.response.*;
+import org.workfitai.userservice.dto.response.AdminResponse;
+import org.workfitai.userservice.dto.response.CandidateResponse;
+import org.workfitai.userservice.dto.response.HRResponse;
+import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.service.AdminService;
 import org.workfitai.userservice.service.CandidateService;
 import org.workfitai.userservice.service.HRService;
@@ -41,6 +45,7 @@ public class UserProfileController {
      * @return user profile based on their role
      */
     @GetMapping("/me")
+    @PreAuthorize("hasAuthority('profile:read')")
     public ResponseEntity<ResponseData<Object>> getMyProfile(
             @RequestHeader("X-Username") String username) {
         log.info("Getting profile for user: {}", username);
@@ -56,6 +61,7 @@ public class UserProfileController {
      * @return updated candidate profile
      */
     @PutMapping("/candidate")
+    @PreAuthorize("hasAuthority('candidate:read')")
     public ResponseEntity<ResponseData<CandidateResponse>> updateCandidateProfile(
             @RequestHeader("X-Username") String username,
             @Valid @RequestBody CandidateUpdateRequest request) {
@@ -73,6 +79,7 @@ public class UserProfileController {
      * @return updated HR profile
      */
     @PutMapping("/hr")
+    @PreAuthorize("hasAuthority('hr:update')")
     public ResponseEntity<ResponseData<HRResponse>> updateHRProfile(
             @RequestHeader("X-Username") String username,
             @Valid @RequestBody HRUpdateRequest request) {
@@ -90,6 +97,7 @@ public class UserProfileController {
      * @return updated admin profile
      */
     @PutMapping("/admin")
+    @PreAuthorize("hasAuthority('admin:update')")
     public ResponseEntity<ResponseData<AdminResponse>> updateAdminProfile(
             @RequestHeader("X-Username") String username,
             @Valid @RequestBody AdminUpdateRequest request) {

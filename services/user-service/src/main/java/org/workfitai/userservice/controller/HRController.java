@@ -29,18 +29,21 @@ public class HRController {
     private final UserSearchService userSearchService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('hr:create') and hasAnyRole('HR', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<HRResponse>> create(@RequestBody HRCreateRequest dto) {
         return ResponseEntity.ok(ResponseData.success(
                 Messages.HR.CREATED, hrService.create(dto)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('hr:update') and hasAnyRole('HR', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<HRResponse>> update(@PathVariable UUID id, @RequestBody HRUpdateRequest dto) {
         return ResponseEntity.ok(ResponseData.success(
                 Messages.HR.UPDATED, hrService.update(id, dto)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('hr:delete') and hasAnyRole('HR', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
         hrService.delete(id);
         return ResponseEntity.ok(ResponseData.success(
@@ -49,11 +52,12 @@ public class HRController {
 
     @CheckPrivacy
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('hr:read') and hasAnyRole('HR', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<HRResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ResponseData.success(hrService.getById(id)));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR_MANAGER')")
+    @PreAuthorize("hasAuthority('hr:search') and hasAnyRole('ADMIN', 'HR_MANAGER', 'HR_MANAGER')")
     @CheckPrivacy
     @GetMapping
     public ResponseEntity<ResponseData<Page<HRResponse>>> search(
@@ -73,7 +77,7 @@ public class HRController {
         return ResponseEntity.ok(ResponseData.success(hrService.countByDepartment()));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('admin:approve')")
     @PostMapping("/{id}/approve-manager")
     public ResponseEntity<ResponseData<HRResponse>> approveManager(
             @PathVariable UUID id,
@@ -81,7 +85,7 @@ public class HRController {
         return ResponseEntity.ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHrManager(id, approver)));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('admin:approve')")
     @PostMapping("/username/{username}/approve-manager")
     public ResponseEntity<ResponseData<HRResponse>> approveManagerByUsername(
             @PathVariable String username,
@@ -90,7 +94,7 @@ public class HRController {
                 .ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHrManagerByUsername(username, approver)));
     }
 
-    @PreAuthorize("hasRole('HR_MANAGER')")
+    @PreAuthorize("hasRole('HR_MANAGER') and hasAuthority('hr:approve')")
     @PostMapping("/{id}/approve")
     public ResponseEntity<ResponseData<HRResponse>> approveHr(
             @PathVariable UUID id,
@@ -98,7 +102,7 @@ public class HRController {
         return ResponseEntity.ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHr(id, approver)));
     }
 
-    @PreAuthorize("hasRole('HR_MANAGER')")
+    @PreAuthorize("hasAuthority('hr:approve') and hasRole('HR_MANAGER')")
     @PostMapping("/username/{username}/approve")
     public ResponseEntity<ResponseData<HRResponse>> approveHrByUsername(
             @PathVariable String username,
@@ -108,6 +112,7 @@ public class HRController {
     }
 
     @GetMapping("/username/{username}")
+    @PreAuthorize("hasAuthority('hr:read') and hasAnyRole('ADMIN', 'HR_MANAGER', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<HRResponse>> getByUsername(@PathVariable String username) {
         return ResponseEntity.ok(ResponseData.success(hrService.getByUsername(username)));
     }

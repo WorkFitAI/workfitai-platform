@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ public class AvatarController {
     private final AvatarService avatarService;
 
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('candidate:update') or hasAuthority('hr:update') or hasAuthority('admin:update')")
     public ResponseEntity<AvatarResponse> uploadAvatar(
             @RequestParam("file") MultipartFile file,
             Authentication authentication) {
@@ -35,6 +37,7 @@ public class AvatarController {
     }
 
     @DeleteMapping("/avatar")
+    @PreAuthorize("hasAuthority('candidate:update') or hasAuthority('hr:update') or hasAuthority('admin:update')")
     public ResponseEntity<Map<String, String>> deleteAvatar(Authentication authentication) {
         String username = authentication.getName();
         log.info("Avatar deletion request from user: {}", username);

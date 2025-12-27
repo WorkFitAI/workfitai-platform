@@ -105,6 +105,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("hr:list", "List all HR users");
         perms.put("hr:search", "Search HR users");
         perms.put("hr:stats", "View HR statistics");
+        perms.put("hr:approve", "Update HR profiles");
 
         // Admin user management
         perms.put("admin:create", "Create admin profiles");
@@ -113,6 +114,12 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("admin:delete", "Delete admin profiles");
         perms.put("admin:list", "List all admins");
         perms.put("admin:search", "Search admins");
+
+        // User management
+        perms.put("user:list", "List all user");
+        perms.put("user:read", "Read an user");
+        perms.put("user:block", "Block an user");
+        perms.put("user:delete", "Delete an user by admin");
 
         // ==================== JOB SERVICE ====================
         // Job management
@@ -393,6 +400,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("hr:update");
             permissions.add("hr:list"); // Can view HR team members
             permissions.add("hr:search"); // Can search HR team
+            permissions.add("hr:approve");
 
             // Candidate viewing (for recruitment)
             permissions.add("candidate:read");
@@ -527,6 +535,11 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("admin:delete");
             permissions.add("admin:list");
             permissions.add("admin:search");
+
+            permissions.add("user:read");
+            permissions.add("user:block");
+            permissions.add("user:delete");
+            permissions.add("user:list");
 
             // Job management (full CRUD)
             permissions.add("job:create");
