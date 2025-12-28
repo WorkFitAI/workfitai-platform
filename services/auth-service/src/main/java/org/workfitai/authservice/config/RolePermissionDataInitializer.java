@@ -114,6 +114,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("admin:delete", "Delete admin profiles");
         perms.put("admin:list", "List all admins");
         perms.put("admin:search", "Search admins");
+        perms.put("admin:approve", "Approve admin profiles");
 
         // User management
         perms.put("user:list", "List all user");
@@ -155,6 +156,14 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("report:update", "Update reports");
         perms.put("report:delete", "Delete reports");
         perms.put("report:list", "List all reports");
+        perms.put("report:stats", "Update report statistics");
+
+        // ==================== NOTIFICATION SERVICE ====================
+        // Notification management
+        perms.put("notification:read", "View notifications");
+        perms.put("notification:update", "Mark notifications as read");
+        perms.put("notification:list", "List notifications");
+        perms.put("notification:manage", "Access email logs and admin features");
 
         // ==================== CV SERVICE ====================
         // CV management
@@ -280,6 +289,11 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             // Interview (own interviews - read only)
             permissions.add("interview:read");
 
+            // Notification management
+            permissions.add("notification:read");
+            permissions.add("notification:update");
+            permissions.add("notification:list");
+
             return roleRepository.save(Role.builder()
                     .name(UserRole.CANDIDATE.getRoleName())
                     .description("Job seekers who can manage their profile, CV, and applications")
@@ -364,6 +378,14 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("interview:update");
             permissions.add("interview:delete");
             permissions.add("interview:feedback");
+
+            // Notification management
+            permissions.add("notification:read");
+            permissions.add("notification:update");
+            permissions.add("notification:list");
+
+            // HR statistics
+            permissions.add("hr:stats");
 
             return roleRepository.save(Role.builder()
                     .name(UserRole.HR.getRoleName())
@@ -465,6 +487,14 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("interview:delete");
             permissions.add("interview:feedback");
 
+            // Notification management
+            permissions.add("notification:read");
+            permissions.add("notification:update");
+            permissions.add("notification:list");
+
+            // HR statistics
+            permissions.add("hr:stats");
+
             return roleRepository.save(Role.builder()
                     .name(UserRole.HR_MANAGER.getRoleName())
                     .description(
@@ -535,6 +565,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("admin:delete");
             permissions.add("admin:list");
             permissions.add("admin:search");
+            permissions.add("admin:approve");
 
             permissions.add("user:read");
             permissions.add("user:block");
@@ -574,6 +605,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("report:update");
             permissions.add("report:delete");
             permissions.add("report:list");
+            permissions.add("report:stats");
 
             // CV management (full access)
             permissions.add("cv:create");
@@ -608,6 +640,12 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("interview:update");
             permissions.add("interview:delete");
             permissions.add("interview:feedback");
+
+            // Notification management (full access)
+            permissions.add("notification:read");
+            permissions.add("notification:update");
+            permissions.add("notification:list");
+            permissions.add("notification:manage");
 
             // System management
             permissions.add("system:health");
