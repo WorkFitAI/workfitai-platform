@@ -49,6 +49,10 @@ spring:
 # APPLICATION CONFIGURATION
 # =============================================================================
 app:
+  frontend:
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
+  backend:
+    base-url: ${APP_BACKEND_BASE_URL:http://localhost:9005}
   cors:
     # Profile-specific origin lists
     allowed-origins:

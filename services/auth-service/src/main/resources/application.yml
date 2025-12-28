@@ -30,7 +30,9 @@ server:
 # Application frontend URL for email links
 app:
   frontend:
-    base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
+  backend:
+    base-url: ${APP_BACKEND_BASE_URL:http://localhost:9085}
   kafka:
     topics:
       user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}

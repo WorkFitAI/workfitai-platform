@@ -5,9 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 import org.workfitai.authservice.dto.request.OAuthAuthorizeRequest;
 import org.workfitai.authservice.dto.request.OAuthLinkRequest;
 import org.workfitai.authservice.dto.response.AuthStatusResponse;
@@ -20,6 +23,9 @@ import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.service.oauth.OAuthService;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * REST controller for OAuth2 authentication
  */
@@ -31,6 +37,12 @@ public class OAuthController {
 
     private final OAuthService oauthService;
     private final UserRepository userRepository;
+
+    @Value("${app.frontend.base-url:http://localhost:3000}")
+    private String frontendBaseUrl;
+
+    @Value("${app.backend.base-url:http://localhost:9085}")
+    private String backendBaseUrl;
 
     @PostMapping("/authorize/{provider}")
     public ResponseEntity<OAuthAuthorizeResponse> authorize(
@@ -57,17 +69,74 @@ public class OAuthController {
     }
 
     @GetMapping("/callback/{provider}")
-    public ResponseEntity<OAuthCallbackResponse> callback(
+    public RedirectView callback(
             @PathVariable String provider,
             @RequestParam String code,
             @RequestParam String state,
             @RequestParam(required = false) String redirectUri,
+            @RequestParam(required = false) String error,
+            @RequestParam(required = false) String error_description,
             HttpServletRequest request) {
 
         Provider providerEnum = Provider.valueOf(provider.toUpperCase());
         log.info("OAuth callback from provider: {}", providerEnum);
-        OAuthCallbackResponse response = oauthService.handleCallback(providerEnum, code, state, redirectUri, request);
-        return ResponseEntity.ok(response);
+
+        // Handle OAuth provider errors (user denied, etc.)
+        if (error != null) {
+            log.warn("OAuth callback error from {}: {} - {}", providerEnum, error, error_description);
+            String errorMessage = error_description != null ? error_description : "OAuth authentication failed";
+            return redirectToFrontend(null, null, errorMessage, "error");
+        }
+
+        try {
+            OAuthCallbackResponse response = oauthService.handleCallback(providerEnum, code, state, redirectUri,
+                    request);
+
+            // Check if LINK mode or LOGIN mode
+            if ("LINK_SUCCESS".equals(response.getTokenType())) {
+                // LINK mode: Redirect to profile/settings with success message
+                return redirectToFrontend(null, null, null, "link_success");
+            } else {
+                // LOGIN mode: Redirect to dashboard/home with tokens
+                return redirectToFrontend(response.getToken(), response.getRefreshToken(), null, "success");
+            }
+
+        } catch (Exception e) {
+            log.error("OAuth callback error for provider {}: {}", providerEnum, e.getMessage(), e);
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "OAuth authentication failed";
+            return redirectToFrontend(null, null, errorMessage, "error");
+        }
+    }
+
+    /**
+     * Redirect to API Gateway OAuth endpoint (which converts JWT→opaque, then
+     * redirects to frontend)
+     */
+    private RedirectView redirectToFrontend(String accessToken, String refreshToken, String error, String status) {
+        // Redirect to Gateway endpoint instead of directly to frontend
+        // Gateway will convert JWT tokens to opaque tokens before forwarding to
+        // frontend
+        StringBuilder url = new StringBuilder(backendBaseUrl);
+        url.append("/auth/oauth/success?status=").append(status);
+
+        if (accessToken != null) {
+            url.append("&accessToken=").append(URLEncoder.encode(accessToken, StandardCharsets.UTF_8));
+        }
+
+        if (refreshToken != null) {
+            url.append("&refreshToken=").append(URLEncoder.encode(refreshToken, StandardCharsets.UTF_8));
+        }
+
+        if (error != null) {
+            url.append("&error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
+        }
+
+        log.info("Redirecting to Gateway OAuth endpoint: {} (status={})",
+                backendBaseUrl + "/auth/oauth/success", status);
+
+        RedirectView redirectView = new RedirectView(url.toString());
+        redirectView.setStatusCode(HttpStatus.FOUND); // 302 redirect
+        return redirectView;
     }
 
     @PostMapping("/link/{provider}")

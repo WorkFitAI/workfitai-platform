@@ -670,31 +670,12 @@ services:
       retries: 3
       start_period: 10s
 
-  grafana:
-    image: grafana/grafana:11.1.0
-    container_name: grafana
-    ports:
-      - "3001:3000"
-    env_file:
-      - .env.local
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-      - zipkin
-    networks: [ workfitai-net ]
-    profiles: [ "infra", "full" ]
-
   ### ELK Stack for Centralized Logging ###
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: elasticsearch
-    mem_limit: 2g
-    mem_reservation: 1536m
+    mem_limit: 768m
+    mem_reservation: 512m
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
@@ -702,9 +683,11 @@ services:
       - xpack.security.http.ssl.enabled=false
       - xpack.security.transport.ssl.enabled=false
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-workfitai123}
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms384m -Xmx512m"
       - cluster.name=workfitai-logs
       - bootstrap.memory_lock=false
+      - indices.queries.cache.size=5%
+      - indices.memory.index_buffer_size=5%
     ulimits:
       memlock:
         soft: -1
@@ -888,7 +871,6 @@ volumes:
   cv-mongo-data:
   application-mongo-data:
   prometheus-data:
-  grafana-data:
   minio-data:
   elasticsearch-data:
   recommendation-data:
