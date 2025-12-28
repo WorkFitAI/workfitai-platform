@@ -31,6 +31,8 @@ server:
 app:
   frontend:
     base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
+  backend:
+    base-url: ${BACKEND_BASE_URL:http://localhost:9005}
   kafka:
     topics:
       user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}

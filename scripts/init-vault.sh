@@ -80,6 +80,7 @@ create_service_secrets "auth-service" '{
     "redis.host": "auth-redis",
     "redis.port": "6379",
     "app.frontend.base-url": "'"${FRONTEND_BASE_URL:-http://localhost:3000}"'",
+    "app.backend.base-url": "'"${BACKEND_BASE_URL:-http://localhost:9005}"'",
     "app.session.max-sessions-per-user": "'"${MAX_SESSIONS_PER_USER:-5}"'",
     "oauth2.google.client-id": "'"${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}"'",
     "oauth2.google.client-secret": "'"${GOOGLE_CLIENT_SECRET:-your-google-client-secret}"'",

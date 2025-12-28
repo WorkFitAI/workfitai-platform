@@ -57,6 +57,9 @@ public class OAuthService {
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
+    @Value("${app.backend.base-url:http://localhost:9085}")
+    private String backendBaseUrl;
+
     private static final String OAUTH_STATE_PREFIX = "oauth:state:";
     private static final long STATE_EXPIRATION_MINUTES = 10;
 
@@ -64,7 +67,7 @@ public class OAuthService {
      * Generate authorization URL for OAuth flow
      * If request is null or fields are null, generates defaults:
      * - state: random UUID
-     * - redirectUri: frontend base URL + /oauth/callback/{provider}
+     * - redirectUri: backend base URL + /auth/oauth/callback/{provider}
      * - scope: provider defaults
      */
     public OAuthAuthorizeResponse authorize(Provider provider, OAuthAuthorizeRequest request, String userId) {
@@ -85,8 +88,10 @@ public class OAuthService {
         // Use default redirectUri if not provided
         String redirectUri = request.getRedirectUri();
         if (redirectUri == null || redirectUri.isBlank()) {
-            // Default: {frontend-base-url}/oauth/callback/{provider}
-            redirectUri = getFrontendBaseUrl() + "/oauth/callback/" + provider.name().toLowerCase();
+            // Default: {backend-base-url}/auth/oauth/callback/{provider}
+            // This is where OAuth provider (Google/GitHub) will redirect after user
+            // authorizes
+            redirectUri = getBackendBaseUrl() + "/auth/oauth/callback/" + provider.name().toLowerCase();
             log.debug("Using default redirect URI: {}", redirectUri);
         }
 
@@ -589,7 +594,14 @@ public class OAuthService {
     }
 
     /**
-     * Get frontend base URL for default redirect URI
+     * Get backend base URL for OAuth provider callback
+     */
+    private String getBackendBaseUrl() {
+        return backendBaseUrl;
+    }
+
+    /**
+     * Get frontend base URL for redirecting user after OAuth success
      */
     private String getFrontendBaseUrl() {
         return frontendBaseUrl;
