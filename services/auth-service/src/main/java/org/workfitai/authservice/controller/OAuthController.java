@@ -41,6 +41,9 @@ public class OAuthController {
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
+    @Value("${app.backend.base-url:http://localhost:9085}")
+    private String backendBaseUrl;
+
     @PostMapping("/authorize/{provider}")
     public ResponseEntity<OAuthAuthorizeResponse> authorize(
             @PathVariable Provider provider,
@@ -106,42 +109,30 @@ public class OAuthController {
     }
 
     /**
-     * Redirect to frontend with tokens or error
+     * Redirect to API Gateway OAuth endpoint (which converts JWT→opaque, then
+     * redirects to frontend)
      */
     private RedirectView redirectToFrontend(String accessToken, String refreshToken, String error, String status) {
-        StringBuilder url = new StringBuilder(frontendBaseUrl);
+        // Redirect to Gateway endpoint instead of directly to frontend
+        // Gateway will convert JWT tokens to opaque tokens before forwarding to
+        // frontend
+        StringBuilder url = new StringBuilder(backendBaseUrl);
+        url.append("/auth/oauth/success?status=").append(status);
 
-        // Different paths for different statuses
-        switch (status) {
-            case "success":
-                // LOGIN success: Redirect to dashboard with tokens
-                url.append("/oauth/callback?status=success");
-                if (accessToken != null) {
-                    url.append("&token=").append(URLEncoder.encode(accessToken, StandardCharsets.UTF_8));
-                }
-                if (refreshToken != null) {
-                    url.append("&refreshToken=").append(URLEncoder.encode(refreshToken, StandardCharsets.UTF_8));
-                }
-                break;
-
-            case "link_success":
-                // LINK success: Redirect to profile/settings
-                url.append("/oauth/callback?status=link_success");
-                break;
-
-            case "error":
-                // Error: Redirect with error message
-                url.append("/oauth/callback?status=error");
-                if (error != null) {
-                    url.append("&error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
-                }
-                break;
-
-            default:
-                url.append("/oauth/callback?status=unknown");
+        if (accessToken != null) {
+            url.append("&accessToken=").append(URLEncoder.encode(accessToken, StandardCharsets.UTF_8));
         }
 
-        log.info("Redirecting to frontend: {}", url.toString().replaceAll("token=[^&]+", "token=***"));
+        if (refreshToken != null) {
+            url.append("&refreshToken=").append(URLEncoder.encode(refreshToken, StandardCharsets.UTF_8));
+        }
+
+        if (error != null) {
+            url.append("&error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
+        }
+
+        log.info("Redirecting to Gateway OAuth endpoint: {} (status={})",
+                backendBaseUrl + "/auth/oauth/success", status);
 
         RedirectView redirectView = new RedirectView(url.toString());
         redirectView.setStatusCode(HttpStatus.FOUND); // 302 redirect
