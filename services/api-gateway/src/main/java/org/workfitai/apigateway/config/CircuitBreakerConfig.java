@@ -8,6 +8,7 @@ import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigB
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Duration;
 
@@ -31,7 +32,7 @@ public class CircuitBreakerConfig {
 
     /**
      * Default Circuit Breaker Configuration
-     * 
+     *
      * Settings:
      * - Sliding window: 10 calls (count-based)
      * - Failure threshold: 50% (5 out of 10 calls fail → OPEN)
@@ -39,6 +40,7 @@ public class CircuitBreakerConfig {
      * - Wait in OPEN state: 30 seconds before trying HALF_OPEN
      * - Test calls in HALF_OPEN: 5 calls
      * - Timeout: 10 seconds per call
+     * - Ignores client errors (4xx) - only trips on server errors (5xx) and timeouts
      */
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
@@ -57,9 +59,17 @@ public class CircuitBreakerConfig {
                         .waitDurationInOpenState(Duration.ofSeconds(30)) // Wait 30s before retry
                         .permittedNumberOfCallsInHalfOpenState(5) // Test with 5 calls
 
-                        // What counts as failure
-                        .recordExceptions(Exception.class) // Record all exceptions
-                        .ignoreExceptions() // Don't ignore any exceptions by default
+                        // What counts as failure - ignore client errors (4xx), only record server errors (5xx)
+                        .recordException(throwable -> {
+                            if (throwable instanceof WebClientResponseException webClientException) {
+                                int statusCode = webClientException.getStatusCode().value();
+                                // Only record server errors (5xx) as failures
+                                // Ignore client errors (4xx) - they're not service failures
+                                return statusCode >= 500;
+                            }
+                            // Record all other exceptions (timeouts, connection errors, etc.)
+                            return true;
+                        })
 
                         // Minimum calls before calculating failure rate
                         .minimumNumberOfCalls(5) // Need at least 5 calls to open circuit
@@ -78,6 +88,7 @@ public class CircuitBreakerConfig {
     /**
      * Auth Service Circuit Breaker
      * More strict - auth is critical
+     * Ignores client errors (4xx) - only trips on server errors (5xx) and timeouts
      */
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> authServiceCustomizer() {
@@ -91,6 +102,13 @@ public class CircuitBreakerConfig {
                         .permittedNumberOfCallsInHalfOpenState(3)
                         .minimumNumberOfCalls(10)
                         .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                        // Ignore client errors (4xx), only record server errors (5xx)
+                        .recordException(throwable -> {
+                            if (throwable instanceof WebClientResponseException webClientException) {
+                                return webClientException.getStatusCode().value() >= 500;
+                            }
+                            return true; // Record timeouts, connection errors, etc.
+                        })
                         .build())
                 .timeLimiterConfig(TimeLimiterConfig.custom()
                         .timeoutDuration(Duration.ofSeconds(5)) // Shorter timeout for auth
@@ -102,6 +120,7 @@ public class CircuitBreakerConfig {
     /**
      * User Service Circuit Breaker
      * Balanced configuration
+     * Ignores client errors (4xx) - only trips on server errors (5xx) and timeouts
      */
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> userServiceCustomizer() {
@@ -115,6 +134,13 @@ public class CircuitBreakerConfig {
                         .permittedNumberOfCallsInHalfOpenState(5)
                         .minimumNumberOfCalls(8)
                         .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                        // Ignore client errors (4xx), only record server errors (5xx)
+                        .recordException(throwable -> {
+                            if (throwable instanceof WebClientResponseException webClientException) {
+                                return webClientException.getStatusCode().value() >= 500;
+                            }
+                            return true; // Record timeouts, connection errors, etc.
+                        })
                         .build())
                 .timeLimiterConfig(TimeLimiterConfig.custom()
                         .timeoutDuration(Duration.ofSeconds(8))
@@ -126,6 +152,7 @@ public class CircuitBreakerConfig {
     /**
      * Job Service Circuit Breaker
      * More lenient - can handle slower responses
+     * Ignores client errors (4xx) - only trips on server errors (5xx) and timeouts
      */
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> jobServiceCustomizer() {
@@ -139,6 +166,14 @@ public class CircuitBreakerConfig {
                         .permittedNumberOfCallsInHalfOpenState(5)
                         .minimumNumberOfCalls(5)
                         .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                        // Ignore client errors (4xx), only record server errors (5xx)
+                        .recordException(throwable -> {
+                            if (throwable instanceof WebClientResponseException webClientException) {
+                                int statusCode = webClientException.getStatusCode().value();
+                                return statusCode >= 500; // Only record 5xx as failures
+                            }
+                            return true; // Record timeouts, connection errors, etc.
+                        })
                         .build())
                 .timeLimiterConfig(TimeLimiterConfig.custom()
                         .timeoutDuration(Duration.ofSeconds(15)) // Longer timeout

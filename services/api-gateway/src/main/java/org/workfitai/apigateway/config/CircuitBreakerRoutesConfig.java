@@ -32,6 +32,7 @@ public class CircuitBreakerRoutesConfig {
                         .path("/auth/login")
                         .and().method(HttpMethod.POST)
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("auth")
                                         .setFallbackUri("forward:/fallback/auth/login"))
@@ -43,6 +44,7 @@ public class CircuitBreakerRoutesConfig {
                         .path("/auth/register")
                         .and().method(HttpMethod.POST)
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("auth")
                                         .setFallbackUri("forward:/fallback/auth/register"))
@@ -55,6 +57,7 @@ public class CircuitBreakerRoutesConfig {
                         .path("/user/profile")
                         .and().method(HttpMethod.GET)
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("user")
                                         .setFallbackUri("forward:/fallback/user/profile"))
@@ -69,6 +72,7 @@ public class CircuitBreakerRoutesConfig {
                         .path("/user/profile")
                         .and().method(HttpMethod.PUT)
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("user")
                                         .setFallbackUri("forward:/fallback/user/profile"))
@@ -80,6 +84,7 @@ public class CircuitBreakerRoutesConfig {
                 .route("job-service-cb", r -> r
                         .path("/job/**")
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("job")
                                         .setFallbackUri("forward:/fallback/job"))
@@ -95,6 +100,7 @@ public class CircuitBreakerRoutesConfig {
                         .path("/cv/upload")
                         .and().method(HttpMethod.POST)
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("cv")
                                         .setFallbackUri("forward:/fallback/cv/upload"))
@@ -106,6 +112,7 @@ public class CircuitBreakerRoutesConfig {
                 .route("application-service-cb", r -> r
                         .path("/application/**")
                         .filters(f -> f
+                                .stripPrefix(1)
                                 .circuitBreaker(c -> c
                                         .setName("application")
                                         .setFallbackUri("forward:/fallback/application"))
@@ -120,6 +127,7 @@ public class CircuitBreakerRoutesConfig {
                 .route("notification-service-cb", r -> r
                         .path("/notification/api/**") // Only REST API, not WebSocket
                         .filters(f -> f
+                                .stripPrefix(2) // Strip /notification/api → service expects /health, /ws, etc.
                                 .circuitBreaker(c -> c
                                         .setName("notification")
                                         .setFallbackUri("forward:/fallback/notification"))
