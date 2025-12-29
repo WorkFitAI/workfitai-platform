@@ -33,6 +33,8 @@ app:
     base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   backend:
     base-url: ${APP_BACKEND_BASE_URL:http://localhost:9085}
+  cookie:
+    secure: ${APP_COOKIE_SECURE:false}  # Set to true in production (HTTPS)
   kafka:
     topics:
       user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}
@@ -134,6 +136,11 @@ spring:
         enabled: true
         register: true
         health-check-path: /actuator/health
+  data:
+    redis:
+      host: ${redis.host:localhost}
+      port: ${redis.port:6380}
+      database: 2  # Use partition 2 (api-gateway uses partition 0 by default)
   kafka:
     bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
     producer:
