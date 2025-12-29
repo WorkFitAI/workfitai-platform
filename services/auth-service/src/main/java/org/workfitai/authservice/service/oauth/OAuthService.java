@@ -188,7 +188,7 @@ public class OAuthService {
         return OAuthCallbackResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(900L) // 15 minutes
+                .expiresIn(jwtService.getAccessExpMs()) // 15 minutes
                 .tokenType("Bearer")
                 .userInfo(userInfo)
                 .build();

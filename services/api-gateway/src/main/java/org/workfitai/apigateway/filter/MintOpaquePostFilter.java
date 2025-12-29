@@ -65,7 +65,8 @@ public class MintOpaquePostFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
       String path = exchange.getRequest().getPath().value();
-      if (!path.matches(".*(/auth/login|/login)$")) {
+      // Match login and OAuth exchange endpoints
+      if (!path.matches(".*(/auth/login|/login|/auth/oauth/exchange)$")) {
         return chain.filter(exchange);
       }
 
