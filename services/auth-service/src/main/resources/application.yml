@@ -136,11 +136,6 @@ spring:
         enabled: true
         register: true
         health-check-path: /actuator/health
-  data:
-    redis:
-      host: ${redis.host:localhost}
-      port: ${redis.port:6380}
-      database: 2  # Use partition 2 (api-gateway uses partition 0 by default)
   kafka:
     bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
     producer:
