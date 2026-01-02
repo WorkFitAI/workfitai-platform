@@ -5,7 +5,7 @@ spring:
   application:
     name: api-gateway
   profiles:
-    active: docker  # Default profile cho containers
+    active: docker # Default profile cho containers
   config:
     import: "optional:vault://secret/api-gateway"
   cloud:
@@ -54,50 +54,50 @@ app:
   backend:
     base-url: ${APP_BACKEND_BASE_URL:http://localhost:9005}
   cors:
-    # Profile-specific origin lists
+    # Profile-specific origin lists (docker profile now uses env vars for flexibility)
     allowed-origins:
       local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
-      docker: "http://localhost:3000,http://localhost:3001"
+      docker: "${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}"
       production: "${ALLOWED_ORIGINS:}"
     # WebSocket origins (for SockJS compatibility)
     websocket-origins:
       local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
-      docker: "http://localhost:3000,http://localhost:3001"
+      docker: "${WS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}"
       production: "${WS_ALLOWED_ORIGINS:}"
     max-age: 3600
     allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
     allowed-headers: "*"
     exposed-headers: "X-Total-Count,X-Page-Number,X-Page-Size,X-RateLimit-Remaining,X-RateLimit-Retry-After"
-  
+
   rate-limit:
     # Global rate limits (per IP)
     global:
       enabled: true
-      requests-per-second: 100
-      burst-capacity: 200
+      requests-per-second: 1000
+      burst-capacity: 2000
     # Per-user rate limits (authenticated requests)
     per-user:
       enabled: true
-      requests-per-second: 50
-      burst-capacity: 100
+      requests-per-second: 5000
+      burst-capacity: 1000
     # Per-endpoint rate limits
     endpoints:
       - path: "/auth/login"
-        requests-per-minute: 5
-        burst-capacity: 10
+        requests-per-minute: 5000
+        burst-capacity: 1000 # High limit for login attempts
       - path: "/auth/register"
-        requests-per-minute: 3
-        burst-capacity: 5
+        requests-per-minute: 3000
+        burst-capacity: 5000
       - path: "/cv/upload"
-        requests-per-minute: 10
-        burst-capacity: 20
+        requests-per-minute: 1000
+        burst-capacity: 2000
       - path: "/application"
-        requests-per-minute: 20
-        burst-capacity: 40
-  
+        requests-per-minute: 2000
+        burst-capacity: 4000
+
   # Phase 3: Response Caching Configuration
   cache:
-    enabled: true
+    enabled: false
     patterns:
       - path: "/job/public/.*"
         ttl-minutes: 5
@@ -128,7 +128,7 @@ server:
       - text/plain
       - application/javascript
       - text/css
-    min-response-size: 1024  # Only compress responses larger than 1KB
+    min-response-size: 1024 # Only compress responses larger than 1KB
 
 management:
   endpoints:
@@ -257,7 +257,7 @@ resilience4j:
       notification:
         baseConfig: default
         failureRateThreshold: 70 # More tolerant
-  
+
   timelimiter:
     configs:
       default:
@@ -276,7 +276,7 @@ resilience4j:
         timeoutDuration: 12s
       notification:
         timeoutDuration: 8s
-  
+
   retry:
     configs:
       default:
@@ -305,5 +305,3 @@ resilience4j:
         maxAttempts: 2
       notification:
         maxAttempts: 3
-
-
