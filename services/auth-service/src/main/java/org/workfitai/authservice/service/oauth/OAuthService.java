@@ -1,26 +1,40 @@
 package org.workfitai.authservice.service.oauth;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.dto.kafka.UserRegistrationEvent;
 import org.workfitai.authservice.dto.request.OAuthAuthorizeRequest;
 import org.workfitai.authservice.dto.request.OAuthLinkRequest;
-import org.workfitai.authservice.dto.response.*;
-import org.workfitai.authservice.model.OAuthProvider;
-import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.dto.response.AuthStatusResponse;
+import org.workfitai.authservice.dto.response.LinkedAccountsResponse;
+import org.workfitai.authservice.dto.response.LinkedProviderResponse;
+import org.workfitai.authservice.dto.response.OAuthAuthorizeResponse;
+import org.workfitai.authservice.dto.response.OAuthCallbackResponse;
+import org.workfitai.authservice.dto.response.OAuthLinkResponse;
 import org.workfitai.authservice.enums.EventType;
 import org.workfitai.authservice.enums.Provider;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.enums.UserStatus;
-import org.workfitai.authservice.messaging.UserRegistrationProducer;
 import org.workfitai.authservice.exception.InvalidOAuthStateException;
-import org.workfitai.authservice.exception.OAuthProviderException;
 import org.workfitai.authservice.exception.NotFoundException;
+import org.workfitai.authservice.exception.OAuthProviderException;
+import org.workfitai.authservice.messaging.UserRegistrationProducer;
+import org.workfitai.authservice.model.OAuthProvider;
+import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
 import org.workfitai.authservice.service.RefreshTokenService;
@@ -29,11 +43,10 @@ import org.workfitai.authservice.service.oauth.provider.GitHubOAuthService;
 import org.workfitai.authservice.service.oauth.provider.GoogleOAuthService;
 import org.workfitai.authservice.service.oauth.provider.IOAuthProviderService;
 import org.workfitai.authservice.util.IpAddressUtil;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main OAuth service orchestrating OAuth flows
@@ -48,6 +61,7 @@ public class OAuthService {
     private final OAuthProviderService oauthProviderService;
     private final OAuthEventPublisher oauthEventPublisher;
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final SessionService sessionService;
@@ -401,10 +415,13 @@ public class OAuthService {
             return existingUser.get();
         }
 
+        String newPasswordHash = encoder.encode("password@123");
+
         // Create new user
         User newUser = new User();
         newUser.setUsername(generateUsername(userInfo.getEmail()));
         newUser.setEmail(userInfo.getEmail());
+        newUser.setPassword(newPasswordHash); // Placeholder password
         newUser.setFullName(userInfo.getName());
         newUser.setRoles(Set.of(UserRole.CANDIDATE.name())); // OAuth users default to CANDIDATE role
         newUser.setStatus(UserStatus.ACTIVE); // OAuth users are auto-verified

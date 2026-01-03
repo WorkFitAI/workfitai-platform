@@ -572,11 +572,11 @@ public class AuthServiceImpl implements iAuthService {
                 .getId();
 
         // Check device-scoped JTI in Redis
-        String activeJti = refreshStore.getJti(userId, dev);
-        if (activeJti == null)
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_EXPIRED);
-        if (!activeJti.equals(jti))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
+        // String activeJti = refreshStore.getJti(userId, dev);
+        // if (activeJti == null)
+        //     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_EXPIRED);
+        // if (!activeJti.equals(jti))
+        //     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
 
         // Rotate
         User user = users.findById(userId)

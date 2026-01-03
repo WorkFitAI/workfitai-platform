@@ -79,7 +79,7 @@ create_service_secrets "auth-service" '{
     "mongodb.uri": "mongodb://auth-mongo:27017/auth-db",
     "redis.host": "auth-redis",
     "redis.port": "6379",
-    "app.frontend.base-url": "'"${APP_BACKEND_BASE_URL:-http://localhost:3000}"'",
+    "app.frontend.base-url": "'"${APP_FRONTEND_BASE_URL:-http://localhost:3000}"'",
     "app.backend.base-url": "'"${APP_BACKEND_BASE_URL:-http://localhost:9085}"'",
     "app.session.max-sessions-per-user": "'"${MAX_SESSIONS_PER_USER:-5}"'",
     "oauth2.google.client-id": "'"${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}"'",
@@ -159,7 +159,7 @@ create_service_secrets "api-gateway" '{
     "app.cache.health-ttl-seconds": "'"${API_GATEWAY_CACHE_HEALTH_TTL_SECONDS:-30}"'",
     "redis.host": "api-redis",
     "redis.port": "6379",
-    "app.frontend.base-url": "'"${APP_BACKEND_BASE_URL:-http://localhost:3000}"'",
+    "app.frontend.base-url": "'"${APP_FRONTEND_BASE_URL:-http://localhost:3000}"'",
     "app.backend.base-url": "'"${APP_BACKEND_BASE_URL:-http://localhost:9085}"'"
   }
 }'

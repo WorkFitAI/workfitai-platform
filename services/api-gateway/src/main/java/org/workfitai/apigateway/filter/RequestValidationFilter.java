@@ -20,33 +20,22 @@ import java.util.Map;
 
 /**
  * Request Validation Filter (Phase 3)
- * 
+ *
  * Validates incoming requests early to reject malformed/invalid requests
  * before they reach backend services.
- * 
- * Validation Rules:
- * - Content-Type must be application/json for POST/PUT with body
+ *
+ * Validation Rules (Transport-level only):
  * - Content-Length must not exceed configured limits
- * - Required headers must be present
- * - Path parameters format validation
+ * - Required headers must be present for authenticated endpoints
+ *
+ * Note: Content-Type validation is delegated to backend services to support
+ * diverse endpoint requirements (JSON, multipart, form-urlencoded, etc.)
  */
 @Component
 @Slf4j
 public class RequestValidationFilter implements GlobalFilter, Ordered {
 
     private static final long MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10MB
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
-            MediaType.APPLICATION_JSON_VALUE,
-            MediaType.MULTIPART_FORM_DATA_VALUE,
-            MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-
-    // Endpoints that require JSON content type
-    private static final List<String> JSON_REQUIRED_PATHS = List.of(
-            "/auth/login",
-            "/auth/register",
-            "/user/profile",
-            "/job/",
-            "/application/");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -72,35 +61,8 @@ public class RequestValidationFilter implements GlobalFilter, Ordered {
                     HttpStatus.PAYLOAD_TOO_LARGE);
         }
 
-        // Validate Content-Type for POST/PUT/PATCH
-        if (method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH) {
-            MediaType contentType = request.getHeaders().getContentType();
-
-            // Require Content-Type for requests with body
-            if (contentLength != null && contentLength > 0) {
-                if (contentType == null) {
-                    log.warn("❌ Request rejected - Missing Content-Type header for {}", path);
-                    return rejectRequest(exchange, "Content-Type header is required",
-                            HttpStatus.BAD_REQUEST);
-                }
-
-                // Validate Content-Type for JSON endpoints
-                if (requiresJson(path) && !isJsonContentType(contentType)) {
-                    log.warn("❌ Request rejected - Invalid Content-Type {} for {}", contentType, path);
-                    return rejectRequest(exchange,
-                            "Content-Type must be application/json for this endpoint",
-                            HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-                }
-
-                // Check if Content-Type is allowed
-                if (!isAllowedContentType(contentType)) {
-                    log.warn("❌ Request rejected - Unsupported Content-Type {} for {}", contentType, path);
-                    return rejectRequest(exchange,
-                            "Unsupported Content-Type. Allowed types: " + String.join(", ", ALLOWED_CONTENT_TYPES),
-                            HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-                }
-            }
-        }
+        // Content-Type validation is delegated to backend services
+        // Each service validates its own accepted content types and returns appropriate errors
 
         // Validate required headers for authenticated endpoints
         if (isProtectedPath(path)) {
@@ -115,24 +77,6 @@ public class RequestValidationFilter implements GlobalFilter, Ordered {
         // All validations passed
         log.debug("✅ Request validation passed for {} {}", method, path);
         return chain.filter(exchange);
-    }
-
-    private boolean requiresJson(String path) {
-        return JSON_REQUIRED_PATHS.stream().anyMatch(path::startsWith);
-    }
-
-    private boolean isJsonContentType(MediaType contentType) {
-        return contentType != null &&
-                (MediaType.APPLICATION_JSON.isCompatibleWith(contentType) ||
-                        contentType.toString().contains("json"));
-    }
-
-    private boolean isAllowedContentType(MediaType contentType) {
-        if (contentType == null)
-            return false;
-
-        return ALLOWED_CONTENT_TYPES.stream()
-                .anyMatch(allowed -> contentType.toString().startsWith(allowed));
     }
 
     private boolean isProtectedPath(String path) {

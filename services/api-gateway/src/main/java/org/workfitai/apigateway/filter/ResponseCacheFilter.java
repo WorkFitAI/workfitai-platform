@@ -2,6 +2,7 @@ package org.workfitai.apigateway.filter;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
@@ -35,6 +36,12 @@ import java.util.regex.Pattern;
  * - Cache invalidation on PUT/POST/DELETE to same resource
  */
 @Component
+@ConditionalOnProperty(
+        prefix = "app.cache",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = false  // Default: disabled
+)
 @Slf4j
 @RequiredArgsConstructor
 public class ResponseCacheFilter implements GlobalFilter, Ordered {
