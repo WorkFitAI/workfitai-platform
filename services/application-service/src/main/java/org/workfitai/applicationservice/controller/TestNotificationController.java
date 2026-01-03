@@ -27,7 +27,7 @@ public class TestNotificationController {
     private final ApplicationEventProducer eventProducer;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${app.kafka.topics.notification-events:application-notification-events}")
+    @Value("${app.kafka.topics.notification-events:notification-events}")
     private String notificationEventsTopic;
 
     @PostMapping("/test-noti")

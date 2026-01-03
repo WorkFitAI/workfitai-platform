@@ -100,9 +100,13 @@ public class CVService implements iCVService {
                     .timestamp(Instant.now())
                     .recipientUserId(username) // notification-service will fetch user email
                     .recipientRole("CANDIDATE")
+                    .subject("CV Uploaded Successfully")
+                    .content("Your CV \"" + (cv.getObjectName() != null ? cv.getObjectName() : "CV")
+                            + "\" has been uploaded successfully.")
                     .templateType("cv-upload-success")
+                    .notificationType("cv_uploaded") // Add notification type
                     .sendEmail(true)
-                    .createInAppNotification(false)
+                    .createInAppNotification(true) // ✅ Enable in-app notification
                     .referenceId(cv.getCvId())
                     .referenceType("CV")
                     .metadata(metadata)

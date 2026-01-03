@@ -248,65 +248,34 @@ public class ApplicationSagaOrchestrator {
             log.debug("Job stats update event published: jobId={}, totalApplications={}",
                     app.getJobId(), totalApplications);
 
-            // Fetch user details and publish notification event
-            try {
-                String hrUsername = jobInfo.getCreatedBy();
-                if (hrUsername == null) {
-                    log.warn("Job createdBy is null, cannot send notification to HR");
-                } else {
-                    log.info("Fetching user details from user-service for: [candidate={}, hr={}]",
-                            app.getUsername(), hrUsername);
+            // Publish notification events to notification-events topic
+            String candidateEmail = context.getEmail(); // Get from context
+            eventPublisher.publishCandidateNotification(
+                    app.getId(),
+                    candidateEmail,
+                    app.getUsername(), // Candidate name (will be enhanced by notification-service)
+                    app.getJobSnapshot().getTitle(),
+                    app.getJobSnapshot().getCompanyName(),
+                    Instant.now());
+            log.debug("Candidate notification published: email={}", candidateEmail);
 
-                    var usersResponse = userServiceClient.getUsersByUsernames(
-                            java.util.Arrays.asList(app.getUsername(), hrUsername));
-
-                    if (usersResponse == null || usersResponse.getData() == null) {
-                        log.warn("Failed to fetch user details from user-service: response is null");
-                    } else {
-                        log.debug("Fetched {} users from user-service", usersResponse.getData().size());
-
-                        // Extract candidate info
-                        var candidateInfo = usersResponse.getData().stream()
-                                .filter(u -> app.getUsername().equals(u.username()))
-                                .findFirst()
-                                .orElse(null);
-
-                        // Extract HR info
-                        var hrInfo = usersResponse.getData().stream()
-                                .filter(u -> hrUsername.equals(u.username()))
-                                .findFirst()
-                                .orElse(null);
-
-                        if (candidateInfo != null && hrInfo != null) {
-                            // Publish candidate notification
-                            eventPublisher.publishCandidateNotification(
-                                    app.getId(),
-                                    candidateInfo.email(),
-                                    candidateInfo.fullName(),
-                                    app.getJobSnapshot().getTitle(),
-                                    app.getJobSnapshot().getCompanyName(),
-                                    app.getCreatedAt());
-
-                            // Publish HR notification
-                            eventPublisher.publishHrNotification(
-                                    app.getId(),
-                                    hrInfo.email(),
-                                    hrInfo.fullName(),
-                                    candidateInfo.fullName(),
-                                    app.getJobSnapshot().getTitle(),
-                                    app.getJobSnapshot().getCompanyName(),
-                                    app.getCreatedAt());
-
-                            log.info("Notification events published successfully for application: {}", app.getId());
-                        } else {
-                            log.warn("Could not find user details: candidateFound={}, hrFound={}",
-                                    candidateInfo != null, hrInfo != null);
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                log.error("Failed to publish notification event (non-critical): {}", ex.getMessage(), ex);
+            // Publish HR notification (notification-service will lookup email by username)
+            String hrUsername = jobInfo.getCreatedBy();
+            if (hrUsername != null && !hrUsername.isEmpty() && !hrUsername.equals("system")) {
+                eventPublisher.publishHrNotification(
+                        app.getId(),
+                        "", // Empty - notification-service will lookup by recipientUserId
+                        hrUsername,
+                        app.getUsername(),
+                        app.getJobSnapshot().getTitle(),
+                        app.getJobSnapshot().getCompanyName(),
+                        Instant.now());
+                log.debug("HR notification published for: username={}", hrUsername);
+            } else {
+                log.debug("Skipping HR notification: no valid HR username (createdBy={})", hrUsername);
             }
+
+            log.debug("All notification events published successfully");
 
         } catch (Exception e) {
             // Fire-and-forget: log but don't fail the saga

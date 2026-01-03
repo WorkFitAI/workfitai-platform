@@ -63,7 +63,8 @@ public class NotificationController {
             return ResponseEntity.status(401).build();
         }
 
-        Notification notification = persistenceService.markAsRead(id);
+        // First, get notification to verify ownership BEFORE marking as read
+        Notification notification = persistenceService.getNotificationById(id);
         if (notification == null) {
             return ResponseEntity.notFound().build();
         }
@@ -73,7 +74,9 @@ public class NotificationController {
             return ResponseEntity.status(403).build();
         }
 
-        return ResponseEntity.ok(notification);
+        // Now mark as read
+        Notification updated = persistenceService.markAsRead(id);
+        return ResponseEntity.ok(updated);
     }
 
     /**
@@ -142,7 +145,7 @@ public class NotificationController {
                         .build());
 
         // Update unread count - use username for WebSocket
-        long unreadCount = persistenceService.getUnreadCount(userEmail);
+        long unreadCount = persistenceService.getUnreadCount(username);
         realtimeService.pushUnreadCountUpdate(username, unreadCount);
 
         return ResponseEntity.ok(Map.of(

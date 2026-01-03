@@ -68,6 +68,7 @@ app:
       job-created: ${KAFKA_TOPIC_JOB_CREATED:job.created}
       job-updated: ${KAFKA_TOPIC_JOB_UPDATED:job.updated}
       job-deleted: ${KAFKA_TOPIC_JOB_DELETED:job.deleted}
+      notification: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
 
 # Service URLs for Feign clients
 service:

@@ -10,6 +10,7 @@ import org.workfitai.userservice.dto.request.DeactivateAccountRequest;
 import org.workfitai.userservice.dto.request.DeleteAccountRequest;
 import org.workfitai.userservice.dto.response.AccountManagementResponse;
 import org.workfitai.userservice.dto.kafka.NotificationEvent;
+import org.workfitai.userservice.messaging.NotificationProducer;
 import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class AccountManagementService {
 
     private final UserRepository userRepository;
+    private final NotificationProducer notificationProducer;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.account.deactivation-retention-days:30}")
@@ -173,14 +175,23 @@ public class AccountManagementService {
     private void sendAccountNotification(UserEntity user, String templateType, Map<String, Object> data) {
         try {
             NotificationEvent event = NotificationEvent.builder()
+                    .eventId(java.util.UUID.randomUUID().toString())
+                    .eventType(templateType)
                     .recipientEmail(user.getEmail())
+                    .recipientUserId(user.getUsername()) // Add userId for WebSocket push
+                    .recipientRole(user.getUserRole() != null ? user.getUserRole().name() : "USER")
+                    .subject("Account " + (templateType.equals("ACCOUNT_DELETED") ? "Deleted" : "Notification"))
+                    .content(templateType.equals("ACCOUNT_DELETED")
+                            ? "Your account has been permanently deleted."
+                            : "Account status update.")
                     .templateType(templateType)
+                    .notificationType(templateType.toLowerCase()) // Add notification type
                     .sendEmail(true)
                     .createInAppNotification(true)
                     .metadata(data)
                     .build();
 
-            kafkaTemplate.send("notification-events", event);
+            notificationProducer.send(event);
             log.info("Account notification sent for user: {} with template: {}", user.getUsername(), templateType);
 
         } catch (Exception e) {
