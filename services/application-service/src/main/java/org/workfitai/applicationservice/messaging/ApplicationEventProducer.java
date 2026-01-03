@@ -41,7 +41,7 @@ public class ApplicationEventProducer implements EventPublisherPort {
     @Value("${app.kafka.topics.job-stats-update:job-stats-update}")
     private String jobStatsUpdateTopic;
 
-    @Value("${app.kafka.topics.notification-events:application-notification-events}")
+    @Value("${app.kafka.topics.notification-events:notification-events}")
     private String notificationEventsTopic;
 
     @Override
@@ -136,11 +136,15 @@ public class ApplicationEventProducer implements EventPublisherPort {
                     .eventType("APPLICATION_SUBMITTED")
                     .timestamp(Instant.now())
                     .recipientEmail(candidateEmail)
+                    .recipientUserId(candidateName) // candidate username - notification-service will fetch email
                     .recipientRole("CANDIDATE")
                     .subject("Application Submitted: " + jobTitle)
+                    .content("Your application for " + jobTitle + " at " + companyName
+                            + " has been successfully submitted.")
                     .templateType("APPLICATION_CONFIRMATION")
+                    .notificationType("application_submitted") // Set type for UI display
                     .sendEmail(true)
-                    .createInAppNotification(false)
+                    .createInAppNotification(true)
                     .referenceId(applicationId)
                     .referenceType("APPLICATION")
                     .sourceService("application-service")
@@ -157,7 +161,7 @@ public class ApplicationEventProducer implements EventPublisherPort {
     @Override
     public void publishHrNotification(String applicationId, String hrEmail, String hrName,
             String candidateName, String jobTitle, String companyName, java.time.Instant appliedAt) {
-        log.info("Publishing HR notification: applicationId={}, email={}", applicationId, hrEmail);
+        log.info("Publishing HR notification: applicationId={}, hrUsername={}", applicationId, hrName);
 
         try {
             Map<String, Object> metadata = new java.util.HashMap<>();
@@ -172,12 +176,16 @@ public class ApplicationEventProducer implements EventPublisherPort {
                     .eventId(UUID.randomUUID().toString())
                     .eventType("NEW_APPLICATION")
                     .timestamp(Instant.now())
-                    .recipientEmail(hrEmail)
+                    .recipientEmail(hrEmail.isEmpty() ? null : hrEmail) // null if empty - notification-service will
+                                                                        // lookup
+                    .recipientUserId(hrName) // HR username - notification-service will fetch email
                     .recipientRole("HR")
                     .subject("New Application: " + jobTitle)
+                    .content(candidateName + " has applied for " + jobTitle + " position.")
                     .templateType("NEW_APPLICATION_HR")
+                    .notificationType("new_applicant") // Set type for UI display
                     .sendEmail(true)
-                    .createInAppNotification(false)
+                    .createInAppNotification(true)
                     .referenceId(applicationId)
                     .referenceType("APPLICATION")
                     .sourceService("application-service")

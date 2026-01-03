@@ -221,10 +221,14 @@ public class JobService implements iJobService {
                     .eventType("JOB_CREATED")
                     .timestamp(Instant.now())
                     .recipientEmail(hrEmail)
+                    .recipientUserId(job.getCreatedBy()) // Add userId for WebSocket push
                     .recipientRole("HR")
+                    .subject("Job Posted: " + job.getTitle())
+                    .content("Your job posting \"" + job.getTitle() + "\" has been successfully created.")
                     .templateType("job-created")
+                    .notificationType("job_posted") // Add notification type
                     .sendEmail(true)
-                    .createInAppNotification(false)
+                    .createInAppNotification(true) // ✅ Enable in-app notification
                     .referenceId(job.getJobId().toString())
                     .referenceType("JOB")
                     .metadata(metadata)

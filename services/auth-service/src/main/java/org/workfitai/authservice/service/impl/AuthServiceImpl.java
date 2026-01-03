@@ -574,9 +574,11 @@ public class AuthServiceImpl implements iAuthService {
         // Check device-scoped JTI in Redis
         // String activeJti = refreshStore.getJti(userId, dev);
         // if (activeJti == null)
-        //     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_EXPIRED);
+        // throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+        // Messages.Error.TOKEN_EXPIRED);
         // if (!activeJti.equals(jti))
-        //     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Messages.Error.TOKEN_INVALID);
+        // throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+        // Messages.Error.TOKEN_INVALID);
 
         // Rotate
         User user = users.findById(userId)
@@ -737,6 +739,7 @@ public class AuthServiceImpl implements iAuthService {
                 .eventId(UUID.randomUUID().toString())
                 .eventType("EMAIL_NOTIFICATION")
                 .recipientEmail(email)
+                .recipientUserId(username) // Add userId for in-app notifications
                 .recipientRole("CANDIDATE")
                 .templateType("ACCOUNT_ACTIVATED")
                 .subject("Welcome to WorkFitAI - Account Activated")

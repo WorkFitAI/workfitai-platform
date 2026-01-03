@@ -116,6 +116,13 @@ public class NotificationPersistenceService {
     }
 
     /**
+     * Get notification by ID
+     */
+    public Notification getNotificationById(String notificationId) {
+        return notificationRepository.findById(notificationId).orElse(null);
+    }
+
+    /**
      * Mark notification as read and update unread count via WebSocket
      */
     public Notification markAsRead(String notificationId) {

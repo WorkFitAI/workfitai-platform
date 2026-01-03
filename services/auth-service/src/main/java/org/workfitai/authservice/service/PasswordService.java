@@ -386,8 +386,15 @@ public class PasswordService {
         data.put("loginUrl", frontendBaseUrl + "/login");
 
         NotificationEvent event = NotificationEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("PASSWORD_CHANGED")
                 .recipientEmail(user.getEmail())
+                .recipientUserId(user.getUsername()) // Add userId for WebSocket push
+                .recipientRole("USER")
+                .subject("Password Changed - Security Alert")
+                .content("Your password was changed from " + deviceName + " at " + locationString + ".")
                 .templateType("password-changed")
+                .notificationType("password_changed") // Add notification type
                 .sendEmail(true)
                 .createInAppNotification(true)
                 .metadata(data)

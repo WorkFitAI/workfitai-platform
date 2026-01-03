@@ -256,6 +256,7 @@ public class HRServiceImpl implements HRService {
         .eventId(UUID.randomUUID().toString())
         .eventType("ACCOUNT_PENDING_APPROVAL")
         .recipientEmail(userData.getEmail())
+        .recipientUserId(userData.getUsername()) // Add userId for WebSocket push
         .recipientRole(role.name())
         .subject("Your account is pending approval")
         .content("Your " + role.name() + " account is pending approval.")
@@ -295,6 +296,7 @@ public class HRServiceImpl implements HRService {
         .eventId(UUID.randomUUID().toString())
         .eventType("EMAIL_NOTIFICATION")
         .recipientEmail(saved.getEmail())
+        .recipientUserId(saved.getUsername()) // Add userId for WebSocket push
         .recipientRole(saved.getUserRole().name())
         .templateType("APPROVAL_GRANTED")
         .subject("Your HR Manager account has been approved - WorkFitAI")
@@ -347,6 +349,7 @@ public class HRServiceImpl implements HRService {
         .eventId(UUID.randomUUID().toString())
         .eventType("EMAIL_NOTIFICATION")
         .recipientEmail(saved.getEmail())
+        .recipientUserId(saved.getUsername()) // Add userId for WebSocket push
         .recipientRole(saved.getUserRole().name())
         .templateType("APPROVAL_GRANTED")
         .subject("Your HR account has been approved - WorkFitAI")

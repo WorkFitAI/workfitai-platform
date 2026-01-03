@@ -55,6 +55,13 @@ spring:
 server:
   port: ${SERVER_PORT:9005}
 
+app:
+  kafka:
+    topics:
+      user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+      company-sync: ${KAFKA_TOPIC_COMPANY_SYNC:company-sync}
+
 # Elasticsearch configuration for user search
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:elasticsearch}

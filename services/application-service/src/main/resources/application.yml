@@ -35,7 +35,7 @@ spring:
 
   # Kafka configuration for event publishing
   kafka:
-    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -43,6 +43,7 @@ spring:
       retries: 3
       properties:
         enable.idempotence: true
+        spring.json.add.type.headers: false # Disable type headers for event envelope pattern
 
 # =============================================================================
 # MinIO Configuration (Object Storage for CV files)

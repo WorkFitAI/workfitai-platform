@@ -195,6 +195,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .eventId(UUID.randomUUID().toString())
                 .eventType("EMAIL_NOTIFICATION")
                 .recipientEmail(email)
+                .recipientUserId(username) // Add userId for WebSocket push
                 .recipientRole(role.toUpperCase().replace(" ", "_"))
                 .templateType("APPROVAL_GRANTED")
                 .subject("Account Approved - WorkFitAI")
@@ -218,6 +219,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .eventId(UUID.randomUUID().toString())
                 .eventType("ACCOUNT_REJECTED")
                 .recipientEmail(email)
+                .recipientUserId(username) // Add userId for WebSocket push
                 .recipientRole("USER")
                 .subject("Account Registration Rejected - WorkFitAI")
                 .content("Your account registration has been rejected. Reason: "
