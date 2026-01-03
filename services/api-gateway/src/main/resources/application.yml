@@ -147,12 +147,6 @@ management:
         http.server.requests: true
     tags:
       application: ${spring.application.name}
-  tracing:
-    sampling:
-      probability: 1.0
-  zipkin:
-    tracing:
-      endpoint: http://zipkin:9411/api/v2/spans
   # Enable Resilience4j metrics
   health:
     circuitbreakers:
