@@ -98,9 +98,9 @@ create_service_secrets "user-service" '{
     "spring.datasource.url": "jdbc:postgresql://user-postgres:5432/user_db",
     "spring.datasource.username": "user",
     "spring.datasource.password": "pass",
-    "cloudinary.cloud-name": "'"${CLOUDINARY_CLOUD_NAME:-dphibwpag}"'",
-    "cloudinary.api-key": "'"${CLOUDINARY_API_KEY:-586672837199227}"'",
-    "cloudinary.api-secret": "'"${CLOUDINARY_API_SECRET:-s_nMSKl3232BzSN1USpCa57axXw}"'",
+    "cloudinary.cloud-name": "'"${CLOUDINARY_CLOUD_NAME:-YOURKEY}"'",
+    "cloudinary.api-key": "'"${CLOUDINARY_API_KEY:-YOURKEY}"'",
+    "cloudinary.api-secret": "'"${CLOUDINARY_API_SECRET:-YOURKEY}"'",
     "app.account.deactivation-retention-days": "'"${DEACTIVATION_RETENTION_DAYS:-30}"'",
     "app.account.deletion-grace-period-days": "'"${DELETION_GRACE_PERIOD_DAYS:-7}"'"
   }
@@ -171,7 +171,7 @@ create_service_secrets "notification-service" '{
     "spring.mail.host": "'"${EMAIL_SMTP_HOST:-smtp.gmail.com}"'",
     "spring.mail.port": "'"${EMAIL_SMTP_PORT:-587}"'",
     "spring.mail.username": "'"${EMAIL_ADDRESS:-aglaeahsr.0802@gmail.com}"'",
-    "spring.mail.password": "'"${EMAIL_APP_PASSWORD:-msfjwckuuqhiifia}"'",
+    "spring.mail.password": "'"${EMAIL_APP_PASSWORD:-YOURKEY}"'",
     "app.mail.from": "'"${MAIL_FROM:-noreply@workfitai.com}"'",
     "app.mail.from-name": "'"${MAIL_FROM_NAME:-WorkFitAI}"'"
   }
