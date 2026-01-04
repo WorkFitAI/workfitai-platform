@@ -1,0 +1,690 @@
+{
+    "info": {
+        "_postman_id": "rec-flow-test-2025",
+        "name": "WorkFitAI - Recommendation Test Flow",
+        "description": "Complete test flow: Register Candidate → Upload CV → Get Personalized Job Recommendations\n\nThis collection automatically captures tokens, IDs, and passes them between requests.\n\nFlow:\n1. Register new candidate\n2. Verify OTP\n3. Login (auto-save token)\n4. Upload CV (auto-save cvId)\n5. Create CV manually (optional)\n6. Get Recommendations for Me (uses token automatically)\n7. Get Recommendations with Filters\n8. Get Similar Jobs",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Step 1: Register Candidate",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200 || pm.response.code === 201) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    // Extract email from request to use later",
+                            "    const requestBody = JSON.parse(pm.request.body.raw);",
+                            "    pm.collectionVariables.set('candidate_email', requestBody.email);",
+                            "    pm.collectionVariables.set('candidate_password', requestBody.password);",
+                            "    ",
+                            "    console.log('✅ Registration successful');",
+                            "    console.log('📧 Check email for OTP code');",
+                            "    console.log('Email:', requestBody.email);",
+                            "    ",
+                            "    pm.test('Registration successful', function () {",
+                            "        pm.response.to.be.success;",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Registration failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// Generate unique email for testing",
+                            "const timestamp = Date.now();",
+                            "const randomEmail = `candidate_${timestamp}@test.com`;",
+                            "pm.collectionVariables.set('test_email', randomEmail);",
+                            "",
+                            "console.log('📝 Generated test email:', randomEmail);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"Test@123456\",\n    \"role\": \"CANDIDATE\",\n    \"fullName\": \"Test Candidate Recommendation\",\n    \"phoneNumber\": \"0123456789\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/auth/register",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "register"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Step 2: Verify OTP",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    console.log('✅ OTP verified successfully');",
+                            "    console.log('🎉 Account activated! You can now login');",
+                            "    ",
+                            "    pm.test('OTP verification successful', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ OTP verification failed');",
+                            "    console.log('Response:', pm.response.json());",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"{{candidate_email}}\",\n    \"otp\": \"{{otp_code}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/auth/verify-otp",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "verify-otp"
+                    ]
+                },
+                "description": "⚠️ MANUAL STEP: Get OTP from email or console log, then set {{otp_code}} variable"
+            },
+            "response": []
+        },
+        {
+            "name": "Step 3: Login Candidate",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    if (response.data && response.data.accessToken) {",
+                            "        pm.collectionVariables.set('candidate_token', response.data.accessToken);",
+                            "        console.log('✅ Login successful');",
+                            "        console.log('🔑 Token saved automatically');",
+                            "    }",
+                            "    ",
+                            "    if (response.data && response.data.username) {",
+                            "        pm.collectionVariables.set('username', response.data.username);",
+                            "        console.log('👤 Username:', response.data.username);",
+                            "    }",
+                            "    ",
+                            "    pm.test('Login successful', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "        pm.expect(response.data.accessToken).to.exist;",
+                            "    });",
+                            "    ",
+                            "    pm.test('Token is valid JWT', function () {",
+                            "        pm.expect(response.data.accessToken).to.match(/^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$/);",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Login failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"usernameOrEmail\": \"{{candidate_email}}\",\n    \"password\": \"{{candidate_password}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/auth/login",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "login"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Step 4: Upload CV (PDF File)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200 || pm.response.code === 201) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    if (response.data && response.data.cvId) {",
+                            "        pm.collectionVariables.set('cvId', response.data.cvId);",
+                            "        console.log('✅ CV uploaded successfully');",
+                            "        console.log('📄 CV ID:', response.data.cvId);",
+                            "        console.log('🔗 PDF URL:', response.data.pdfUrl);",
+                            "    }",
+                            "    ",
+                            "    pm.test('CV upload successful', function () {",
+                            "        pm.response.to.be.success;",
+                            "        pm.expect(response.data.cvId).to.exist;",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ CV upload failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{candidate_token}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "templateType",
+                            "value": "UPLOAD",
+                            "type": "text"
+                        },
+                        {
+                            "key": "file",
+                            "type": "file",
+                            "src": "/path/to/your/cv.pdf",
+                            "description": "⚠️ UPDATE THIS PATH to your actual CV file"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{base_url}}/cv/candidate/upload",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "cv",
+                        "candidate",
+                        "upload"
+                    ]
+                },
+                "description": "⚠️ IMPORTANT: Update the file path in Body → form-data → file field to point to your actual CV PDF"
+            },
+            "response": []
+        },
+        {
+            "name": "Step 5: Create CV (JSON Data)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200 || pm.response.code === 201) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    if (response.data && response.data.cvId) {",
+                            "        pm.collectionVariables.set('cvId', response.data.cvId);",
+                            "        console.log('✅ CV created successfully');",
+                            "        console.log('📄 CV ID:', response.data.cvId);",
+                            "    }",
+                            "    ",
+                            "    pm.test('CV creation successful', function () {",
+                            "        pm.response.to.be.success;",
+                            "        pm.expect(response.data.cvId).to.exist;",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ CV creation failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{candidate_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"headline\": \"Senior Backend Developer - Java Spring Boot\",\n    \"summary\": \"Experienced Backend Developer with 5+ years in Java, Spring Boot, MongoDB, PostgreSQL, and microservices architecture. Proficient in building scalable RESTful APIs and event-driven systems with Kafka.\",\n    \"templateType\": \"TECH\",\n    \"sections\": {\n        \"skills\": [\n            \"Java\",\n            \"Spring Boot\",\n            \"Spring Cloud\",\n            \"MongoDB\",\n            \"PostgreSQL\",\n            \"REST APIs\",\n            \"Kafka\",\n            \"Docker\",\n            \"Kubernetes\",\n            \"Microservices\",\n            \"Redis\",\n            \"MinIO\",\n            \"FAISS\",\n            \"Machine Learning Integration\"\n        ],\n        \"experiences\": [\n            {\n                \"company\": \"VNG Corporation\",\n                \"role\": \"Senior Backend Developer\",\n                \"from\": \"2020-01-01\",\n                \"to\": \"2025-12-31\",\n                \"description\": \"Led development of recommendation engine with FAISS integration. Built microservices architecture with Spring Boot and Kafka. Implemented CV parsing system with MongoDB and MinIO.\"\n            },\n            {\n                \"company\": \"FPT Software\",\n                \"role\": \"Backend Developer\",\n                \"from\": \"2018-06-01\",\n                \"to\": \"2019-12-31\",\n                \"description\": \"Developed RESTful APIs using Java Spring Boot. Worked with PostgreSQL and Redis caching. Implemented authentication with JWT.\"\n            }\n        ],\n        \"education\": [\n            {\n                \"school\": \"Ho Chi Minh City University of Technology and Education\",\n                \"degree\": \"Bachelor of Computer Science\",\n                \"from\": \"2014-09-01\",\n                \"to\": \"2018-06-30\"\n            }\n        ],\n        \"projects\": [\n            {\n                \"name\": \"WorkFitAI Platform\",\n                \"description\": \"Built microservices platform with Spring Boot, Kafka, MongoDB, PostgreSQL. Integrated ML recommendation engine with FAISS vector search for job matching.\"\n            },\n            {\n                \"name\": \"E-commerce API Gateway\",\n                \"description\": \"Developed API Gateway with Spring Cloud Gateway. Implemented service discovery with Consul and distributed tracing.\"\n            }\n        ],\n        \"languages\": [\n            {\n                \"name\": \"Vietnamese\",\n                \"level\": \"Native\"\n            },\n            {\n                \"name\": \"English\",\n                \"level\": \"Professional\"\n            }\n        ]\n    }\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/cv/candidate",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "cv",
+                        "candidate"
+                    ]
+                },
+                "description": "Create CV using JSON data. This CV is tailored for backend developer roles and will match well with backend job recommendations."
+            },
+            "response": []
+        },
+        {
+            "name": "Step 6: Get Recommendations For Me",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    console.log('✅ Recommendations fetched successfully');",
+                            "    ",
+                            "    if (response.data && response.data.recommendations) {",
+                            "        console.log('📊 Total Results:', response.data.totalResults);",
+                            "        console.log('⏱️  Processing Time:', response.data.processingTime);",
+                            "        console.log('🎯 Top 5 Recommendations:');",
+                            "        ",
+                            "        response.data.recommendations.slice(0, 5).forEach((rec, index) => {",
+                            "            console.log(`\\n${index + 1}. ${rec.job.title}`);",
+                            "            console.log(`   Company: ${rec.job.company ? rec.job.company.name : 'N/A'}`);",
+                            "            console.log(`   Score: ${rec.score.toFixed(4)} (Rank: ${rec.rank})`);",
+                            "            console.log(`   Location: ${rec.job.location || 'N/A'}`);",
+                            "            console.log(`   Salary: ${rec.job.salaryMin || 'N/A'} - ${rec.job.salaryMax || 'N/A'} ${rec.job.currency || ''}`);",
+                            "        });",
+                            "        ",
+                            "        // Save first job ID for similar jobs test",
+                            "        if (response.data.recommendations.length > 0) {",
+                            "            pm.collectionVariables.set('sample_job_id', response.data.recommendations[0].job.jobId);",
+                            "        }",
+                            "    }",
+                            "    ",
+                            "    pm.test('Recommendations fetched successfully', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "        pm.expect(response.data.recommendations).to.be.an('array');",
+                            "    });",
+                            "    ",
+                            "    pm.test('Recommendations are sorted by rank', function () {",
+                            "        const ranks = response.data.recommendations.map(r => r.rank);",
+                            "        const sortedRanks = [...ranks].sort((a, b) => a - b);",
+                            "        pm.expect(ranks).to.deep.equal(sortedRanks);",
+                            "    });",
+                            "    ",
+                            "    pm.test('Each recommendation has required fields', function () {",
+                            "        response.data.recommendations.forEach(rec => {",
+                            "            pm.expect(rec.job).to.exist;",
+                            "            pm.expect(rec.score).to.be.a('number');",
+                            "            pm.expect(rec.rank).to.be.a('number');",
+                            "        });",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Failed to fetch recommendations');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{candidate_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/job/public/recommendations/for-me?topK=20",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "job",
+                        "public",
+                        "recommendations",
+                        "for-me"
+                    ],
+                    "query": [
+                        {
+                            "key": "topK",
+                            "value": "20",
+                            "description": "Number of recommendations (1-100)"
+                        }
+                    ]
+                },
+                "description": "🎯 Main endpoint: Get personalized job recommendations based on your CV\n\nThis automatically:\n1. Fetches your latest CV from CV Service\n2. Extracts profile text (skills, experience, education)\n3. Sends to ML Recommendation Engine\n4. Returns jobs sorted by relevance score"
+            },
+            "response": []
+        },
+        {
+            "name": "Step 7: Get Recommendations with Filters",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    console.log('✅ Filtered recommendations fetched');",
+                            "    console.log('📊 Results with filters:', response.data.totalResults);",
+                            "    ",
+                            "    if (response.data.recommendations.length > 0) {",
+                            "        console.log('🎯 Top 3 Filtered Recommendations:');",
+                            "        response.data.recommendations.slice(0, 3).forEach((rec, index) => {",
+                            "            console.log(`${index + 1}. ${rec.job.title} at ${rec.job.company.name}`);",
+                            "            console.log(`   Score: ${rec.score.toFixed(4)} | Location: ${rec.job.location}`);",
+                            "        });",
+                            "    }",
+                            "    ",
+                            "    pm.test('Filtered recommendations successful', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Filtered recommendations failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{candidate_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/job/public/recommendations/for-me?topK=10&locations=Ha Noi City&experienceLevels=SENIOR,MIDDLE&minSalary=1500&maxSalary=3000",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "job",
+                        "public",
+                        "recommendations",
+                        "for-me"
+                    ],
+                    "query": [
+                        {
+                            "key": "topK",
+                            "value": "10"
+                        },
+                        {
+                            "key": "locations",
+                            "value": "Ha Noi City",
+                            "description": "Comma-separated locations"
+                        },
+                        {
+                            "key": "experienceLevels",
+                            "value": "SENIOR,MIDDLE",
+                            "description": "Comma-separated: INTERN, JUNIOR, MIDDLE, SENIOR, EXPERT"
+                        },
+                        {
+                            "key": "employmentTypes",
+                            "value": "",
+                            "description": "Comma-separated: FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP",
+                            "disabled": true
+                        },
+                        {
+                            "key": "minSalary",
+                            "value": "1500"
+                        },
+                        {
+                            "key": "maxSalary",
+                            "value": "3000"
+                        }
+                    ]
+                },
+                "description": "🔍 Get recommendations with filters:\n- Location: Ha Noi City\n- Experience: SENIOR or MIDDLE\n- Salary: $1500 - $3000\n\nML engine will match your CV first, then apply filters"
+            },
+            "response": []
+        },
+        {
+            "name": "Step 8: Get Similar Jobs",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    console.log('✅ Similar jobs fetched');",
+                            "    console.log('📊 Total similar jobs:', response.data.totalResults);",
+                            "    ",
+                            "    if (response.data.recommendations.length > 0) {",
+                            "        console.log('🔗 Similar Jobs:');",
+                            "        response.data.recommendations.forEach((rec, index) => {",
+                            "            console.log(`${index + 1}. ${rec.job.title} at ${rec.job.company.name}`);",
+                            "            console.log(`   Similarity: ${rec.score.toFixed(4)}`);",
+                            "        });",
+                            "    }",
+                            "    ",
+                            "    pm.test('Similar jobs fetched successfully', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Similar jobs fetch failed');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/job/public/recommendations/similar/{{sample_job_id}}?topK=5&excludeSameCompany=false",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "job",
+                        "public",
+                        "recommendations",
+                        "similar",
+                        "{{sample_job_id}}"
+                    ],
+                    "query": [
+                        {
+                            "key": "topK",
+                            "value": "5",
+                            "description": "Number of similar jobs (1-50)"
+                        },
+                        {
+                            "key": "excludeSameCompany",
+                            "value": "false",
+                            "description": "Set to true to exclude jobs from same company"
+                        }
+                    ]
+                },
+                "description": "🔗 Get jobs similar to a specific job\n\nUses job ID from previous recommendation (auto-saved).\n\nML engine finds jobs with similar:\n- Title\n- Skills\n- Description\n- Experience level"
+            },
+            "response": []
+        },
+        {
+            "name": "Bonus: Get My CVs",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    console.log('✅ CVs fetched');",
+                            "    console.log('📄 Total CVs:', response.data.meta.total);",
+                            "    ",
+                            "    if (response.data.result && response.data.result.length > 0) {",
+                            "        console.log('\\n📋 Your CVs:');",
+                            "        response.data.result.forEach((cv, index) => {",
+                            "            console.log(`${index + 1}. ${cv.headline || 'Untitled'}`);",
+                            "            console.log(`   ID: ${cv.cvId}`);",
+                            "            console.log(`   Template: ${cv.templateType}`);",
+                            "            console.log(`   Created: ${cv.createdAt}`);",
+                            "        });",
+                            "    }",
+                            "    ",
+                            "    pm.test('CVs fetched successfully', function () {",
+                            "        pm.response.to.have.status(200);",
+                            "    });",
+                            "} else {",
+                            "    console.error('❌ Failed to fetch CVs');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{candidate_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/cv/candidate/{{username}}?page=0&size=10",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "cv",
+                        "candidate",
+                        "{{username}}"
+                    ],
+                    "query": [
+                        {
+                            "key": "page",
+                            "value": "0"
+                        },
+                        {
+                            "key": "size",
+                            "value": "10"
+                        },
+                        {
+                            "key": "templateType",
+                            "value": "UPLOAD",
+                            "disabled": true,
+                            "description": "Filter by type: GENERAL, TECH, CREATIVE, UPLOAD"
+                        }
+                    ]
+                },
+                "description": "View all your CVs (sorted by newest first)\n\nThe recommendation engine automatically uses the most recent CV."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8088",
+            "type": "string",
+            "description": "API Gateway URL (Consul service discovery)"
+        },
+        {
+            "key": "candidate_token",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved after login"
+        },
+        {
+            "key": "candidate_email",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved after registration"
+        },
+        {
+            "key": "candidate_password",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved from registration"
+        },
+        {
+            "key": "username",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved after login"
+        },
+        {
+            "key": "test_email",
+            "value": "",
+            "type": "string",
+            "description": "Auto-generated unique email"
+        },
+        {
+            "key": "otp_code",
+            "value": "",
+            "type": "string",
+            "description": "⚠️ MANUAL: Get from email/console and paste here"
+        },
+        {
+            "key": "cvId",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved after CV upload/creation"
+        },
+        {
+            "key": "sample_job_id",
+            "value": "",
+            "type": "string",
+            "description": "Auto-saved from first recommendation"
+        }
+    ]
+}

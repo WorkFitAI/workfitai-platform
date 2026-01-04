@@ -1,0 +1,254 @@
+# =============================================================================
+# job-service Configuration (Unified Approach)
+# =============================================================================
+spring:
+  application:
+    name: job-service
+  profiles:
+    active: docker # Default profile cho containers
+  config:
+    import: "optional:vault://secret/job-service"
+  cloud:
+    bootstrap:
+      enabled: true
+    config:
+      enabled: false
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+      fail-fast: false
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+      discovery:
+        service-name: job
+        instance-id: ${spring.application.name}:${server.port}
+        health-check-path: /actuator/health
+        prefer-ip-address: true
+        deregister: true
+        health-check-critical-timeout: 1m
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+
+# Kafka topics configuration
+app:
+  kafka:
+    topics:
+      job-created: ${KAFKA_TOPIC_JOB_CREATED:job.created}
+      job-updated: ${KAFKA_TOPIC_JOB_UPDATED:job.updated}
+      job-deleted: ${KAFKA_TOPIC_JOB_DELETED:job.deleted}
+      notification: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+
+# Service URLs for Feign clients
+service:
+  recommendation:
+    url: ${RECOMMENDATION_ENGINE_URL:http://localhost:8001}
+  cv:
+    url: ${CV_SERVICE_URL:http://localhost:9083}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://localhost:9080}
+
+server:
+  port: ${SERVER_PORT:9005}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+      config:
+        enabled: false
+      discovery:
+        enabled: true
+        register: true
+        service-name: job
+        # instance-id: job:${random.int}
+        health-check-path: /actuator/health
+        prefer-ip-address: true
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.value.default.type: org.workfitai.jobservice.model.dto.kafka.JobStatsUpdateEvent
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+
+# Service URLs for Docker environment
+service:
+  recommendation:
+    url: ${RECOMMENDATION_ENGINE_URL:http://host.docker.internal:8000} # Use host.docker.internal to access host machine
+    # url: ${RECOMMENDATION_ENGINE_URL:http://recommendation-engine:8000} # Use this line if both services are in the same Docker network
+  cv:
+    url: ${CV_SERVICE_URL:http://cv-service:9005}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5433/job_db}
+    username: ${DATASOURCE_USERNAME:user}
+    password: ${DATASOURCE_PASSWORD:job@123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: job-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
+    api-key: ${CLOUDINARY_API_KEY:your_api_key}
+    api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+
+# Service URLs for Docker/local environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+
+logging:
+  level:
+    # Service-specific logging
+    org.workfitai: DEBUG
+    org.workfitai.jobservice: DEBUG
+
+    # Spring Framework
+    org.springframework: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+    # Database & JPA
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.orm.jpa: DEBUG
+
+    # Kafka
+    org.apache.kafka: INFO
+    org.springframework.kafka: DEBUG
+
+    # Consul
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.client: DEBUG
+
+    # Vault
+    org.springframework.cloud.vault: DEBUG
+
+    # Feign & HTTP
+    feign: DEBUG
+    org.springframework.web.client: DEBUG
+
+    # Spring Filter
+    com.turkraft.springfilter: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

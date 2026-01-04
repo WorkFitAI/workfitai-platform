@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Define properties -->
+    <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="user-service"/>
+
+    <!-- Console Appender for development (human-readable) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- JSON Appender for Docker/Production (structured logs for ELK) -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>username</includeMdcKeyName>
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>path</includeMdcKeyName>
+            <includeMdcKeyName>method</includeMdcKeyName>
+            <includeMdcKeyName>roles</includeMdcKeyName>
+            
+            <!-- Log classification fields -->
+            <includeMdcKeyName>log_type</includeMdcKeyName>
+            <includeMdcKeyName>action</includeMdcKeyName>
+            <includeMdcKeyName>entity_type</includeMdcKeyName>
+            <includeMdcKeyName>entity_id</includeMdcKeyName>
+            
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+            </fieldNames>
+            
+            <customFields>{"service":"${springAppName}","environment":"${SPRING_PROFILES_ACTIVE:-local}"}</customFields>
+            
+            <!-- Include caller info for debugging -->
+            <includeCallerData>false</includeCallerData>
+            
+            <!-- Shorten logger name -->
+            <shortenedLoggerNameLength>36</shortenedLoggerNameLength>
+        </encoder>
+    </appender>
+
+    <!-- Profile-specific configuration -->
+    
+    <!-- Local development: human-readable console output -->
+    <springProfile name="local,default">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="org.workfitai" level="DEBUG"/>
+    </springProfile>
+
+    <!-- Docker/Production: JSON structured logs for ELK -->
+    <springProfile name="docker,prod,production">
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+        <logger name="org.workfitai" level="INFO"/>
+        
+        <!-- Reduce noise from libraries -->
+        <logger name="org.springframework.cloud.consul" level="WARN"/>
+        <logger name="org.springframework.cloud.vault" level="WARN"/>
+        <logger name="org.apache.kafka" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+    </springProfile>
+
+</configuration>

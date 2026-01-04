@@ -1,0 +1,161 @@
+# =============================================================================
+# user-service Configuration (Unified Approach)
+# =============================================================================
+spring:
+  application:
+    name: user-service
+  profiles:
+    active: docker  # Default profile cho containers
+  config:
+    import: "optional:vault://secret/user-service"
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+  datasource:
+    url: ${datasource.url:jdbc:postgresql://user-postgres:5432/user_db}
+    username: ${datasource.username:user}
+    password: ${datasource.password:pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${redis.host:auth-redis}
+      port: ${redis.port:6379}
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    consumer:
+      group-id: user-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    admin:
+      properties:
+        # Auto-create topics if they don't exist
+        auto.create.topics.enable: true
+
+server:
+  port: ${SERVER_PORT:9005}
+
+app:
+  kafka:
+    topics:
+      user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+      company-sync: ${KAFKA_TOPIC_COMPANY_SYNC:company-sync}
+
+# Elasticsearch configuration for user search
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:elasticsearch}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling in dev (use 0.1 in production)
+  endpoint:
+    health:
+      show-details: always
+
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    vault:
+      uri: http://vault:8200
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: user
+        port: ${SERVER_PORT:9005}
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        health-check-timeout: 5s
+
+# Service URLs for Docker environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: ${VAULT_URL_LOCAL:http://localhost:8200}
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+  datasource:
+    url: ${USER_POSTGRES_URL_LOCAL:jdbc:postgresql://localhost:5432/user_db}
+    username: ${USER_DB_USER:user}
+    password: ${USER_DB_PASS:pass}
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+
+# Service URLs for Local environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+
+# Elasticsearch configuration for local development
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST_LOCAL:localhost}
+  port: ${ELASTICSEARCH_PORT_LOCAL:9200}
+  scheme: http
+
+server:
+  port: ${SERVER_PORT:9005}
+
+logging:
+  level:
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+

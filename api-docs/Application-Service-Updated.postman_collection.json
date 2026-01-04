@@ -1,0 +1,1930 @@
+{
+	"info": {
+		"_postman_id": "44a9f070-f405-4fba-9602-48e7646ddc44",
+		"name": "4. WorkFitAI - Application Service",
+		"description": "Job Application Management with CV Upload, Status Tracking & Draft Support\n\n**Base URL:** {{base_url}}/application\n**Port:** 9084 -> 9085 (gateway)\n**Consul:** application\n**DB:** MongoDB + MinIO\n**Events:** Kafka\n\n**Application Status Flow:**\nAPPLIED → REVIEWED → SHORTLISTED → INTERVIEW_SCHEDULED → INTERVIEW_COMPLETED → OFFER → ACCEPTED (or REJECTED)\n\n**Features:**\n- Draft applications\n- CV file upload (MultipartFile)\n- Application assignment\n- HR notes management\n- Bulk operations\n- Company-wide filtering",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39571017",
+		"_collection_link": "https://workfitai.postman.co/workspace/WorkFit-AI~f1b6c347-e526-40d0-9b57-4ca5401dba54/collection/39571017-44a9f070-f405-4fba-9602-48e7646ddc44?action=share&source=collection_link&creator=39571017"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login - CANDIDATE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.status === 200 && response.data) {",
+									"        pm.environment.set('candidateAccessToken', response.data.accessToken);",
+									"        pm.environment.set('candidateRefreshToken', response.data.refreshToken);",
+									"        pm.environment.set('candidateUsername', response.data.username);",
+									"        pm.environment.set('access_token', response.data.accessToken);",
+									"        console.log('✅ Candidate logged in: ' + response.data.username);",
+									"        console.log('Token expires in: ' + response.data.expiryInMinutes + ' minutes');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - HR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.status === 200 && response.data) {",
+									"        pm.environment.set('hrAccessToken', response.data.accessToken);",
+									"        pm.environment.set('hrRefreshToken', response.data.refreshToken);",
+									"        pm.environment.set('hrUsername', response.data.username);",
+									"        console.log('✅ HR logged in: ' + response.data.username);",
+									"        console.log('Token expires in: ' + response.data.expiryInMinutes + ' minutes');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - HR_MANAGER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.status === 200 && response.data) {",
+									"        pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+									"        pm.environment.set('hrManagerRefreshToken', response.data.refreshToken);",
+									"        pm.environment.set('hrManagerUsername', response.data.username);",
+									"        console.log('✅ HR Manager logged in: ' + response.data.username);",
+									"        console.log('Token expires in: ' + response.data.expiryInMinutes + ' minutes');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.status === 200 && response.data) {",
+									"        pm.environment.set('adminAccessToken', response.data.accessToken);",
+									"        pm.environment.set('adminRefreshToken', response.data.refreshToken);",
+									"        pm.environment.set('adminUsername', response.data.username);",
+									"        console.log('✅ Admin logged in: ' + response.data.username);",
+									"        console.log('Token expires in: ' + response.data.expiryInMinutes + ' minutes');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usernameOrEmail\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Candidate Operations",
+			"item": [
+				{
+					"name": "Create Draft Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.id) {",
+									"        pm.environment.set('draftId', response.data.id);",
+									"        console.log('✅ Draft created: ' + response.data.id);",
+									"        console.log('Status: ' + response.data.status);",
+									"        console.log('Job ID: ' + response.data.jobId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}",
+									"description": "Required: Job ID from job-service",
+									"type": "text"
+								},
+								{
+									"key": "coverLetter",
+									"value": "I am very interested in this position and would love to contribute to your team...",
+									"description": "Optional: Cover letter",
+									"type": "text"
+								},
+								{
+									"key": "cvFile",
+									"description": "Optional: CV file (PDF, DOC, DOCX)",
+									"type": "file",
+									"src": "/path/to/your/cv.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/application/drafts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"drafts"
+							]
+						},
+						"description": "Create a draft application without submitting. Draft can be edited later before submission."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Draft Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Draft updated: ' + response.data.id);",
+									"        console.log('Job ID: ' + response.data.jobId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "coverLetter",
+									"value": "Updated cover letter content...",
+									"type": "text"
+								},
+								{
+									"key": "cvFile",
+									"description": "Optional: Replace CV file",
+									"type": "file",
+									"src": "/path/to/updated/cv.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/application/drafts/{{draftId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"drafts",
+								"{{draftId}}"
+							]
+						},
+						"description": "Update a draft application before submission"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Draft Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        pm.environment.set('applicationId', response.data.id);",
+									"        console.log('✅ Application submitted: ' + response.data.id);",
+									"        console.log('Status changed to: ' + response.data.status);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "cvFile",
+									"description": "Required if not uploaded yet",
+									"type": "file",
+									"src": "/path/to/final/cv.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/application/drafts/{{draftId}}/submit",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"drafts",
+								"{{draftId}}",
+								"submit"
+							]
+						},
+						"description": "Submit a draft application (converts draft to active application)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Draft Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        console.log('📄 Total draft applications: ' + items.length);",
+									"        if (items.length > 0) {",
+									"            console.log('First draft ID: ' + items[0].id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/drafts/my?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"drafts",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all draft applications for the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Application (Direct Submit)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.id) {",
+									"        pm.environment.set('applicationId', response.data.id);",
+									"        console.log('✅ Application created: ' + response.data.id);",
+									"        console.log('Status: ' + response.data.status);",
+									"        console.log('Job ID: ' + response.data.jobId);",
+									"        console.log('CV File: ' + response.data.cvFileName);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}",
+									"description": "Required: Job ID from job-service",
+									"type": "text"
+								},
+								{
+									"key": "coverLetter",
+									"value": "I am excited to apply for this position...",
+									"description": "Optional: Cover letter",
+									"type": "text"
+								},
+								{
+									"key": "cvPdfFile",
+									"description": "Required: CV file (PDF, DOC, DOCX)",
+									"type": "file",
+									"src": "postman-cloud:///1f0cc388-aae7-47d0-a0bd-f7e924275fc1"
+								},
+								{
+									"key": "email",
+									"value": "{{candidateEmail}}",
+									"description": "Required: Candidate email",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/application",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application"
+							]
+						},
+						"description": "Create and submit an application directly (Saga orchestration workflow)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Applications (Paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        const meta = response.data.meta || {};",
+									"        console.log('📋 Total applications: ' + meta.totalItems);",
+									"        console.log('Current page: ' + (meta.page + 1) + '/' + meta.totalPages);",
+									"        console.log('Applications in this page: ' + items.length);",
+									"        if (items.length > 0) {",
+									"            console.log('\\nFirst application:');",
+									"            console.log('  ID: ' + items[0].id);",
+									"            console.log('  Status: ' + items[0].status);",
+									"            console.log('  Job ID: ' + items[0].jobId);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/my?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Items per page"
+								},
+								{
+									"key": "status",
+									"value": "APPLIED",
+									"description": "Optional: Filter by status",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all applications for the current candidate with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Application by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📄 Application Details:');",
+									"        console.log('ID: ' + response.data.id);",
+									"        console.log('Status: ' + response.data.status);",
+									"        console.log('Job ID: ' + response.data.jobId);",
+									"        console.log('Created: ' + response.data.createdAt);",
+									"        if (response.data.assignedTo) {",
+									"            console.log('Assigned to: ' + response.data.assignedTo);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}"
+							]
+						},
+						"description": "Get application details by ID (candidate can only view their own)"
+					},
+					"response": []
+				},
+				{
+					"name": "Check If Applied to Job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('Already applied: ' + response.data.applied);",
+									"        if (response.data.applied && response.data.applicationId) {",
+									"            console.log('Application ID: ' + response.data.applicationId);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/check?jobId={{jobId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"check"
+							],
+							"query": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}"
+								}
+							]
+						},
+						"description": "Check if the candidate has already applied to a specific job"
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 204) {",
+									"    console.log('✅ Application withdrawn successfully');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}"
+							]
+						},
+						"description": "Withdraw an application (soft delete)"
+					},
+					"response": []
+				},
+				{
+					"name": "Count My Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📊 Total applications count: ' + response.data.count);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/my/count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"my",
+								"count"
+							]
+						},
+						"description": "Get total count of all applications for the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Application timeline",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📊 Total applications count: ' + response.data.count);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"history"
+							]
+						},
+						"description": "Get total count of all applications for the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notes for My Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📝 Total visible notes: ' + response.data.length);",
+									"        response.data.forEach((note, index) => {",
+									"            console.log('Note ' + (index + 1) + ': ' + note.content.substring(0, 50) + '...');",
+									"        });",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{candidateAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/notes/candidate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"notes",
+								"candidate"
+							]
+						},
+						"description": "Get notes visible to candidate (only notes marked as candidateVisible=true)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HR Operations",
+			"item": [
+				{
+					"name": "Get Applications for Job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        const meta = response.data.meta || {};",
+									"        console.log('📋 Total applications for job: ' + meta.totalItems);",
+									"        console.log('Current page: ' + (meta.page + 1) + '/' + meta.totalPages);",
+									"        console.log('Applications in this page: ' + items.length);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/job/{{jobId}}?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"job",
+								"{{jobId}}"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "APPLIED",
+									"description": "Optional: Filter by status",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all applications for a specific job (HR can view all)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Assigned Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        console.log('📋 Applications assigned to me: ' + items.length);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/assigned/my?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"assigned",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all applications assigned to current HR user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Status updated to: ' + response.data.status);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/status?status=INTERVIEW",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "INTERVIEW"
+								}
+							]
+						},
+						"description": "Update application status (APPLIED, REVIEWED, SHORTLISTED, INTERVIEW_SCHEDULED, INTERVIEW_COMPLETED, OFFER, ACCEPTED, REJECTED)"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Update Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Bulk update completed');",
+									"        console.log('Success: ' + response.data.successCount);",
+									"        console.log('Failures: ' + response.data.failureCount);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"applicationIds\": [\n    \"{{applicationId}}\"\n  ],\n  \"status\": \"REJECTED\",\n  \"reason\": \"Not suitable for the position\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/application/bulk/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"bulk",
+								"status"
+							]
+						},
+						"description": "Update status for multiple applications at once"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Note to Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        pm.environment.set('noteId', response.data.id);",
+									"        console.log('✅ Note added: ' + response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Candidate has strong technical skills but needs improvement in communication\",\n  \"candidateVisible\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/notes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"notes"
+							]
+						},
+						"description": "Add an internal note to an application"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Notes for Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📝 Total notes: ' + response.data.length);",
+									"        response.data.forEach((note, index) => {",
+									"            console.log('Note ' + (index + 1) + ' (visible to candidate: ' + note.candidateVisible + ')');",
+									"        });",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/notes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"notes"
+							]
+						},
+						"description": "Get all notes for an application (HR sees all notes)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Note",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Note updated');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Updated note content with more details\",\n  \"candidateVisible\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/notes/{{noteId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"notes",
+								"{{noteId}}"
+							]
+						},
+						"description": "Update an existing note"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Note",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 204) {",
+									"    console.log('✅ Note deleted');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/notes/{{noteId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"notes",
+								"{{noteId}}"
+							]
+						},
+						"description": "Delete a note from an application"
+					},
+					"response": []
+				},
+				{
+					"name": "Count Applications for Job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📊 Applications count for job: ' + response.data.count);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/job/{{jobId}}/count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"job",
+								"{{jobId}}",
+								"count"
+							]
+						},
+						"description": "Get total count of applications for a specific job"
+					},
+					"response": []
+				},
+				{
+					"name": "Download CV of Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📊 Applications count for job: ' + response.data.count);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/cv/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"cv",
+								"download"
+							]
+						},
+						"description": "Get total count of applications for a specific job"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HR Manager Operations",
+			"item": [
+				{
+					"name": "Get Company Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        const meta = response.data.meta || {};",
+									"        console.log('📋 Total company applications: ' + meta.totalItems);",
+									"        console.log('Current page: ' + (meta.page + 1) + '/' + meta.totalPages);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/company/{{company_no}}?page=0&size=50",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"company",
+								"{{company_no}}"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "50"
+								},
+								{
+									"key": "status",
+									"value": "APPLIED",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all applications for company-wide jobs (HR_MANAGER access)"
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Application to HR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Application assigned to: ' + response.data.assignedTo);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"assignedTo\": \"{{hrUsername}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"assign"
+							]
+						},
+						"description": "Assign an application to a specific HR user"
+					},
+					"response": []
+				},
+				{
+					"name": "Unassign Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Application unassigned (returned to pool)');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"assign"
+							]
+						},
+						"description": "Unassign an application (return to common pool)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assigned Applications for HR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        console.log('📋 Applications assigned to HR: ' + items.length);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/assigned/{{hrUsername}}?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"assigned",
+								"{{hrUsername}}"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all applications assigned to a specific HR user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unassigned Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        const items = response.data.items || [];",
+									"        console.log('📋 Unassigned applications: ' + items.length);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{hrManagerAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/company/unassigned?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"company",
+								"unassigned"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all unassigned applications in the company pool"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Operations",
+			"item": [
+				{
+					"name": "Get Any Application by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('📄 Application Details:');",
+									"        console.log('ID: ' + response.data.id);",
+									"        console.log('Username: ' + response.data.username);",
+									"        console.log('Status: ' + response.data.status);",
+									"        console.log('Company: ' + response.data.companyId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}"
+							]
+						},
+						"description": "Admin can view any application regardless of ownership"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Any Application Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data) {",
+									"        console.log('✅ Status updated to: ' + response.data.status);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"REJECTED\",\n  \"reason\": \"Admin override - application does not meet requirements\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}",
+								"status"
+							]
+						},
+						"description": "Admin can update status of any application"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Any Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 204) {",
+									"    console.log('✅ Application deleted (soft delete)');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/application/{{applicationId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"application",
+								"{{applicationId}}"
+							]
+						},
+						"description": "Admin can delete any application"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "{{base_url}}",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,142 @@
+spring:
+  application:
+    name: notification
+  config:
+    import: "optional:vault://secret/notification-service"
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false # Ignore type headers from producer
+        spring.json.value.default.type: org.workfitai.notificationservice.dto.kafka.NotificationEvent
+  mail:
+    host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
+    port: ${EMAIL_SMTP_PORT:587}
+    username: ${EMAIL_ADDRESS:}
+    password: ${EMAIL_APP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://notif-mongo:27017/notification-db}
+server:
+  port: ${SERVER_PORT:9005}
+  tomcat:
+    threads:
+      max: 200          # Max concurrent connections
+      min-spare: 20     # Min idle threads
+    max-connections: 10000  # Max concurrent TCP connections
+    accept-count: 100   # Queue size when all threads busy
+
+app:
+  mail:
+    from: ${MAIL_FROM:noreply@workfitai.com}
+    from-name: ${MAIL_FROM_NAME:WorkFitAI}
+  kafka:
+    topics:
+      notification: ${APP_KAFKA_TOPIC_NOTIFICATION:notification-events}
+      application-events: ${APP_KAFKA_TOPIC_APPLICATION_EVENTS:application-events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,mail
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        prefer-ip-address: true
+        service-name: notification
+        port: ${SERVER_PORT:9005}
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        fail-fast: false
+    vault:
+      uri: ${VAULT_URI:http://vault:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+
+logging:
+  level:
+    org.springframework.messaging: TRACE
+    org.springframework.web.socket: TRACE
+    org.workfitai.notificationservice: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+    vault:
+      uri: ${VAULT_URL_LOCAL:http://localhost:8200}
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+  kafka:
+    bootstrap-servers: ${KAFKA_URL_LOCAL:localhost:9092}
+
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL_LOCAL:http://localhost:9080}
+  user:
+    url: ${USER_SERVICE_URL_LOCAL:http://localhost:9082}
+
+server:
+  port: ${SERVER_PORT:9005}
+
+logging:
+  level:
+    org.springframework.messaging: DEBUG
+    org.springframework.web.socket: DEBUG

@@ -1,0 +1,152 @@
+# =============================================================================
+# auth-service Configuration (Unified Approach)
+# =============================================================================
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: docker  # Default profile cho containers
+  config:
+    import: "optional:vault://secret/auth-service"
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+
+server:
+  port: ${SERVER_PORT:9005}
+
+# Application frontend URL for email links
+app:
+  frontend:
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
+  backend:
+    base-url: ${APP_BACKEND_BASE_URL:http://localhost:9085}
+  cookie:
+    secure: ${APP_COOKIE_SECURE:false}  # Set to true in production (HTTPS)
+  kafka:
+    topics:
+      user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+      user-activity-events: ${KAFKA_TOPIC_USER_ACTIVITY_EVENTS:user-activity-events}
+  oauth2:
+    google:
+      client-id: ${oauth2.google.client-id:}
+      client-secret: ${oauth2.google.client-secret:}
+    github:
+      client-id: ${oauth2.github.client-id:}
+      client-secret: ${oauth2.github.client-secret:}
+    token-encryption-key: ${oauth2.token-encryption-key:}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling in dev (use 0.1 in production)
+
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: auth
+        health-check-path: /actuator/health
+  data:
+    redis:
+      host: ${redis.host:auth-redis}
+      port: ${redis.port:6379}
+    mongodb:
+      uri: ${mongodb.uri:mongodb://auth-mongo:27017/auth-db}
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:kafka-workfitai:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+# JWT Configuration
+auth:
+  jwt:
+    secret: ${jwt.secret:CJmTxK/y/bJPsho/gIxQofHzv3nj+FoABHTSNsBwqCTy2bN3TavCklalHVGw/6KX}
+    access:
+      expiration: ${jwt.access.expiration:900000}
+    refresh:
+      expiration: ${jwt.refresh.expiration:604800000}
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      token: ${VAULT_TOKEN:dev-token}
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+# Add service-specific local configs here
+
+logging:
+  level:
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+

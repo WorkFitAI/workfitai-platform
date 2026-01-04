@@ -1,0 +1,881 @@
+{
+    "info": {
+        "name": "OAuth2 Complete Flow (Google + GitHub)",
+        "description": "Complete OAuth2 flow with automatic LINK mode detection.\n\n**LOGIN Mode** (no Bearer token):\n1. POST /authorize/{PROVIDER} → Get authorization URL\n2. Open in browser → Authorize\n3. Callback detects LOGIN mode → Creates/logs in user → Returns JWT tokens\n\n**LINK Mode** (with Bearer token):\n1. POST /authorize/{PROVIDER} with Bearer token → Get authorization URL\n2. Backend embeds userId in state: PROVIDER:uuid:LINK:userId:clientState\n3. Open in browser → Authorize\n4. Callback detects LINK mode → Links provider to existing user → Returns LINK_SUCCESS\n\n**Key Changes:**\n- OAuth codes are single-use, consumed by callback\n- No manual POST /link needed (automatic in callback)\n- State format includes mode detection\n- Deprecated manual link endpoints (kept for backward compatibility)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Auto-set base URL if not set",
+                    "if (!pm.environment.get('baseUrl')) {",
+                    "    pm.environment.set('baseUrl', 'http://localhost:9085');",
+                    "}"
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "🔵 OAuth2 Login/Signup Flow",
+            "item": [
+                {
+                    "name": "Google - Get Authorization URL",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    const data = response.data;",
+                                    "    pm.environment.set('googleAuthUrl', data.authorizationUrl);",
+                                    "    pm.environment.set('googleState', data.state);",
+                                    "    ",
+                                    "    console.log('✅ Google Auth URL:', data.authorizationUrl);",
+                                    "    console.log('✅ State:', data.state);",
+                                    "    console.log('⚠️  Open this URL in browser to login with Google');",
+                                    "    console.log('⚠️  After login, browser will auto-redirect and you will receive tokens');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"state\": \"{{$randomUUID}}\",\n  \"redirectUri\": \"{{googleRedirectUri}}\",\n  \"scope\": [\"openid\", \"profile\", \"email\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/authorize/GOOGLE",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "authorize",
+                                "GOOGLE"
+                            ]
+                        },
+                        "description": "**Generate Google OAuth authorization URL (SIMPLIFIED)**\n\n**🎉 NEW: All fields are now OPTIONAL - Backend auto-generates defaults!**\n\n**Simplest Usage (Recommended):**\n```json\nBody: {}\n```\n\nBackend will automatically generate:\n- `state`: Random UUID (e.g., \"a1b2c3d4-5678-...\")\n- `redirectUri`: `http://localhost:3000/oauth/callback/google` (from `app.frontend.base-url` config)\n- `scope`: `[\"openid\", \"profile\", \"email\"]` (Google defaults)\n\n**Optional Custom Fields:**\nYou can still override defaults if needed:\n- `state` (string): Custom state for tracking\n- `redirectUri` (string): Custom callback URL (e.g., mobile deep links)\n- `scope` (array): Custom OAuth scopes\n\n**Response:**\n```json\n{\n  \"authorizationUrl\": \"https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&state=...\",\n  \"state\": \"GOOGLE:uuid:LOGIN:null:clientState\",\n  \"provider\": \"GOOGLE\",\n  \"expiresIn\": 600\n}\n```\n\n**How to use:**\n1. Send this request with empty body `{}`\n2. Copy the `authorizationUrl` from response\n3. Open URL in browser → Login with Google\n4. After login, browser auto-redirects to callback endpoint\n5. Backend returns tokens in browser (check browser response)\n\n**Why simplified?**\n- ✅ Less code for frontend developers\n- ✅ No need to understand OAuth internals (state, redirectUri, scopes)\n- ✅ Backend handles security concerns (CSRF protection)\n- ✅ Configuration-driven (easy to change redirect URIs)\n\n**Note:** Callback is handled automatically by backend GET endpoint, not by Postman."
+                    }
+                },
+                {
+                    "name": "GitHub - Get Authorization URL",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    const data = response.data;",
+                                    "    ",
+                                    "    pm.environment.set('githubAuthUrl', data.authorizationUrl);",
+                                    "    pm.environment.set('githubState', data.state);",
+                                    "    pm.environment.set('githubStateExpiry', data.expiresIn);",
+                                    "    ",
+                                    "    console.log('✅ GitHub Auth URL:', data.authorizationUrl);",
+                                    "    console.log('✅ State:', data.state);",
+                                    "    console.log('✅ Expires in:', data.expiresIn, 'seconds');",
+                                    "    console.log('⚠️  Please open the URL in browser and complete OAuth flow');",
+                                    "    console.log('⚠️  After authorization, copy the \"code\" parameter from callback URL');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"state\": \"{{$randomUUID}}\",\n  \"redirectUri\": \"{{githubRedirectUri}}\",\n  \"scope\": [\"read:user\", \"user:email\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/authorize/GITHUB",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "authorize",
+                                "GITHUB"
+                            ]
+                        },
+                        "description": "**Generate GitHub OAuth authorization URL (SIMPLIFIED)**\n\n**🎉 NEW: All fields are now OPTIONAL - Backend auto-generates defaults!**\n\n**Simplest Usage (Recommended):**\n```json\nBody: {}\n```\n\nBackend will automatically generate:\n- `state`: Random UUID (e.g., \"x1y2z3a4-...\")\n- `redirectUri`: `http://localhost:3000/oauth/callback/github` (from `app.frontend.base-url` config)\n- `scope`: `[\"read:user\", \"user:email\"]` (GitHub defaults)\n\n**Optional Custom Fields:**\nYou can still override defaults if needed:\n- `state` (string): Custom state for tracking\n- `redirectUri` (string): Custom callback URL\n- `scope` (array): Custom OAuth scopes (e.g., add \"repo\" for repository access)\n\n**Response:**\n```json\n{\n  \"authorizationUrl\": \"https://github.com/login/oauth/authorize?client_id=...&redirect_uri=...&state=...\",\n  \"state\": \"GITHUB:uuid:LOGIN:null:clientState\",\n  \"provider\": \"GITHUB\",\n  \"expiresIn\": 600\n}\n```\n\n**How to use:**\n1. Send this request with empty body `{}`\n2. Copy the `authorizationUrl` from response\n3. Open URL in browser → Login with GitHub\n4. After login, browser auto-redirects to callback endpoint\n5. Backend returns tokens in browser (check browser response)\n\n**Why simplified?**\n- ✅ Less code for frontend developers\n- ✅ No need to manage state or redirect URIs\n- ✅ Backend handles security (CSRF state generation)\n- ✅ Easy to change redirect URIs via config\n\n**Note:** Callback is handled automatically by backend GET endpoint, not by Postman."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔗 Link Additional OAuth Providers",
+            "item": [
+                {
+                    "name": "Google - Link Account (Auto via Callback)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    const data = response.data;",
+                                    "    ",
+                                    "    pm.environment.set('googleAuthUrl', data.authorizationUrl);",
+                                    "    pm.environment.set('googleState', data.state);",
+                                    "    pm.environment.set('googleStateExpiry', data.expiresIn);",
+                                    "    ",
+                                    "    console.log('✅ Google Auth URL:', data.authorizationUrl);",
+                                    "    console.log('✅ State (contains userId for LINK mode):', data.state);",
+                                    "    console.log('✅ Expires in:', data.expiresIn, 'seconds');",
+                                    "    console.log('⚠️  Open URL in browser → Authorize → Callback will AUTO-LINK');",
+                                    "    console.log('⚠️  No manual link step needed! Check browser response after callback');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"state\": \"{{$randomUUID}}\",\n  \"redirectUri\": \"{{googleRedirectUri}}\",\n  \"scope\": [\"openid\", \"profile\", \"email\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/authorize/GOOGLE",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "authorize",
+                                "GOOGLE"
+                            ]
+                        },
+                        "description": "**Link Google Account (SIMPLIFIED - Auto via Callback)**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**🎉 NEW: Send empty body - Backend handles everything!**\n\n**Simplest Usage (Recommended):**\n```json\nHeaders:\n  Authorization: Bearer {your_token}\n\nBody: {}\n```\n\n**Backend Auto-Detection:**\n1. Backend detects Authorization header → Extracts username\n2. Looks up userId from username → e.g., \"694ad50733a491c51efe77e2\"\n3. **Automatically activates LINK mode** (no manual mode parameter)\n4. Generates state with embedded userId: `GOOGLE:uuid:LINK:userId:clientState`\n5. Auto-generates redirectUri: `http://localhost:3000/oauth/callback/google`\n6. Uses default scope: `[\"openid\", \"profile\", \"email\"]`\n\n**How it works:**\n1. Send this request WITH Bearer token and empty body `{}`\n2. Backend embeds your userId in state automatically\n3. State format: `GOOGLE:uuid:LINK:694ad50733a491c51efe77e2:uuid`\n4. Open authorizationUrl in browser → Authorize Google\n5. Google redirects to callback → Backend detects LINK mode from state\n6. **Callback AUTO-LINKS** provider to your account (no manual step)\n7. Browser receives response: `{tokenType: \"LINK_SUCCESS\", userInfo: {...}}`\n\n**Optional Custom Fields:**\nYou can still override defaults:\n- `state` (string): Custom state for tracking\n- `redirectUri` (string): Custom callback URL\n- `scope` (array): Custom OAuth scopes\n\n**Response:**\n```json\n{\n  \"authorizationUrl\": \"https://accounts.google.com/o/oauth2/v2/auth?...\",\n  \"state\": \"GOOGLE:uuid:LINK:694ad50733a491c51efe77e2:clientState\",\n  \"provider\": \"GOOGLE\",\n  \"expiresIn\": 600\n}\n```\n\n**Important Notes:**\n- ✅ Backend detects LINK mode from Authorization header (no manual mode parameter)\n- ✅ OAuth code is single-use, consumed by callback for linking\n- ✅ No need for manual POST /link endpoint\n- ✅ Callback response will NOT return new JWT tokens (you already have one)\n- ❌ Cannot link if Google email already used by another account"
+                    }
+                },
+                {
+                    "name": "GitHub - Link Account (Auto via Callback)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    const data = response.data;",
+                                    "    ",
+                                    "    pm.environment.set('githubAuthUrl', data.authorizationUrl);",
+                                    "    pm.environment.set('githubState', data.state);",
+                                    "    pm.environment.set('githubStateExpiry', data.expiresIn);",
+                                    "    ",
+                                    "    console.log('✅ GitHub Auth URL:', data.authorizationUrl);",
+                                    "    console.log('✅ State (contains userId for LINK mode):', data.state);",
+                                    "    console.log('✅ Expires in:', data.expiresIn, 'seconds');",
+                                    "    console.log('⚠️  Open URL in browser → Authorize → Callback will AUTO-LINK');",
+                                    "    console.log('⚠️  No manual link step needed! Check browser response after callback');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"state\": \"{{$randomUUID}}\",\n  \"redirectUri\": \"{{githubRedirectUri}}\",\n  \"scope\": [\"read:user\", \"user:email\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/authorize/GITHUB",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "authorize",
+                                "GITHUB"
+                            ]
+                        },
+                        "description": "**Link GitHub Account (SIMPLIFIED - Auto via Callback)**\n\n**Prerequisites:** Must be logged in (have valid accessToken in Bearer token)\n\n**🎉 NEW: Send empty body - Backend handles everything!**\n\n**Simplest Usage (Recommended):**\n```json\nHeaders:\n  Authorization: Bearer {your_token}\n\nBody: {}\n```\n\n**Backend Auto-Detection:**\n1. Backend detects Authorization header → Extracts username\n2. Looks up userId from username → e.g., \"694ad50733a491c51efe77e2\"\n3. **Automatically activates LINK mode** (no manual mode parameter)\n4. Generates state with embedded userId: `GITHUB:uuid:LINK:userId:clientState`\n5. Auto-generates redirectUri: `http://localhost:3000/oauth/callback/github`\n6. Uses default scope: `[\"read:user\", \"user:email\"]`\n\n**How it works:**\n1. Send this request WITH Bearer token and empty body `{}`\n2. Backend embeds your userId in state automatically\n3. State format: `GITHUB:uuid:LINK:694ad50733a491c51efe77e2:uuid`\n4. Open authorizationUrl in browser → Authorize GitHub\n5. GitHub redirects to callback → Backend detects LINK mode from state\n6. **Callback AUTO-LINKS** provider to your account (no manual step)\n7. Browser receives response: `{tokenType: \"LINK_SUCCESS\", userInfo: {...}}`\n\n**Optional Custom Fields:**\nYou can still override defaults:\n- `state` (string): Custom state for tracking\n- `redirectUri` (string): Custom callback URL\n- `scope` (array): Custom OAuth scopes (e.g., add \"repo\" for repository access)\n\n**Response:**\n```json\n{\n  \"authorizationUrl\": \"https://github.com/login/oauth/authorize?...\",\n  \"state\": \"GITHUB:uuid:LINK:694ad50733a491c51efe77e2:clientState\",\n  \"provider\": \"GITHUB\",\n  \"expiresIn\": 600\n}\n```\n\n**Important Notes:**\n- ✅ Backend detects LINK mode from Authorization header (no manual mode parameter)\n- ✅ OAuth code is single-use, consumed by callback for linking\n- ✅ No need for manual POST /link endpoint\n- ✅ Callback response will NOT return new JWT tokens (you already have one)\n- ❌ Cannot link if GitHub email already used by another account"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Account Management",
+            "item": [
+                {
+                    "name": "Get Linked Accounts",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ Linked providers:', response.linkedProviders.length);",
+                                    "    console.log('✅ Has password:', response.hasPassword);",
+                                    "    console.log('✅ Can unlink all:', response.canUnlinkAll);",
+                                    "    ",
+                                    "    response.linkedProviders.forEach(provider => {",
+                                    "        console.log('   - ' + provider.provider + ': ' + provider.email);",
+                                    "    });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/linked-accounts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "linked-accounts"
+                            ]
+                        },
+                        "description": "Get all OAuth providers linked to current user"
+                    }
+                },
+                {
+                    "name": "Unlink Google Account",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 204', function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 204) {",
+                                    "    console.log('✅ Google account unlinked successfully');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/unlink/GOOGLE",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "unlink",
+                                "GOOGLE"
+                            ]
+                        },
+                        "description": "Unlink Google account from current user"
+                    }
+                },
+                {
+                    "name": "Unlink GitHub Account",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 204', function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 204) {",
+                                    "    console.log('✅ GitHub account unlinked successfully');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/unlink/GITHUB",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "unlink",
+                                "GITHUB"
+                            ]
+                        },
+                        "description": "Unlink GitHub account from current user"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔒 OAuth User Management",
+            "item": [
+                {
+                    "name": "Get Auth Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ User ID:', response.userId);",
+                                    "    console.log('✅ Username:', response.username);",
+                                    "    console.log('✅ Has Password:', response.hasPassword);",
+                                    "    console.log('✅ OAuth Providers:', response.oauthProviders);",
+                                    "    console.log('✅ Total Auth Methods:', response.totalAuthMethods);",
+                                    "    console.log('✅ Can Unlink OAuth:', response.canUnlinkOAuth);",
+                                    "    console.log('📝 Message:', response.message);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/oauth/auth-status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "oauth",
+                                "auth-status"
+                            ]
+                        },
+                        "description": "**Get user's authentication status**\n\n**Response:**\n- `hasPassword` (boolean): Whether user has set a password\n- `oauthProviders` (array): List of linked OAuth providers (GOOGLE, GITHUB)\n- `totalAuthMethods` (number): Total authentication methods available\n- `canUnlinkOAuth` (boolean): Whether user can unlink OAuth providers\n- `message` (string): Guidance message\n\n**Use cases:**\n- Check before attempting to unlink OAuth provider\n- Determine if user should set password\n- Display user's authentication options in UI"
+                    }
+                },
+                {
+                    "name": "Set Password (OAuth Users)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ Password set successfully');",
+                                    "    console.log('✅ Message:', response.message);",
+                                    "    console.log('⚠️  You can now login with username/password');",
+                                    "    console.log('⚠️  You can now safely unlink OAuth providers');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"newPassword\": \"{{newPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/set-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "set-password"
+                            ]
+                        },
+                        "description": "**Set password for OAuth-only users**\n\n**Purpose:**\nAllows users who registered via OAuth (Google/GitHub) to set a password, enabling traditional login method.\n\n**Required:**\n- Must be authenticated (Bearer token)\n- User must NOT already have a password (use `/change-password` if already has password)\n\n**Password Requirements:**\n- Minimum 8 characters\n- At least 1 uppercase letter\n- At least 1 lowercase letter\n- At least 1 number\n- At least 1 special character (@$!%*?&)\n\n**Benefits after setting password:**\n- Can login with username/password (traditional method)\n- Can unlink OAuth providers safely\n- Have backup login method if OAuth provider has issues\n\n**Error Cases:**\n- 400: User already has password (use `/change-password` instead)\n- 400: Password doesn't meet requirements"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Password Reset Flow",
+            "item": [
+                {
+                    "name": "1. Request Password Reset (Send OTP)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('✅ Password reset OTP sent to:', response.email || pm.variables.get('resetEmail'));",
+                                    "    console.log('⚠️  Check email for OTP code');",
+                                    "    console.log('⚠️  OTP expires in 15 minutes');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{resetEmail}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/forgot-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "Request password reset OTP via email"
+                    }
+                },
+                {
+                    "name": "2. Verify OTP",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('resetToken', response.resetToken);",
+                                    "    console.log('✅ OTP verified successfully');",
+                                    "    console.log('✅ Reset token saved');",
+                                    "    console.log('⚠️  Use reset token to change password within 15 minutes');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{resetEmail}}\",\n  \"otp\": \"{{resetOtp}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/verify-reset-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-reset-otp"
+                            ]
+                        },
+                        "description": "Verify OTP and get reset token"
+                    }
+                },
+                {
+                    "name": "3. Reset Password",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Password reset successfully');",
+                                    "    console.log('✅ You can now login with new password');",
+                                    "    ",
+                                    "    // Clear reset token",
+                                    "    pm.environment.unset('resetToken');",
+                                    "    pm.environment.unset('resetOtp');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/reset-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "Reset password using reset token"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Traditional Auth (For Testing)",
+            "item": [
+                {
+                    "name": "Register",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('testUsername', pm.variables.get('testUsername'));",
+                                    "    pm.environment.set('testEmail', pm.variables.get('testEmail'));",
+                                    "    console.log('✅ User registered:', response.username);",
+                                    "    console.log('⚠️  Check email for OTP verification');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"fullName\": \"Test User\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Register traditional user for testing OAuth linking"
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('accessToken', response.accessToken);",
+                                    "    pm.environment.set('refreshToken', response.refreshToken);",
+                                    "    console.log('✅ Login successful');",
+                                    "    console.log('✅ Access token saved');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login to get JWT tokens for testing OAuth link"
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string"
+        },
+        {
+            "key": "googleRedirectUri",
+            "value": "http://localhost:9085/auth/oauth/callback/google",
+            "type": "string"
+        },
+        {
+            "key": "googleAuthCode",
+            "value": "",
+            "type": "string",
+            "description": "Authorization code from Google callback URL (manually copy after Step 1)"
+        },
+        {
+            "key": "githubRedirectUri",
+            "value": "http://localhost:9085/auth/oauth/callback/github",
+            "type": "string"
+        },
+        {
+            "key": "githubAuthCode",
+            "value": "",
+            "type": "string",
+            "description": "Authorization code from GitHub callback URL (manually copy after Step 1)"
+        },
+        {
+            "key": "testUsername",
+            "value": "testuser",
+            "type": "string"
+        },
+        {
+            "key": "testEmail",
+            "value": "test@example.com",
+            "type": "string"
+        },
+        {
+            "key": "testPassword",
+            "value": "Test@123456",
+            "type": "string"
+        },
+        {
+            "key": "resetEmail",
+            "value": "test@example.com",
+            "type": "string"
+        },
+        {
+            "key": "newPassword",
+            "value": "NewPass@123456",
+            "type": "string"
+        }
+    ]
+}

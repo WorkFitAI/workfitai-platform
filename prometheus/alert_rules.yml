@@ -1,0 +1,65 @@
+groups:
+  - name: config_server_alerts
+    interval: 30s
+    rules:
+      # Alert when monitoring-service (Config Server) is down
+      - alert: MonitoringServiceDown
+        expr: up{job="spring-boot-services", instance="monitoring-service:9086"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: monitoring-service
+        annotations:
+          summary: "Monitoring Service (Config Server) is down"
+          description: "The monitoring-service running Config Server has been down for more than 1 minute. This will prevent configuration updates across all services."
+      
+      # Alert when Vault connection fails
+      - alert: VaultConnectionFailed
+        expr: |
+          sum(rate(spring_cloud_config_server_vault_errors_total[5m])) > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: monitoring-service
+        annotations:
+          summary: "Config Server cannot connect to Vault"
+          description: "The Config Server has been experiencing Vault connection errors for more than 2 minutes. Configuration refresh will fail."
+      
+      # Alert when config fetch latency is high
+      - alert: HighConfigFetchLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(spring_cloud_config_server_environment_controller_seconds_bucket[5m])
+          ) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: monitoring-service
+        annotations:
+          summary: "High latency in Config Server fetch operations"
+          description: "95th percentile of config fetch latency is above 2 seconds for more than 3 minutes. This may indicate performance issues with Vault or the Config Server."
+      
+      # Alert when memory usage is high
+      - alert: MonitoringServiceHighMemory
+        expr: |
+          (jvm_memory_used_bytes{job="spring-boot-services", instance="monitoring-service:9086", area="heap"} 
+           / jvm_memory_max_bytes{job="spring-boot-services", instance="monitoring-service:9086", area="heap"}) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring-service
+        annotations:
+          summary: "Monitoring Service heap memory usage is high"
+          description: "Heap memory usage is above 90% for more than 5 minutes. This may lead to OutOfMemoryError."
+      
+      # Alert when Config Server refresh events fail
+      - alert: ConfigRefreshEventsFailed
+        expr: |
+          sum(rate(spring_cloud_bus_refresh_failed_total[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+          service: monitoring-service
+        annotations:
+          summary: "Config refresh events are failing"
+          description: "Spring Cloud Bus refresh events have been failing for more than 2 minutes. Services may not receive configuration updates."

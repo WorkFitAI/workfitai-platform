@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alert rules
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+# Spring Boot Micrometer uses /actuator/prometheus
+scrape_configs:
+  - job_name: 'spring-boot-services'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # All services use port 9005 inside container (SERVER_PORT=9005)
+      - targets:
+          - api-gateway:9005         # external: 9085
+          - auth-service:9005        # external: 9080
+          - user-service:9005        # external: 9081
+          - job-service:9005         # external: 9082
+          - cv-service:9005          # external: 9083
+          - application-service:9005 # external: 9084
+          - monitoring-service:9005  # external: 9086
+          - notification-service:9005 # external: 9087

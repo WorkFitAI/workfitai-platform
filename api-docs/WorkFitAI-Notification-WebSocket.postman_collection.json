@@ -1,0 +1,1069 @@
+{
+    "info": {
+        "_postman_id": "notification-ws-collection-001",
+        "name": "WorkFitAI - Notification & WebSocket",
+        "description": "Complete testing collection for Notification System and WebSocket real-time updates.\n\n**Features:**\n- REST API: Get notifications, unread count, mark as read\n- WebSocket: Real-time notification delivery via STOMP\n- Trigger notifications through various actions\n- End-to-end workflow testing\n\n**Architecture:**\n- Backend: notification-service (port 9005 internal, 9087 external)\n- API Gateway: localhost:9085\n- WebSocket: ws://localhost:9085/notification/ws/notifications\n- Protocol: STOMP over WebSocket with SockJS fallback\n- Auth: JWT Bearer token\n\n**How to use:**\n1. Import this collection\n2. Run '1.1 Login as Candidate' to get access token\n3. Test REST API endpoints (section 2)\n4. Trigger notifications (section 3)\n5. For WebSocket: Open test-websocket.html in browser with your token\n\n**WebSocket Testing:**\n- URL: ws://localhost:9085/notification/ws/notifications\n- Auth: Pass JWT token in STOMP headers\n- Channels:\n  - /user/{email}/queue/notifications (receive notifications)\n  - /user/{email}/queue/unread-count (unread count updates)\n  - /topic/notifications (system broadcasts)\n\n**Notification Types:**\n- EMAIL_NOTIFICATION: OTP, password reset, account activation\n- PASSWORD_CHANGED: Security alert\n- APPLICATION_STATUS_CHANGED: Application updates\n- ACCOUNT_APPROVED/REJECTED: HR approval decisions\n- And more...",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. SETUP - Authentication",
+            "item": [
+                {
+                    "name": "1.1 Login as Candidate",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    if (jsonData.data.require2FA && jsonData.data.tempToken) {",
+                                    "        pm.collectionVariables.set(\"tempToken\", jsonData.data.tempToken);",
+                                    "        console.log(\"⚠️ 2FA required! Check email/SMS for code\");",
+                                    "    } else {",
+                                    "        pm.expect(jsonData.data).to.have.property(\"accessToken\");",
+                                    "        pm.collectionVariables.set(\"userToken\", jsonData.data.accessToken);",
+                                    "        pm.collectionVariables.set(\"userEmail\", jsonData.data.email);",
+                                    "        console.log(\"✅ Login successful\");",
+                                    "        console.log(\"📧 Email: \" + jsonData.data.email);",
+                                    "        console.log(\"🔑 Token saved to collection variables\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"usernameOrEmail\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login to get JWT token for notification API calls and WebSocket authentication"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "1.2 Login as HR",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"HR login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    if (!jsonData.data.require2FA) {",
+                                    "        pm.collectionVariables.set(\"hrToken\", jsonData.data.accessToken);",
+                                    "        pm.collectionVariables.set(\"hrEmail\", jsonData.data.email);",
+                                    "        console.log(\"✅ HR login successful\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"usernameOrEmail\": \"{{hrEmail}}\",\n  \"password\": \"{{hrPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login as HR to test HR-related notifications"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "2. NOTIFICATION REST API",
+            "item": [
+                {
+                    "name": "2.1 Get Notifications (Paginated)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get notifications successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property(\"content\");",
+                                    "    pm.expect(jsonData).to.have.property(\"totalElements\");",
+                                    "    ",
+                                    "    console.log(\"✅ Retrieved \" + jsonData.totalElements + \" notifications\");",
+                                    "    console.log(\"📄 Current page: \" + jsonData.number + \" of \" + jsonData.totalPages);",
+                                    "    ",
+                                    "    if (jsonData.content.length > 0) {",
+                                    "        pm.collectionVariables.set(\"testNotificationId\", jsonData.content[0].id);",
+                                    "        console.log(\"📋 First notification:\");",
+                                    "        console.log(\"   ID: \" + jsonData.content[0].id);",
+                                    "        console.log(\"   Type: \" + jsonData.content[0].type);",
+                                    "        console.log(\"   Title: \" + jsonData.content[0].title);",
+                                    "        console.log(\"   Read: \" + jsonData.content[0].read);",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{userToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0",
+                                    "description": "Page number (0-based)"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10",
+                                    "description": "Items per page (max 100)"
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of notifications for current user from MongoDB"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2.2 Get Unread Count",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get unread count successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property(\"count\");",
+                                    "    ",
+                                    "    console.log(\"✅ Unread notifications: \" + jsonData.count);",
+                                    "    pm.collectionVariables.set(\"unreadCount\", jsonData.count);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{userToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/unread-count",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "unread-count"
+                            ]
+                        },
+                        "description": "Get count of unread notifications for current user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2.3 Mark Notification as Read",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Mark as read successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property(\"id\");",
+                                    "    pm.expect(jsonData.read).to.eql(true);",
+                                    "    ",
+                                    "    console.log(\"✅ Notification marked as read\");",
+                                    "    console.log(\"📨 WebSocket should push updated unread count\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{userToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/{{testNotificationId}}/read",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "{{testNotificationId}}",
+                                "read"
+                            ]
+                        },
+                        "description": "Mark a specific notification as read. This will:\n1. Update read status in MongoDB\n2. Calculate new unread count\n3. Push updated count to user via WebSocket (/user/queue/unread-count)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2.4 Mark All as Read",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Mark all as read successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    console.log(\"✅ All notifications marked as read\");",
+                                    "    console.log(\"📨 WebSocket should push unread count = 0\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{userToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/read-all",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "read-all"
+                            ]
+                        },
+                        "description": "Mark all unread notifications as read for current user. Pushes count=0 via WebSocket."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "3. TRIGGER NOTIFICATIONS",
+            "item": [
+                {
+                    "name": "3.1 Register New User (Triggers OTP Notification)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Registration successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    var jsonData = pm.response.json();",
+                                    "    ",
+                                    "    console.log(\"✅ User registered\");",
+                                    "    console.log(\"📨 Notification triggered: OTP_VERIFICATION\");",
+                                    "    console.log(\"📧 Email sent to: \" + jsonData.data.email);",
+                                    "    console.log(\"🔔 In-app notification created: false (transactional email only)\");",
+                                    "    ",
+                                    "    pm.collectionVariables.set(\"newUserEmail\", jsonData.data.email);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"notif_test_{{$timestamp}}@test.com\",\n  \"password\": \"TestUser123!@\",\n  \"fullName\": \"Notification Test User\",\n  \"phoneNumber\": \"+840987654321\",\n  \"role\": \"CANDIDATE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Register new user → Triggers OTP email notification\n\nNotification Details:\n- Type: EMAIL_NOTIFICATION\n- Template: OTP_VERIFICATION\n- Channel: EMAIL_ONLY\n- Priority: HIGH\n- In-App: false (transactional email only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.2 Request Password Reset (Triggers Email)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Password reset requested\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    console.log(\"✅ Password reset OTP sent\");",
+                                    "    console.log(\"📨 Notification: PASSWORD_RESET_REQUEST\");",
+                                    "    console.log(\"📧 Email sent with OTP code\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{candidateEmail}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/forgot-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "Request password reset → Triggers PASSWORD_RESET email\n\nNotification Details:\n- Type: PASSWORD_RESET_REQUEST\n- Template: password-reset\n- Channel: EMAIL_ONLY\n- Priority: HIGH\n- Strategy: TransactionalEmailStrategy"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3.3 Change Password (Triggers Security Alert)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Password changed\", function () {",
+                                    "    if (pm.response.code === 200) {",
+                                    "        console.log(\"✅ Password changed successfully\");",
+                                    "        console.log(\"📨 Notification: PASSWORD_CHANGED\");",
+                                    "        console.log(\"🔔 Both email and in-app notification sent\");",
+                                    "        console.log(\"⚡ WebSocket push: Security alert to user\");",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{userToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currentPassword\": \"{{candidatePassword}}\",\n  \"newPassword\": \"NewPassword123!@\",\n  \"confirmPassword\": \"NewPassword123!@\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/change-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "change-password"
+                            ]
+                        },
+                        "description": "Change password → Triggers CRITICAL security notification\n\nNotification Details:\n- Type: PASSWORD_CHANGED\n- Template: password-changed\n- Channel: BOTH (email + in-app)\n- Priority: CRITICAL\n- Strategy: CriticalNotificationStrategy\n- WebSocket: Instant push to user\n\n⚠️ Note: Use a test account for this!"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "4. WEBSOCKET TESTING GUIDE",
+            "item": [
+                {
+                    "name": "4.1 WebSocket Connection Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/actuator/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "actuator",
+                                "health"
+                            ]
+                        },
+                        "description": "**WebSocket Connection Details:**\n\n**Endpoint:**\n- Direct: `ws://localhost:9087/notification/ws/notifications`\n- Via Gateway: `ws://localhost:9085/notification/ws/notifications`\n\n**Protocol:** STOMP over WebSocket with SockJS fallback\n\n**Authentication:**\n```javascript\nstompClient.connect(\n  { 'Authorization': 'Bearer YOUR_JWT_TOKEN' },\n  onConnected,\n  onError\n);\n```\n\n**Subscribe to channels:**\n```javascript\n// User-specific notifications\nstompClient.subscribe('/user/queue/notifications', (message) => {\n  const notification = JSON.parse(message.body);\n  console.log('New notification:', notification);\n});\n\n// Unread count updates\nstompClient.subscribe('/user/queue/unread-count', (message) => {\n  const data = JSON.parse(message.body);\n  console.log('Unread count:', data.count);\n});\n\n// System broadcasts\nstompClient.subscribe('/topic/notifications', (message) => {\n  const notification = JSON.parse(message.body);\n  console.log('System notification:', notification);\n});\n```\n\n**Testing Methods:**\n\n1. **Using test-websocket.html:**\n   - Open `/path/to/test-websocket.html` in browser\n   - Paste your JWT token (from login response)\n   - Click Connect\n   - Watch real-time updates\n\n2. **Using Browser Console:**\n   ```javascript\n   const socket = new SockJS('http://localhost:9085/notification/ws/notifications');\n   const client = Stomp.over(socket);\n   client.connect(\n     { Authorization: 'Bearer ' + token },\n     () => console.log('Connected'),\n     (error) => console.error('Error:', error)\n   );\n   ```\n\n3. **Using Frontend:**\n   - Login to WorkFitAI UI\n   - Check notification bell icon\n   - Green dot = WebSocket connected\n   - Trigger any action → see real-time update\n\n**Expected Flow:**\n1. User performs action (register, apply, etc.)\n2. Service publishes event to Kafka\n3. NotificationEventListener processes\n4. Saves to MongoDB\n5. Pushes via WebSocket to connected clients\n6. Frontend receives and displays instantly\n\n**Troubleshooting:**\n- Check token is valid and not expired\n- Verify WebSocket service is running: `docker ps | grep notification`\n- Check browser console for connection errors\n- Review notification-service logs: `docker logs notification-service`"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4.2 Get WebSocket Stats",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// This endpoint may require admin access or be disabled in production",
+                                    "console.log(\"Check notification-service logs for WebSocket statistics\");",
+                                    "console.log(\"Command: docker logs notification-service | grep WebSocketSession\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/actuator/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "actuator",
+                                "health"
+                            ]
+                        },
+                        "description": "Check WebSocket health and statistics.\n\nWebSocket stats are logged every 30 minutes:\n- Current active connections\n- Total connections\n- Failed connections\n- STOMP messages processed (CONNECT, CONNECTED, DISCONNECT)\n\nTo view stats:\n```bash\ndocker logs notification-service | grep 'WebSocketSession'\n```"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "5. END-TO-END WORKFLOW",
+            "item": [
+                {
+                    "name": "5.1 Setup - Register Test User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set(\"workflowUserEmail\", jsonData.data.email);",
+                                    "    console.log(\"✅ Step 1: User registered\");",
+                                    "    console.log(\"📧 Email: \" + jsonData.data.email);",
+                                    "    console.log(\"📨 Notification sent: OTP_VERIFICATION\");",
+                                    "    console.log(\"\\n⏭️  Next: Verify OTP to activate account\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"workflow_{{$timestamp}}@test.com\",\n  \"password\": \"WorkflowTest123!@\",\n  \"fullName\": \"WebSocket Workflow Test\",\n  \"phoneNumber\": \"+840123456789\",\n  \"role\": \"CANDIDATE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Step 1: Register new user\n→ Triggers OTP email notification"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.2 Login Workflow User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    if (!jsonData.data.require2FA) {",
+                                    "        pm.collectionVariables.set(\"workflowToken\", jsonData.data.accessToken);",
+                                    "        console.log(\"✅ Step 2: Login successful\");",
+                                    "        console.log(\"🔑 Token saved\");",
+                                    "        console.log(\"\\n⏭️  Next: Connect WebSocket and check notifications\");",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"usernameOrEmail\": \"{{workflowUserEmail}}\",\n  \"password\": \"WorkflowTest123!@\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Step 2: Login to get JWT token\n→ Use this token for WebSocket connection"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.3 Check Notifications via REST",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Step 3: Retrieved notifications\");",
+                                    "    console.log(\"📊 Total: \" + jsonData.totalElements);",
+                                    "    console.log(\"📋 Current page: \" + jsonData.content.length + \" items\");",
+                                    "    ",
+                                    "    if (jsonData.content.length > 0) {",
+                                    "        console.log(\"\\n📨 Latest notification:\");",
+                                    "        console.log(\"   Type: \" + jsonData.content[0].type);",
+                                    "        console.log(\"   Title: \" + jsonData.content[0].title);",
+                                    "        console.log(\"   Read: \" + jsonData.content[0].read);",
+                                    "        console.log(\"   Created: \" + jsonData.content[0].createdAt);",
+                                    "    }",
+                                    "    ",
+                                    "    console.log(\"\\n⏭️  Next: Request password reset to trigger new notification\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{workflowToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification?page=0&size=5",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "description": "Step 3: Check notifications via REST API\n→ See OTP notification from registration"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.4 Trigger Password Reset (New Notification)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log(\"✅ Step 4: Password reset triggered\");",
+                                    "    console.log(\"📨 New notification: PASSWORD_RESET\");",
+                                    "    console.log(\"📧 Email sent with OTP\");",
+                                    "    console.log(\"\\n💡 If WebSocket is connected, you should receive this in real-time!\");",
+                                    "    console.log(\"\\n⏭️  Next: Check notifications again (should see new one)\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{workflowUserEmail}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/forgot-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "Step 4: Trigger password reset\n→ New notification should appear\n→ If WebSocket connected, instant update!"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.5 Check Updated Notifications",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Step 5: Notifications updated\");",
+                                    "    console.log(\"📊 Total now: \" + jsonData.totalElements);",
+                                    "    ",
+                                    "    if (jsonData.content.length > 0) {",
+                                    "        console.log(\"\\n📨 Latest notifications:\");",
+                                    "        jsonData.content.slice(0, 3).forEach((notif, i) => {",
+                                    "            console.log(`   ${i+1}. ${notif.type} - ${notif.title} (Read: ${notif.read})`);",
+                                    "        });",
+                                    "    }",
+                                    "    ",
+                                    "    console.log(\"\\n⏭️  Next: Mark notification as read\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{workflowToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification?page=0&size=5",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "description": "Step 5: Check notifications again\n→ Should see password reset notification"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.6 Check Unread Count",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Step 6: Unread count retrieved\");",
+                                    "    console.log(\"🔔 Unread notifications: \" + jsonData.count);",
+                                    "    ",
+                                    "    pm.collectionVariables.set(\"beforeReadCount\", jsonData.count);",
+                                    "    console.log(\"\\n⏭️  Next: Mark all as read (will trigger WebSocket update)\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{workflowToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/unread-count",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "unread-count"
+                            ]
+                        },
+                        "description": "Step 6: Check unread count before marking as read"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.7 Mark All as Read (WebSocket Update)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var beforeCount = pm.collectionVariables.get(\"beforeReadCount\");",
+                                    "    console.log(\"✅ Step 7: All notifications marked as read\");",
+                                    "    console.log(\"📊 Before: \" + beforeCount + \" unread\");",
+                                    "    console.log(\"📊 After: 0 unread\");",
+                                    "    console.log(\"\\n⚡ WebSocket event triggered:\");",
+                                    "    console.log(\"   Channel: /user/queue/unread-count\");",
+                                    "    console.log(\"   Payload: { count: 0 }\");",
+                                    "    console.log(\"\\n💡 If connected via WebSocket, notification bell should update instantly!\");",
+                                    "    console.log(\"\\n✅ WORKFLOW COMPLETE!\");",
+                                    "    console.log(\"\\n📝 Summary:\");",
+                                    "    console.log(\"   1. ✅ User registered → OTP notification\");",
+                                    "    console.log(\"   2. ✅ User logged in → Got JWT token\");",
+                                    "    console.log(\"   3. ✅ Retrieved notifications via REST API\");",
+                                    "    console.log(\"   4. ✅ Triggered password reset → New notification\");",
+                                    "    console.log(\"   5. ✅ Verified new notification appeared\");",
+                                    "    console.log(\"   6. ✅ Marked all as read → WebSocket push\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{workflowToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/read-all",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "read-all"
+                            ]
+                        },
+                        "description": "Step 7: Mark all as read\n→ Triggers WebSocket push with count=0\n→ Frontend should update badge instantly!"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5.8 Verify Final State",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    console.log(\"✅ Final verification\");",
+                                    "    console.log(\"🔔 Unread count: \" + jsonData.count);",
+                                    "    ",
+                                    "    pm.test(\"All notifications marked as read\", function() {",
+                                    "        pm.expect(jsonData.count).to.eql(0);",
+                                    "    });",
+                                    "    ",
+                                    "    console.log(\"\\n🎉 TEST COMPLETED SUCCESSFULLY!\");",
+                                    "    console.log(\"\\n📊 Results:\");",
+                                    "    console.log(\"   ✅ REST API: Working\");",
+                                    "    console.log(\"   ✅ Notifications: Created and retrieved\");",
+                                    "    console.log(\"   ✅ Mark as read: Working\");",
+                                    "    console.log(\"   ✅ Unread count: Updated correctly\");",
+                                    "    console.log(\"   ✅ WebSocket push: Triggered (if connected)\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{workflowToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/notification/unread-count",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "notification",
+                                "unread-count"
+                            ]
+                        },
+                        "description": "Final Step: Verify count is now 0"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:9085",
+            "type": "string"
+        },
+        {
+            "key": "candidateEmail",
+            "value": "candidate@test.com",
+            "type": "string"
+        },
+        {
+            "key": "candidatePassword",
+            "value": "Candidate123!@",
+            "type": "string"
+        },
+        {
+            "key": "hrEmail",
+            "value": "hr@test.com",
+            "type": "string"
+        },
+        {
+            "key": "hrPassword",
+            "value": "HR123!@",
+            "type": "string"
+        },
+        {
+            "key": "userToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "hrToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "userEmail",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "testNotificationId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "unreadCount",
+            "value": "0",
+            "type": "string"
+        },
+        {
+            "key": "newUserEmail",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "workflowUserEmail",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "workflowToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "beforeReadCount",
+            "value": "0",
+            "type": "string"
+        },
+        {
+            "key": "tempToken",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

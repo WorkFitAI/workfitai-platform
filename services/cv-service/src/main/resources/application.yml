@@ -1,0 +1,186 @@
+# =============================================================================
+# cv-service Configuration (Unified Approach)
+# =============================================================================
+spring:
+  application:
+    name: cv-service
+  profiles:
+    active: docker # Default profile cho containers
+  config:
+    import: "optional:vault://secret/cv-service"
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+  # Multipart file upload configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB # Maximum file size for a single file
+      max-request-size: 15MB # Maximum request size (file + other data)
+      file-size-threshold: 2KB # Files larger than this are written to disk temporarily
+
+logging:
+  level:
+    # Service-specific logging
+    org.workfitai: DEBUG
+    org.workfitai.cvservice: DEBUG
+
+    # Spring Framework
+    org.springframework: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+    # MongoDB
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.data.mongodb.core: DEBUG
+    org.springframework.boot.autoconfigure.mongo: DEBUG
+    org.mongodb.driver: DEBUG
+
+    # Redis
+    org.springframework.data.redis: DEBUG
+    io.lettuce: DEBUG
+
+    # Consul
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.client: DEBUG
+
+    # Vault
+    org.springframework.cloud.vault: DEBUG
+
+    # Feign & HTTP
+    feign: DEBUG
+    org.springframework.web.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+server:
+  port: ${SERVER_PORT:9005}
+
+# Application-specific configuration
+app:
+  kafka:
+    topics:
+      notification-events: ${KAFKA_TOPIC_NOTIFICATION_EVENTS:notification-events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: false # Disable Redis health check
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+# =============================================================================
+# DOCKER PROFILE (for container deployment)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:myroot}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: cv
+        health-check-path: /actuator/health
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+# Service URLs for Docker environment
+service:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+---
+# =============================================================================
+# LOCAL PROFILE (for IDE development)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    vault:
+      host: localhost
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${VAULT_TOKEN:dev-token}
+      kv:
+        enabled: true
+        backend: secret
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        service-name: cv
+        health-check-path: /actuator/health
+  data:
+    mongodb:
+      host: localhost
+      port: 27018
+      database: cv-db
+      username: user
+      password: "123456"
+      authentication-database: cv-db
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+# Override logging for local development
+logging:
+  level:
+    org.workfitai: DEBUG
+    org.springframework.cloud.vault: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG
