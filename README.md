@@ -8,19 +8,6 @@ WorkFitAI is an AI-powered recruitment and job matching platform built on modern
 
 ---
 
-## 📚 Documentation
-
-- **[Project Overview & PDR](docs/project-overview-pdr.md)** - Product vision, features, requirements
-- **[System Architecture](docs/system-architecture.md)** - Microservices design, data flows, infrastructure
-- **[Codebase Summary](docs/codebase-summary.md)** - Service structure, API endpoints, detailed features
-- **[Code Standards](docs/code-standards.md)** - Java/Spring Boot coding conventions, best practices
-- **[Project Roadmap](docs/project-roadmap.md)** - Development phases, milestones, features
-- **[Application Flow](docs/APPLICATION_FLOW.md)** - Job application submission workflow (Saga pattern, Kafka events)
-- **[Registration Flow](docs/REGISTRATION_FLOW.md)** - User registration and approval workflow
-- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, configuration, troubleshooting
-
----
-
 ## 🏗️ Architecture
 
 ### Microservices
@@ -322,68 +309,6 @@ export VAULT_TOKEN=dev-token
 - Security headers (CSP, HSTS, X-Frame-Options)
 - Rate limiting (Redis-based)
 - Secrets management (Vault)
-
----
-
-## 🧪 Testing
-
-### Test Coverage
-- Unit tests for all business logic
-- Integration tests with Testcontainers
-- Circuit breaker tests
-- Kafka consumer tests
-- Target: > 80% code coverage
-
-### Running Tests
-```bash
-# Run all tests for a service
-cd services/application-service
-./mvnw test
-
-# Run integration tests
-./mvnw verify
-
-# Run specific test
-./mvnw test -Dtest=ApplicationServiceImplTest
-```
-
----
-
-## 📖 Learn More
-
-Visit the [docs](docs/) directory for comprehensive documentation:
-- Architecture diagrams and data flows
-- API endpoint specifications
-- Coding standards and conventions
-- Development workflows and best practices
-
----
-
-## 🤝 Contributing
-
-1. Follow the [Code Standards](docs/code-standards.md)
-2. Use [Conventional Commits](docs/code-standards.md#git--commit-standards)
-3. Write tests for new features (>80% coverage)
-4. Update documentation for significant changes
-
----
-
-## 🗺️ Roadmap
-
-### Current Phase: Phase 3 - Notification & User Experience (40% Complete)
-- ✅ Notification service activation
-- ✅ Email notifications
-- ✅ WebSocket real-time notifications
-- 🔄 Enhanced user dashboard
-- 📋 Mobile responsiveness
-
-### Next Phase: Phase 4 - Advanced Search & Analytics
-- Elasticsearch integration
-- Full-text search with relevance scoring
-- Analytics dashboard
-- Reporting system
-
-See [Project Roadmap](docs/project-roadmap.md) for detailed timeline.
 
 ---
 
