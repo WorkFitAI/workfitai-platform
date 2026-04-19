@@ -78,7 +78,6 @@ public class Job extends AbstractAuditingEntity<UUID> {
     private Integer totalApplications;
 
     @NotNull(message = "ExpiresAt must not be null")
-    @Future(message = "ExpiresAt must be a future date")
     private Instant expiresAt;
 
     @NotNull(message = "Job status must not be null")
@@ -115,19 +114,14 @@ public class Job extends AbstractAuditingEntity<UUID> {
     private boolean isDeleted;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     @NotEmpty(message = "Job must have at least one skill")
-    @JoinTable(
-            name = "job_skill",
-            joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
+    @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("job")
     private List<Report> reports = new ArrayList<>();
-
 
     @Override
     public UUID getId() {
@@ -136,12 +130,14 @@ public class Job extends AbstractAuditingEntity<UUID> {
 
     @AssertTrue(message = "salaryMax must be greater than or equal to salaryMin")
     public boolean isSalaryValid() {
-        if (salaryMin == null || salaryMax == null) return true;
+        if (salaryMin == null || salaryMax == null)
+            return true;
         return salaryMax.compareTo(salaryMin) >= 0;
     }
 
     @PrePersist
     public void init() {
-        if (views == null) views = 0L;
+        if (views == null)
+            views = 0L;
     }
 }

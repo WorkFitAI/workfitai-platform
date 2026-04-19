@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.workfitai.jobservice.model.dto.response.Company.ResCompanyDTO;
 import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
+import org.workfitai.jobservice.model.enums.JobStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -25,8 +26,9 @@ public class ResJobDTO {
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
     private Instant expiresAt;
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
     private ResCompanyDTO company;
     private Instant createdDate;
+    private JobStatus status;
 }
