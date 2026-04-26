@@ -31,4 +31,5 @@ public class ResJobDTO {
     private ResCompanyDTO company;
     private Instant createdDate;
     private JobStatus status;
+    private boolean isDeleted;
 }
