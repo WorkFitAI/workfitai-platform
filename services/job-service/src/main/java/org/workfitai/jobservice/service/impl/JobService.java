@@ -79,7 +79,6 @@ public class JobService implements iJobService {
 
         // 2. Kết hợp thêm các specification cố định: statusPublished và isNoDeleted
         Specification<Job> finalSpec = baseSpec
-                .and(JobSpecifications.statusPublished())
                 .and(JobSpecifications.isNoDeleted());
 
         // 3. Lấy dữ liệu từ repository
@@ -115,7 +114,6 @@ public class JobService implements iJobService {
     @Override
     public ResultPaginationDTO fetchJobsByCompany(String companyId, Pageable pageable) {
         Specification<Job> spec = Specification.where(JobSpecifications.hasCompanyId(companyId))
-                .and(JobSpecifications.statusPublished())
                 .and(JobSpecifications.isNoDeleted());
 
         Page<Job> pageJob = jobRepository.findAll(spec, pageable);
@@ -131,7 +129,7 @@ public class JobService implements iJobService {
 
         Job job = jobOptional.get();
 
-        if (job.isDeleted() || !JobStatus.PUBLISHED.equals(job.getStatus())) {
+        if (job.isDeleted()) {
             return null;
         }
 
@@ -228,7 +226,7 @@ public class JobService implements iJobService {
                     .templateType("job-created")
                     .notificationType("job_posted") // Add notification type
                     .sendEmail(true)
-                    .createInAppNotification(true) // ✅ Enable in-app notification
+                    .createInAppNotification(true) // Enable in-app notification
                     .referenceId(job.getJobId().toString())
                     .referenceType("JOB")
                     .metadata(metadata)

@@ -56,11 +56,12 @@ public class ResJobDetailsForAdminDTO {
     private String responsibilities;
 
     // Skill list
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
 
     // Company info
     private ResCompanyDTO company;
 
     private String bannerUrl;
+    private boolean isDeleted;
 }

@@ -43,7 +43,7 @@ public class ResJobDetailsDTO {
     private Instant expiresAt;
     // Status
     private JobStatus status;
-    @JsonIgnoreProperties(value = {"jobs"})
+    @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
     // Company info
     private ResCompanyDTO company;
@@ -56,5 +56,7 @@ public class ResJobDetailsDTO {
 
     private String responsibilities;
 
-    private String createdBy; // Username of HR who created the job
+    private String createdBy;
+    private boolean isDeleted;
+
 }
