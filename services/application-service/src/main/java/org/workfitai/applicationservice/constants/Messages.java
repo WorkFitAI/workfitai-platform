@@ -30,6 +30,7 @@ public final class Messages {
         public static final String APPLICATION_ALREADY_EXISTS = "You have already applied to this job";
         public static final String INVALID_STATUS_TRANSITION = "Invalid status transition from %s to %s";
         public static final String ACCESS_DENIED = "You don't have permission to perform this action";
+        public static final String CANNOT_WITHDRAW_AFTER_REVIEWING = "Application can only be withdrawn while in APPLIED status";
         public static final String AUTHENTICATION_REQUIRED = "Authentication is required to access this resource";
         public static final String UNAUTHORIZED = "Access denied. Please authenticate";
         public static final String FORBIDDEN = "You don't have permission to access this resource";

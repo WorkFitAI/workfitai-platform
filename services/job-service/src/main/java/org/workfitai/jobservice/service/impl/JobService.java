@@ -351,7 +351,7 @@ public class JobService implements iJobService {
     }
 
     @Transactional
-    public void updateStats(UUID jobId, int applyCount) {
+    public void updateStats(UUID jobId, int applyCount, String operation) {
         if (jobId == null || applyCount <= 0) {
             log.warn("Invalid jobId or applyCount, skipping update");
             return;
@@ -368,15 +368,19 @@ public class JobService implements iJobService {
 
         int currentTotal = job.getTotalApplications();
 
-        job.setTotalApplications(currentTotal + applyCount);
-
-        if (job.getTotalApplications() == job.getQuantity()) {
-            job.setStatus(JobStatus.CLOSED);
+        if ("DECREMENT".equals(operation)) {
+            job.setTotalApplications(Math.max(0, currentTotal - applyCount));
+        } else {
+            // Default: INCREMENT
+            job.setTotalApplications(currentTotal + applyCount);
+            if (job.getTotalApplications() >= job.getQuantity()) {
+                job.setStatus(JobStatus.CLOSED);
+            }
         }
 
         jobRepository.save(job);
 
-        log.info("Updated totalApplications for jobId {}: {}", jobId, job.getTotalApplications());
+        log.info("Updated totalApplications for jobId {} ({}): {}", jobId, operation, job.getTotalApplications());
     }
 
     @Transactional

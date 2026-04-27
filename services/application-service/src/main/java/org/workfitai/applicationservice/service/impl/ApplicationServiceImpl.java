@@ -11,11 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
-import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
+import org.workfitai.applicationservice.dto.kafka.JobStatsUpdateEvent;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
 import org.workfitai.applicationservice.dto.response.StatusChangeResponse;
+import org.workfitai.applicationservice.exception.BadRequestException;
 import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
@@ -148,6 +149,10 @@ public class ApplicationServiceImpl implements IApplicationService {
             throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
         }
 
+        if (application.getStatus() != ApplicationStatus.APPLIED) {
+            throw new BadRequestException(Messages.Error.CANNOT_WITHDRAW_AFTER_REVIEWING);
+        }
+
         String jobId = application.getJobId();
         ApplicationStatus previousStatus = application.getStatus();
 
@@ -168,7 +173,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
         applicationRepository.save(application);
 
-        publishApplicationWithdrawnEvent(id, username, jobId);
+        publishJobStatsDecrementEvent(jobId);
 
         log.info(Messages.Log.APPLICATION_WITHDRAWN, id);
     }
@@ -285,23 +290,18 @@ public class ApplicationServiceImpl implements IApplicationService {
         }
     }
 
-    private void publishApplicationWithdrawnEvent(String applicationId, String username, String jobId) {
+    private void publishJobStatsDecrementEvent(String jobId) {
         try {
-            eventPublisher.publishApplicationWithdrawn(
-                    ApplicationWithdrawnEvent.builder()
-                            .eventId(UUID.randomUUID().toString())
-                            .eventType("APPLICATION_WITHDRAWN")
-                            .timestamp(Instant.now())
-                            .data(ApplicationWithdrawnEvent.WithdrawalData.builder()
-                                    .applicationId(applicationId)
-                                    .username(username)
-                                    .jobId(jobId)
-                                    .withdrawnAt(Instant.now())
-                                    .build())
-                            .build());
+            JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .jobId(UUID.fromString(jobId))
+                    .totalApplications(1)
+                    .timestamp(Instant.now())
+                    .operation("DECREMENT")
+                    .build();
+            eventPublisher.publishJobStatsUpdate(statsEvent);
         } catch (Exception e) {
-            // Fire-and-forget: log but don't fail the operation
-            log.warn("Failed to publish application withdrawn event (non-critical): {}", e.getMessage());
+            log.warn("Failed to publish job stats decrement event (non-critical): {}", e.getMessage());
         }
     }
 
