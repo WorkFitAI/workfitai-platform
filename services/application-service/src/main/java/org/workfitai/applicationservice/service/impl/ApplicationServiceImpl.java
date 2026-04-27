@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
-import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
 import org.workfitai.applicationservice.dto.kafka.JobStatsUpdateEvent;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
@@ -174,7 +173,6 @@ public class ApplicationServiceImpl implements IApplicationService {
 
         applicationRepository.save(application);
 
-        publishApplicationWithdrawnEvent(id, username, jobId);
         publishJobStatsDecrementEvent(jobId);
 
         log.info(Messages.Log.APPLICATION_WITHDRAWN, id);
