@@ -373,7 +373,7 @@ public class JobService implements iJobService {
         } else {
             // Default: INCREMENT
             job.setTotalApplications(currentTotal + applyCount);
-            if (job.getTotalApplications() == job.getQuantity()) {
+            if (job.getTotalApplications() >= job.getQuantity()) {
                 job.setStatus(JobStatus.CLOSED);
             }
         }
