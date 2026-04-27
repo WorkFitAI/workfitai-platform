@@ -29,7 +29,7 @@ public class JobStatsConsumer {
                 topic, event.getJobId(), event.getTotalApplications());
 
         try {
-            jobService.updateStats(event.getJobId(), event.getTotalApplications());
+            jobService.updateStats(event.getJobId(), event.getTotalApplications(), event.getOperation());
 
             log.info("Updated job stats successfully for jobId: {}", event.getJobId());
             ack.acknowledge();

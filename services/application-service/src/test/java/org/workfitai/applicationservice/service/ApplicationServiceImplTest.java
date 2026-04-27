@@ -18,6 +18,7 @@ import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.ApplicationWithdrawnEvent;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
+import org.workfitai.applicationservice.exception.BadRequestException;
 import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.mapper.ApplicationMapper;
@@ -215,15 +216,16 @@ class ApplicationServiceImplTest {
     class WithdrawApplicationTests {
 
         @Test
-        @DisplayName("Should withdraw application and publish Kafka event when user is owner")
+        @DisplayName("Should withdraw application and publish Kafka events when user is owner and status is APPLIED")
         void shouldWithdrawWhenOwner() {
-            given(applicationRepository.findById(APP_ID)).willReturn(Optional.of(savedApplication));
+            given(applicationRepository.findByIdAndDeletedAtIsNull(APP_ID)).willReturn(Optional.of(savedApplication));
+            given(applicationRepository.save(any(Application.class))).willReturn(savedApplication);
 
             applicationService.withdrawApplication(APP_ID, USERNAME);
 
-            then(applicationRepository).should().delete(savedApplication);
-
+            then(applicationRepository).should().save(any(Application.class));
             then(eventPublisher).should().publishApplicationWithdrawn(withdrawnEventCaptor.capture());
+            then(eventPublisher).should().publishJobStatsUpdate(any());
             ApplicationWithdrawnEvent event = withdrawnEventCaptor.getValue();
             assertThat(event.getEventType()).isEqualTo("APPLICATION_WITHDRAWN");
             assertThat(event.getData().getApplicationId()).isEqualTo(APP_ID);
@@ -232,21 +234,35 @@ class ApplicationServiceImplTest {
         }
 
         @Test
+        @DisplayName("Should throw BadRequestException when status is not APPLIED")
+        void shouldThrowBadRequestWhenStatusIsNotApplied() {
+            savedApplication.setStatus(ApplicationStatus.REVIEWING);
+            given(applicationRepository.findByIdAndDeletedAtIsNull(APP_ID)).willReturn(Optional.of(savedApplication));
+
+            assertThatThrownBy(() -> applicationService.withdrawApplication(APP_ID, USERNAME))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("APPLIED");
+
+            then(applicationRepository).should(never()).save(any());
+            then(eventPublisher).should(never()).publishApplicationWithdrawn(any());
+        }
+
+        @Test
         @DisplayName("Should throw ForbiddenException when user is not owner")
         void shouldThrowForbiddenWhenNotOwner() {
-            given(applicationRepository.findById(APP_ID)).willReturn(Optional.of(savedApplication));
+            given(applicationRepository.findByIdAndDeletedAtIsNull(APP_ID)).willReturn(Optional.of(savedApplication));
 
             assertThatThrownBy(() -> applicationService.withdrawApplication(APP_ID, "other-user"))
                     .isInstanceOf(ForbiddenException.class);
 
-            then(applicationRepository).should(never()).delete(any());
+            then(applicationRepository).should(never()).save(any());
             then(eventPublisher).should(never()).publishApplicationWithdrawn(any());
         }
 
         @Test
         @DisplayName("Should throw NotFoundException when application doesn't exist")
         void shouldThrowNotFoundWhenWithdrawingNonexistent() {
-            given(applicationRepository.findById(APP_ID)).willReturn(Optional.empty());
+            given(applicationRepository.findByIdAndDeletedAtIsNull(APP_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> applicationService.withdrawApplication(APP_ID, USERNAME))
                     .isInstanceOf(NotFoundException.class);
