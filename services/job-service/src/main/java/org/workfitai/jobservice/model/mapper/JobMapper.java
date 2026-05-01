@@ -10,6 +10,7 @@ import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.Job.*;
+import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 
@@ -34,6 +35,7 @@ public interface JobMapper {
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
+    @Mapping(target = "status", expression = "java(mapStatus(job))")
     ResJobDetailsDTO toResJobDetailsDTO(Job job);
 
     @Mapping(target = "skillNames", source = "skills")
@@ -46,26 +48,38 @@ public interface JobMapper {
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
+    @Mapping(target = "status", expression = "java(mapStatus(job))")
     ResJobDTO toResJobDTO(Job job);
+
+    @Mapping(target = "skillNames", source = "skills")
+    @Mapping(target = "postId", source = "jobId")
+    ResJobDTO toResJobForHrDTO(Job job);
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
     ResUpdateJobDTO toResUpdateJobDTO(Job job);
 
     default Company mapCompany(String companyNo, @Context CompanyRepository companyRepo) {
-        if (companyNo == null) return null;
+        if (companyNo == null)
+            return null;
         return companyRepo.findById(companyNo)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found: " + companyNo));
     }
 
     default List<Skill> mapSkills(List<UUID> skillIds, @Context SkillRepository skillRepo) {
-        if (skillIds == null) return null;
+        if (skillIds == null)
+            return null;
         return skillRepo.findAllById(skillIds);
     }
 
     // List<Skill> -> List<String>
     default List<String> mapSkillsToNames(List<Skill> skills) {
-        if (skills == null) return null;
+        if (skills == null)
+            return null;
         return skills.stream().map(Skill::getName).toList();
+    }
+
+    default JobStatus mapStatus(Job job) {
+        return job.getEffectiveStatus();
     }
 }

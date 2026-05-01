@@ -102,7 +102,7 @@ public class JobService implements iJobService {
         Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
 
         // 4. Chuyển Page<Job> sang ResultPaginationDTO dùng PaginationUtils
-        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobForHrDTO);
     }
 
     @Override
