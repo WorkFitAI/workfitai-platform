@@ -169,11 +169,14 @@ public class JobService implements iJobService {
 
     @Override
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
-        // String validCompanyNo = SecurityUtils.getValidCompanyNo();
+        String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        // companyRepository.findById(validCompanyNo).orElseThrow(
-        // () -> new NoPermissionException("You don't have permission to create job with
-        // this company"));
+        if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
+            throw new NoPermissionException("You don't have permission to create job with this company");
+        }
+
+        companyRepository.findById(validCompanyNo).orElseThrow(
+                () -> new NoPermissionException("You don't have permission to create job with this company"));
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
             Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
@@ -242,6 +245,10 @@ public class JobService implements iJobService {
     @Override
     public ResUpdateJobDTO updateJob(ReqUpdateJobDTO jobDTO, Job dbJob) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
+
+        if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
+            throw new NoPermissionException("You don't have permission to update job with this company");
+        }
         companyRepository.findById(validCompanyNo).orElseThrow(
                 () -> new NoPermissionException("You don't have permission to update job with this company"));
 
@@ -282,6 +289,10 @@ public class JobService implements iJobService {
     @Override
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
+
+        if (job.getCompany().getId() != null && !job.getCompany().getId().equals(validCompanyNo)) {
+            throw new NoPermissionException("You don't have permission to update job with this company");
+        }
 
         companyRepository.findById(validCompanyNo).orElseThrow(
                 () -> new NoPermissionException("You don't have permission to update stats with this company"));
