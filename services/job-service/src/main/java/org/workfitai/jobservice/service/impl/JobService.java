@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
@@ -297,6 +298,14 @@ public class JobService implements iJobService {
         companyRepository.findById(validCompanyNo).orElseThrow(
                 () -> new NoPermissionException("You don't have permission to update stats with this company"));
 
+        if (job.getStatus() == JobStatus.DRAFT
+                && job.getExpiresAt() != null
+                && job.getExpiresAt().isBefore(Instant.now())) {
+
+            throw new ResourceConflictException(
+                    "Job is expired. Please update expiration date before publishing.");
+        }
+
         if (status == job.getStatus()) {
             throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }
@@ -510,4 +519,16 @@ public class JobService implements iJobService {
         return changes;
     }
 
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void closeExpiredJobs() {
+
+        List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
+
+        for (Job job : jobs) {
+            job.setStatus(JobStatus.CLOSED);
+
+            jobEventProducer.publishJobExpired(job);
+        }
+    }
 }

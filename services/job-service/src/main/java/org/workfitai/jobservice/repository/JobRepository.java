@@ -13,6 +13,7 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,4 +65,12 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
         AND j.expiresAt > CURRENT_TIMESTAMP
       """)
   List<Job> findActiveJobsByIds(@Param("jobIds") List<UUID> jobIds);
+
+  @Query("""
+      SELECT j FROM Job j
+      WHERE j.status = 'PUBLISHED'
+      AND j.expiresAt <= :now
+      AND j.isDeleted = false
+      """)
+  List<Job> findJobsToClose(@Param("now") Instant now);
 }
