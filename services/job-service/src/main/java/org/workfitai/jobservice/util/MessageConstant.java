@@ -3,6 +3,7 @@ package org.workfitai.jobservice.util;
 public class MessageConstant {
     public static final String JOB_CREATED_SUCCESSFULLY = "Job created successfully";
     public static final String JOB_DETAIL_FETCHED_SUCCESSFULLY = "Job fetched successfully";
+    public static final String JOB_HAVE_NO_PERMISSION_TO_ACCESS = "You don't have permission to access this job";
     public static final String JOB_ALL_FETCHED_SUCCESSFULLY = "Jobs fetched successfully";
     public static final String JOB_FEATURED_FETCHED_SUCCESSFULLY = "Featured jobs fetched successfully";
     public static final String JOB_SIMILAR_FETCHED_SUCCESSFULLY = "Similar jobs fetched successfully";
@@ -12,6 +13,14 @@ public class MessageConstant {
     public static final String JOB_NOT_FOUND = "Job not found";
     public static final String JOB_STATUS_CONFLICT = "Job status conflict";
     public static final String JOB_DELETE_CONFLICT = "Cannot delete a PUBLISHED job";
+    public static final String JOB_CLOSE_CONFLICT = "Cannot update a closed job";
+    public static final String JOB_BANNER_UPLOADED_SUCCESSFULLY = "Job banner uploaded successfully";
+    public static final String JOB_BANNER_UPLOAD_FAILED = "Failed to upload job banner";
+    public static final String JOB_BANNER_INVALID_FILE = "Invalid file for job banner";
+    public static final String JOB_BANNER_NOT_FOUND = "Job banner not found";
+    public static final String JOB_HAVE_NO_PERMISSION_TO_UPDATE = "You don't have permission to update this job";
+    public static final String JOB_HAVE_NO_PERMISSION_TO_DELETE = "You don't have permission to delete this job";
+    public static final String JOB_DRAFT_EXPIRED_NEEDS_UPDATING = "Job is expired. Please update expiration date before publishing.";
 
     public static final String COMPANY_CREATED_SUCCESSFULLY = "Company created successfully";
     public static final String COMPANY_DETAIL_FETCHED_SUCCESSFULLY = "Company fetched successfully";

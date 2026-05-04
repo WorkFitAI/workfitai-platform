@@ -43,6 +43,10 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CLOSE_CONFLICT;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_DRAFT_EXPIRED_NEEDS_UPDATING;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_ACCESS;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_UPDATE;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_STATUS_CONFLICT;
 
@@ -85,7 +89,9 @@ public class JobService implements iJobService {
 
         // 2. Kết hợp thêm các specification cố định: statusPublished và isNoDeleted
         Specification<Job> finalSpec = baseSpec
-                .and(JobSpecifications.isNoDeleted());
+                .and(JobSpecifications.isNoDeleted())
+                .and(JobSpecifications.statusPublished())
+                .and(JobSpecifications.statusClosed());
 
         // 3. Lấy dữ liệu từ repository
         Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
@@ -99,22 +105,22 @@ public class JobService implements iJobService {
         // 1. Nếu spec null => khởi tạo Specification mở rộng (unrestricted)
         Specification<Job> baseSpec = (spec != null) ? spec : Specification.unrestricted();
 
-        // 2. Kết hợp thêm các specification cố định: ownedByCurrentUser và isNoDeleted
+        // 2. Kết hợp thêm các specification cố định: hasCompanyId và isNoDeleted
         Specification<Job> finalSpec = baseSpec
-                .and(JobSpecifications.ownedByCurrentUser())
+                .and(JobSpecifications.hasCompanyId(SecurityUtils.getValidCompanyNo()))
                 .and(JobSpecifications.isNoDeleted());
 
         // 3. Lấy dữ liệu từ repository
         Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
 
         // 4. Chuyển Page<Job> sang ResultPaginationDTO dùng PaginationUtils
-        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobForHrDTO);
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTOForManagement);
     }
 
     @Override
     public ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageJob = jobRepository.findAll(spec, pageable);
-        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTOForManagement);
     }
 
     @Override
@@ -139,6 +145,10 @@ public class JobService implements iJobService {
             return null;
         }
 
+        if (JobStatus.CLOSED.equals(job.getStatus())) {
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_ACCESS);
+        }
+
         return jobMapper.toResJobDetailsDTO(job);
     }
 
@@ -148,7 +158,7 @@ public class JobService implements iJobService {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
         companyRepository.findById(validCompanyNo)
-                .orElseThrow(() -> new NoPermissionException("You don't have permission to get the job!"));
+                .orElseThrow(() -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_ACCESS));
 
         Job job = jobRepository.findByIdAndCreatedBy(id, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException(JOB_NOT_FOUND));
@@ -178,11 +188,11 @@ public class JobService implements iJobService {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
         if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
-            throw new NoPermissionException("You don't have permission to create job with this company");
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
         }
 
         companyRepository.findById(validCompanyNo).orElseThrow(
-                () -> new NoPermissionException("You don't have permission to create job with this company"));
+                () -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE));
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
             Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
@@ -253,11 +263,18 @@ public class JobService implements iJobService {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
         if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
-            throw new NoPermissionException("You don't have permission to update job with this company");
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
         }
         companyRepository.findById(validCompanyNo).orElseThrow(
-                () -> new NoPermissionException("You don't have permission to update job with this company"));
+                () -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE));
 
+        if (dbJob.isDeleted()) {
+            throw new ResourceConflictException(JOB_NOT_FOUND);
+        }
+
+        if (dbJob.getStatus() == JobStatus.CLOSED) {
+            throw new ResourceConflictException(JOB_CLOSE_CONFLICT);
+        }
         // Clone the old job for change detection
         Job oldJob = cloneJobForComparison(dbJob);
 
@@ -297,11 +314,11 @@ public class JobService implements iJobService {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
         if (job.getCompany().getId() != null && !job.getCompany().getId().equals(validCompanyNo)) {
-            throw new NoPermissionException("You don't have permission to update job with this company");
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
         }
 
         companyRepository.findById(validCompanyNo).orElseThrow(
-                () -> new NoPermissionException("You don't have permission to update stats with this company"));
+                () -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE));
 
         // Kiểm tra nếu job đang ở trạng thái DRAFT và đã hết hạn thì không cho phép
         // chuyển sang trạng thái khác
@@ -310,7 +327,7 @@ public class JobService implements iJobService {
                 && job.getExpiresAt().isBefore(Instant.now())) {
 
             throw new ResourceConflictException(
-                    "Job is expired. Please update expiration date before publishing.");
+                    JOB_DRAFT_EXPIRED_NEEDS_UPDATING);
         }
         // TH Conflict Status: nếu status mới giống status cũ thì không update và trả về
         // lỗi ResourceConflictException

@@ -53,7 +53,7 @@ public interface JobMapper {
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
-    ResJobDTO toResJobForHrDTO(Job job);
+    ResJobDTOForManagement toResJobDTOForManagement(Job job);
 
     @Mapping(target = "skillNames", source = "skills")
     @Mapping(target = "postId", source = "jobId")
