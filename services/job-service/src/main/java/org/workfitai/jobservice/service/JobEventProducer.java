@@ -76,12 +76,7 @@ public class JobEventProducer {
                     .eventType("JOB_EXPIRED")
                     .timestamp(Instant.now())
                     .jobId(job.getJobId())
-                    .data(JobEventData.builder()
-                            .jobId(job.getJobId())
-                            .title(job.getTitle())
-                            .status(job.getStatus().name())
-                            .createdBy(job.getCreatedBy())
-                            .build())
+                    .data(mapJobToEventData(job))
                     .changes(Map.of(
                             "status", Map.of("old", "PUBLISHED", "new", "CLOSED"),
                             "reason", "EXPIRED"))

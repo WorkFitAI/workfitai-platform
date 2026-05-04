@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
+import org.workfitai.userservice.dto.response.UserInfoServeForJobResponse;
 import org.workfitai.userservice.enums.EUserRole;
 import org.workfitai.userservice.enums.EUserStatus;
 import org.workfitai.userservice.exception.ApiException;
@@ -492,5 +493,22 @@ public class UserServiceImpl implements UserService {
             log.error("Failed to remove OAuth provider {} from user {}", provider, username, e);
             throw new ApiException("Failed to update OAuth providers", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    public List<UserInfoServeForJobResponse> getUsersByUsernamesServeForJobUpdate(List<String> usernames) {
+
+        if (usernames == null || usernames.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UserEntity> users = userRepository.findAllByUsernameIn(usernames);
+
+        return users.stream()
+                .map(user -> new UserInfoServeForJobResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail()))
+                .collect(Collectors.toList());
     }
 }

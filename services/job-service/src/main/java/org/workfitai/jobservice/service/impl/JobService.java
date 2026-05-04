@@ -10,6 +10,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.workfitai.jobservice.client.UserFeignClient;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.config.errors.NoPermissionException;
 import org.workfitai.jobservice.config.errors.ResourceConflictException;
@@ -18,6 +19,7 @@ import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.Job.*;
@@ -60,10 +62,12 @@ public class JobService implements iJobService {
 
     private final NotificationProducer notificationProducer;
 
+    private final UserFeignClient userFeignClient;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
             SkillRepository skillRepository, CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
-            NotificationProducer notificationProducer) {
+            NotificationProducer notificationProducer, UserFeignClient userFeignClient) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -71,6 +75,7 @@ public class JobService implements iJobService {
         this.cloudinaryService = cloudinaryService;
         this.jobEventProducer = jobEventProducer;
         this.notificationProducer = notificationProducer;
+        this.userFeignClient = userFeignClient;
     }
 
     @Override
@@ -298,6 +303,8 @@ public class JobService implements iJobService {
         companyRepository.findById(validCompanyNo).orElseThrow(
                 () -> new NoPermissionException("You don't have permission to update stats with this company"));
 
+        // Kiểm tra nếu job đang ở trạng thái DRAFT và đã hết hạn thì không cho phép
+        // chuyển sang trạng thái khác
         if (job.getStatus() == JobStatus.DRAFT
                 && job.getExpiresAt() != null
                 && job.getExpiresAt().isBefore(Instant.now())) {
@@ -305,7 +312,8 @@ public class JobService implements iJobService {
             throw new ResourceConflictException(
                     "Job is expired. Please update expiration date before publishing.");
         }
-
+        // TH Conflict Status: nếu status mới giống status cũ thì không update và trả về
+        // lỗi ResourceConflictException
         if (status == job.getStatus()) {
             throw new ResourceConflictException(JOB_STATUS_CONFLICT);
         }
@@ -519,16 +527,82 @@ public class JobService implements iJobService {
         return changes;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh") // Auto find and close expired jobs every day at 23:59
     @Transactional
     public void closeExpiredJobs() {
 
         List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
 
-        for (Job job : jobs) {
-            job.setStatus(JobStatus.CLOSED);
+        // chỉ lấy username hợp lệ + loại system
+        List<String> usernames = jobs.stream()
+                .map(Job::getCreatedBy)
+                .filter(username -> !"system".equalsIgnoreCase(username))
+                .distinct()
+                .toList();
 
+        Map<String, String> emailMap = new HashMap<>();
+
+        if (!usernames.isEmpty()) {
+            try {
+                List<UserInfoServeForJobResponse> users = userFeignClient.getUsersByUsernames(usernames).getBody();
+
+                if (users != null) {
+                    emailMap = users.stream()
+                            .collect(Collectors.toMap(
+                                    UserInfoServeForJobResponse::getUsername,
+                                    UserInfoServeForJobResponse::getEmail));
+                }
+
+            } catch (Exception e) {
+                log.error("Failed to fetch users from user-service", e);
+            }
+        }
+
+        for (Job job : jobs) {
+
+            String createdBy = job.getCreatedBy();
+            String hrEmail = null;
+
+            if (!"system".equalsIgnoreCase(createdBy)) {
+                hrEmail = emailMap.get(createdBy);
+            }
+
+            sendExpiredNotification(job, hrEmail);
             jobEventProducer.publishJobExpired(job);
+        }
+    }
+
+    private void sendExpiredNotification(Job job, String hrEmail) {
+        try {
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("jobTitle", job.getTitle());
+            metadata.put("jobId", job.getJobId().toString());
+            metadata.put("companyName", job.getCompany() != null ? job.getCompany().getName() : "");
+            metadata.put("status", job.getStatus().toString());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .eventType("JOB_EXPIRED")
+                    .timestamp(Instant.now())
+                    .recipientEmail(hrEmail)
+                    .recipientUserId(job.getCreatedBy()) // Add userId for WebSocket push
+                    .recipientRole("HR")
+                    .subject("Job Expired: " + job.getTitle())
+                    .content("Your job posting \"" + job.getTitle() + "\" has been successfully expired.")
+                    .templateType("job-expired")
+                    .notificationType("job_expired") // Add notification type
+                    .sendEmail(true)
+                    .createInAppNotification(true) // Enable in-app notification
+                    .referenceId(job.getJobId().toString())
+                    .referenceType("JOB")
+                    .metadata(metadata)
+                    .build();
+
+            notificationProducer.send(event);
+            log.info("Sent job expired notification for job: {} to {}", job.getJobId(), hrEmail);
+        } catch (Exception e) {
+            log.error("Failed to send job expired notification for job: {}", job.getJobId(), e);
         }
     }
 }
