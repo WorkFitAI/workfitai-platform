@@ -527,21 +527,25 @@ public class JobService implements iJobService {
         return changes;
     }
 
-    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh") // Auto find and close expired jobs every day at 23:59
+    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
     @Transactional
     public void closeExpiredJobs() {
 
         List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
 
-        // chỉ lấy username hợp lệ + loại system
+        if (jobs.isEmpty())
+            return;
+
+        // 1. filter username hợp lệ
         List<String> usernames = jobs.stream()
                 .map(Job::getCreatedBy)
-                .filter(username -> !"system".equalsIgnoreCase(username))
+                .filter(u -> u != null && !"system".equalsIgnoreCase(u))
                 .distinct()
                 .toList();
 
         Map<String, String> emailMap = new HashMap<>();
 
+        // 2. call user-service 1 lần
         if (!usernames.isEmpty()) {
             try {
                 List<UserInfoServeForJobResponse> users = userFeignClient.getUsersByUsernames(usernames).getBody();
@@ -550,7 +554,8 @@ public class JobService implements iJobService {
                     emailMap = users.stream()
                             .collect(Collectors.toMap(
                                     UserInfoServeForJobResponse::getUsername,
-                                    UserInfoServeForJobResponse::getEmail));
+                                    UserInfoServeForJobResponse::getEmail,
+                                    (a, b) -> a));
                 }
 
             } catch (Exception e) {
@@ -558,16 +563,17 @@ public class JobService implements iJobService {
             }
         }
 
+        // 3. update DB BULK (tối ưu hơn save từng cái)
+        jobs.forEach(job -> job.setStatus(JobStatus.CLOSED));
+        jobRepository.saveAll(jobs);
+
+        // 4. xử lý side effects
         for (Job job : jobs) {
 
-            job.setStatus(JobStatus.CLOSED);
-
-            jobRepository.save(job);
-
             String createdBy = job.getCreatedBy();
-            String hrEmail = null;
 
-            if (!"system".equalsIgnoreCase(createdBy)) {
+            String hrEmail = null;
+            if (createdBy != null && !"system".equalsIgnoreCase(createdBy)) {
                 hrEmail = emailMap.get(createdBy);
             }
 
