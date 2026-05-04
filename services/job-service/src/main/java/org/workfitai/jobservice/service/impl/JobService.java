@@ -560,6 +560,10 @@ public class JobService implements iJobService {
 
         for (Job job : jobs) {
 
+            job.setStatus(JobStatus.CLOSED);
+
+            jobRepository.save(job);
+
             String createdBy = job.getCreatedBy();
             String hrEmail = null;
 
