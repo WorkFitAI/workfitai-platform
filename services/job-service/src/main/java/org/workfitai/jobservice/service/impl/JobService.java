@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -90,8 +91,8 @@ public class JobService implements iJobService {
         // 2. Kết hợp thêm các specification cố định: statusPublished và isNoDeleted
         Specification<Job> finalSpec = baseSpec
                 .and(JobSpecifications.isNoDeleted())
-                .and(JobSpecifications.statusPublished())
-                .and(JobSpecifications.statusClosed());
+                .and(JobSpecifications.statusIn(
+                        List.of(JobStatus.PUBLISHED, JobStatus.CLOSED)));
 
         // 3. Lấy dữ liệu từ repository
         Page<Job> pageJob = jobRepository.findAll(finalSpec, pageable);
@@ -145,7 +146,7 @@ public class JobService implements iJobService {
             return null;
         }
 
-        if (JobStatus.CLOSED.equals(job.getStatus())) {
+        if (JobStatus.CLOSED.equals(job.getStatus()) || JobStatus.DRAFT.equals(job.getStatus())) {
             throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_ACCESS);
         }
 

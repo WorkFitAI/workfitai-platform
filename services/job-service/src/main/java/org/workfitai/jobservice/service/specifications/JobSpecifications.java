@@ -1,5 +1,7 @@
 package org.workfitai.jobservice.service.specifications;
 
+import java.util.List;
+
 import org.springframework.data.jpa.domain.Specification;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.enums.JobStatus;
@@ -13,6 +15,10 @@ public class JobSpecifications {
 
     public static Specification<Job> statusClosed() {
         return (root, query, cb) -> cb.equal(root.get("status"), JobStatus.CLOSED);
+    }
+
+    public static Specification<Job> statusIn(List<JobStatus> statuses) {
+        return (root, query, cb) -> root.get("status").in(statuses);
     }
 
     public static Specification<Job> ownedByCurrentUser() {
