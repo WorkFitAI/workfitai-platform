@@ -2,6 +2,7 @@ package org.workfitai.jobservice.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -146,7 +147,7 @@ public class JobService implements iJobService {
             return null;
         }
 
-        if (JobStatus.CLOSED.equals(job.getStatus()) || JobStatus.DRAFT.equals(job.getStatus())) {
+        if (job.isDeleted() || JobStatus.DRAFT.equals(job.getStatus())) {
             throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_ACCESS);
         }
 
@@ -403,8 +404,7 @@ public class JobService implements iJobService {
             return;
         }
 
-        // Lock row để tránh race condition khi nhiều người apply cùng lúc
-        Optional<Job> optionalJob = jobRepository.findByIdForUpdate(jobId);
+        Optional<Job> optionalJob = jobRepository.findById(jobId);
         if (optionalJob.isEmpty()) {
             log.warn("Job not found with jobId: {}", jobId);
             return;
@@ -445,14 +445,18 @@ public class JobService implements iJobService {
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
         List<UUID> skillIds = job.getSkills()
-                .stream().map(Skill::getSkillId).toList();
+                .stream()
+                .map(Skill::getSkillId)
+                .toList();
 
-        List<Job> list = jobRepository.findSimilarJobs(
+        Specification<Job> spec = JobSpecifications.similarJobs(
                 jobId,
                 skillIds,
                 job.getLocation(),
                 job.getTitle(),
                 job.getExperienceLevel());
+
+        List<Job> list = jobRepository.findAll(spec);
 
         Collections.shuffle(list);
 
@@ -464,10 +468,18 @@ public class JobService implements iJobService {
 
     @Override
     public ResultPaginationDTO getFeaturedJobs(int page) {
-        Pageable pageable = PageRequest.of(page, 4);
+        Pageable pageable = PageRequest.of(
+                page,
+                4,
+                Sort.by(Sort.Direction.DESC, "views", "totalApplications"));
 
-        Page<Job> pageJob = jobRepository.findFeaturedJobs(pageable);
-        return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+        Page<Job> pageJob = jobRepository.findAll(
+                JobSpecifications.featuredJobs(),
+                pageable);
+
+        return PaginationUtils.toResultPaginationDTO(
+                pageJob,
+                jobMapper::toResJobDTO);
     }
 
     @Transactional

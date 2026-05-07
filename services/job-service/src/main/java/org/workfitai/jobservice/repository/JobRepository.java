@@ -21,56 +21,26 @@ import java.util.UUID;
 @SuppressWarnings("unused")
 @Repository
 public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificationExecutor<Job> {
-    List<Job> findBySkillsIn(List<Skill> skills);
+  List<Job> findBySkillsIn(List<Skill> skills);
 
-    boolean existsByJobId(UUID jobId);
+  boolean existsByJobId(UUID jobId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT j FROM Job j WHERE j.jobId = :jobId")
-    Optional<Job> findByIdForUpdate(@Param("jobId") UUID jobId);
+  Optional<Job> findByIdAndCreatedBy(UUID id, String createdBy);
 
-    @Query("""
-                SELECT DISTINCT j FROM Job j
-                JOIN j.skills s
-                WHERE j.jobId <> :jobId
-                  AND (
-                      s.skillId IN :skillIds
-                      OR LOWER(j.location) = LOWER(:location)
-                      OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                      OR j.experienceLevel = :exp
-                  )
-            """)
-    List<Job> findSimilarJobs(
-            @Param("jobId") UUID jobId,
-            @Param("skillIds") List<UUID> skillIds,
-            @Param("location") String location,
-            @Param("keyword") String keyword,
-            @Param("exp") ExperienceLevel exp);
+  @Query("""
+      SELECT j FROM Job j
+      WHERE j.jobId IN :jobIds
+        AND j.status = 'PUBLISHED'
+        AND j.isDeleted = false
+        AND j.expiresAt > CURRENT_TIMESTAMP
+      """)
+  List<Job> findActiveJobsByIds(@Param("jobIds") List<UUID> jobIds);
 
-    @Query("""
-                SELECT j FROM Job j
-                WHERE j.status = 'PUBLISHED'
-                  AND j.expiresAt > CURRENT_TIMESTAMP
-                ORDER BY j.views DESC, j.totalApplications DESC
-            """)
-    Page<Job> findFeaturedJobs(Pageable pageable);
-
-    Optional<Job> findByIdAndCreatedBy(UUID id, String createdBy);
-
-    @Query("""
-            SELECT j FROM Job j
-            WHERE j.jobId IN :jobIds
-              AND j.status = 'PUBLISHED'
-              AND j.isDeleted = false
-              AND j.expiresAt > CURRENT_TIMESTAMP
-            """)
-    List<Job> findActiveJobsByIds(@Param("jobIds") List<UUID> jobIds);
-
-    @Query("""
-            SELECT j FROM Job j
-            WHERE j.status = 'PUBLISHED'
-            AND j.expiresAt <= :now
-            AND j.isDeleted = false
-            """)
-    List<Job> findJobsToClose(@Param("now") Instant now);
+  @Query("""
+      SELECT j FROM Job j
+      WHERE j.status = 'PUBLISHED'
+      AND j.expiresAt <= :now
+      AND j.isDeleted = false
+      """)
+  List<Job> findJobsToClose(@Param("now") Instant now);
 }
