@@ -1,6 +1,6 @@
 package org.workfitai.jobservice.service.impl;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.client.UserFeignClient;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
@@ -70,10 +71,13 @@ public class JobService implements iJobService {
 
     private final UserFeignClient userFeignClient;
 
+    private final NotificationService notificationService;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
             SkillRepository skillRepository, CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
-            NotificationProducer notificationProducer, UserFeignClient userFeignClient) {
+            NotificationProducer notificationProducer, UserFeignClient userFeignClient,
+            NotificationService notificationService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -82,6 +86,7 @@ public class JobService implements iJobService {
         this.jobEventProducer = jobEventProducer;
         this.notificationProducer = notificationProducer;
         this.userFeignClient = userFeignClient;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -147,8 +152,8 @@ public class JobService implements iJobService {
             return null;
         }
 
-        if (job.isDeleted() || JobStatus.DRAFT.equals(job.getStatus())) {
-            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_ACCESS);
+        if (JobStatus.DRAFT.equals(job.getStatus())) {
+            return null;
         }
 
         return jobMapper.toResJobDetailsDTO(job);
@@ -189,12 +194,13 @@ public class JobService implements iJobService {
     public ResCreateJobDTO createJob(ReqJobDTO jobDTO) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
+        if (validCompanyNo == null) {
             throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
         }
 
-        companyRepository.findById(validCompanyNo).orElseThrow(
-                () -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE));
+        if (jobDTO.getCompanyNo() != null && !jobDTO.getCompanyNo().equals(validCompanyNo)) {
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
+        }
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
             Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
@@ -315,12 +321,13 @@ public class JobService implements iJobService {
     public ResModifyStatus updateStatus(Job job, JobStatus status) {
         String validCompanyNo = SecurityUtils.getValidCompanyNo();
 
-        if (job.getCompany().getId() != null && !job.getCompany().getId().equals(validCompanyNo)) {
+        if (validCompanyNo == null) {
             throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
         }
 
-        companyRepository.findById(validCompanyNo).orElseThrow(
-                () -> new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE));
+        if (job.getCompany().getId() != null && !job.getCompany().getId().equals(validCompanyNo)) {
+            throw new NoPermissionException(JOB_HAVE_NO_PERMISSION_TO_UPDATE);
+        }
 
         // Kiểm tra nếu job đang ở trạng thái DRAFT và đã hết hạn thì không cho phép
         // chuyển sang trạng thái khác
@@ -558,7 +565,7 @@ public class JobService implements iJobService {
     }
 
     @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeExpiredJobs() {
 
         List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
@@ -607,42 +614,8 @@ public class JobService implements iJobService {
                 hrEmail = emailMap.get(createdBy);
             }
 
-            sendExpiredNotification(job, hrEmail);
+            notificationService.sendExpiredNotificationAsync(job, hrEmail);
             jobEventProducer.publishJobExpired(job);
-        }
-    }
-
-    private void sendExpiredNotification(Job job, String hrEmail) {
-        try {
-
-            Map<String, Object> metadata = new HashMap<>();
-            metadata.put("jobTitle", job.getTitle());
-            metadata.put("jobId", job.getJobId().toString());
-            metadata.put("companyName", job.getCompany() != null ? job.getCompany().getName() : "");
-            metadata.put("status", job.getStatus().toString());
-
-            NotificationEvent event = NotificationEvent.builder()
-                    .eventId(UUID.randomUUID().toString())
-                    .eventType("JOB_EXPIRED")
-                    .timestamp(Instant.now())
-                    .recipientEmail(hrEmail)
-                    .recipientUserId(job.getCreatedBy()) // Add userId for WebSocket push
-                    .recipientRole("HR")
-                    .subject("Job Expired: " + job.getTitle())
-                    .content("Your job posting \"" + job.getTitle() + "\" has been successfully expired.")
-                    .templateType("job-expired")
-                    .notificationType("job_expired") // Add notification type
-                    .sendEmail(true)
-                    .createInAppNotification(true) // Enable in-app notification
-                    .referenceId(job.getJobId().toString())
-                    .referenceType("JOB")
-                    .metadata(metadata)
-                    .build();
-
-            notificationProducer.send(event);
-            log.info("Sent job expired notification for job: {} to {}", job.getJobId(), hrEmail);
-        } catch (Exception e) {
-            log.error("Failed to send job expired notification for job: {}", job.getJobId(), e);
         }
     }
 }
