@@ -144,7 +144,7 @@ public class ManagerStatsService {
 
     /**
      * Calculate average time to review in days.
-     * Time between appliedAt (submittedAt or createdAt) and first status change.
+     * Time between createdAt and first status change.
      */
     private double calculateAvgTimeToReview(List<Application> applications) {
         List<Long> reviewTimes = new ArrayList<>();
@@ -158,7 +158,7 @@ public class ManagerStatsService {
             // Find first status change
             if (app.getStatusHistory() != null && !app.getStatusHistory().isEmpty()) {
                 Instant firstChangeAt = app.getStatusHistory().get(0).getChangedAt();
-                Instant appliedAt = app.getSubmittedAt() != null ? app.getSubmittedAt() : app.getCreatedAt();
+                Instant appliedAt = app.getCreatedAt();
 
                 long daysBetween = Duration.between(appliedAt, firstChangeAt).toDays();
                 reviewTimes.add(daysBetween);

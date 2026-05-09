@@ -2,7 +2,6 @@ package org.workfitai.applicationservice.service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,15 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Service for advanced application search with dynamic filters.
  *
- * Supports:
- * - Date range filtering (fromDate, toDate)
- * - Multiple job IDs
- * - Text search in cover letter
- * - Status filtering
- * - Pagination with sorting
- *
- * Uses MongoDB Criteria API for building dynamic queries.
- * Performance optimized with compound indexes on (jobId, status, createdAt).
+ * companyId is mandatory for HR users and enforced at the controller layer.
+ * Admin callers pass companyId=null to bypass tenant scoping.
  */
 @Service
 @RequiredArgsConstructor
@@ -51,6 +43,7 @@ public class ApplicationSearchService {
      * @param fromDate   Start date for createdAt filter (optional)
      * @param toDate     End date for createdAt filter (optional)
      * @param searchText Text to search in cover letter (optional)
+     * @param companyId  Caller's company ID from JWT — null means admin (no tenant scoping)
      * @param pageable   Pagination parameters
      * @return Paginated search results
      */
@@ -60,30 +53,23 @@ public class ApplicationSearchService {
             Instant fromDate,
             Instant toDate,
             String searchText,
+            String companyId,
             Pageable pageable) {
 
-        log.info("Searching applications: jobIds={}, status={}, fromDate={}, toDate={}, searchText={}",
-                 jobIds, status, fromDate, toDate, searchText != null ? "***" : null);
+        log.info("Searching applications: jobIds={}, status={}, fromDate={}, toDate={}, searchText={}, companyId={}",
+                 jobIds, status, fromDate, toDate, searchText != null ? "***" : null, companyId);
 
-        Criteria criteria = buildSearchCriteria(jobIds, status, fromDate, toDate, searchText);
+        Criteria criteria = buildSearchCriteria(jobIds, status, fromDate, toDate, searchText, companyId);
         Query query = Query.query(criteria).with(pageable);
 
-        // Get total count for pagination
         long totalCount = mongoTemplate.count(Query.query(criteria), Application.class);
-
-        // Get paginated results
         List<Application> applications = mongoTemplate.find(query, Application.class);
 
-        // Map to response DTOs
         List<ApplicationResponse> responses = applications.stream()
                 .map(applicationMapper::toResponse)
                 .toList();
 
-        Page<ApplicationResponse> page = new PageImpl<>(
-            responses,
-            pageable,
-            totalCount
-        );
+        Page<ApplicationResponse> page = new PageImpl<>(responses, pageable, totalCount);
 
         log.info("Search completed: found {} results", totalCount);
 
@@ -96,39 +82,30 @@ public class ApplicationSearchService {
         );
     }
 
-    /**
-     * Build dynamic search criteria based on provided filters.
-     *
-     * @param jobIds     Job IDs filter
-     * @param status     Status filter
-     * @param fromDate   From date filter
-     * @param toDate     To date filter
-     * @param searchText Text search filter
-     * @return Combined criteria
-     */
     private Criteria buildSearchCriteria(
             List<String> jobIds,
             ApplicationStatus status,
             Instant fromDate,
             Instant toDate,
-            String searchText) {
+            String searchText,
+            String companyId) {
 
         Criteria criteria = new Criteria();
-
-        // Exclude soft-deleted applications
         criteria.and("deletedAt").isNull();
 
-        // Filter by job IDs
+        // Mandatory tenant scoping — null companyId means admin bypass (C2 fix)
+        if (companyId != null) {
+            criteria.and("companyId").is(companyId);
+        }
+
         if (jobIds != null && !jobIds.isEmpty()) {
             criteria.and("jobId").in(jobIds);
         }
 
-        // Filter by status
         if (status != null) {
             criteria.and("status").is(status);
         }
 
-        // Filter by date range
         if (fromDate != null) {
             criteria.and("createdAt").gte(fromDate);
         }
@@ -136,9 +113,7 @@ public class ApplicationSearchService {
             criteria.and("createdAt").lte(toDate);
         }
 
-        // Text search in cover letter (case-insensitive regex)
         if (searchText != null && !searchText.trim().isEmpty()) {
-            // Escape special regex characters to prevent injection
             String escapedText = escapeRegex(searchText.trim());
             criteria.and("coverLetter").regex(escapedText, "i");
         }
@@ -146,14 +121,7 @@ public class ApplicationSearchService {
         return criteria;
     }
 
-    /**
-     * Escape special regex characters to prevent NoSQL injection.
-     *
-     * @param text Raw search text
-     * @return Escaped text safe for regex
-     */
     private String escapeRegex(String text) {
-        // Escape MongoDB regex special characters
         return text.replaceAll("([.?*+^$\\[\\]\\\\(){}|])", "\\\\$1");
     }
 }

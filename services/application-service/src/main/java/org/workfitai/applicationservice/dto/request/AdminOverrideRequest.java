@@ -19,10 +19,6 @@ public record AdminOverrideRequest(
 
     String companyId, // Override company
 
-    Boolean isDraft, // Override draft flag
-
-    Instant submittedAt, // Override submission time
-
     Instant updatedAt, // Override update time
 
     String deletedBy, // Override deletion info

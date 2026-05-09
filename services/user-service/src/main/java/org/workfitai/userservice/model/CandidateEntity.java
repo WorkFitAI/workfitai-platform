@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.workfitai.userservice.converter.StringListConverter;
 
 import java.util.List;
 
@@ -81,11 +82,7 @@ public class CandidateEntity extends UserEntity {
   @Column(name = "cv_id")
   private List<String> cvIds;
 
-  /**
-   * Quan hệ nội bộ giữa Candidate và CandidateProfileSkill
-   * (có metadata: level, năm kinh nghiệm, thời điểm thêm)
-   */
-  @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL,
-      orphanRemoval = true, fetch = FetchType.LAZY)
-  private List<CandidateProfileSkillEntity> skills;
+  @Convert(converter = StringListConverter.class)
+  @Column(name = "skills", columnDefinition = "TEXT")
+  private List<String> skills;
 }

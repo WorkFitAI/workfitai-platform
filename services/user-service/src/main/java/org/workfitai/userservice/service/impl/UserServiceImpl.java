@@ -164,6 +164,17 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<UserBaseResponse> getUsersByCompanyId(String companyId) {
+        if (companyId == null || companyId.isBlank()) {
+            return Collections.emptyList();
+        }
+        // companyId from application-service is the company tax number (companyNo), not UUID
+        return hrRepository.findByCompanyNo(companyId).stream()
+                .map(this::mapToBaseResponse)
+                .collect(Collectors.toList());
+    }
+
     private UserBaseResponse mapToBaseResponse(UserEntity user) {
         UserBaseResponse.UserBaseResponseBuilder builder = UserBaseResponse.builder()
                 .userId(user.getUserId())

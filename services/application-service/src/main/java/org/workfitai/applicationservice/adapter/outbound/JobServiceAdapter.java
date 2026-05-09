@@ -51,6 +51,15 @@ public class JobServiceAdapter implements JobServicePort {
                 throw new NotFoundException("Job is not available for applications: " + jobId);
             }
 
+            String expiresAtStr = (String) jobData.get("expiresAt");
+            if (expiresAtStr != null) {
+                Instant expiresAt = Instant.parse(expiresAtStr);
+                if (expiresAt.isBefore(Instant.now())) {
+                    log.warn("Job {} has expired at {}", jobId, expiresAt);
+                    throw new NotFoundException("Job has expired and is no longer accepting applications: " + jobId);
+                }
+            }
+
             // Extract company info
             @SuppressWarnings("unchecked")
             Map<String, Object> company = (Map<String, Object>) jobData.get("company");
@@ -131,13 +140,22 @@ public class JobServiceAdapter implements JobServicePort {
                 return false;
             }
 
-            // Check if job is in PUBLISHED status
             Map<String, Object> jobData = response.getData();
             String status = (String) jobData.get("status");
-            boolean isPublished = "PUBLISHED".equals(status);
+            if (!"PUBLISHED".equals(status)) {
+                log.info("Job {} is not published: {}", jobId, status);
+                return false;
+            }
 
-            log.info("Job {} exists and is published: {}", jobId, isPublished);
-            return isPublished;
+            // Also reject expired jobs
+            String expiresAtStr = (String) jobData.get("expiresAt");
+            if (expiresAtStr != null && Instant.parse(expiresAtStr).isBefore(Instant.now())) {
+                log.info("Job {} has expired", jobId);
+                return false;
+            }
+
+            log.info("Job {} is published and not expired", jobId);
+            return true;
 
         } catch (FeignException.NotFound e) {
             log.debug("Job not found: {}", jobId);

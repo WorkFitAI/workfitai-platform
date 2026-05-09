@@ -128,6 +128,12 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- Caffeine in-process cache with TTL and size eviction (used by UserCompanyService) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- ==================== Utilities ==================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>

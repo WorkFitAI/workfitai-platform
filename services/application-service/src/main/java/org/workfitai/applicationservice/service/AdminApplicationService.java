@@ -49,8 +49,6 @@ public class AdminApplicationService {
                 .status(request.status() != null ? request.status() : ApplicationStatus.APPLIED)
                 .cvFileUrl(request.cvFileUrl())
                 .coverLetter(request.coverLetter())
-                .isDraft(false)
-                .submittedAt(request.createdAt() != null ? request.createdAt() : Instant.now())
                 .createdAt(request.createdAt() != null ? request.createdAt() : Instant.now())
                 .updatedAt(Instant.now())
                 .statusHistory(new ArrayList<>())
@@ -114,14 +112,6 @@ public class AdminApplicationService {
 
         if (request.companyId() != null) {
             application.setCompanyId(request.companyId());
-        }
-
-        if (request.isDraft() != null) {
-            application.setDraft(request.isDraft());
-        }
-
-        if (request.submittedAt() != null) {
-            application.setSubmittedAt(request.submittedAt());
         }
 
         if (request.updatedAt() != null) {

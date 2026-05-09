@@ -18,21 +18,7 @@ import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 @Repository
 public interface ApplicationRepository extends MongoRepository<Application, String> {
 
-        /**
-         * Checks if a user has already applied to a specific job.
-         * Uses compound index on (username, jobId) for O(1) lookup.
-         * NOTE: This checks ALL applications including soft-deleted ones.
-         * Use existsByUsernameAndJobIdAndDeletedAtIsNull() to check only active
-         * applications.
-         */
-        boolean existsByUsernameAndJobId(String username, String jobId);
-
-        /**
-         * Checks if a user has an active (non-deleted) application for a specific job.
-         * This should be used for duplicate validation to allow reapplication after
-         * withdrawal.
-         * Uses compound index on (username, jobId, deletedAt) for O(1) lookup.
-         */
+        /** Checks if a user has an active (non-deleted) application for a specific job. */
         boolean existsByUsernameAndJobIdAndDeletedAtIsNull(String username, String jobId);
 
         /** Finds all applications by a specific user (paginated). */
@@ -50,7 +36,7 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
         /** Finds applications for a job with specific status. */
         Page<Application> findByJobIdAndStatus(String jobId, ApplicationStatus status, Pageable pageable);
 
-        /** Counts applications for a job. */
+        /** Counts applications for a job (including soft-deleted — used for stats events). */
         long countByJobId(String jobId);
 
         /** Finds applications by status across all users/jobs. */
@@ -62,141 +48,85 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
         /** Finds specific application by user and job. */
         Optional<Application> findByUsernameAndJobId(String username, String jobId);
 
-        /** Finds recent applications for a user (sorted by createdAt desc). */
-        @Query(value = "{ 'username': ?0 }", sort = "{ 'createdAt': -1 }")
-        List<Application> findRecentByUsername(String username, int limit);
-
-        // ==================== Draft Application Queries ====================
-
-        /**
-         * Finds all draft applications for a user (not yet submitted).
-         * Excludes soft-deleted drafts.
-         */
-        Page<Application> findByUsernameAndIsDraftAndDeletedAtIsNull(String username, boolean isDraft,
-                        Pageable pageable);
-
-        /**
-         * Checks if user has a draft for a specific job.
-         * Useful to prevent multiple drafts for same job.
-         */
-        boolean existsByUsernameAndJobIdAndIsDraftAndDeletedAtIsNull(String username, String jobId, boolean isDraft);
+        /** Finds recent active applications for a user (sorted by createdAt desc). */
+        @Query(value = "{ 'username': ?0, 'deletedAt': null }", sort = "{ 'createdAt': -1 }")
+        List<Application> findRecentByUsername(String username);
 
         // ==================== Soft Delete Queries ====================
 
-        /**
-         * Finds application by ID, excluding soft-deleted ones.
-         * Use this for most read operations to hide deleted applications.
-         */
+        /** Finds application by ID, excluding soft-deleted ones. */
         Optional<Application> findByIdAndDeletedAtIsNull(String id);
 
-        /**
-         * Finds all active (non-deleted) applications by username.
-         */
+        /** Finds all active (non-deleted) applications by username. */
         Page<Application> findByUsernameAndDeletedAtIsNull(String username, Pageable pageable);
 
-        /**
-         * Finds active applications by username and status.
-         */
+        /** Finds active applications by username and status. */
         Page<Application> findByUsernameAndStatusAndDeletedAtIsNull(String username, ApplicationStatus status,
                         Pageable pageable);
 
-        /**
-         * Finds active applications for a job.
-         */
+        /** Finds active applications for a job. */
         Page<Application> findByJobIdAndDeletedAtIsNull(String jobId, Pageable pageable);
 
-        /**
-         * Finds active applications for a job with specific status.
-         */
+        /** Finds active applications for a job with specific status. */
         Page<Application> findByJobIdAndStatusAndDeletedAtIsNull(String jobId, ApplicationStatus status,
                         Pageable pageable);
 
-        /**
-         * Finds specific application by user and job (excluding deleted).
-         */
+        /** Finds specific application by user and job (excluding deleted). */
         Optional<Application> findByUsernameAndJobIdAndDeletedAtIsNull(String username, String jobId);
 
-        /**
-         * Counts active applications by user.
-         */
+        /** Counts active applications by user. */
         long countByUsernameAndDeletedAtIsNull(String username);
 
-        /**
-         * Counts active applications for a job.
-         */
+        /** Counts active applications for a job. */
         long countByJobIdAndDeletedAtIsNull(String jobId);
 
-        // ==================== Phase 3: Company \u0026 Assignment Queries
-        // ====================
+        // ==================== Phase 3: Company & Assignment Queries ====================
 
-        /**
-         * Finds all active applications for a company.
-         * Supports pagination and sorting.
-         */
+        /** Finds all active applications for a company. */
         Page<Application> findByCompanyIdAndDeletedAtIsNull(String companyId, Pageable pageable);
 
-        /**
-         * Finds active applications for a company with specific status.
-         */
+        /** Finds active applications for a company with specific status. */
         Page<Application> findByCompanyIdAndStatusAndDeletedAtIsNull(String companyId, ApplicationStatus status,
                         Pageable pageable);
 
-        /**
-         * Finds active applications for a company assigned to specific HR.
-         */
+        /** Finds active applications for a company assigned to specific HR. */
         Page<Application> findByCompanyIdAndAssignedToAndDeletedAtIsNull(String companyId, String assignedTo,
                         Pageable pageable);
 
-        /**
-         * Finds active (non-draft, non-deleted) applications assigned to specific HR
-         * user.
-         * Used for HR personal workload view.
-         */
-        Page<Application> findByAssignedToAndIsDraftFalseAndDeletedAtIsNull(String assignedTo, Pageable pageable);
+        /** Finds active applications assigned to specific HR user. */
+        Page<Application> findByAssignedToAndDeletedAtIsNull(String assignedTo, Pageable pageable);
 
-        /**
-         * Finds active (non-draft, non-deleted) applications assigned to HR with
-         * specific status.
-         */
-        Page<Application> findByAssignedToAndStatusAndIsDraftFalseAndDeletedAtIsNull(String assignedTo,
+        /** Finds active applications assigned to HR with specific status. */
+        Page<Application> findByAssignedToAndStatusAndDeletedAtIsNull(String assignedTo,
                         ApplicationStatus status,
                         Pageable pageable);
 
-        /**
-         * Counts active applications for a company.
-         */
+        /** Counts active applications for a company. */
         long countByCompanyIdAndDeletedAtIsNull(String companyId);
 
-        /**
-         * Counts active applications assigned to HR user.
-         */
+        /** Counts active applications assigned to HR user. */
         long countByAssignedToAndDeletedAtIsNull(String assignedTo);
 
-        /**
-         * Counts active applications for company by status.
-         */
+        /** Counts active applications for company by status. */
         long countByCompanyIdAndStatusAndDeletedAtIsNull(String companyId, ApplicationStatus status);
 
-        /**
-         * Finds all applications for company (for export).
-         * No pagination - use carefully with limits.
-         */
+        /** Finds all applications for company (for export — no pagination). Use with row limit. */
         List<Application> findByCompanyIdAndDeletedAtIsNull(String companyId);
 
         /**
          * Finds all applications for a company (including soft-deleted).
-         * Used for extracting HR usernames from all company applications.
+         * @deprecated Unbounded — OOM risk on large datasets. Use MongoTemplate with Criteria instead.
          */
+        @Deprecated
         List<Application> findByCompanyId(String companyId);
 
-        /**
-         * Finds all soft-deleted applications (for admin recovery).
-         */
+        /** Finds all soft-deleted applications (for admin recovery). */
         Page<Application> findByDeletedAtIsNotNull(Pageable pageable);
 
         /**
          * Finds all non-deleted applications (for export/reporting).
-         * Use with caution - can return large datasets.
+         * @deprecated Unbounded — OOM risk on large datasets. Use MongoTemplate with Criteria and limit instead.
          */
+        @Deprecated
         List<Application> findByDeletedAtIsNull();
 }

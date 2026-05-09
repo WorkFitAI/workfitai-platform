@@ -106,11 +106,7 @@ public class SecurityConfig {
             RSAPublicKey publicKey = publicKeyProvider.getPublicKey();
             NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
 
-            // Skip issuer validation - just validate signature and expiry
-            // This provides flexibility for different environments
-            decoder.setJwtValidator(
-                    jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
-
+            // Default validator is kept — validates exp (expiry) and nbf claims
             log.info("✅ JWT Decoder configured with RSA public key");
             return decoder;
 

@@ -48,6 +48,9 @@ public class ApplicationResponse {
 
     // CV File Info
 
+    @Schema(description = "Internal URL of the uploaded CV file (HR only)")
+    private String cvFileUrl;
+
     @NotBlank
     @Schema(description = "Original filename of the uploaded CV", example = "John_Doe_Resume.pdf")
     private String cvFileName;

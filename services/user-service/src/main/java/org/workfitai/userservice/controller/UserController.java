@@ -70,6 +70,21 @@ public class UserController {
     }
 
     /**
+     * Get HR and HR_MANAGER users belonging to a company.
+     * Called by application-service to list HR users for assignment.
+     *
+     * @param companyId the company UUID
+     * @return list of HR user base responses
+     */
+    @GetMapping("/by-company")
+    @PreAuthorize("hasAuthority('candidate:read')")
+    public ResponseEntity<ResponseData<List<UserBaseResponse>>> getByCompanyId(
+            @RequestParam("companyId") String companyId) {
+        List<UserBaseResponse> users = userService.getUsersByCompanyId(companyId);
+        return ResponseEntity.ok(ResponseData.success(Messages.User.FETCHED, users));
+    }
+
+    /**
      * Check if an email already exists in user-service.
      * Used by auth-service during registration to ensure data consistency.
      *

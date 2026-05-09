@@ -24,5 +24,5 @@ public class CandidateResponse extends UserBaseResponse {
   private String expectedPosition;
 
   private List<String> cvIds;
-  private List<CandidateProfileSkillResponse> skills;
+  private List<String> skills;
 }

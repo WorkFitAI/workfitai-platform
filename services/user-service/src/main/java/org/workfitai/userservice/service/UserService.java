@@ -80,6 +80,15 @@ public interface UserService {
     List<UserBaseResponse> getUsersByUsernames(List<String> usernames);
 
     /**
+     * Get HR and HR_MANAGER users belonging to a specific company.
+     * Used by application-service to list HR users for assignment.
+     *
+     * @param companyId company UUID as string
+     * @return list of HR user base responses
+     */
+    List<UserBaseResponse> getUsersByCompanyId(String companyId);
+
+    /**
      * Check if deactivated account can be reactivated (within 30 days) and
      * auto-reactivate.
      * Called by auth-service during login.
