@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.messaging.NotificationProducer;
-import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,41 +24,41 @@ public class NotificationService {
   }
 
   @Async
-  public void sendExpiredNotificationAsync(Job job, String hrEmail) {
-    sendExpiredNotification(job, hrEmail);
+  public void sendExpiredNotificationAsync(JobExpiredEventDTO dto) {
+    sendExpiredNotification(dto);
   }
 
-  private void sendExpiredNotification(Job job, String hrEmail) {
+  private void sendExpiredNotification(JobExpiredEventDTO dto) {
     try {
 
       Map<String, Object> metadata = new HashMap<>();
-      metadata.put("jobTitle", job.getTitle());
-      metadata.put("jobId", job.getJobId().toString());
-      metadata.put("companyName", job.getCompany() != null ? job.getCompany().getName() : "");
-      metadata.put("status", job.getStatus().toString());
+      metadata.put("jobTitle", dto.getJobTitle());
+      metadata.put("jobId", dto.getJobId());
+      metadata.put("companyName", dto.getCompanyName());
+      metadata.put("status", "CLOSED");
 
       NotificationEvent event = NotificationEvent.builder()
           .eventId(UUID.randomUUID().toString())
           .eventType("JOB_EXPIRED")
           .timestamp(Instant.now())
-          .recipientEmail(hrEmail)
-          .recipientUserId(job.getCreatedBy()) // Add userId for WebSocket push
+          .recipientEmail(dto.getEmail())
+          .recipientUserId(dto.getCreatedBy())
           .recipientRole("HR")
-          .subject("Job Expired: " + job.getTitle())
-          .content("Your job posting \"" + job.getTitle() + "\" has been successfully expired.")
+          .subject("Job Expired: " + dto.getJobTitle())
+          .content("Your job posting \"" + dto.getJobTitle() + "\" has been successfully closed.")
           .templateType("job-expired")
-          .notificationType("job_expired") // Add notification type
+          .notificationType("job_expired")
           .sendEmail(true)
-          .createInAppNotification(true) // Enable in-app notification
-          .referenceId(job.getJobId().toString())
+          .createInAppNotification(true)
+          .referenceId(dto.getJobId())
           .referenceType("JOB")
           .metadata(metadata)
           .build();
 
       notificationProducer.send(event);
-      log.info("Sent job expired notification for job: {} to {}", job.getJobId(), hrEmail);
+
     } catch (Exception e) {
-      log.error("Failed to send job expired notification for job: {}", job.getJobId(), e);
+      log.error("Failed to send notification", e);
     }
   }
 }

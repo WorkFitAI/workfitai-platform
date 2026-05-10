@@ -22,6 +22,7 @@ import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
 import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
@@ -73,11 +74,13 @@ public class JobService implements iJobService {
 
     private final NotificationService notificationService;
 
+    private final OutboxService outboxService;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
             SkillRepository skillRepository, CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
             NotificationProducer notificationProducer, UserFeignClient userFeignClient,
-            NotificationService notificationService) {
+            NotificationService notificationService, OutboxService outboxService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -87,6 +90,7 @@ public class JobService implements iJobService {
         this.notificationProducer = notificationProducer;
         this.userFeignClient = userFeignClient;
         this.notificationService = notificationService;
+        this.outboxService = outboxService;
     }
 
     @Override
@@ -565,7 +569,6 @@ public class JobService implements iJobService {
     }
 
     @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeExpiredJobs() {
 
         List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
@@ -573,7 +576,7 @@ public class JobService implements iJobService {
         if (jobs.isEmpty())
             return;
 
-        // 1. filter username hợp lệ
+        // 1. lấy usernames
         List<String> usernames = jobs.stream()
                 .map(Job::getCreatedBy)
                 .filter(u -> u != null && !"system".equalsIgnoreCase(u))
@@ -582,7 +585,7 @@ public class JobService implements iJobService {
 
         Map<String, String> emailMap = new HashMap<>();
 
-        // 2. call user-service 1 lần
+        // 2. gọi Feign 1 lần
         if (!usernames.isEmpty()) {
             try {
                 List<UserInfoServeForJobResponse> users = userFeignClient.getUsersByUsernames(usernames).getBody();
@@ -596,26 +599,31 @@ public class JobService implements iJobService {
                 }
 
             } catch (Exception e) {
-                log.error("Failed to fetch users from user-service", e);
+                log.error("Failed to fetch users", e);
             }
         }
 
-        // 3. update DB BULK (tối ưu hơn save từng cái)
-        jobs.forEach(job -> job.setStatus(JobStatus.CLOSED));
-        jobRepository.saveAll(jobs);
-
-        // 4. xử lý side effects
+        // 3. xử lý từng job
         for (Job job : jobs) {
-
-            String createdBy = job.getCreatedBy();
-
-            String hrEmail = null;
-            if (createdBy != null && !"system".equalsIgnoreCase(createdBy)) {
-                hrEmail = emailMap.get(createdBy);
-            }
-
-            notificationService.sendExpiredNotificationAsync(job, hrEmail);
-            jobEventProducer.publishJobExpired(job);
+            String hrEmail = emailMap.get(job.getCreatedBy());
+            closeJob(job, hrEmail);
         }
+    }
+
+    @Transactional
+    public void closeJob(Job job, String hrEmail) {
+
+        job.setStatus(JobStatus.CLOSED);
+        jobRepository.save(job);
+
+        JobExpiredEventDTO dto = new JobExpiredEventDTO(
+                job.getId().toString(),
+                job.getCreatedBy(),
+                hrEmail,
+                job.getTitle(),
+                job.getCompany() != null ? job.getCompany().getName() : "");
+
+        outboxService.saveEvent("JOB_EXPIRED", dto, job.getId().toString());
+        outboxService.saveEvent("SEND_MAIL", dto, job.getId().toString());
     }
 }
