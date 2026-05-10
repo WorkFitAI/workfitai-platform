@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Expired</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2563eb;
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .job-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .job-details h2 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 22px;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+            width: 150px;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: #212529;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-published {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-draft {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #2563eb ;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .auto-close-box {
+            background-color: #dbeafe;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Job Expired</h1>
+        </div>
+
+        <div class="content">
+            <h2>Dear <span th:text="${userName}">User</span>,</h2>
+
+            <div class="auto-close-box">
+                <strong>Your job posting has expired and closed on WorkFitAI.</strong>
+                <p style="margin: 10px 0 0 0;">To reactivate your job, please log in to your HR dashboard.</p>
+            </div>
+
+            <div class="job-details">
+                <h2 th:text="${jobTitle}">Job Title</h2>
+
+                <div class="detail-row">
+                    <div class="detail-label">Job ID:</div>
+                    <div class="detail-value" th:text="${jobId}">job-id-123</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Company:</div>
+                    <div class="detail-value" th:text="${companyName}">Company Name</div>
+                </div>
+            </div>
+
+            <p><strong>What's Next?</strong></p>
+            <ul>
+                <li>Your job posting is updated status to "Expired"</li>
+                <li>You can reactivate your job at any time</li>
+                <li>Check your job performance metrics in the HR dashboard</li>
+            </ul>
+
+            <div style="text-align: center;">
+                <a href="http://localhost:3000/job-posts" class="button">View Job Dashboard</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 WorkFitAI. All rights reserved.</p>
+            <p>You received this email because you posted a job on WorkFitAI.</p>
+        </div>
+    </div>
+</body>
+
+</html>

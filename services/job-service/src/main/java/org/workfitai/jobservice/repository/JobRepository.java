@@ -38,6 +38,7 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
 
   @Query("""
       SELECT j FROM Job j
+      LEFT JOIN FETCH j.company
       WHERE j.status = 'PUBLISHED'
       AND j.expiresAt <= :now
       AND j.isDeleted = false

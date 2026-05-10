@@ -36,6 +36,7 @@ public class NotificationService {
       metadata.put("jobId", dto.getJobId());
       metadata.put("companyName", dto.getCompanyName());
       metadata.put("status", "CLOSED");
+      metadata.put("userName", dto.getCreatedBy());
 
       NotificationEvent event = NotificationEvent.builder()
           .eventId(UUID.randomUUID().toString())

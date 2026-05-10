@@ -1,6 +1,10 @@
 package org.workfitai.jobservice.model;
 
+import org.workfitai.jobservice.model.enums.EventStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,7 +17,7 @@ import lombok.Setter;
 @Table(name = "outbox_expired_job_event")
 @Getter
 @Setter
-public class OutboxExpiredJobEvent {
+public class OutboxExpiredJobEvent extends AbstractAuditingEntity<Long> {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,5 +31,6 @@ public class OutboxExpiredJobEvent {
 
   private int retryCount = 0;
 
-  private String status; // NEW, SENT
+  @Enumerated(EnumType.STRING)
+  private EventStatus status;
 }

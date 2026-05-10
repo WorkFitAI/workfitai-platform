@@ -9,9 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.client.UserFeignClient;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
@@ -21,6 +19,7 @@ import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.OutboxExpiredJobEvent;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
 import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
@@ -72,8 +71,6 @@ public class JobService implements iJobService {
 
     private final UserFeignClient userFeignClient;
 
-    private final NotificationService notificationService;
-
     private final OutboxService outboxService;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
@@ -89,7 +86,6 @@ public class JobService implements iJobService {
         this.jobEventProducer = jobEventProducer;
         this.notificationProducer = notificationProducer;
         this.userFeignClient = userFeignClient;
-        this.notificationService = notificationService;
         this.outboxService = outboxService;
     }
 
@@ -568,62 +564,53 @@ public class JobService implements iJobService {
         return changes;
     }
 
-    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
-    public void closeExpiredJobs() {
+    public List<Job> findExpiredJobsToClose() {
+        return jobRepository.findJobsToClose(Instant.now());
+    }
 
-        List<Job> jobs = jobRepository.findJobsToClose(Instant.now());
+    @Transactional
+    public void updateJobsAndEvents(List<Job> jobs,
+            List<OutboxExpiredJobEvent> events) {
 
-        if (jobs.isEmpty())
-            return;
+        jobRepository.saveAll(jobs);
+        outboxService.saveEvents(events);
+    }
 
-        // 1. lấy usernames
+    public Map<String, String> fetchEmailMap(List<Job> jobs) {
+
         List<String> usernames = jobs.stream()
                 .map(Job::getCreatedBy)
                 .filter(u -> u != null && !"system".equalsIgnoreCase(u))
                 .distinct()
                 .toList();
 
-        Map<String, String> emailMap = new HashMap<>();
+        if (usernames.isEmpty())
+            return new HashMap<>();
 
-        // 2. gọi Feign 1 lần
-        if (!usernames.isEmpty()) {
-            try {
-                List<UserInfoServeForJobResponse> users = userFeignClient.getUsersByUsernames(usernames).getBody();
+        try {
+            List<UserInfoServeForJobResponse> users = userFeignClient.getUsersByUsernames(usernames).getBody();
 
-                if (users != null) {
-                    emailMap = users.stream()
-                            .collect(Collectors.toMap(
-                                    UserInfoServeForJobResponse::getUsername,
-                                    UserInfoServeForJobResponse::getEmail,
-                                    (a, b) -> a));
-                }
+            if (users == null)
+                return new HashMap<>();
 
-            } catch (Exception e) {
-                log.error("Failed to fetch users", e);
-            }
-        }
+            return users.stream()
+                    .collect(Collectors.toMap(
+                            UserInfoServeForJobResponse::getUsername,
+                            UserInfoServeForJobResponse::getEmail,
+                            (a, b) -> a));
 
-        // 3. xử lý từng job
-        for (Job job : jobs) {
-            String hrEmail = emailMap.get(job.getCreatedBy());
-            closeJob(job, hrEmail);
+        } catch (Exception e) {
+            log.error("Failed to fetch users", e);
+            return new HashMap<>();
         }
     }
 
-    @Transactional
-    public void closeJob(Job job, String hrEmail) {
-
-        job.setStatus(JobStatus.CLOSED);
-        jobRepository.save(job);
-
-        JobExpiredEventDTO dto = new JobExpiredEventDTO(
+    public JobExpiredEventDTO buildDTO(Job job, String hrEmail) {
+        return new JobExpiredEventDTO(
                 job.getId().toString(),
                 job.getCreatedBy(),
                 hrEmail,
                 job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "");
-
-        outboxService.saveEvent("JOB_EXPIRED", dto, job.getId().toString());
-        outboxService.saveEvent("SEND_MAIL", dto, job.getId().toString());
     }
 }
