@@ -25,8 +25,7 @@ public class AutoUpdateJobScheduler {
     this.outboxService = outboxService;
   }
 
-  // @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
-  @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Ho_Chi_Minh")
+  @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Ho_Chi_Minh")
   public void closeExpiredJobs() {
     List<Job> jobs = jobService.findExpiredJobsToClose();
     if (jobs.isEmpty())
