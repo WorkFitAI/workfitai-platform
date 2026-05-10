@@ -187,6 +187,15 @@ public class ApplicationSagaOrchestrator {
         String createdBy = jobInfo.getCreatedBy();
         boolean validHR = createdBy != null && !createdBy.isBlank() && !"system".equals(createdBy);
 
+        Instant now = Instant.now();
+        Application.StatusChange initialStatus = Application.StatusChange.builder()
+                .previousStatus(null)
+                .newStatus(ApplicationStatus.APPLIED)
+                .changedBy(context.getUsername())
+                .changedAt(now)
+                .reason("Application submitted")
+                .build();
+
         Application application = Application.builder()
                 .username(context.getUsername())
                 .email(context.getEmail())
@@ -199,8 +208,9 @@ public class ApplicationSagaOrchestrator {
                 .cvFileSize(fileResult.getFileSize())
                 .coverLetter(context.getCoverLetter())
                 .status(ApplicationStatus.APPLIED)
+                .statusHistory(new java.util.ArrayList<>(java.util.List.of(initialStatus)))
                 .assignedTo(validHR ? createdBy : null)
-                .assignedAt(validHR ? Instant.now() : null)
+                .assignedAt(validHR ? now : null)
                 .assignedBy(validHR ? "SYSTEM" : null)
                 .build();
 

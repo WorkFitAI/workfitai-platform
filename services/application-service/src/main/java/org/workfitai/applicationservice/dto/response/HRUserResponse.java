@@ -1,10 +1,12 @@
 package org.workfitai.applicationservice.dto.response;
 
+import java.time.Instant;
+
 import lombok.Builder;
 
 /**
  * Response DTO for HR user information.
- * Contains basic information about HR and HR_MANAGER users in a company.
+ * Contains full HR profile returned from user-service.
  */
 @Builder
 public record HRUserResponse(
@@ -14,5 +16,12 @@ public record HRUserResponse(
         String email,
         String phoneNumber,
         String userRole, // HR or HR_MANAGER
-        String companyId) {
+        String userStatus,
+        String companyId,
+        String companyName,
+        String companyNo,
+        String department,
+        String address,
+        String createdBy,
+        Instant createdDate) {
 }

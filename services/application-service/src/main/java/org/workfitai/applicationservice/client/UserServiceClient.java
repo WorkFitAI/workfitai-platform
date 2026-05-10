@@ -103,7 +103,7 @@ public interface UserServiceClient {
 
     /**
      * DTO for user information from user-service.
-     * Minimal fields needed for notifications and company validation.
+     * Maps to UserBaseResponse / HRResponse from user-service.
      */
     record UserInfo(
             String userId,
@@ -112,6 +112,15 @@ public interface UserServiceClient {
             String email,
             String phoneNumber,
             String userRole,
-            String companyId) {
+            String userStatus,
+            String companyId,
+            String companyName,
+            String companyNo,
+            String department,
+            String address,
+            String createdBy,
+            java.time.Instant createdDate,
+            String lastModifiedBy,
+            java.time.Instant lastModifiedDate) {
     }
 }

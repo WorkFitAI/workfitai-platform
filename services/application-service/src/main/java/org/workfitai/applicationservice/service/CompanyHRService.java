@@ -56,7 +56,14 @@ public class CompanyHRService {
                             .email(u.email())
                             .phoneNumber(u.phoneNumber())
                             .userRole(u.userRole())
-                            .companyId(companyId)
+                            .userStatus(u.userStatus())
+                            .companyId(u.companyId() != null ? u.companyId() : companyId)
+                            .companyName(u.companyName())
+                            .companyNo(u.companyNo())
+                            .department(u.department())
+                            .address(u.address())
+                            .createdBy(u.createdBy())
+                            .createdDate(u.createdDate())
                             .build())
                     .collect(Collectors.toList());
 
