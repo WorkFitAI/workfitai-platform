@@ -107,7 +107,8 @@ async def lifespan(app: FastAPI):
                     "group_id": settings.KAFKA_CONSUMER_GROUP,
                     "topic_job_created": settings.KAFKA_TOPIC_JOB_CREATED,
                     "topic_job_updated": settings.KAFKA_TOPIC_JOB_UPDATED,
-                    "topic_job_deleted": settings.KAFKA_TOPIC_JOB_DELETED
+                    "topic_job_deleted": settings.KAFKA_TOPIC_JOB_DELETED,
+                    "topic_job_expired": settings.KAFKA_TOPIC_JOB_EXPIRED,
                 }
                 
                 app_state["kafka_consumer"] = JobEventConsumer(
