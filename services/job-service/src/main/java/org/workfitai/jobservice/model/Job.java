@@ -140,4 +140,12 @@ public class Job extends AbstractAuditingEntity<UUID> {
         if (views == null)
             views = 0L;
     }
+
+    public JobStatus getEffectiveStatus() {
+        if (this.getExpiresAt() != null
+                && this.getExpiresAt().isBefore(Instant.now())) {
+            return JobStatus.CLOSED;
+        }
+        return this.getStatus();
+    }
 }

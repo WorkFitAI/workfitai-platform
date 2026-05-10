@@ -167,6 +167,7 @@ def load_config_from_vault() -> Dict[str, Any]:
         "KAFKA_TOPIC_JOB_CREATED": secrets.get("kafka.topic.job-created"),
         "KAFKA_TOPIC_JOB_UPDATED": secrets.get("kafka.topic.job-updated"),
         "KAFKA_TOPIC_JOB_DELETED": secrets.get("kafka.topic.job-deleted"),
+        "KAFKA_TOPIC_JOB_EXPIRED": secrets.get("kafka.topic.job-expired"),
         "KAFKA_AUTO_OFFSET_RESET": secrets.get("kafka.auto.offset.reset"),
         "ENABLE_KAFKA_CONSUMER": secrets.get("kafka.enable.consumer"),
         

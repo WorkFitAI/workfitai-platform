@@ -3,6 +3,7 @@ package org.workfitai.userservice.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
+import org.workfitai.userservice.dto.response.UserInfoServeForJobResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -181,4 +182,13 @@ public interface UserService {
      * @param provider the OAuth provider to remove (GOOGLE | GITHUB)
      */
     void removeOAuthProvider(String username, String provider);
+
+    /**
+     * Get users by list of usernames.
+     * Used for bulk user info retrieval (e.g., for job updates).
+     *
+     * @param usernames list of usernames
+     * @return list of user base responses
+     */
+    public List<UserInfoServeForJobResponse> getUsersByUsernamesServeForJobUpdate(List<String> usernames);
 }

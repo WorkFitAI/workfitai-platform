@@ -52,6 +52,7 @@ public class JobEventData {
     private Instant expiresAt;
     private Instant createdAt;
     private Instant updatedAt;
+    private String createdBy;
 
     /**
      * Company data nested trong job event

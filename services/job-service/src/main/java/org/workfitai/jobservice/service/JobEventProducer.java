@@ -36,6 +36,9 @@ public class JobEventProducer {
     @Value("${app.kafka.topics.job-deleted:job.deleted}")
     private String jobDeletedTopic;
 
+    @Value("${app.kafka.topics.job-expired:job.expired}")
+    private String jobExpiredTopic;
+
     /**
      * Publish event khi tạo job mới
      */
@@ -62,6 +65,28 @@ public class JobEventProducer {
      */
     public void publishJobUpdated(Job job) {
         publishJobUpdated(job, null);
+    }
+
+    /**
+     * Publish event khi auto closed job
+     */
+    public void publishJobExpired(Job job) {
+        try {
+            JobUpdatedEvent event = JobUpdatedEvent.builder()
+                    .eventType("JOB_EXPIRED")
+                    .timestamp(Instant.now())
+                    .jobId(job.getJobId())
+                    .data(mapJobToEventData(job))
+                    .changes(Map.of(
+                            "status", Map.of("old", "PUBLISHED", "new", "CLOSED"),
+                            "reason", "EXPIRED"))
+                    .build();
+
+            kafkaTemplate.send(jobExpiredTopic, job.getJobId().toString(), event);
+
+        } catch (Exception e) {
+            log.error("Failed to publish JOB_EXPIRED event", e);
+        }
     }
 
     /**

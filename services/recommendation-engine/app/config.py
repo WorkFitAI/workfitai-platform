@@ -92,6 +92,7 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_JOB_CREATED: str = Field(default="job.created", env="KAFKA_TOPIC_JOB_CREATED")
     KAFKA_TOPIC_JOB_UPDATED: str = Field(default="job.updated", env="KAFKA_TOPIC_JOB_UPDATED")
     KAFKA_TOPIC_JOB_DELETED: str = Field(default="job.deleted", env="KAFKA_TOPIC_JOB_DELETED")
+    KAFKA_TOPIC_JOB_EXPIRED: str = Field(default="job.expired", env="KAFKA_TOPIC_JOB_EXPIRED")
     KAFKA_AUTO_OFFSET_RESET: str = Field(default="earliest", env="KAFKA_AUTO_OFFSET_RESET")
     ENABLE_KAFKA_CONSUMER: bool = Field(default=True, env="ENABLE_KAFKA_CONSUMER")
     
@@ -130,7 +131,8 @@ class Settings(BaseSettings):
         return [
             self.KAFKA_TOPIC_JOB_CREATED,
             self.KAFKA_TOPIC_JOB_UPDATED,
-            self.KAFKA_TOPIC_JOB_DELETED
+            self.KAFKA_TOPIC_JOB_DELETED,
+            self.KAFKA_TOPIC_JOB_EXPIRED
         ]
     
     @property
