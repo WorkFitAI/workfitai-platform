@@ -3,26 +3,18 @@ package org.workfitai.applicationservice.model.enums;
 /**
  * Enum representing the lifecycle status of a job application.
  *
- * Flow: DRAFT → APPLIED → REVIEWING → INTERVIEW → OFFER → HIRED
- *                ↓        ↓           ↓
- *              REJECTED REJECTED   REJECTED
- *                ↓
- *            WITHDRAWN
+ * Flow: APPLIED → REVIEWING → INTERVIEW → OFFER → HIRED
+ *          ↓         ↓           ↓          ↓
+ *       REJECTED  REJECTED   REJECTED   REJECTED
+ *          ↓
+ *       WITHDRAWN
  *
  * Business rules:
- * - Draft applications are not yet submitted (isDraft=true)
- * - New applications start with APPLIED status after submission
+ * - New applications start with APPLIED status on submission
  * - Only recruiters/admins can change status (except WITHDRAWN)
  * - HIRED, REJECTED, and WITHDRAWN are terminal states
  */
 public enum ApplicationStatus {
-
-    /**
-     * Draft state: Application not yet submitted.
-     * Candidate can edit and submit later.
-     * Does not trigger Saga workflow.
-     */
-    DRAFT,
 
     /**
      * Initial status when a candidate submits an application.

@@ -183,11 +183,24 @@ public class ApplicationSagaOrchestrator {
         log.debug("Company ID for application: {}", jobInfo.getCompanyId());
 
         // Build application entity
+        // Only auto-assign if the job has a valid HR creator (H3 fix)
+        String createdBy = jobInfo.getCreatedBy();
+        boolean validHR = createdBy != null && !createdBy.isBlank() && !"system".equals(createdBy);
+
+        Instant now = Instant.now();
+        Application.StatusChange initialStatus = Application.StatusChange.builder()
+                .previousStatus(null)
+                .newStatus(ApplicationStatus.APPLIED)
+                .changedBy(context.getUsername())
+                .changedAt(now)
+                .reason("Application submitted")
+                .build();
+
         Application application = Application.builder()
                 .username(context.getUsername())
                 .email(context.getEmail())
                 .jobId(context.getJobId())
-                .companyId(jobInfo.getCompanyId()) // Store companyId for filtering
+                .companyId(jobInfo.getCompanyId())
                 .jobSnapshot(snapshot)
                 .cvFileUrl(fileResult.getFileUrl())
                 .cvFileName(fileResult.getFileName())
@@ -195,9 +208,10 @@ public class ApplicationSagaOrchestrator {
                 .cvFileSize(fileResult.getFileSize())
                 .coverLetter(context.getCoverLetter())
                 .status(ApplicationStatus.APPLIED)
-                .assignedTo(jobInfo.getCreatedBy()) // Auto-assign to job creator (HR)
-                .assignedAt(Instant.now())
-                .assignedBy("SYSTEM") // System auto-assignment
+                .statusHistory(new java.util.ArrayList<>(java.util.List.of(initialStatus)))
+                .assignedTo(validHR ? createdBy : null)
+                .assignedAt(validHR ? now : null)
+                .assignedBy(validHR ? "SYSTEM" : null)
                 .build();
 
         Application saved = applicationRepository.save(application);

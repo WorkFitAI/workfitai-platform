@@ -12,8 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Simple rate limiting service
- * Tracks request counts per user per operation
+ * Simple in-process rate limiting service.
+ *
+ * WARNING (M4): This implementation is NOT distributed-safe. With N service instances
+ * the effective limit is maxRequests × N, and state resets on every restart/redeploy.
+ * Replace with a Redis-backed solution (e.g. Bucket4j + Redis) for production
+ * multi-instance deployments.
  */
 @Service
 @Slf4j

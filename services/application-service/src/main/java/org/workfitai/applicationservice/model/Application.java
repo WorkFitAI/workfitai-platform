@@ -49,11 +49,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @CompoundIndexes({
         @CompoundIndex(name = "unique_user_job", def = "{'username': 1, 'jobId': 1, 'deletedAt': 1}", unique = true),
-        @CompoundIndex(name = "username_isDraft", def = "{'username': 1, 'isDraft': 1}"),
         @CompoundIndex(name = "company_status", def = "{'companyId': 1, 'status': 1, 'deletedAt': 1}"),
         @CompoundIndex(name = "company_assigned", def = "{'companyId': 1, 'assignedTo': 1, 'deletedAt': 1}"),
-        @CompoundIndex(name = "assigned_draft_deleted", def = "{'assignedTo': 1, 'isDraft': 1, 'deletedAt': 1}"),
-        @CompoundIndex(name = "assigned_status_draft_deleted", def = "{'assignedTo': 1, 'status': 1, 'isDraft': 1, 'deletedAt': 1}")
+        @CompoundIndex(name = "assigned_deleted", def = "{'assignedTo': 1, 'deletedAt': 1}"),
+        @CompoundIndex(name = "assigned_status_deleted", def = "{'assignedTo': 1, 'status': 1, 'deletedAt': 1}")
 })
 public class Application {
 
@@ -159,22 +158,6 @@ public class Application {
      * Size of the CV file in bytes.
      */
     private Long cvFileSize;
-
-    // ==================== Draft Workflow Fields ====================
-
-    /**
-     * Indicates if this is a draft application (not yet submitted).
-     * Draft applications skip Saga orchestration and don't trigger events.
-     * Defaults to false for backward compatibility.
-     */
-    @Builder.Default
-    private boolean isDraft = false;
-
-    /**
-     * Timestamp when the draft was submitted and became an active application.
-     * Null for draft applications, set when draft is submitted.
-     */
-    private Instant submittedAt;
 
     // ==================== Soft Delete Fields ====================
 
@@ -344,11 +327,10 @@ public class Application {
     @Builder
     public static class Note {
         /**
-         * Unique identifier for this note.
+         * Unique identifier for this note. Always set by callers via builder — no default needed.
          */
         @NotBlank
-        @Builder.Default
-        private String id = java.util.UUID.randomUUID().toString();
+        private String id;
 
         /**
          * Username of the note author (HR/recruiter).

@@ -17,7 +17,6 @@ public record SystemStatsResponse(
     public record PlatformTotals(
         long totalApplications,
         long totalDeleted,
-        long totalDrafts,
         long totalCompanies,
         long totalJobs
     ) {}

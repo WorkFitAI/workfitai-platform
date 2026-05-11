@@ -48,6 +48,9 @@ source_dump.txt
 
 .vault/data/
 
+# Database dumps (keep directory via .gitkeep, ignore dump content)
+dumps/*/
+
 .github/
 
 .claude/

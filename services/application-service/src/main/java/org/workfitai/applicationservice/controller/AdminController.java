@@ -6,24 +6,40 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
-import org.workfitai.applicationservice.dto.response.*;
+import org.workfitai.applicationservice.dto.response.ApplicationResponse;
+import org.workfitai.applicationservice.dto.response.AuditLogResponse;
+import org.workfitai.applicationservice.dto.response.ExportResponse;
+import org.workfitai.applicationservice.dto.response.RestResponse;
+import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
 import org.workfitai.applicationservice.model.AuditLog;
-import org.workfitai.applicationservice.service.*;
+import org.workfitai.applicationservice.service.AdminApplicationService;
+import org.workfitai.applicationservice.service.AuditLogService;
+import org.workfitai.applicationservice.service.ExportService;
+import org.workfitai.applicationservice.service.RateLimitService;
+import org.workfitai.applicationservice.service.SystemStatsService;
 
 import java.time.Instant;
 import java.util.List;
 
 /**
- * Admin-only controller for system-level operations
- * All endpoints require ROLE_ADMIN
+ * Admin-only controller for system-level operations.
+ * All endpoints require ROLE_ADMIN.
  */
 @RestController
 @RequestMapping("/api/v1/applications/admin")
@@ -52,13 +68,7 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size);
         Page<ApplicationResponse> applications = adminApplicationService.getAllApplications(pageable);
 
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "All applications fetched successfully",
-                        applications
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "All applications fetched successfully", applications));
     }
 
     /**
@@ -71,52 +81,36 @@ public class AdminController {
             @RequestParam(required = false) String entityId,
             @RequestParam(required = false) String performedBy,
             @RequestParam(required = false) String action,
-            @RequestParam(required = false) Instant fromDate,
-            @RequestParam(required = false) Instant toDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        log.info("ADMIN: Querying audit logs, entityId={}, performedBy={}, action={}",
-                entityId, performedBy, action);
+        log.info("ADMIN: Querying audit logs, entityId={}, performedBy={}, action={}", entityId, performedBy, action);
 
-        // Validate date range
         if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(
-                    new RestResponse<>(
-                            400,
-                            "fromDate must be before toDate"
-                    )
-            );
+            return ResponseEntity.badRequest().body(new RestResponse<>(400, "fromDate must be before toDate"));
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<AuditLog> auditLogs = auditLogService.queryAuditLogs(
-                entityId, performedBy, action, fromDate, toDate, pageable
-        );
+        Page<AuditLog> auditLogs = auditLogService.queryAuditLogs(entityId, performedBy, action, fromDate, toDate, pageable);
 
-        // Map to response DTOs
-        Page<AuditLogResponse> response = auditLogs.map(log ->
+        Page<AuditLogResponse> response = auditLogs.map(l ->
                 new AuditLogResponse(
-                        log.getId(),
-                        log.getEntityType(),
-                        log.getEntityId(),
-                        log.getAction(),
-                        log.getPerformedBy(),
-                        log.getPerformedAt(),
-                        log.getBeforeState(),
-                        log.getAfterState(),
-                        log.getMetadata(),
-                        log.getContainsPII()
+                        l.getId(),
+                        l.getEntityType(),
+                        l.getEntityId(),
+                        l.getAction(),
+                        l.getPerformedBy(),
+                        l.getPerformedAt(),
+                        l.getBeforeState(),
+                        l.getAfterState(),
+                        l.getMetadata(),
+                        l.getContainsPII()
                 )
         );
 
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "Audit logs fetched successfully",
-                        response
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "Audit logs fetched successfully", response));
     }
 
     /**
@@ -128,54 +122,33 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<ExportResponse>> exportAllApplications(
             @RequestParam(defaultValue = "false") boolean includeDeleted,
-            @RequestParam(required = false) Instant fromDate,
-            @RequestParam(required = false) Instant toDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
             @RequestBody(required = false) List<String> columns
     ) {
-        // Get current user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth != null ? auth.getName() : "unknown";
 
-        // Check rate limit: 5 exports per 24 hours
         if (!rateLimitService.isAllowed("admin-export", username, 5, 24)) {
             int remaining = rateLimitService.getRemainingRequests("admin-export", username, 5, 24);
-            long resetSeconds = rateLimitService.getResetTimeSeconds("admin-export", username, 24);
-            long resetHours = resetSeconds / 3600;
+            long resetHours = rateLimitService.getResetTimeSeconds("admin-export", username, 24) / 3600;
 
-            log.warn("ADMIN: Export rate limit exceeded for user={}, remaining={}, resetIn={}h",
-                username, remaining, resetHours);
+            log.warn("ADMIN: Export rate limit exceeded for user={}, remaining={}, resetIn={}h", username, remaining, resetHours);
 
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(
-                    new RestResponse<>(
-                            429,
-                            String.format("Export rate limit exceeded. Limit: 5 per day. Reset in %d hours.", resetHours)
-                    )
+                    new RestResponse<>(429, String.format("Export rate limit exceeded. Limit: 5 per day. Reset in %d hours.", resetHours))
             );
         }
 
         log.warn("ADMIN: Full platform export requested by user={}, includeDeleted={}", username, includeDeleted);
 
-        // Validate date range
         if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(
-                    new RestResponse<>(
-                            400,
-                            "fromDate must be before toDate"
-                    )
-            );
+            return ResponseEntity.badRequest().body(new RestResponse<>(400, "fromDate must be before toDate"));
         }
 
-        ExportResponse export = exportService.exportAllApplications(
-                includeDeleted, fromDate, toDate, columns
-        );
+        ExportResponse export = exportService.exportAllApplications(includeDeleted, fromDate, toDate, columns);
 
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "Export generated successfully",
-                        export
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "Export generated successfully", export));
     }
 
     /**
@@ -186,16 +159,7 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<SystemStatsResponse>> getSystemStats() {
         log.info("ADMIN: Fetching system statistics");
-
-        SystemStatsResponse stats = systemStatsService.getSystemStats();
-
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "System statistics fetched successfully",
-                        stats
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "System statistics fetched successfully", systemStatsService.getSystemStats()));
     }
 
     /**
@@ -207,26 +171,16 @@ public class AdminController {
     public ResponseEntity<RestResponse<ApplicationResponse>> createApplication(
             @Valid @RequestBody AdminCreateApplicationRequest request
     ) {
-        log.warn("ADMIN: Manual application creation requested for user={}, job={}",
-                request.username(), request.jobId());
+        log.warn("ADMIN: Manual application creation requested for user={}, job={}", request.username(), request.jobId());
 
         if (request.reason() == null || request.reason().isBlank()) {
-            return ResponseEntity.badRequest().body(
-                    new RestResponse<>(
-                            400,
-                            "Reason is required for admin manual creation"
-                    )
-            );
+            return ResponseEntity.badRequest().body(new RestResponse<>(400, "Reason is required for admin manual creation"));
         }
 
         ApplicationResponse application = adminApplicationService.createApplication(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                new RestResponse<>(
-                        201,
-                        "Application created successfully (manual creation)",
-                        application
-                )
+                new RestResponse<>(201, "Application created successfully (manual creation)", application)
         );
     }
 
@@ -240,27 +194,15 @@ public class AdminController {
             @PathVariable String id,
             @Valid @RequestBody AdminOverrideRequest request
     ) {
-        log.warn("ADMIN: Override requested for application id={}, reason={}",
-                id, request.reason());
+        log.warn("ADMIN: Override requested for application id={}, reason={}", id, request.reason());
 
         if (request.reason() == null || request.reason().isBlank()) {
-            return ResponseEntity.badRequest().body(
-                    new RestResponse<>(
-                            400,
-                            "Reason is required for admin override operations"
-                    )
-            );
+            return ResponseEntity.badRequest().body(new RestResponse<>(400, "Reason is required for admin override operations"));
         }
 
         ApplicationResponse application = adminApplicationService.overrideApplication(id, request);
 
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "Application overridden successfully",
-                        application
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "Application overridden successfully", application));
     }
 
     /**
@@ -278,13 +220,7 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size);
         Page<ApplicationResponse> deleted = adminApplicationService.getDeletedApplications(pageable);
 
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "Deleted applications fetched successfully",
-                        deleted
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "Deleted applications fetched successfully", deleted));
     }
 
     /**
@@ -297,15 +233,7 @@ public class AdminController {
             @PathVariable String id
     ) {
         log.warn("ADMIN: Restoring application id={}", id);
-
         ApplicationResponse application = adminApplicationService.restoreApplication(id);
-
-        return ResponseEntity.ok(
-                new RestResponse<>(
-                        200,
-                        "Application restored successfully",
-                        application
-                )
-        );
+        return ResponseEntity.ok(new RestResponse<>(200, "Application restored successfully", application));
     }
 }

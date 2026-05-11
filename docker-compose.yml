@@ -890,6 +890,67 @@ services:
   #     start_period: 60s
   #   profiles: [ "services", "full" ]
 
+  ### Database Dump / Import Tools ###
+  db-dump-postgres:
+    image: postgres:15
+    container_name: db-dump-postgres
+    volumes:
+      - ./dumps:/dumps
+      - ./scripts/internal/dump-postgres.sh:/scripts/dump-postgres.sh:ro
+    env_file:
+      - .env.local
+    environment:
+      - DUMP_TAG=${DUMP_TAG:-latest}
+      - USER_POSTGRES_HOST=user-postgres
+      - JOB_POSTGRES_HOST=job-postgres
+    entrypoint: ["sh", "/scripts/dump-postgres.sh"]
+    networks: [workfitai-net]
+    profiles: ["db-dump"]
+
+  db-dump-mongo:
+    image: mongo:6.0
+    container_name: db-dump-mongo
+    volumes:
+      - ./dumps:/dumps
+      - ./scripts/internal/dump-mongo.sh:/scripts/dump-mongo.sh:ro
+    env_file:
+      - .env.local
+    environment:
+      - DUMP_TAG=${DUMP_TAG:-latest}
+    entrypoint: ["sh", "/scripts/dump-mongo.sh"]
+    networks: [workfitai-net]
+    profiles: ["db-dump"]
+
+  db-import-postgres:
+    image: postgres:15
+    container_name: db-import-postgres
+    volumes:
+      - ./dumps:/dumps
+      - ./scripts/internal/import-postgres.sh:/scripts/import-postgres.sh:ro
+    env_file:
+      - .env.local
+    environment:
+      - DUMP_TAG=${DUMP_TAG:-latest}
+      - USER_POSTGRES_HOST=user-postgres
+      - JOB_POSTGRES_HOST=job-postgres
+    entrypoint: ["sh", "/scripts/import-postgres.sh"]
+    networks: [workfitai-net]
+    profiles: ["db-import"]
+
+  db-import-mongo:
+    image: mongo:6.0
+    container_name: db-import-mongo
+    volumes:
+      - ./dumps:/dumps
+      - ./scripts/internal/import-mongo.sh:/scripts/import-mongo.sh:ro
+    env_file:
+      - .env.local
+    environment:
+      - DUMP_TAG=${DUMP_TAG:-latest}
+    entrypoint: ["sh", "/scripts/import-mongo.sh"]
+    networks: [workfitai-net]
+    profiles: ["db-import"]
+
 volumes:
   user-postgres-data:
   job-postgres-data:

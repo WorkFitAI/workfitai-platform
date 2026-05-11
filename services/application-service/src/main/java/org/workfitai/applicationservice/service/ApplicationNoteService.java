@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.request.CreateNoteRequest;
 import org.workfitai.applicationservice.dto.request.UpdateNoteRequest;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
@@ -36,32 +40,32 @@ import lombok.extern.slf4j.Slf4j;
 public class ApplicationNoteService {
 
     private final ApplicationRepository applicationRepository;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * Add a new note to an application.
-     *
-     * @param applicationId Application ID
-     * @param request       Note details
-     * @param author        Username of note author
-     * @return Created note
+     * Uses atomic $push to prevent note loss under concurrent additions (H2 fix).
      */
-    @Transactional
     public NoteResponse addNote(String applicationId, CreateNoteRequest request, String author) {
         log.info("Adding note to application: id={}, author={}", applicationId, author);
 
-        Application application = applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
+        // Verify application exists before attempting update
+        applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
                 .orElseThrow(() -> new NotFoundException("Application not found"));
 
         Application.Note note = Application.Note.builder()
                 .id(UUID.randomUUID().toString())
                 .author(author)
-                .content(sanitizeContent(request.getContent()))
+                .content(request.getContent())
                 .candidateVisible(request.isCandidateVisible())
                 .createdAt(Instant.now())
                 .build();
 
-        application.getNotes().add(note);
-        applicationRepository.save(application);
+        // Atomic $push — no race condition on concurrent note additions
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("_id").is(applicationId).and("deletedAt").isNull()),
+                new Update().push("notes", note),
+                Application.class);
 
         log.info("Note added successfully: noteId={}", note.getId());
         return toResponse(note);
@@ -69,14 +73,7 @@ public class ApplicationNoteService {
 
     /**
      * Update an existing note.
-     *
-     * @param applicationId Application ID
-     * @param noteId        Note ID
-     * @param request       Update details
-     * @param username      Username (for authorization)
-     * @return Updated note
      */
-    @Transactional
     public NoteResponse updateNote(String applicationId, String noteId, UpdateNoteRequest request, String username) {
         log.info("Updating note: appId={}, noteId={}, user={}", applicationId, noteId, username);
 
@@ -88,14 +85,12 @@ public class ApplicationNoteService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Note not found"));
 
-        // Verify author
         if (!note.getAuthor().equals(username)) {
             throw new ForbiddenException("Only the note author can update it");
         }
 
-        // Update fields if provided
         if (request.getContent() != null) {
-            note.setContent(sanitizeContent(request.getContent()));
+            note.setContent(request.getContent());
         }
         if (request.getCandidateVisible() != null) {
             note.setCandidateVisible(request.getCandidateVisible());
@@ -110,12 +105,8 @@ public class ApplicationNoteService {
 
     /**
      * Delete a note.
-     *
-     * @param applicationId Application ID
-     * @param noteId        Note ID
-     * @param username      Username (for authorization)
+     * Uses atomic $pull after authorship check to prevent double-delete races.
      */
-    @Transactional
     public void deleteNote(String applicationId, String noteId, String username) {
         log.info("Deleting note: appId={}, noteId={}, user={}", applicationId, noteId, username);
 
@@ -127,22 +118,21 @@ public class ApplicationNoteService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Note not found"));
 
-        // Verify author
         if (!note.getAuthor().equals(username)) {
             throw new ForbiddenException("Only the note author can delete it");
         }
 
-        application.getNotes().remove(note);
-        applicationRepository.save(application);
+        // Atomic $pull by noteId — safe even under concurrent access
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("_id").is(applicationId).and("deletedAt").isNull()),
+                new Update().pull("notes", new Document("id", noteId)),
+                Application.class);
 
         log.info("Note deleted successfully: noteId={}", noteId);
     }
 
     /**
      * Get all notes for an application (HR view).
-     *
-     * @param applicationId Application ID
-     * @return List of all notes
      */
     public List<NoteResponse> getAllNotes(String applicationId) {
         log.debug("Fetching all notes for application: id={}", applicationId);
@@ -157,9 +147,6 @@ public class ApplicationNoteService {
 
     /**
      * Get public notes for an application (candidate view).
-     *
-     * @param applicationId Application ID
-     * @return List of public notes only
      */
     public List<NoteResponse> getPublicNotes(String applicationId) {
         log.debug("Fetching public notes for application: id={}", applicationId);
@@ -173,23 +160,6 @@ public class ApplicationNoteService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Sanitize note content to prevent XSS.
-     *
-     * @param content Raw content
-     * @return Sanitized content
-     */
-    private String sanitizeContent(String content) {
-        // Strip HTML tags to prevent XSS
-        return content.replaceAll("<[^>]*>", "");
-    }
-
-    /**
-     * Convert Note entity to NoteResponse DTO.
-     *
-     * @param note Note entity
-     * @return NoteResponse DTO
-     */
     private NoteResponse toResponse(Application.Note note) {
         return NoteResponse.builder()
                 .id(note.getId())

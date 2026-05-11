@@ -43,8 +43,10 @@ public class StatusTransitionValidator {
                     String.format("Status is already %s", currentStatus));
         }
 
-        // Terminal states cannot transition
-        if (currentStatus == ApplicationStatus.HIRED || currentStatus == ApplicationStatus.REJECTED) {
+        // Terminal states cannot transition (WITHDRAWN is soft-deleted but admins can bypass soft-delete filter)
+        if (currentStatus == ApplicationStatus.HIRED
+                || currentStatus == ApplicationStatus.REJECTED
+                || currentStatus == ApplicationStatus.WITHDRAWN) {
             throw new IllegalArgumentException(
                     String.format("Cannot change status from terminal state %s", currentStatus));
         }

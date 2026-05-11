@@ -1,6 +1,5 @@
 package org.workfitai.applicationservice.validation;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
@@ -13,12 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Validates that the user hasn't already applied to this job.
  * Order: 1 (runs first - quick local check)
- * 
- * NOTE: Only checks ACTIVE applications (deletedAt is null).
- * This allows candidates to reapply after withdrawing a previous application.
+ *
+ * Only checks ACTIVE applications (deletedAt is null) to allow reapplication after withdrawal.
  */
 @Component
-@Order(1)
 @RequiredArgsConstructor
 @Slf4j
 public class DuplicateApplicationValidator implements ApplicationValidator {

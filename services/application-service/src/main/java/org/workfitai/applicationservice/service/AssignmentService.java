@@ -55,11 +55,6 @@ public class AssignmentService {
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
                 .orElseThrow(() -> new NotFoundException("Application not found: " + applicationId));
 
-        // Validation: Cannot assign draft applications
-        if (application.isDraft()) {
-            throw new BadRequestException("Cannot assign draft applications. Submit draft first.");
-        }
-
         // Check if already assigned to same user
         if (assignedTo.equals(application.getAssignedTo())) {
             log.warn("Application {} already assigned to {}", applicationId, assignedTo);

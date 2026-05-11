@@ -34,16 +34,6 @@ public final class Messages {
     public static final String EXPERIENCE_STATS = "Candidate experience statistics fetched successfully.";
   }
 
-  public static final class CandidateSkill {
-    public static final String CREATED = "Skill added successfully.";
-    public static final String UPDATED = "Skill updated successfully.";
-    public static final String DELETED = "Skill deleted successfully.";
-    public static final String FETCHED = "Skill fetched successfully.";
-    public static final String LIST_FETCHED = "Candidate skills fetched successfully.";
-    public static final String DUPLICATE = "Candidate already has this skill.";
-    public static final String NOT_FOUND = "Candidate skill not found.";
-  }
-
   public static final class HR {
     public static final String CREATED = "HR created successfully.";
     public static final String UPDATED = "HR updated successfully.";

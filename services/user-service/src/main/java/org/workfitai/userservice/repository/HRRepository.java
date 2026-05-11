@@ -7,12 +7,15 @@ import org.springframework.stereotype.Repository;
 import org.workfitai.userservice.model.HREntity;
 import org.workfitai.userservice.enums.EUserRole;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface HRRepository extends JpaRepository<HREntity, UUID>, JpaSpecificationExecutor<HREntity> {
+
+  List<HREntity> findByCompanyNo(String companyNo);
   boolean existsByEmail(String email);
 
   Optional<HREntity> findByEmail(String email);

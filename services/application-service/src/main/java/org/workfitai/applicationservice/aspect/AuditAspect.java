@@ -1,26 +1,26 @@
 package org.workfitai.applicationservice.aspect;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.workfitai.applicationservice.dto.request.*;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
-import org.workfitai.applicationservice.model.Application;
+import org.workfitai.applicationservice.model.enums.ApplicationStatus;
+import org.workfitai.applicationservice.repository.ApplicationRepository;
 import org.workfitai.applicationservice.service.AuditLogService;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * AOP Aspect for automatic audit logging
- * Intercepts critical service methods and logs changes
+ * AOP Aspect for automatic audit logging.
+ * Intercepts critical service methods and writes audit trail entries.
  */
 @Aspect
 @Component
@@ -29,53 +29,50 @@ import java.util.Map;
 public class AuditAspect {
 
     private final AuditLogService auditLogService;
-    private final ObjectMapper objectMapper;
+    private final ApplicationRepository applicationRepository;
 
-    /**
-     * Pointcut for application creation
-     */
-    @Pointcut("execution(* org.workfitai.applicationservice.service.impl.ApplicationServiceImpl.createApplication(..))")
+    // Captures the application's current status BEFORE updateStatus executes.
+    // ThreadLocal ensures isolation across concurrent requests.
+    private static final ThreadLocal<ApplicationStatus> previousStatusHolder = new ThreadLocal<>();
+
+    @Pointcut("execution(* org.workfitai.applicationservice.saga.ApplicationSagaOrchestrator.createApplication(..))")
     public void createApplicationPointcut() {
     }
 
-    /**
-     * Pointcut for application updates
-     */
     @Pointcut("execution(* org.workfitai.applicationservice.service.impl.ApplicationServiceImpl.updateStatus(..))")
     public void updateStatusPointcut() {
     }
 
-    /**
-     * Pointcut for application withdrawal
-     */
     @Pointcut("execution(* org.workfitai.applicationservice.service.impl.ApplicationServiceImpl.withdrawApplication(..))")
     public void withdrawApplicationPointcut() {
     }
 
-    /**
-     * Pointcut for note operations
-     */
     @Pointcut("execution(* org.workfitai.applicationservice.service.ApplicationNoteService.*(..))")
     public void noteOperationsPointcut() {
     }
 
-    /**
-     * Pointcut for assignment operations
-     */
     @Pointcut("execution(* org.workfitai.applicationservice.service.AssignmentService.assignApplication(..))")
     public void assignmentPointcut() {
     }
 
-    /**
-     * Pointcut for admin operations
-     */
     @Pointcut("execution(* org.workfitai.applicationservice.service.AdminApplicationService.*(..))")
     public void adminOperationsPointcut() {
     }
 
-    /**
-     * Log application creation
-     */
+    // Capture real previous status from DB before the update runs (H1 fix)
+    @Before("updateStatusPointcut()")
+    public void capturePreviousStatus(JoinPoint joinPoint) {
+        try {
+            Object[] args = joinPoint.getArgs();
+            if (args.length > 0 && args[0] instanceof String applicationId) {
+                applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
+                        .ifPresent(app -> previousStatusHolder.set(app.getStatus()));
+            }
+        } catch (Exception e) {
+            log.error("Error capturing previous status for audit", e);
+        }
+    }
+
     @AfterReturning(pointcut = "createApplicationPointcut()", returning = "result")
     public void logApplicationCreation(JoinPoint joinPoint, Object result) {
         try {
@@ -100,30 +97,23 @@ public class AuditAspect {
         }
     }
 
-    /**
-     * Log status updates
-     */
     @AfterReturning(pointcut = "updateStatusPointcut()", returning = "result")
     public void logStatusUpdate(JoinPoint joinPoint, Object result) {
         try {
             Object[] args = joinPoint.getArgs();
             String applicationId = (String) args[0];
 
-            if (result instanceof ApplicationResponse response) {
-                Map<String, Object> beforeState = new HashMap<>();
-                Map<String, Object> afterState = new HashMap<>();
+            // Use the status captured in @Before (real previous status, not the new one)
+            ApplicationStatus previousStatus = previousStatusHolder.get();
 
+            if (result instanceof ApplicationResponse response) {
+                Map<String, Object> beforeState = previousStatus != null
+                        ? Map.of("status", previousStatus)
+                        : null;
+
+                Map<String, Object> afterState = new HashMap<>();
                 afterState.put("status", response.getStatus());
                 afterState.put("updatedAt", response.getUpdatedAt());
-
-                // Extract reason from request if available
-                Map<String, Object> metadata = buildMetadata("Status updated");
-                if (args.length > 1 && args[1] instanceof UpdateStatusRequest request) {
-                    beforeState.put("status", request.getStatus());
-                    if (request.getNote() != null) {
-                        metadata.put("reason", request.getNote());
-                    }
-                }
 
                 auditLogService.logAction(
                         "APPLICATION",
@@ -132,16 +122,15 @@ public class AuditAspect {
                         getCurrentUsername(),
                         beforeState,
                         afterState,
-                        metadata);
+                        buildMetadata("Status updated"));
             }
         } catch (Exception e) {
             log.error("Error logging status update", e);
+        } finally {
+            previousStatusHolder.remove();
         }
     }
 
-    /**
-     * Log application withdrawal
-     */
     @AfterReturning(pointcut = "withdrawApplicationPointcut()", returning = "result")
     public void logWithdrawal(JoinPoint joinPoint, Object result) {
         try {
@@ -165,9 +154,6 @@ public class AuditAspect {
         }
     }
 
-    /**
-     * Log note operations
-     */
     @AfterReturning(pointcut = "noteOperationsPointcut()", returning = "result")
     public void logNoteOperation(JoinPoint joinPoint, Object result) {
         try {
@@ -182,8 +168,6 @@ public class AuditAspect {
             };
 
             if (args.length > 0 && args[0] instanceof String applicationId) {
-                Map<String, Object> metadata = buildMetadata("Note " + methodName);
-
                 auditLogService.logAction(
                         "APPLICATION_NOTE",
                         applicationId,
@@ -191,26 +175,23 @@ public class AuditAspect {
                         getCurrentUsername(),
                         null,
                         null,
-                        metadata);
+                        buildMetadata("Note " + methodName));
             }
         } catch (Exception e) {
             log.error("Error logging note operation", e);
         }
     }
 
-    /**
-     * Log assignment operations
-     */
     @AfterReturning(pointcut = "assignmentPointcut()", returning = "result")
     public void logAssignment(JoinPoint joinPoint, Object result) {
         try {
             Object[] args = joinPoint.getArgs();
             if (args.length >= 2) {
                 String applicationId = (String) args[0];
-                AssignApplicationRequest request = (AssignApplicationRequest) args[1];
+                String assignedTo = (String) args[1];
 
                 Map<String, Object> afterState = new HashMap<>();
-                afterState.put("assignedTo", request.getAssignedTo());
+                afterState.put("assignedTo", assignedTo);
                 afterState.put("assignedAt", System.currentTimeMillis());
 
                 auditLogService.logAction(
@@ -220,16 +201,13 @@ public class AuditAspect {
                         getCurrentUsername(),
                         null,
                         afterState,
-                        buildMetadata("Application assigned to " + request.getAssignedTo()));
+                        buildMetadata("Application assigned to " + assignedTo));
             }
         } catch (Exception e) {
             log.error("Error logging assignment", e);
         }
     }
 
-    /**
-     * Log admin operations (create, override, restore)
-     */
     @AfterReturning(pointcut = "adminOperationsPointcut()", returning = "result")
     public void logAdminOperation(JoinPoint joinPoint, Object result) {
         try {
@@ -248,8 +226,8 @@ public class AuditAspect {
 
             if (result instanceof ApplicationResponse response) {
                 applicationId = response.getId();
-            } else if (args.length > 0 && args[0] instanceof String) {
-                applicationId = (String) args[0];
+            } else if (args.length > 0 && args[0] instanceof String s) {
+                applicationId = s;
             }
 
             if (applicationId != null) {
@@ -271,9 +249,6 @@ public class AuditAspect {
         }
     }
 
-    /**
-     * Get current username from security context
-     */
     private String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
@@ -282,9 +257,6 @@ public class AuditAspect {
         return "SYSTEM";
     }
 
-    /**
-     * Build metadata map
-     */
     private Map<String, Object> buildMetadata(String description) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("description", description);

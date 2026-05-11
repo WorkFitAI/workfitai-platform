@@ -50,5 +50,5 @@ public class CandidateCreateRequest {
   private String expectedPosition;
 
   private List<String> cvIds;
-  private List<CandidateProfileSkillRequest> skills;
+  private List<String> skills;
 }

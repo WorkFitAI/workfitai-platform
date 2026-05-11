@@ -88,14 +88,6 @@ public class SystemStatsService {
             Application.class
         );
 
-        // Count drafts
-        long totalDrafts = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
-                Criteria.where("isDraft").is(true)
-            ),
-            Application.class
-        );
-
         // Count distinct companies
         long totalCompanies = mongoTemplate.findDistinct(
             org.springframework.data.mongodb.core.query.Query.query(
@@ -119,7 +111,6 @@ public class SystemStatsService {
         return new SystemStatsResponse.PlatformTotals(
             totalApplications,
             totalDeleted,
-            totalDrafts,
             totalCompanies,
             totalJobs
         );
@@ -170,7 +161,7 @@ public class SystemStatsService {
 
                 return new SystemStatsResponse.CompanyStats(
                     companyId,
-                    "Company " + companyId, // TODO: Fetch company name from company-service
+                    "Company " + companyId,
                     applications,
                     activeJobs,
                     avgTimeToHire
@@ -309,18 +300,18 @@ public class SystemStatsService {
      * Calculate average time to hire (platform-wide) using MongoDB aggregation
      */
     private String calculateAvgTimeToHireWithAggregation() {
-        // Match only HIRED applications with both submittedAt and updatedAt
+        // Match only HIRED applications with updatedAt
         MatchOperation matchHired = Aggregation.match(
             Criteria.where("status").is(ApplicationStatus.HIRED)
-                .and("submittedAt").ne(null)
+                .and("createdAt").ne(null)
                 .and("updatedAt").ne(null)
         );
 
-        // Project: Calculate duration in milliseconds
+        // Project: Calculate duration in milliseconds (createdAt → hired)
         ProjectionOperation projectDuration = Aggregation.project()
             .and("updatedAt").as("updatedAt")
-            .and("submittedAt").as("submittedAt")
-            .andExpression("updatedAt - submittedAt").as("durationMs");
+            .and("createdAt").as("createdAt")
+            .andExpression("updatedAt - createdAt").as("durationMs");
 
         // Group: Calculate average duration
         GroupOperation groupAvg = Aggregation.group()

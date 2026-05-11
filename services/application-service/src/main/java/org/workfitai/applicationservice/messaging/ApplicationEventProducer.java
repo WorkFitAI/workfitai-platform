@@ -89,20 +89,6 @@ public class ApplicationEventProducer implements EventPublisherPort {
         }
     }
 
-    // Legacy methods for backward compatibility (delegate to port methods)
-
-    public void publishApplicationCreatedEvent(ApplicationCreatedEvent event) {
-        publishApplicationCreated(event);
-    }
-
-    public void publishStatusChangedEvent(ApplicationStatusChangedEvent event) {
-        publishStatusChanged(event);
-    }
-
-    public void publishApplicationWithdrawnEvent(ApplicationWithdrawnEvent event) {
-        publishApplicationWithdrawn(event);
-    }
-
     @Override
     public void publishJobStatsUpdate(JobStatsUpdateEvent event) {
         String jobId = event.getJobId().toString();
