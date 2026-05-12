@@ -48,6 +48,26 @@ public interface HRService {
   HRResponse approveHrByUsername(String username, String approver);
 
   /**
+   * Admin rejects HR manager registration (sets status to SUSPENDED).
+   */
+  HRResponse rejectHrManager(UUID id, String rejector);
+
+  /**
+   * HR Manager rejects HR registration (sets status to SUSPENDED).
+   */
+  HRResponse rejectHr(UUID id, String rejector);
+
+  /**
+   * Admin rejects HR manager by username.
+   */
+  HRResponse rejectHrManagerByUsername(String username, String rejector);
+
+  /**
+   * HR Manager rejects HR by username.
+   */
+  HRResponse rejectHrByUsername(String username, String rejector);
+
+  /**
    * Get HR by username.
    */
   HRResponse getByUsername(String username);

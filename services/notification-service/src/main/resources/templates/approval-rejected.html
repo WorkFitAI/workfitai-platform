@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Not Approved - WorkFitAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #dc2626;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .reject-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background-color: #eff6ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WorkFitAI</h1>
+            <p>Registration Not Approved</p>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong th:text="${username}">User</strong>,</p>
+
+            <div class="reject-box">
+                <h3 style="margin-top: 0; color: #dc2626;">Registration Decision</h3>
+                <p style="font-size: 16px;">
+                    Your <strong th:text="${role}">HR</strong> account registration has not been approved at this time.
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3 style="color: #2563eb; margin-top: 0;">💡 What You Can Do:</h3>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Contact your administrator for more details</li>
+                    <li>Ensure your registration information is complete and accurate</li>
+                    <li>Re-submit your registration after addressing any issues</li>
+                </ol>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px;">
+                If you believe this decision was made in error, please contact our support team at
+                <a href="mailto:support@workfitai.com">support@workfitai.com</a>.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2025 WorkFitAI. All rights reserved.</p>
+            <p>Need help? Contact us at support@workfitai.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -57,7 +57,7 @@ public class HRController {
         return ResponseEntity.ok(ResponseData.success(hrService.getById(id)));
     }
 
-    @PreAuthorize("hasAuthority('hr:search') and hasAnyRole('ADMIN', 'HR_MANAGER', 'HR_MANAGER')")
+    @PreAuthorize("hasAuthority('hr:search') and hasAnyRole('ADMIN', 'HR_MANAGER')")
     @CheckPrivacy
     @GetMapping
     public ResponseEntity<ResponseData<Page<HRResponse>>> search(
@@ -109,6 +109,40 @@ public class HRController {
             @RequestHeader(value = "X-Approver-Id", required = false) String approver) {
         return ResponseEntity
                 .ok(ResponseData.success(Messages.HR.APPROVED, hrService.approveHrByUsername(username, approver)));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('admin:approve')")
+    @PostMapping("/{id}/reject-manager")
+    public ResponseEntity<ResponseData<HRResponse>> rejectManager(
+            @PathVariable UUID id,
+            @RequestHeader(value = "X-Rejector-Id", required = false) String rejector) {
+        return ResponseEntity.ok(ResponseData.success(Messages.HR.REJECTED, hrService.rejectHrManager(id, rejector)));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('admin:approve')")
+    @PostMapping("/username/{username}/reject-manager")
+    public ResponseEntity<ResponseData<HRResponse>> rejectManagerByUsername(
+            @PathVariable String username,
+            @RequestHeader(value = "X-Rejector-Id", required = false) String rejector) {
+        return ResponseEntity
+                .ok(ResponseData.success(Messages.HR.REJECTED, hrService.rejectHrManagerByUsername(username, rejector)));
+    }
+
+    @PreAuthorize("hasRole('HR_MANAGER') and hasAuthority('hr:approve')")
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ResponseData<HRResponse>> rejectHr(
+            @PathVariable UUID id,
+            @RequestHeader(value = "X-Rejector-Id", required = false) String rejector) {
+        return ResponseEntity.ok(ResponseData.success(Messages.HR.REJECTED, hrService.rejectHr(id, rejector)));
+    }
+
+    @PreAuthorize("hasAuthority('hr:approve') and hasRole('HR_MANAGER')")
+    @PostMapping("/username/{username}/reject")
+    public ResponseEntity<ResponseData<HRResponse>> rejectHrByUsername(
+            @PathVariable String username,
+            @RequestHeader(value = "X-Rejector-Id", required = false) String rejector) {
+        return ResponseEntity
+                .ok(ResponseData.success(Messages.HR.REJECTED, hrService.rejectHrByUsername(username, rejector)));
     }
 
     @GetMapping("/username/{username}")
