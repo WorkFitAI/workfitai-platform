@@ -24,12 +24,16 @@ import org.workfitai.applicationservice.dto.request.CreateNoteRequest;
 import org.workfitai.applicationservice.dto.request.UpdateNoteRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.BulkUpdateResult;
+import org.workfitai.applicationservice.dto.response.CandidateProfileResponse;
+import org.workfitai.applicationservice.dto.response.CandidateSummaryResponse;
+import org.workfitai.applicationservice.dto.response.CompanyJobSummaryResponse;
 import org.workfitai.applicationservice.dto.response.DashboardStatsResponse;
 import org.workfitai.applicationservice.dto.response.JobStatsResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
 import org.workfitai.applicationservice.exception.FileStorageException;
+import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.security.ApplicationSecurity;
@@ -38,6 +42,7 @@ import org.workfitai.applicationservice.service.ApplicationSearchService;
 import org.workfitai.applicationservice.service.ApplicationStatsService;
 import org.workfitai.applicationservice.service.BulkOperationService;
 import org.workfitai.applicationservice.service.CompanyApplicationService;
+import org.workfitai.applicationservice.service.CompanyCandidateService;
 import org.workfitai.applicationservice.service.IApplicationService;
 import org.workfitai.applicationservice.service.JobStatsService;
 import org.workfitai.applicationservice.service.MinioPreSignedUrlService;
@@ -70,6 +75,7 @@ public class HRApplicationController {
     private final BulkOperationService bulkOperationService;
     private final JobStatsService jobStatsService;
     private final CompanyApplicationService companyApplicationService;
+    private final CompanyCandidateService companyCandidateService;
 
     @GetMapping("/job/{jobId}")
     @PreAuthorize("hasAuthority('application:review')")
@@ -249,5 +255,59 @@ public class HRApplicationController {
         ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
                 .getAssignedApplicationsWithFilters(hrUsername, status, fromDate, toDate, pageable);
         return ResponseEntity.ok(RestResponse.success(result));
+    }
+
+    @GetMapping("/hr/candidates")
+    @PreAuthorize("hasAuthority('application:review')")
+    public ResponseEntity<RestResponse<ResultPaginationDTO<CandidateSummaryResponse>>> getHRCandidates(
+            @RequestParam(required = false) @Parameter(description = "Search by username or email") String search,
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+
+        String companyId = applicationSecurity.getCurrentCompanyId(authentication);
+        if (companyId == null) {
+            throw new ForbiddenException("No company associated with this account");
+        }
+        log.info("HR candidate list: companyId={}, search={}, status={}", companyId, search, status);
+        size = Math.min(size, 100);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getCandidateList(companyId, search, status, pageable)));
+    }
+
+    @GetMapping("/hr/candidates/{username}")
+    @PreAuthorize("hasAuthority('application:review')")
+    public ResponseEntity<RestResponse<CandidateProfileResponse>> getHRCandidateProfile(
+            @PathVariable @Parameter(description = "Candidate username") String username,
+            Authentication authentication) {
+
+        String companyId = applicationSecurity.getCurrentCompanyId(authentication);
+        if (companyId == null) {
+            throw new ForbiddenException("No company associated with this account");
+        }
+        log.info("HR candidate profile: companyId={}, username={}", companyId, username);
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getCandidateProfile(companyId, username)));
+    }
+
+    @GetMapping("/hr/jobs")
+    @PreAuthorize("hasAuthority('application:review')")
+    public ResponseEntity<RestResponse<ResultPaginationDTO<CompanyJobSummaryResponse>>> getHRJobs(
+            @RequestParam(required = false) @Parameter(description = "Filter by job title") String jobTitle,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+
+        String companyId = applicationSecurity.getCurrentCompanyId(authentication);
+        if (companyId == null) {
+            throw new ForbiddenException("No company associated with this account");
+        }
+        log.info("HR jobs with stats: companyId={}, jobTitle={}", companyId, jobTitle);
+        size = Math.min(size, 100);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getJobsWithStats(companyId, jobTitle, pageable)));
     }
 }

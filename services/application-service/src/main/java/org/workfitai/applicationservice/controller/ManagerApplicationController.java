@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.AssignApplicationRequest;
 import org.workfitai.applicationservice.dto.request.ExportRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
+import org.workfitai.applicationservice.dto.response.CandidateProfileResponse;
+import org.workfitai.applicationservice.dto.response.CandidateSummaryResponse;
+import org.workfitai.applicationservice.dto.response.CompanyJobSummaryResponse;
 import org.workfitai.applicationservice.dto.response.ExportResponse;
 import org.workfitai.applicationservice.dto.response.HRAuditActivityResponse;
 import org.workfitai.applicationservice.dto.response.HRUserResponse;
@@ -32,6 +35,7 @@ import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.AssignmentService;
 import org.workfitai.applicationservice.service.CompanyApplicationService;
+import org.workfitai.applicationservice.service.CompanyCandidateService;
 import org.workfitai.applicationservice.service.CompanyHRService;
 import org.workfitai.applicationservice.service.ExportService;
 import org.workfitai.applicationservice.service.ManagerStatsService;
@@ -58,6 +62,7 @@ public class ManagerApplicationController {
 
     private final ApplicationSecurity applicationSecurity;
     private final CompanyApplicationService companyApplicationService;
+    private final CompanyCandidateService companyCandidateService;
     private final AssignmentService assignmentService;
     private final ManagerStatsService managerStatsService;
     private final ExportService exportService;
@@ -182,5 +187,59 @@ public class ManagerApplicationController {
                         .build())
                 .build();
         return ResponseEntity.ok(RestResponse.success(result));
+    }
+
+    @GetMapping("/company/{companyId}/candidates")
+    @PreAuthorize("hasAuthority('application:manage')")
+    public ResponseEntity<RestResponse<ResultPaginationDTO<CandidateSummaryResponse>>> getCompanyCandidates(
+            @PathVariable @Parameter(description = "Company ID") String companyId,
+            @RequestParam(required = false) @Parameter(description = "Search by username or email") String search,
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+
+        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
+            throw new ForbiddenException("Access denied to this company's candidates");
+        }
+        log.info("Fetching candidate list: companyId={}, search={}, status={}", companyId, search, status);
+        size = Math.min(size, 100);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getCandidateList(companyId, search, status, pageable)));
+    }
+
+    @GetMapping("/company/{companyId}/candidates/{username}")
+    @PreAuthorize("hasAuthority('application:manage')")
+    public ResponseEntity<RestResponse<CandidateProfileResponse>> getCandidateProfile(
+            @PathVariable @Parameter(description = "Company ID") String companyId,
+            @PathVariable @Parameter(description = "Candidate username") String username,
+            Authentication authentication) {
+
+        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
+            throw new ForbiddenException("Access denied to this company's candidates");
+        }
+        log.info("Fetching candidate profile: companyId={}, username={}", companyId, username);
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getCandidateProfile(companyId, username)));
+    }
+
+    @GetMapping("/company/{companyId}/jobs")
+    @PreAuthorize("hasAuthority('application:manage')")
+    public ResponseEntity<RestResponse<ResultPaginationDTO<CompanyJobSummaryResponse>>> getCompanyJobs(
+            @PathVariable @Parameter(description = "Company ID") String companyId,
+            @RequestParam(required = false) @Parameter(description = "Filter by job title") String jobTitle,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+
+        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
+            throw new ForbiddenException("Access denied to this company's jobs");
+        }
+        log.info("Fetching company jobs with stats: companyId={}, jobTitle={}", companyId, jobTitle);
+        size = Math.min(size, 100);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(RestResponse.success(
+                companyCandidateService.getJobsWithStats(companyId, jobTitle, pageable)));
     }
 }
