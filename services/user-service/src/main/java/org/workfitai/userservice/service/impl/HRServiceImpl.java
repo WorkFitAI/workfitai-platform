@@ -367,6 +367,88 @@ public class HRServiceImpl implements HRService {
     return hrMapper.toResponse(saved);
   }
 
+  @Override
+  public HRResponse rejectHrManager(UUID id, String rejector) {
+    HREntity entity = hrRepository.findById(id)
+        .orElseThrow(() -> new ApiException("HR Manager not found", HttpStatus.NOT_FOUND));
+    if (entity.getUserRole() != EUserRole.HR_MANAGER) {
+      throw new ApiException("Only HR Manager can be rejected via this endpoint", HttpStatus.BAD_REQUEST);
+    }
+    if (entity.getUserStatus() == EUserStatus.ACTIVE) {
+      throw new ApiException("Cannot reject an already active HR Manager", HttpStatus.BAD_REQUEST);
+    }
+    entity.setUserStatus(EUserStatus.SUSPENDED);
+    HREntity saved = hrRepository.save(entity);
+
+    userEventPublisher.publishUserUpdated(saved);
+    publishUserStatusUpdate(saved, "HR_MANAGER_REJECTED");
+
+    notificationProducer.send(NotificationEvent.builder()
+        .eventId(UUID.randomUUID().toString())
+        .eventType("EMAIL_NOTIFICATION")
+        .recipientEmail(saved.getEmail())
+        .recipientUserId(saved.getUsername())
+        .recipientRole(saved.getUserRole().name())
+        .templateType("APPROVAL_REJECTED")
+        .subject("Your HR Manager account registration has been rejected - WorkFitAI")
+        .content("Your HR Manager account registration has been rejected.")
+        .metadata(Map.of("username", saved.getUsername(), "role", "HR Manager"))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_REJECTED")
+        .build());
+
+    return hrMapper.toResponse(saved);
+  }
+
+  @Override
+  public HRResponse rejectHr(UUID id, String rejector) {
+    HREntity entity = hrRepository.findById(id)
+        .orElseThrow(() -> new ApiException("HR not found", HttpStatus.NOT_FOUND));
+    if (entity.getUserRole() != EUserRole.HR) {
+      throw new ApiException("Only HR can be rejected via this endpoint", HttpStatus.BAD_REQUEST);
+    }
+    if (entity.getUserStatus() == EUserStatus.ACTIVE) {
+      throw new ApiException("Cannot reject an already active HR", HttpStatus.BAD_REQUEST);
+    }
+    entity.setUserStatus(EUserStatus.SUSPENDED);
+    HREntity saved = hrRepository.save(entity);
+
+    userEventPublisher.publishUserUpdated(saved);
+    publishUserStatusUpdate(saved, "HR_REJECTED");
+
+    notificationProducer.send(NotificationEvent.builder()
+        .eventId(UUID.randomUUID().toString())
+        .eventType("EMAIL_NOTIFICATION")
+        .recipientEmail(saved.getEmail())
+        .recipientUserId(saved.getUsername())
+        .recipientRole(saved.getUserRole().name())
+        .templateType("APPROVAL_REJECTED")
+        .subject("Your HR account registration has been rejected - WorkFitAI")
+        .content("Your HR account registration has been rejected.")
+        .metadata(Map.of("username", saved.getUsername(), "role", "HR"))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_REJECTED")
+        .build());
+
+    return hrMapper.toResponse(saved);
+  }
+
+  @Override
+  public HRResponse rejectHrManagerByUsername(String username, String rejector) {
+    HREntity hr = hrRepository.findByUsername(username)
+        .orElseThrow(() -> new ApiException("HR Manager not found with username: " + username, HttpStatus.NOT_FOUND));
+    return rejectHrManager(hr.getId(), rejector);
+  }
+
+  @Override
+  public HRResponse rejectHrByUsername(String username, String rejector) {
+    HREntity hr = hrRepository.findByUsername(username)
+        .orElseThrow(() -> new ApiException("HR not found with username: " + username, HttpStatus.NOT_FOUND));
+    return rejectHr(hr.getId(), rejector);
+  }
+
   private void publishUserStatusUpdate(HREntity hr, String eventType) {
     UserRegistrationEvent event = UserRegistrationEvent.builder()
         .eventId(UUID.randomUUID().toString())

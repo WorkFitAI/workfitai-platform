@@ -24,6 +24,7 @@ public class AccountApprovalStrategy implements NotificationStrategy {
     public boolean canHandle(NotificationEvent event) {
         String template = event.getTemplateType();
         return template != null && (template.equals("APPROVAL_GRANTED") ||
+                template.equals("APPROVAL_REJECTED") ||
                 template.equals("ACCOUNT_ACTIVATED") ||
                 template.equals("PENDING_APPROVAL") ||
                 template.equals("ACCOUNT_REJECTED"));
