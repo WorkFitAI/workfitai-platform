@@ -70,6 +70,36 @@ public class CompanyApplicationService {
         return toResultPaginationDTO(new PageImpl<>(responses, pageable, total));
     }
 
+    /** Dynamic filter: any combination of status, assignedTo, and jobTitle (case-insensitive partial match). */
+    public ResultPaginationDTO<ApplicationResponse> getCompanyApplicationsWithFilters(
+            String companyId,
+            ApplicationStatus status,
+            String assignedTo,
+            String jobTitle,
+            Pageable pageable) {
+
+        log.info("Fetching company apps with filters: companyId={}, status={}, assignedTo={}, jobTitle={}",
+                companyId, status, assignedTo, jobTitle);
+
+        Criteria criteria = Criteria.where("companyId").is(companyId).and("deletedAt").isNull();
+
+        if (status != null) {
+            criteria.and("status").is(status);
+        }
+        if (assignedTo != null && !assignedTo.isBlank()) {
+            criteria.and("assignedTo").is(assignedTo);
+        }
+        if (jobTitle != null && !jobTitle.isBlank()) {
+            criteria.and("jobSnapshot.title").regex(jobTitle.trim(), "i");
+        }
+
+        long total = mongoTemplate.count(Query.query(criteria), Application.class);
+        List<Application> applications = mongoTemplate.find(Query.query(criteria).with(pageable), Application.class);
+        List<ApplicationResponse> responses = applications.stream().map(applicationMapper::toResponse).toList();
+
+        return toResultPaginationDTO(new PageImpl<>(responses, pageable, total));
+    }
+
     public ResultPaginationDTO<ApplicationResponse> getAssignedApplications(
             String assignedTo, Pageable pageable) {
         log.info("Fetching applications assigned to: {}", assignedTo);

@@ -69,24 +69,18 @@ public class ManagerApplicationController {
             @PathVariable @Parameter(description = "Company ID") String companyId,
             @RequestParam(required = false) ApplicationStatus status,
             @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) @Parameter(description = "Filter by job title (case-insensitive partial match)") String jobTitle,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        log.info("Fetching company applications: companyId={}, status={}, assignedTo={}", companyId, status, assignedTo);
+        log.info("Fetching company applications: companyId={}, status={}, assignedTo={}, jobTitle={}",
+                companyId, status, assignedTo, jobTitle);
         size = Math.min(size, 100);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        ResultPaginationDTO<ApplicationResponse> result;
-        if (assignedTo != null && status != null) {
-            result = companyApplicationService.getCompanyApplicationsByAssignedHRAndStatus(companyId, assignedTo, status, pageable);
-        } else if (assignedTo != null) {
-            result = companyApplicationService.getCompanyApplicationsByAssignedHR(companyId, assignedTo, pageable);
-        } else if (status != null) {
-            result = companyApplicationService.getCompanyApplicationsByStatus(companyId, status, pageable);
-        } else {
-            result = companyApplicationService.getCompanyApplications(companyId, pageable);
-        }
+        ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
+                .getCompanyApplicationsWithFilters(companyId, status, assignedTo, jobTitle, pageable);
         return ResponseEntity.ok(RestResponse.success(result));
     }
 
