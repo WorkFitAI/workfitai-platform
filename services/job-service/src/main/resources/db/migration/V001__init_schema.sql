@@ -1,107 +1,273 @@
--- V001__init_schema.sql
--- Initialize job-service database schema
 
--- Create companies table
-CREATE TABLE companies
-(
-    company_no         VARCHAR(255) PRIMARY KEY,
-    name               VARCHAR(255) NOT NULL,
-    logo_url           VARCHAR(500),
-    website_url        VARCHAR(500),
-    description        TEXT,
-    address            TEXT,
-    size               VARCHAR(50),
-    created_by         VARCHAR(50),
-    created_date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified_by   VARCHAR(50),
-    last_modified_date TIMESTAMP
+-- TABLE: companies
+
+CREATE TABLE companies (
+    company_no VARCHAR(255),
+
+    created_by VARCHAR(50),
+    created_date TIMESTAMPTZ,
+
+    last_modified_by VARCHAR(50),
+    last_modified_date TIMESTAMPTZ,
+
+    address TEXT,
+    description TEXT,
+
+    logo_url VARCHAR(255),
+
+    name VARCHAR(255) NOT NULL,
+
+    size VARCHAR(255),
+
+    website_url VARCHAR(255),
+
+    CONSTRAINT pk_companies
+        PRIMARY KEY (company_no)
 );
 
--- Create skills table
-CREATE TABLE skills
-(
-    skill_id           UUID PRIMARY KEY,
-    name               VARCHAR(255) NOT NULL UNIQUE,
-    created_by         VARCHAR(50),
-    created_date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified_by   VARCHAR(50),
-    last_modified_date TIMESTAMP
+
+-- TABLE: skills
+
+CREATE TABLE skills (
+    skill_id UUID,
+
+    created_by VARCHAR(50),
+    created_date TIMESTAMPTZ,
+
+    last_modified_by VARCHAR(50),
+    last_modified_date TIMESTAMPTZ,
+
+    name VARCHAR(50),
+
+    CONSTRAINT pk_skills
+        PRIMARY KEY (skill_id)
 );
 
--- Create jobs table
-CREATE TABLE jobs
-(
-    job_id              UUID PRIMARY KEY,
-    title               VARCHAR(120)   NOT NULL,
-    description         TEXT           NOT NULL,
-    short_description   VARCHAR(500)   NOT NULL,
 
-    employment_type     VARCHAR(50)    NOT NULL,
-    experience_level    VARCHAR(50)    NOT NULL,
+-- TABLE: jobs
+
+CREATE TABLE jobs (
+    job_id UUID,
+
+    created_by VARCHAR(50),
+    created_date TIMESTAMPTZ,
+
+    last_modified_by VARCHAR(50),
+    last_modified_date TIMESTAMPTZ,
+
+    banner_url VARCHAR(500),
+
+    benefits TEXT,
+
+    currency VARCHAR(3) NOT NULL,
+
+    description TEXT NOT NULL,
+
+    education_level VARCHAR(120),
+
+    employment_type VARCHAR(255) NOT NULL,
+
+    experience_level VARCHAR(255) NOT NULL,
+
+    expires_at TIMESTAMPTZ NOT NULL,
+
+    is_deleted BOOLEAN NOT NULL,
+
+    location VARCHAR(255) NOT NULL,
+
+    quantity INTEGER NOT NULL,
+
     required_experience VARCHAR(120),
 
-    salary_min          DECIMAL(15, 2) NOT NULL,
-    salary_max          DECIMAL(15, 2) NOT NULL,
-    currency            VARCHAR(3)     NOT NULL,
+    requirements TEXT,
 
-    location            VARCHAR(255)   NOT NULL,
-    quantity            INT            NOT NULL DEFAULT 1,
-    total_applications  INT            NOT NULL DEFAULT 0,
+    responsibilities TEXT,
 
-    expires_at          TIMESTAMP      NOT NULL,
-    status              VARCHAR(50)    NOT NULL,
+    salary_max NUMERIC(38,2) NOT NULL,
 
-    education_level     VARCHAR(120),
+    salary_min NUMERIC(38,2) NOT NULL,
 
-    benefits            TEXT,
-    requirements        TEXT,
-    responsibilities    TEXT,
+    short_description VARCHAR(300) NOT NULL,
 
-    featured            BOOLEAN        NOT NULL DEFAULT FALSE,
-    views               BIGINT         NOT NULL DEFAULT 0,
-    banner_url          VARCHAR(500),
+    status VARCHAR(50) NOT NULL,
 
-    company_id          VARCHAR(255)   NOT NULL REFERENCES companies (company_no) ON DELETE CASCADE,
+    title VARCHAR(120) NOT NULL,
 
-    created_by          VARCHAR(50),
-    created_date        TIMESTAMP               DEFAULT CURRENT_TIMESTAMP,
-    last_modified_by    VARCHAR(50),
-    last_modified_date  TIMESTAMP
+    total_applications INTEGER NOT NULL,
+
+    views BIGINT NOT NULL,
+
+    company_id VARCHAR(255) NOT NULL,
+
+    CONSTRAINT pk_jobs
+        PRIMARY KEY (job_id),
+
+    CONSTRAINT fk_jobs_company
+        FOREIGN KEY (company_id)
+        REFERENCES companies(company_no),
+
+    CONSTRAINT chk_jobs_employment_type
+        CHECK (
+            employment_type IN (
+                'FULL_TIME',
+                'PART_TIME',
+                'CONTRACT',
+                'INTERN',
+                'REMOTE'
+            )
+        ),
+
+    CONSTRAINT chk_jobs_experience_level
+        CHECK (
+            experience_level IN (
+                'INTERN',
+                'FRESHER',
+                'JUNIOR',
+                'MID',
+                'SENIOR',
+                'LEAD'
+            )
+        ),
+
+    CONSTRAINT chk_jobs_quantity
+        CHECK (quantity >= 1),
+
+    CONSTRAINT chk_jobs_status
+        CHECK (
+            status IN (
+                'DRAFT',
+                'PUBLISHED',
+                'CLOSED'
+            )
+        ),
+
+    CONSTRAINT chk_jobs_total_applications
+        CHECK (total_applications >= 0),
+
+    CONSTRAINT chk_jobs_views
+        CHECK (views >= 0)
 );
 
--- Create job_skill junction table
-CREATE TABLE job_skill
-(
-    job_id   UUID NOT NULL REFERENCES jobs (job_id) ON DELETE CASCADE,
-    skill_id UUID NOT NULL REFERENCES skills (skill_id) ON DELETE CASCADE,
-    PRIMARY KEY (job_id, skill_id)
+-- INDEXES: jobs
+
+CREATE INDEX idx_jobs_active
+ON jobs (status, created_date DESC)
+WHERE is_deleted = false;
+
+CREATE INDEX idx_jobs_filter
+ON jobs (
+    is_deleted,
+    status,
+    location,
+    employment_type,
+    created_date DESC
 );
 
--- Create report table
-CREATE TABLE report
-(
-    report_id          UUID PRIMARY KEY,
-    report_content     TEXT,
-    status             VARCHAR(50) NOT NULL,
-
-    job_id             UUID        NOT NULL REFERENCES jobs (job_id) ON DELETE CASCADE,
-
-    created_by         VARCHAR(50),
-    created_date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified_by   VARCHAR(50),
-    last_modified_date TIMESTAMP
+CREATE INDEX idx_jobs_salary
+ON jobs (
+    is_deleted,
+    salary_min,
+    salary_max
 );
 
--- Create report_images table (ElementCollection)
-CREATE TABLE report_images
-(
-    report_id UUID NOT NULL REFERENCES report (report_id) ON DELETE CASCADE,
-    image_url TEXT NOT NULL
+CREATE INDEX idx_jobs_title_fts
+ON jobs
+USING GIN (
+    to_tsvector('simple', title)
 );
 
--- Indexes
-CREATE INDEX idx_jobs_company ON jobs (company_id);
-CREATE INDEX idx_jobs_status ON jobs (status);
-CREATE INDEX idx_jobs_expires ON jobs (expires_at);
-CREATE INDEX idx_jobs_featured ON jobs (featured);
-CREATE INDEX idx_jobs_views ON jobs (views);
+-- TABLE: reports
+
+CREATE TABLE reports (
+    report_id UUID,
+
+    created_by VARCHAR(50),
+    created_date TIMESTAMPTZ,
+
+    last_modified_by VARCHAR(50),
+    last_modified_date TIMESTAMPTZ,
+
+    report_content TEXT,
+
+    status VARCHAR(50) NOT NULL,
+
+    job_id UUID NOT NULL,
+
+    CONSTRAINT pk_reports
+        PRIMARY KEY (report_id),
+
+    CONSTRAINT fk_reports_job
+        FOREIGN KEY (job_id)
+        REFERENCES jobs(job_id),
+
+    CONSTRAINT chk_reports_status
+        CHECK (
+            status IN (
+                'PENDING',
+                'IN_PROGRESS',
+                'RESOLVED',
+                'DECLINE'
+            )
+        )
+);
+
+-- INDEXES: reports
+
+CREATE INDEX idx_reports_job_id
+ON reports(job_id);
+
+-- TABLE: report_images
+
+CREATE TABLE report_images (
+    report_id UUID NOT NULL,
+
+    image_url VARCHAR(255),
+
+    CONSTRAINT fk_report_images_report
+        FOREIGN KEY (report_id)
+        REFERENCES reports(report_id)
+);
+
+-- TABLE: job_skill
+
+CREATE TABLE job_skill (
+    job_id UUID NOT NULL,
+
+    skill_id UUID NOT NULL,
+
+    CONSTRAINT pk_job_skill
+        PRIMARY KEY (job_id, skill_id),
+
+    CONSTRAINT fk_job_skill_job
+        FOREIGN KEY (job_id)
+        REFERENCES jobs(job_id),
+
+    CONSTRAINT fk_job_skill_skill
+        FOREIGN KEY (skill_id)
+        REFERENCES skills(skill_id)
+);
+
+-- TABLE: outbox_expired_job_event
+
+CREATE TABLE outbox_expired_job_event (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY,
+
+    aggregate_id VARCHAR(255),
+
+    payload OID,
+
+    retry_count INTEGER NOT NULL,
+
+    status VARCHAR(50),
+
+    type VARCHAR(50),
+
+    created_by VARCHAR(50),
+    created_date TIMESTAMPTZ,
+
+    last_modified_by VARCHAR(50),
+    last_modified_date TIMESTAMPTZ,
+
+    CONSTRAINT pk_outbox_expired_job_event
+        PRIMARY KEY (id)
+);
