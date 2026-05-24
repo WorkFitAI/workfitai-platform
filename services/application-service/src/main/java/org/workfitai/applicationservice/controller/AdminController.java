@@ -23,13 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
-import org.workfitai.applicationservice.dto.response.AuditLogResponse;
 import org.workfitai.applicationservice.dto.response.ExportResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
-import org.workfitai.applicationservice.model.AuditLog;
 import org.workfitai.applicationservice.service.AdminApplicationService;
-import org.workfitai.applicationservice.service.AuditLogService;
 import org.workfitai.applicationservice.service.ExportService;
 import org.workfitai.applicationservice.service.RateLimitService;
 import org.workfitai.applicationservice.service.SystemStatsService;
@@ -49,7 +46,6 @@ public class AdminController {
 
     private final AdminApplicationService adminApplicationService;
     private final SystemStatsService systemStatsService;
-    private final AuditLogService auditLogService;
     private final ExportService exportService;
     private final RateLimitService rateLimitService;
 
@@ -69,48 +65,6 @@ public class AdminController {
         Page<ApplicationResponse> applications = adminApplicationService.getAllApplications(pageable);
 
         return ResponseEntity.ok(new RestResponse<>(200, "All applications fetched successfully", applications));
-    }
-
-    /**
-     * 2. Get audit logs
-     * GET /api/v1/applications/admin/audit?entityId={id}&performedBy={user}&action={action}&fromDate={date}&page=0
-     */
-    @GetMapping("/audit")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<Page<AuditLogResponse>>> getAuditLogs(
-            @RequestParam(required = false) String entityId,
-            @RequestParam(required = false) String performedBy,
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        log.info("ADMIN: Querying audit logs, entityId={}, performedBy={}, action={}", entityId, performedBy, action);
-
-        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(new RestResponse<>(400, "fromDate must be before toDate"));
-        }
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<AuditLog> auditLogs = auditLogService.queryAuditLogs(entityId, performedBy, action, fromDate, toDate, pageable);
-
-        Page<AuditLogResponse> response = auditLogs.map(l ->
-                new AuditLogResponse(
-                        l.getId(),
-                        l.getEntityType(),
-                        l.getEntityId(),
-                        l.getAction(),
-                        l.getPerformedBy(),
-                        l.getPerformedAt(),
-                        l.getBeforeState(),
-                        l.getAfterState(),
-                        l.getMetadata(),
-                        l.getContainsPII()
-                )
-        );
-
-        return ResponseEntity.ok(new RestResponse<>(200, "Audit logs fetched successfully", response));
     }
 
     /**

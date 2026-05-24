@@ -2,14 +2,19 @@ package org.workfitai.monitoringservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.monitoringservice.dto.*;
 import org.workfitai.monitoringservice.service.AdminActivityService;
+import org.workfitai.monitoringservice.service.AuditSearchService;
 
 /**
- * Admin-only endpoints for user activity monitoring and system management.
+ * Admin-only endpoints for user activity monitoring, system management, and unified audit logs.
  * All endpoints require ADMIN role.
  */
 @RestController
@@ -20,6 +25,7 @@ import org.workfitai.monitoringservice.service.AdminActivityService;
 public class AdminController {
 
     private final AdminActivityService adminActivityService;
+    private final AuditSearchService auditSearchService;
 
     /**
      * Get user activities for admin dashboard.
@@ -99,7 +105,7 @@ public class AdminController {
 
     /**
      * Get user activity summary statistics.
-     * 
+     *
      * @param hours Time range in hours (default 24)
      * @return Activity summary with statistics
      */
@@ -112,5 +118,24 @@ public class AdminController {
         ActivitySummary summary = adminActivityService.getActivitySummary(hours);
 
         return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * Unified cross-service audit log — ADMIN unrestricted view.
+     *
+     * All query params are optional. Results sorted by occurredAt DESC.
+     * Backed by Elasticsearch workfitai-audit-* indices (daily rolling).
+     *
+     * @param req      optional filters: sourceService, actorUsername, entityType, entityId, action, companyId, from, to
+     * @param pageable pagination (default size=50)
+     */
+    @GetMapping("/audit")
+    public ResponseEntity<Page<AuditEventResponse>> getAuditLogs(
+            AuditSearchRequest req,
+            @PageableDefault(size = 50, sort = "occurredAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+
+        log.debug("Admin querying audit logs: {}", req);
+        return ResponseEntity.ok(auditSearchService.searchAdmin(req, pageable));
     }
 }

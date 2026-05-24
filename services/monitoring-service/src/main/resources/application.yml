@@ -60,6 +60,10 @@ management:
     sampling:
       probability: 1.0
 
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}
   port: ${ELASTICSEARCH_PORT:9200}
@@ -104,6 +108,10 @@ spring:
   data:
     redis:
       host: api-redis
+
+auth:
+  service:
+    url: http://auth-service:8081
 
 elasticsearch:
   host: elasticsearch

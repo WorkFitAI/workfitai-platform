@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -19,8 +18,6 @@ import org.workfitai.applicationservice.client.UserServiceClient;
 import org.workfitai.applicationservice.dto.response.HRAuditActivityResponse;
 import org.workfitai.applicationservice.dto.response.HRUserResponse;
 import org.workfitai.applicationservice.model.Application;
-import org.workfitai.applicationservice.model.AuditLog;
-import org.workfitai.applicationservice.repository.AuditLogRepository;
 
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +25,16 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for company HR operations.
+ *
+ * Note: HR audit activity data has migrated from MongoDB audit_logs to
+ * Elasticsearch via monitoring-service. Use GET /api/hrm/audit in
+ * monitoring-service for company-scoped HR audit queries.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CompanyHRService {
 
-    private final AuditLogRepository auditLogRepository;
     private final MongoTemplate mongoTemplate;
     private final UserServiceClient userServiceClient;
 
@@ -84,39 +84,11 @@ public class CompanyHRService {
             Instant toDate,
             Pageable pageable) {
 
-        log.info("Fetching HR audit activities for company: {}, fromDate: {}, toDate: {}",
-                companyId, fromDate, toDate);
-
-        List<String> hrUsernames = getDistinctHRUsernamesForCompany(companyId);
-
-        if (hrUsernames.isEmpty()) {
-            log.info("No HR users found for company: {}", companyId);
-            return Page.empty(pageable);
-        }
-
-        log.debug("Querying audit logs for {} HR users", hrUsernames.size());
-
-        Page<AuditLog> auditLogs = (fromDate != null && toDate != null)
-                ? auditLogRepository.findByPerformedByInAndPerformedAtBetweenOrderByPerformedAtDesc(
-                        hrUsernames, fromDate, toDate, pageable)
-                : auditLogRepository.findByPerformedByInOrderByPerformedAtDesc(hrUsernames, pageable);
-
-        List<HRAuditActivityResponse> activities = auditLogs.getContent().stream()
-                .map(auditLog -> HRAuditActivityResponse.builder()
-                        .id(auditLog.getId())
-                        .entityType(auditLog.getEntityType())
-                        .entityId(auditLog.getEntityId())
-                        .action(auditLog.getAction())
-                        .performedBy(auditLog.getPerformedBy())
-                        .performedAt(auditLog.getPerformedAt())
-                        .metadata(auditLog.getMetadata())
-                        .performerFullName(auditLog.getPerformedBy())
-                        .performerRole("HR")
-                        .build())
-                .collect(Collectors.toList());
-
-        log.info("Found {} audit activities for company HR users", activities.size());
-        return new PageImpl<>(activities, pageable, auditLogs.getTotalElements());
+        // Audit data migrated to Elasticsearch via monitoring-service.
+        // Use GET /api/hrm/audit in monitoring-service for company-scoped HR audit queries.
+        log.warn("[DEPRECATED] getCompanyHRAuditActivities: audit data moved to monitoring-service. " +
+                "Company={}. Use GET /api/hrm/audit in monitoring-service.", companyId);
+        return Page.empty(pageable);
     }
 
     /**

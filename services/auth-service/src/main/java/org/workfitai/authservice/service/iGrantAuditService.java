@@ -1,23 +1,17 @@
 package org.workfitai.authservice.service;
 
-import org.workfitai.authservice.model.GrantAuditLog;
-
-import java.util.List;
-
+/**
+ * Contract for publishing role/permission grant and revoke audit events.
+ *
+ * Events are published to the Kafka "audit-events" topic and consumed by
+ * monitoring-service which indexes them in Elasticsearch (workfitai-audit-*).
+ * The old MongoDB grant_audit_logs collection is no longer used.
+ */
 public interface iGrantAuditService {
 
-    /** Log a GRANT action for a role or permission */
+    /** Publish a ROLE_GRANTED audit event for a role or permission grant. */
     void logGrant(String grantorUsername, String targetUsername, String resourceType, String resourceName);
 
-    /** Log a REVOKE action for a role or permission */
+    /** Publish a ROLE_REVOKED audit event for a role or permission revoke. */
     void logRevoke(String grantorUsername, String targetUsername, String resourceType, String resourceName);
-
-    /** Return all audit records, newest first (ADMIN use) */
-    List<GrantAuditLog> findAll();
-
-    /** Return all audit records where the given user's roles were changed, newest first */
-    List<GrantAuditLog> findByTarget(String targetUsername);
-
-    /** Return all audit records performed by the given actor, newest first */
-    List<GrantAuditLog> findByGrantor(String grantorUsername);
 }

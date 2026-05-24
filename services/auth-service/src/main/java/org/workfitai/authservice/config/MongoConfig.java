@@ -29,10 +29,7 @@ public class MongoConfig {
 
                 // TTL index for password_reset_tokens collection
                 createTtlIndex(mongoTemplate, "password_reset_tokens", "expiresAt");
-
-                // Query indexes for grant_audit_logs — speeds up target/grantor lookups
-                createAscendingIndex(mongoTemplate, "grant_audit_logs", "targetUsername");
-                createAscendingIndex(mongoTemplate, "grant_audit_logs", "grantorUsername");
+                // Note: grant_audit_logs indexes removed — collection replaced by Elasticsearch via monitoring-service
 
                 log.info("MongoDB TTL indexes created successfully");
             } catch (Exception e) {

@@ -32,10 +32,14 @@ public class ElasticsearchIndexInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeIndexTemplate() {
+        initLogsTemplate();
+        initAuditTemplate();
+    }
+
+    private void initLogsTemplate() {
         try {
             log.info("🔧 Initializing Elasticsearch index template for pattern: {}-*", indexPrefix);
 
-            // Check if template already exists
             boolean templateExists = elasticsearchClient.indices()
                     .existsIndexTemplate(e -> e.name("workfitai-logs-template"))
                     .value();
@@ -63,9 +67,61 @@ public class ElasticsearchIndexInitializer {
             log.info("✅ Successfully created index template 'workfitai-logs-template'");
 
         } catch (Exception e) {
-            log.warn("⚠️ Failed to initialize Elasticsearch index template: {}", e.getMessage());
-            // Don't fail startup - Fluent Bit will create indices with default mappings
+            log.warn("⚠️ Failed to initialize Elasticsearch logs template: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Creates the workfitai-audit-* index template for unified cross-service audit logs.
+     *
+     * Keyword fields allow exact-match filtering (companyId, actorRole, action, etc.).
+     * before/after are stored as dynamic objects — not indexed, used for display only.
+     * occurredAt is a date field for time-range queries and sorting.
+     */
+    private void initAuditTemplate() {
+        try {
+            boolean exists = elasticsearchClient.indices()
+                    .existsIndexTemplate(e -> e.name("workfitai-audit-template"))
+                    .value();
+
+            if (exists) {
+                log.info("✅ Index template 'workfitai-audit-template' already exists");
+                return;
+            }
+
+            elasticsearchClient.indices().putIndexTemplate(PutIndexTemplateRequest.of(t -> t
+                    .name("workfitai-audit-template")
+                    .indexPatterns(List.of("workfitai-audit-*"))
+                    .priority(100)
+                    .template(template -> template
+                            .settings(s -> s
+                                    .numberOfShards("1")
+                                    .numberOfReplicas("0")
+                                    .index(i -> i.refreshInterval(ri -> ri.time("5s"))))
+                            .mappings(m -> m
+                                    .properties(buildAuditMappings())
+                                    .dynamic(co.elastic.clients.elasticsearch._types.mapping.DynamicMapping.True)))));
+
+            log.info("✅ Successfully created index template 'workfitai-audit-template'");
+
+        } catch (Exception e) {
+            log.warn("⚠️ Failed to initialize Elasticsearch audit template: {}", e.getMessage());
+        }
+    }
+
+    private Map<String, Property> buildAuditMappings() {
+        return Map.ofEntries(
+                Map.entry("eventId",       Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("sourceService", Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("actorUsername", Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("actorRole",     Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("companyId",     Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("entityType",    Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("entityId",      Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("action",        Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("occurredAt",    Property.of(p -> p.date(DateProperty.of(d -> d))))
+                // before / after → dynamic objects, not indexed (display only)
+        );
     }
 
     private Map<String, Property> buildMappings() {
