@@ -25,8 +25,9 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             "experience", List.of("Experience", "Work Experience", "Professional Experience"),
             "education", List.of("Education", "Academic Background", "Education & Training"),
             "languages", List.of("Languages", "Language Skills", "Languages Known"),
-            "objective", List.of("Objective", "Career Objective", "Professional Summary", "Summary")
-    );
+            "objective",
+            List.of("Objective", "Career Objective", "Professional Summary", "Summary", "About Me"),
+            "certifications", List.of("Certifications", "Certification", "Licenses", "Credentials"));
     private final FileService fileService;
 
     @Override
@@ -53,6 +54,8 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             sections.put("experience", parsedData.getExperience());
             sections.put("education", parsedData.getEducation());
             sections.put("languages", parsedData.getLanguages());
+            sections.put("objective", parsedData.getObjective());
+            sections.put("certifications", parsedData.getCertifications());
 
             cv.setSections(sections);
             cv.setHeadline(parsedData.getHeadline());
@@ -67,6 +70,7 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
     private String extractPdfText(MultipartFile file) throws IOException {
         try (PDDocument doc = PDDocument.load(file.getInputStream())) {
             PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
             return stripper.getText(doc);
         }
     }
@@ -85,6 +89,7 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
         data.setExperience(extractSection(lines, "Experience"));
         data.setEducation(extractSection(lines, "Education"));
         data.setLanguages(extractSection(lines, "Languages"));
+        data.setCertifications(extractSection(lines, "Certifications"));
 
         return data;
     }
@@ -115,4 +120,3 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
         return result;
     }
 }
-
