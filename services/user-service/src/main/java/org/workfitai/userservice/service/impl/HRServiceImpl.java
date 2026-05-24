@@ -24,10 +24,12 @@ import org.workfitai.userservice.model.HREntity;
 import org.workfitai.userservice.repository.HRRepository;
 import org.workfitai.userservice.messaging.CompanySyncProducer;
 import org.workfitai.userservice.messaging.NotificationProducer;
+import org.workfitai.userservice.messaging.SessionInvalidationProducer;
 import org.workfitai.userservice.messaging.UserEventPublisher;
 import org.workfitai.userservice.messaging.UserRegistrationProducer;
 import org.workfitai.userservice.service.HRService;
 import org.workfitai.userservice.specification.HRSpecification;
+import org.workfitai.userservice.security.SecurityContextUtils;
 import org.workfitai.userservice.util.LogContext;
 
 import java.time.Instant;
@@ -48,6 +50,7 @@ public class HRServiceImpl implements HRService {
   private final Validator validator;
   private final CompanySyncProducer companySyncProducer;
   private final NotificationProducer notificationProducer;
+  private final SessionInvalidationProducer sessionInvalidationProducer;
   private final UserRegistrationProducer userRegistrationProducer;
   private final UserEventPublisher userEventPublisher;
 
@@ -58,6 +61,21 @@ public class HRServiceImpl implements HRService {
           .map(v -> v.getPropertyPath() + ": " + v.getMessage())
           .collect(Collectors.joining("; "));
       throw new ApiException("Validation failed: " + msg, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Enforces company scope for HR_MANAGER callers.
+   * HR_MANAGER can only act on HRs that belong to their own company.
+   * No-op for ADMIN callers (ADMIN is unrestricted).
+   */
+  private void assertCompanyScopeForHrmCaller(HREntity target, String action) {
+    if (!SecurityContextUtils.callerHasRole("HR_MANAGER")) return;
+    String callerCompanyNo = SecurityContextUtils.currentCallerCompanyNo();
+    if (callerCompanyNo != null && !callerCompanyNo.equals(target.getCompanyNo())) {
+      throw new ApiException(
+          "Access denied: cannot " + action + " HR from another company",
+          HttpStatus.FORBIDDEN);
     }
   }
 
@@ -81,6 +99,9 @@ public class HRServiceImpl implements HRService {
     HREntity existing = hrRepository.findById(id)
         .orElseThrow(() -> new ApiException("HR not found", HttpStatus.NOT_FOUND));
 
+    // HR_MANAGER can only update HRs within their own company
+    assertCompanyScopeForHrmCaller(existing, "update");
+
     hrMapper.updateEntityFromUpdateRequest(dto, existing);
 
     return hrMapper.toResponse(hrRepository.save(existing));
@@ -88,22 +109,67 @@ public class HRServiceImpl implements HRService {
 
   @Override
   public void delete(UUID id) {
-    if (!hrRepository.existsById(id)) {
-      throw new ApiException("HR not found", HttpStatus.NOT_FOUND);
+    HREntity entity = hrRepository.findById(id)
+        .orElseThrow(() -> new ApiException("HR not found", HttpStatus.NOT_FOUND));
+
+    // HR_MANAGER can only terminate HRs within their own company
+    assertCompanyScopeForHrmCaller(entity, "delete");
+
+    if (entity.getUserStatus() == EUserStatus.DELETED) {
+      throw new ApiException("HR account has already been terminated", HttpStatus.BAD_REQUEST);
     }
-    hrRepository.deleteById(id);
+
+    // Soft-terminate: mark account as deleted and block access (preserves audit trail)
+    entity.setUserStatus(EUserStatus.DELETED);
+    entity.setBlocked(true);
+    entity.setDeletedAt(Instant.now());
+    HREntity saved = hrRepository.save(entity);
+
+    // Immediately revoke all active sessions
+    sessionInvalidationProducer.publishSessionInvalidation(
+        saved.getUserId(), saved.getUsername(), "HR_ACCOUNT_TERMINATED");
+
+    // Sync status change with auth-service
+    publishUserStatusUpdate(saved, "HR_DELETED");
+
+    // Update Elasticsearch search index
+    userEventPublisher.publishUserDeleted(saved);
+
+    // Notify the terminated HR
+    notificationProducer.send(NotificationEvent.builder()
+        .eventId(UUID.randomUUID().toString())
+        .eventType("EMAIL_NOTIFICATION")
+        .recipientEmail(saved.getEmail())
+        .recipientUserId(saved.getUsername())
+        .recipientRole(saved.getUserRole().name())
+        .templateType("ACCOUNT_TERMINATED")
+        .subject("Your account has been terminated - WorkFitAI")
+        .content("Your " + saved.getUserRole().name() + " account has been terminated.")
+        .metadata(Map.of("username", saved.getUsername(), "role", saved.getUserRole().name()))
+        .sendEmail(true)
+        .createInAppNotification(true)
+        .notificationType("ACCOUNT_TERMINATED")
+        .build());
   }
 
   @Override
   public HRResponse getById(UUID id) {
-    return hrRepository.findById(id)
-        .map(hrMapper::toResponse)
+    HREntity entity = hrRepository.findById(id)
         .orElseThrow(() -> new ApiException("HR not found", HttpStatus.NOT_FOUND));
+
+    // HR_MANAGER can only view HRs within their own company
+    assertCompanyScopeForHrmCaller(entity, "view");
+
+    return hrMapper.toResponse(entity);
   }
 
   @Override
   public Page<HRResponse> search(String keyword, Pageable pageable) {
-    Specification<HREntity> spec = hrSpecification.filter(keyword);
+    // HR_MANAGER searches are scoped to their company; ADMIN sees all
+    String companyNo = SecurityContextUtils.callerHasRole("HR_MANAGER")
+        ? SecurityContextUtils.currentCallerCompanyNo()
+        : null;
+    Specification<HREntity> spec = hrSpecification.filter(keyword, companyNo);
     return hrRepository.findAll(spec, pageable).map(hrMapper::toResponse);
   }
 
@@ -329,6 +395,9 @@ public class HRServiceImpl implements HRService {
     if (entity.getUserRole() != EUserRole.HR) {
       throw new ApiException("Only HR can be approved via this endpoint", HttpStatus.BAD_REQUEST);
     }
+
+    // HR_MANAGER can only approve HRs within their own company
+    assertCompanyScopeForHrmCaller(entity, "approve");
     if (entity.getUserStatus() == EUserStatus.ACTIVE) {
       return hrMapper.toResponse(entity);
     }
@@ -408,6 +477,10 @@ public class HRServiceImpl implements HRService {
     if (entity.getUserRole() != EUserRole.HR) {
       throw new ApiException("Only HR can be rejected via this endpoint", HttpStatus.BAD_REQUEST);
     }
+
+    // HR_MANAGER can only reject HRs within their own company
+    assertCompanyScopeForHrmCaller(entity, "reject");
+
     if (entity.getUserStatus() == EUserStatus.ACTIVE) {
       throw new ApiException("Cannot reject an already active HR", HttpStatus.BAD_REQUEST);
     }
@@ -534,8 +607,12 @@ public class HRServiceImpl implements HRService {
 
   @Override
   public HRResponse getByUsername(String username) {
-    return hrRepository.findByUsername(username)
-        .map(hrMapper::toResponse)
+    HREntity entity = hrRepository.findByUsername(username)
         .orElseThrow(() -> new ApiException("HR not found with username: " + username, HttpStatus.NOT_FOUND));
+
+    // HR_MANAGER can only view HRs within their own company
+    assertCompanyScopeForHrmCaller(entity, "view");
+
+    return hrMapper.toResponse(entity);
   }
 }

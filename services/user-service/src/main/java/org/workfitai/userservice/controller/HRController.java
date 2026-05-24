@@ -43,7 +43,7 @@ public class HRController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('hr:delete') and hasAnyRole('HR', 'HR_MANAGER')")
+    @PreAuthorize("hasAuthority('hr:delete') and hasAnyRole('ADMIN', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<Void>> delete(@PathVariable UUID id) {
         hrService.delete(id);
         return ResponseEntity.ok(ResponseData.success(
@@ -66,6 +66,7 @@ public class HRController {
     }
 
     @PostMapping("/users/search")
+    @PreAuthorize("hasAuthority('hr:search') and hasAnyRole('ADMIN', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<UserSearchResponse>> searchUsersAdvanced(
             @RequestBody UserSearchRequest searchRequest) {
         UserSearchResponse result = userSearchService.searchUsers(searchRequest);
@@ -73,6 +74,7 @@ public class HRController {
     }
 
     @GetMapping("/stats/department")
+    @PreAuthorize("hasAuthority('hr:stats') and hasAnyRole('ADMIN', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<Map<String, Long>>> countByDepartment() {
         return ResponseEntity.ok(ResponseData.success(hrService.countByDepartment()));
     }
@@ -146,7 +148,7 @@ public class HRController {
     }
 
     @GetMapping("/username/{username}")
-    @PreAuthorize("hasAuthority('hr:read') and hasAnyRole('ADMIN', 'HR_MANAGER', 'HR_MANAGER')")
+    @PreAuthorize("hasAuthority('hr:read') and hasAnyRole('ADMIN', 'HR', 'HR_MANAGER')")
     public ResponseEntity<ResponseData<HRResponse>> getByUsername(@PathVariable String username) {
         return ResponseEntity.ok(ResponseData.success(hrService.getByUsername(username)));
     }

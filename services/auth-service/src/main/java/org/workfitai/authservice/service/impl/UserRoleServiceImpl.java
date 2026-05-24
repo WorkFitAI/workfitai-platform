@@ -137,11 +137,39 @@ public class UserRoleServiceImpl implements iUserRoleService {
 
     // ─── read ─────────────────────────────────────────────────────────────
 
+    /**
+     * Returns roles for the target user.
+     *
+     * HR_MANAGER scope (enforced here, not only at controller):
+     *   - May view roles only for HR or HR_MANAGER users (never ADMIN/CANDIDATE).
+     *   - Target must belong to the same company as the HR_MANAGER.
+     *   - Exception: HR_MANAGER may always view their own roles.
+     */
     @Override
     public Set<String> getUserRoles(String username) {
-        return users.findByUsername(username)
-                .map(User::getRoles)
+        Authentication auth = currentAuth();
+
+        User target = users.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException(Messages.Error.USER_NOT_FOUND));
+
+        if (isHrManager(auth) && !isAdmin(auth) && !auth.getName().equals(username)) {
+            User viewer = findUser(auth.getName());
+
+            // HR_MANAGER may only inspect HR or HR_MANAGER users
+            boolean targetIsHrOrHrm = target.getRoles().stream()
+                    .anyMatch(r -> HR_ROLE.equals(r) || HR_MGR_ROLE.equals(r));
+            if (!targetIsHrOrHrm) {
+                throw new AccessDeniedException(Messages.Error.FORBIDDEN);
+            }
+
+            // Target must be in the same company
+            if (viewer.getCompanyNo() == null
+                    || !viewer.getCompanyNo().equals(target.getCompanyNo())) {
+                throw new AccessDeniedException(Messages.Error.CANNOT_GRANT_ROLE_OUTSIDE_COMPANY);
+            }
+        }
+
+        return target.getRoles();
     }
 
     // ─── business-rule guards ─────────────────────────────────────────────
