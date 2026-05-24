@@ -140,4 +140,21 @@ public class RoleServiceImpl implements iRoleService {
         }
         return roles.save(r);
     }
+
+    @Override
+    public Role cloneRole(String sourceRoleName, String newRoleName, String description) {
+        Role source = getByName(sourceRoleName);
+        if (roles.findByName(newRoleName).isPresent()) {
+            throw new IllegalArgumentException(String.format(Messages.Error.ROLE_ALREADY_EXISTS, newRoleName));
+        }
+        // Deep-copy permissions so edits to the clone don't affect the source
+        Set<String> clonedPerms = source.getPermissions() == null
+                ? new HashSet<>()
+                : new HashSet<>(source.getPermissions());
+        return roles.save(Role.builder()
+                .name(newRoleName)
+                .description(description)
+                .permissions(clonedPerms)
+                .build());
+    }
 }

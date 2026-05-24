@@ -34,7 +34,7 @@ public class User {
 
     private String fullName; // User's full name
 
-    private Set<String> roles; // e.g. ["USER"]
+    private Set<String> roles; // e.g. ["HR", "CANDIDATE"]
 
     @Builder.Default
     private UserStatus status = UserStatus.PENDING; // User status for registration flow

@@ -30,6 +30,10 @@ public class MongoConfig {
                 // TTL index for password_reset_tokens collection
                 createTtlIndex(mongoTemplate, "password_reset_tokens", "expiresAt");
 
+                // Query indexes for grant_audit_logs — speeds up target/grantor lookups
+                createAscendingIndex(mongoTemplate, "grant_audit_logs", "targetUsername");
+                createAscendingIndex(mongoTemplate, "grant_audit_logs", "grantorUsername");
+
                 log.info("MongoDB TTL indexes created successfully");
             } catch (Exception e) {
                 log.warn("Failed to create TTL indexes (may already exist): {}", e.getMessage());
@@ -50,5 +54,16 @@ public class MongoConfig {
                 .name(fieldName + "_ttl"));
 
         log.info("Created TTL index on {}.{}", collectionName, fieldName);
+    }
+
+    private void createAscendingIndex(MongoTemplate mongoTemplate, String collectionName, String fieldName) {
+        MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
+
+        Document indexKeys = new Document(fieldName, 1);
+
+        collection.createIndex(indexKeys, new com.mongodb.client.model.IndexOptions()
+                .name(fieldName + "_idx"));
+
+        log.info("Created ascending index on {}.{}", collectionName, fieldName);
     }
 }

@@ -42,6 +42,14 @@ public final class Messages {
         public static final String ROLE_NOT_FOUND = "Role not found";
         public static final String PERMISSION_NOT_FOUND = "Permission not found";
         public static final String UNKNOWN_ROLE = "Unknown role: %s";
+
+        // Grant/revoke guard errors
+        public static final String ROLE_ALREADY_GRANTED = "Role is already assigned to this user";
+        public static final String CANNOT_GRANT_ADMIN_ROLE = "Cannot grant ADMIN or HR_MANAGER role: insufficient authority";
+        public static final String CANNOT_GRANT_OWN_ROLE = "Cannot modify your own roles";
+        public static final String CANNOT_GRANT_ROLE_OUTSIDE_SCOPE = "HR_MANAGER can only grant or revoke the HR role";
+        public static final String CANNOT_GRANT_ROLE_OUTSIDE_COMPANY = "HR_MANAGER can only manage HR staff within their own company";
+        public static final String HRM_NO_COMPANY = "HR_MANAGER account has no company association";
     }
 
     // Success Messages
@@ -64,7 +72,12 @@ public final class Messages {
         public static final String ROLE_PERMISSIONS_REMOVED_BATCH = "Permissions removed from role in batch";
         public static final String ROLE_GRANTED = "Role granted";
         public static final String ROLE_REVOKED = "Role revoked";
+        public static final String ROLES_GRANTED_BATCH = "Roles granted in batch";
+        public static final String ROLES_REVOKED_BATCH = "Roles revoked in batch";
         public static final String USER_ROLES_FETCHED = "User roles retrieved";
+        public static final String ROLE_CLONED = "Role cloned successfully";
+        public static final String AUDIT_LOGS_FETCHED = "Audit logs retrieved";
+        public static final String AUDIT_LOGS_EMPTY = "No audit logs found";
         public static final String TOKENS_ISSUED = "Tokens issued";
         public static final String LOGGED_OUT = "Logged out";
         public static final String TOKENS_REFRESHED = "Tokens refreshed";
