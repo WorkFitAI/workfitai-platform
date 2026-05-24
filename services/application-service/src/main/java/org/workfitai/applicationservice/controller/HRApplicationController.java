@@ -113,27 +113,41 @@ public class HRApplicationController {
         return ResponseEntity.ok(RestResponse.success(java.util.Map.of("count", applicationService.countByJob(jobId))));
     }
 
+    /**
+     * Download the CV attached to an application.
+     *
+     * Access rules:
+     *   HR / HR_MANAGER / ADMIN — can download any application's CV (has application:review).
+     *   CANDIDATE               — can download only their own application's CV (is the owner).
+     */
     @GetMapping("/{id}/cv/download")
-    @PreAuthorize("hasAuthority('application:review')")
+    @PreAuthorize("@applicationSecurity.canView(#id, authentication)")
     public ResponseEntity<org.springframework.core.io.Resource> downloadCv(
             @PathVariable String id,
             Authentication authentication) {
 
-        log.info("Downloading CV for application: id={}", id);
+        log.info("Downloading CV for application: id={}, requester={}", id,
+                applicationSecurity.getCurrentUsername(authentication));
 
         ApplicationResponse application = applicationService.getApplicationById(id);
         String objectKey = minioPreSignedUrlService.extractObjectKey(application.getCvFileUrl());
 
         try {
             byte[] fileData = minioPreSignedUrlService.downloadFile(objectKey);
+
+            // Use stored content type; fall back to application/pdf (enforced at upload)
+            org.springframework.http.MediaType mediaType = application.getCvContentType() != null
+                    ? org.springframework.http.MediaType.parseMediaType(application.getCvContentType())
+                    : org.springframework.http.MediaType.APPLICATION_PDF;
+
             return ResponseEntity.ok()
                     .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=\"" + application.getCvFileName() + "\"")
-                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .contentType(mediaType)
                     .contentLength(fileData.length)
                     .body(new org.springframework.core.io.ByteArrayResource(fileData));
         } catch (Exception e) {
-            log.error("Failed to download CV file: {}", e.getMessage(), e);
+            log.error("Failed to download CV for application {}: {}", id, e.getMessage(), e);
             throw new FileStorageException("Failed to download CV file: " + e.getMessage());
         }
     }

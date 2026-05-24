@@ -1,8 +1,10 @@
 package org.workfitai.authservice.service.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -10,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.authservice.constants.Messages;
+import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.RoleRepository;
 import org.workfitai.authservice.repository.UserRepository;
@@ -37,6 +40,29 @@ public class UserRoleServiceImpl implements iUserRoleService {
     private static final String ADMIN_ROLE    = "ADMIN";
     private static final String HR_MGR_ROLE   = "HR_MANAGER";
     private static final String HR_ROLE       = "HR";
+
+    /** Set of built-in role names — a user must always retain at least one of these. */
+    private static final Set<String> BUILT_IN_ROLES = Arrays.stream(UserRole.values())
+            .map(UserRole::getRoleName)
+            .collect(Collectors.toUnmodifiableSet());
+
+    /** Returns true when {@code roleName} is a built-in system role (case-insensitive). */
+    private static boolean isBuiltIn(String roleName) {
+        return BUILT_IN_ROLES.stream().anyMatch(b -> b.equalsIgnoreCase(roleName));
+    }
+
+    /**
+     * Ensures the revoke operation does not strip the user's last built-in role.
+     * A user must always retain at least one built-in role so they can still authenticate.
+     */
+    private void assertRetainsBuiltInRole(User target, Set<String> rolesToRemove) {
+        long remainingBuiltIn = target.getRoles().stream()
+                .filter(r -> isBuiltIn(r) && !rolesToRemove.contains(r))
+                .count();
+        if (remainingBuiltIn < 1) {
+            throw new IllegalArgumentException(Messages.Error.CANNOT_REMOVE_LAST_BUILTIN_ROLE);
+        }
+    }
 
     // ─── single grant/revoke ───────────────────────────────────────────────
 
@@ -81,6 +107,8 @@ public class UserRoleServiceImpl implements iUserRoleService {
                 .orElseThrow(() -> new NoSuchElementException(Messages.Error.ROLE_NOT_FOUND));
 
         assertGrantAllowed(auth, grantor, target, roleName);
+        // Protect user's last built-in role — removing it would leave them with no identity
+        assertRetainsBuiltInRole(target, Set.of(roleName));
 
         target.getRoles().remove(roleName);
         users.save(target);
@@ -130,6 +158,8 @@ public class UserRoleServiceImpl implements iUserRoleService {
                             String.format(Messages.Error.UNKNOWN_ROLE, roleName)));
             assertGrantAllowed(auth, grantor, target, roleName);
         }
+        // Validate the entire batch at once before any removal — fail atomically
+        assertRetainsBuiltInRole(target, Set.copyOf(roleNames));
         target.getRoles().removeAll(roleNames);
         users.save(target);
         roleNames.forEach(r -> auditService.logRevoke(auth.getName(), username, RESOURCE_TYPE, r));

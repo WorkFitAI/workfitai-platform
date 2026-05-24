@@ -50,6 +50,14 @@ public final class Messages {
         public static final String CANNOT_GRANT_ROLE_OUTSIDE_SCOPE = "HR_MANAGER can only grant or revoke the HR role";
         public static final String CANNOT_GRANT_ROLE_OUTSIDE_COMPANY = "HR_MANAGER can only manage HR staff within their own company";
         public static final String HRM_NO_COMPANY = "HR_MANAGER account has no company association";
+
+        // Built-in role protection
+        public static final String CANNOT_MODIFY_BUILTIN_ROLE =
+                "Built-in role '%s' is immutable. Clone it first to create a custom role.";
+        public static final String CANNOT_DELETE_BUILTIN_ROLE =
+                "Built-in role '%s' cannot be deleted.";
+        public static final String CANNOT_REMOVE_LAST_BUILTIN_ROLE =
+                "Cannot remove the last built-in role from a user. The user must retain at least one built-in role.";
     }
 
     // Success Messages
