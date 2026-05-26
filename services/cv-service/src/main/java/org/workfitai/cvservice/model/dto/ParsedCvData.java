@@ -21,4 +21,6 @@ public class ParsedCvData {
     private List<String> experience = new ArrayList<>();
     private List<String> education = new ArrayList<>();
     private List<String> languages = new ArrayList<>();
+    private List<String> objective = new ArrayList<>();
+    private List<String> certifications = new ArrayList<>();
 }
