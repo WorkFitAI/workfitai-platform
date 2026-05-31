@@ -3,6 +3,7 @@ services:
   consul:
     image: hashicorp/consul:1.16.2
     container_name: consul-workfitai
+    restart: unless-stopped
     command: agent -dev -client=0.0.0.0
     ports:
       - "8500:8500" # HTTP UI/API
@@ -14,10 +15,14 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper-workfitai
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
@@ -30,6 +35,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-workfitai
+    restart: unless-stopped
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -47,6 +53,8 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 3
+    volumes:
+      - kafka-data:/var/lib/kafka/data
     healthcheck:
       test:
         ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
@@ -61,6 +69,7 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
+    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
@@ -78,16 +87,20 @@ services:
   auth-mongo:
     image: mongo:6.0
     container_name: auth-mongo
+    restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: auth-db
+    volumes:
+      - auth-mongo-data:/data/db
     ports:
-      - "27017:27017" # mở cổng ra máy Mac
+      - "27017:27017"
     networks: [workfitai-net]
     profiles: ["infra", "full"]
 
   auth-redis:
     image: redis:6-alpine
     container_name: auth-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
     networks: [workfitai-net]
@@ -96,6 +109,7 @@ services:
   cv-redis:
     image: redis:6-alpine
     container_name: cv-redis
+    restart: unless-stopped
     ports:
       - "6381:6379"
     networks: [workfitai-net]
@@ -104,6 +118,7 @@ services:
   notification-redis:
     image: redis:6-alpine
     container_name: notification-redis
+    restart: unless-stopped
     ports:
       - "6382:6379"
     networks: [workfitai-net]
@@ -112,6 +127,7 @@ services:
   cv-mongo:
     image: mongo:6.0
     container_name: cv-mongo
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${CV_INIT_USER:-root}
       MONGO_INITDB_ROOT_PASSWORD: ${CV_INIT_PASS:-root}
@@ -127,6 +143,7 @@ services:
   application-mongo:
     image: mongo:6.0
     container_name: application-mongo
+    restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: app-db
     ports:
@@ -145,6 +162,7 @@ services:
   user-postgres:
     image: postgres:15
     container_name: user-postgres
+    restart: unless-stopped
     ports:
       - "5432:5432"
     env_file:
@@ -161,6 +179,7 @@ services:
   job-postgres:
     image: postgres:15
     container_name: job-postgres
+    restart: unless-stopped
     ports:
       - "5433:5432"
     env_file:
@@ -179,6 +198,7 @@ services:
     build:
       context: ./services/auth-service
     container_name: auth-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=auth-service"
       - "workfitai.logs=enabled"
@@ -231,6 +251,7 @@ services:
     build:
       context: ./services/user-service
     container_name: user-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=user-service"
       - "workfitai.logs=enabled"
@@ -274,6 +295,7 @@ services:
     build:
       context: ./services/job-service
     container_name: job-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=job-service"
       - "workfitai.logs=enabled"
@@ -314,6 +336,7 @@ services:
     build:
       context: ./services/cv-service
     container_name: cv-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=cv-service"
       - "workfitai.logs=enabled"
@@ -359,6 +382,7 @@ services:
     build:
       context: ./services/application-service
     container_name: application-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=application-service"
       - "workfitai.logs=enabled"
@@ -395,6 +419,7 @@ services:
     build:
       context: ./services/api-gateway
     container_name: api-gateway
+    restart: unless-stopped
     labels:
       - "workfitai.service=api-gateway"
       - "workfitai.logs=enabled"
@@ -418,12 +443,12 @@ services:
       - SPRING_CLOUD_CONFIG_ENABLED=false
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
       # CORS Configuration (Phase 1)
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS_DOCKER}
-      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS_DOCKER}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
+      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
       # Rate Limiting Configuration (Phase 1)
-      - RATE_LIMIT_GLOBAL_ENABLED=${RATE_LIMIT_GLOBAL_ENABLED}
-      - RATE_LIMIT_GLOBAL_RPS=${RATE_LIMIT_GLOBAL_RPS}
-      - RATE_LIMIT_GLOBAL_BURST=${RATE_LIMIT_GLOBAL_BURST}
+      - RATE_LIMIT_GLOBAL_ENABLED=${RATE_LIMIT_GLOBAL_ENABLED:-true}
+      - RATE_LIMIT_GLOBAL_RPS=${RATE_LIMIT_GLOBAL_RPS:-100}
+      - RATE_LIMIT_GLOBAL_BURST=${RATE_LIMIT_GLOBAL_BURST:-200}
     depends_on:
       consul:
         condition: service_started
@@ -435,6 +460,7 @@ services:
   api-redis:
     image: redis:6-alpine
     container_name: api-redis
+    restart: unless-stopped
     ports:
       - "6380:6379"
     networks: [workfitai-net]
@@ -444,6 +470,7 @@ services:
     build:
       context: ./services/monitoring-service
     container_name: monitoring-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=monitoring-service"
       - "workfitai.logs=enabled"
@@ -506,6 +533,7 @@ services:
     build:
       context: ./services/notification-service
     container_name: notification-service
+    restart: unless-stopped
     labels:
       - "workfitai.service=notification-service"
       - "workfitai.logs=enabled"
@@ -523,10 +551,6 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST}
-      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT}
-      - EMAIL_ADDRESS=${EMAIL_ADDRESS}
-      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
       - VAULT_URI=http://vault:8200
@@ -553,8 +577,11 @@ services:
   notif-mongo:
     image: mongo:6.0
     container_name: notif-mongo
+    restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: notification-db
+    volumes:
+      - notif-mongo-data:/data/db
     ports:
       - "27020:27017"
     networks: [workfitai-net]
@@ -563,6 +590,7 @@ services:
   vault:
     image: vault:1.13.3
     container_name: vault
+    restart: unless-stopped
     ports:
       - "8200:8200"
     cap_add:
@@ -659,6 +687,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.53.0
     container_name: prometheus
+    restart: unless-stopped
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
     ports:
@@ -675,6 +704,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     container_name: nginx-gateway
+    restart: unless-stopped
     ports:
       - "80:80" # Main entry point
     volumes:
@@ -695,6 +725,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: elasticsearch
+    restart: unless-stopped
     mem_limit: 2g
     mem_reservation: 1536m
     environment:
@@ -731,7 +762,7 @@ services:
     networks: [workfitai-net]
     profiles: ["logging", "infra", "full"]
 
-  # Setup kibana_system user password
+  # Setup kibana_system user password (one-shot, no restart policy)
   elasticsearch-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: elasticsearch-setup
@@ -759,6 +790,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: kibana
+    restart: unless-stopped
     environment:
       - ELASTICSEARCH_HOSTS=http://${ELASTICSEARCH_HOST:-elasticsearch}:${ELASTICSEARCH_PORT:-9200}
       - ELASTICSEARCH_USERNAME=kibana_system
@@ -783,6 +815,7 @@ services:
   fluent-bit:
     image: fluent/fluent-bit:2.2
     container_name: fluent-bit
+    restart: unless-stopped
     environment:
       - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elasticsearch}
       - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
@@ -804,6 +837,7 @@ services:
   minio:
     image: quay.io/minio/minio:latest
     container_name: minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000" # API
@@ -816,10 +850,11 @@ services:
     networks: [workfitai-net]
     profiles: ["infra", "full"]
 
-  ### MinIO Client (tuỳ chọn) ###
+  ### MinIO Client ###
   minio-mc:
     image: minio/mc:latest
     container_name: minio-mc
+    restart: unless-stopped
     depends_on:
       - minio
     environment:
@@ -831,12 +866,14 @@ services:
       /bin/sh -c " sleep 5 && mc alias set local $${MINIO_ENDPOINT} $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY} && mc mb -p local/$${MINIO_BUCKET} || true && tail -f /dev/null "
     networks: [workfitai-net]
     profiles: ["infra", "full"]
+
   ### Recommendation Engine Service (Python FastAPI) ###
   # recommendation-engine:
   #   build:
   #     context: ./services/recommendation-engine
   #     dockerfile: Dockerfile
   #   container_name: recommendation-engine
+  #   restart: unless-stopped
   #   labels:
   #     - "workfitai.service=recommendation-engine"
   #     - "workfitai.logs=enabled"
@@ -890,7 +927,7 @@ services:
   #     start_period: 60s
   #   profiles: [ "services", "full" ]
 
-  ### Database Dump / Import Tools ###
+  ### Database Dump / Import Tools (utility, no restart policy) ###
   db-dump-postgres:
     image: postgres:15
     container_name: db-dump-postgres
@@ -956,6 +993,11 @@ volumes:
   job-postgres-data:
   cv-mongo-data:
   application-mongo-data:
+  auth-mongo-data:
+  notif-mongo-data:
+  zookeeper-data:
+  zookeeper-log:
+  kafka-data:
   prometheus-data:
   minio-data:
   elasticsearch-data:

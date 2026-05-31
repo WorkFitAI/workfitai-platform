@@ -1,14 +1,19 @@
 package org.workfitai.applicationservice.controller;
 
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.BulkUpdateRequest;
@@ -66,6 +72,8 @@ import lombok.extern.slf4j.Slf4j;
 @SecurityRequirement(name = "bearerAuth")
 public class HRApplicationController {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final IApplicationService applicationService;
     private final ApplicationSecurity applicationSecurity;
     private final MinioPreSignedUrlService minioPreSignedUrlService;
@@ -85,7 +93,7 @@ public class HRApplicationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         ResultPaginationDTO<ApplicationResponse> result = (status != null)
                 ? applicationService.getApplicationsByJobAndStatus(jobId, status, pageable)
@@ -108,9 +116,9 @@ public class HRApplicationController {
 
     @GetMapping("/job/{jobId}/count")
     @PreAuthorize("hasAuthority('application:review')")
-    public ResponseEntity<RestResponse<java.util.Map<String, Long>>> getJobApplicationCount(
+    public ResponseEntity<RestResponse<Map<String, Long>>> getJobApplicationCount(
             @PathVariable String jobId) {
-        return ResponseEntity.ok(RestResponse.success(java.util.Map.of("count", applicationService.countByJob(jobId))));
+        return ResponseEntity.ok(RestResponse.success(Map.of("count", applicationService.countByJob(jobId))));
     }
 
     /**
@@ -119,37 +127,40 @@ public class HRApplicationController {
      * Access rules:
      *   HR / HR_MANAGER / ADMIN — can download any application's CV (has application:review).
      *   CANDIDATE               — can download only their own application's CV (is the owner).
+     *
+     * Streams the file via InputStream to avoid loading the full CV into heap memory.
      */
     @GetMapping("/{id}/cv/download")
     @PreAuthorize("@applicationSecurity.canView(#id, authentication)")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadCv(
+    public ResponseEntity<StreamingResponseBody> downloadCv(
             @PathVariable String id,
             Authentication authentication) {
 
-        log.info("Downloading CV for application: id={}, requester={}", id,
+        log.info("Streaming CV for application: id={}, requester={}", id,
                 applicationSecurity.getCurrentUsername(authentication));
 
         ApplicationResponse application = applicationService.getApplicationById(id);
         String objectKey = minioPreSignedUrlService.extractObjectKey(application.getCvFileUrl());
 
-        try {
-            byte[] fileData = minioPreSignedUrlService.downloadFile(objectKey);
+        // Use stored content type; fall back to application/pdf (enforced at upload)
+        MediaType mediaType = application.getCvContentType() != null
+                ? MediaType.parseMediaType(application.getCvContentType())
+                : MediaType.APPLICATION_PDF;
 
-            // Use stored content type; fall back to application/pdf (enforced at upload)
-            org.springframework.http.MediaType mediaType = application.getCvContentType() != null
-                    ? org.springframework.http.MediaType.parseMediaType(application.getCvContentType())
-                    : org.springframework.http.MediaType.APPLICATION_PDF;
+        StreamingResponseBody responseBody = outputStream -> {
+            try (InputStream stream = minioPreSignedUrlService.downloadStream(objectKey)) {
+                stream.transferTo(outputStream);
+            } catch (Exception e) {
+                log.error("Failed to stream CV for application {}: {}", id, e.getMessage(), e);
+                throw new FileStorageException("Failed to stream CV file: " + e.getMessage());
+            }
+        };
 
-            return ResponseEntity.ok()
-                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + application.getCvFileName() + "\"")
-                    .contentType(mediaType)
-                    .contentLength(fileData.length)
-                    .body(new org.springframework.core.io.ByteArrayResource(fileData));
-        } catch (Exception e) {
-            log.error("Failed to download CV for application {}: {}", id, e.getMessage(), e);
-            throw new FileStorageException("Failed to download CV file: " + e.getMessage());
-        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + application.getCvFileName() + "\"")
+                .contentType(mediaType)
+                .body(responseBody);
     }
 
     @PostMapping("/{id}/notes")
@@ -203,8 +214,15 @@ public class HRApplicationController {
             @RequestParam(required = false) String hrUsername,
             Authentication authentication) {
 
-        String username = hrUsername != null ? hrUsername
-                : applicationSecurity.getCurrentUsername(authentication);
+        String currentUser = applicationSecurity.getCurrentUsername(authentication);
+        boolean isAdmin = applicationSecurity.isAdmin(authentication);
+
+        // Only admins may query another user's stats
+        if (hrUsername != null && !hrUsername.equals(currentUser) && !isAdmin) {
+            throw new ForbiddenException("You can only view your own dashboard stats");
+        }
+
+        String username = hrUsername != null ? hrUsername : currentUser;
         DashboardStatsResponse response = applicationStatsService.getDashboardStats(username);
         return ResponseEntity.ok(RestResponse.success(response));
     }
@@ -226,7 +244,7 @@ public class HRApplicationController {
                 ? null
                 : applicationSecurity.getCurrentCompanyId(authentication);
 
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         ResultPaginationDTO<ApplicationResponse> result = applicationSearchService.search(
                 jobIds, status, fromDate, toDate, searchText, companyId, pageable);
@@ -240,7 +258,11 @@ public class HRApplicationController {
             Authentication authentication) {
 
         String updatedBy = applicationSecurity.getCurrentUsername(authentication);
-        BulkUpdateResult result = bulkOperationService.bulkUpdateStatus(request, updatedBy);
+        // Admin has no companyId (null) — service treats null as bypass
+        String companyId = applicationSecurity.isAdmin(authentication)
+                ? null
+                : applicationSecurity.getCurrentCompanyId(authentication);
+        BulkUpdateResult result = bulkOperationService.bulkUpdateStatus(request, updatedBy, companyId);
         return ResponseEntity.ok(RestResponse.success(result));
     }
 
@@ -248,6 +270,24 @@ public class HRApplicationController {
     @PreAuthorize("hasAuthority('application:review')")
     public ResponseEntity<RestResponse<JobStatsResponse>> getJobStats(@PathVariable String jobId) {
         return ResponseEntity.ok(RestResponse.success(jobStatsService.getJobStats(jobId)));
+    }
+
+    @GetMapping("/assigned/me")
+    @PreAuthorize("hasAuthority('application:review')")
+    public ResponseEntity<RestResponse<ResultPaginationDTO<ApplicationResponse>>> getMyAssignedApplications(
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+
+        String hrUsername = applicationSecurity.getCurrentUsername(authentication);
+        size = Math.min(size, MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
+                .getAssignedApplicationsWithFilters(hrUsername, status, fromDate, toDate, pageable);
+        return ResponseEntity.ok(RestResponse.success(result));
     }
 
     @GetMapping("/assigned/{hrUsername}")
@@ -261,10 +301,7 @@ public class HRApplicationController {
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        if ("my".equals(hrUsername)) {
-            hrUsername = applicationSecurity.getCurrentUsername(authentication);
-        }
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
                 .getAssignedApplicationsWithFilters(hrUsername, status, fromDate, toDate, pageable);
@@ -285,7 +322,7 @@ public class HRApplicationController {
             throw new ForbiddenException("No company associated with this account");
         }
         log.info("HR candidate list: companyId={}, search={}, status={}", companyId, search, status);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getCandidateList(companyId, search, status, pageable)));
@@ -319,7 +356,7 @@ public class HRApplicationController {
             throw new ForbiddenException("No company associated with this account");
         }
         log.info("HR jobs with stats: companyId={}, jobTitle={}", companyId, jobTitle);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getJobsWithStats(companyId, jobTitle, pageable)));

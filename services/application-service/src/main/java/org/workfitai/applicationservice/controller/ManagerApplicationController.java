@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.AssignApplicationRequest;
@@ -60,6 +61,8 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class ManagerApplicationController {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final ApplicationSecurity applicationSecurity;
     private final CompanyApplicationService companyApplicationService;
     private final CompanyCandidateService companyCandidateService;
@@ -81,7 +84,7 @@ public class ManagerApplicationController {
 
         log.info("Fetching company applications: companyId={}, status={}, assignedTo={}, jobTitle={}",
                 companyId, status, assignedTo, jobTitle);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
@@ -203,7 +206,7 @@ public class ManagerApplicationController {
             throw new ForbiddenException("Access denied to this company's candidates");
         }
         log.info("Fetching candidate list: companyId={}, search={}, status={}", companyId, search, status);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getCandidateList(companyId, search, status, pageable)));
@@ -237,7 +240,7 @@ public class ManagerApplicationController {
             throw new ForbiddenException("Access denied to this company's jobs");
         }
         log.info("Fetching company jobs with stats: companyId={}, jobTitle={}", companyId, jobTitle);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getJobsWithStats(companyId, jobTitle, pageable)));

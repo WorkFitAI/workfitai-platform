@@ -52,9 +52,7 @@ public class ApplicationSecurity {
 
     public boolean isOwner(String applicationId, Authentication authentication) {
         String username = getCurrentUsername(authentication);
-        return applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
-                .map(app -> app.getUsername().equals(username))
-                .orElse(false);
+        return applicationRepository.existsByIdAndUsernameAndDeletedAtIsNull(applicationId, username);
     }
 
     public void requireOwnership(String applicationId, Authentication authentication) {

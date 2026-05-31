@@ -29,6 +29,7 @@ public class ExportService {
     private final MongoTemplate mongoTemplate;
 
     private static final int MAX_EXPORT_ROWS = 10000;
+    private static final int ADMIN_EXPORT_LIMIT = 50000;
     private static final List<String> DEFAULT_COLUMNS = Arrays.asList(
             "id", "username", "email", "jobId", "jobTitle", "status",
             "appliedAt", "assignedTo", "companyId");
@@ -74,12 +75,12 @@ public class ExportService {
 
         // Fetch one extra to detect limit breach before CSV generation
         List<Application> applications = mongoTemplate.find(
-                Query.query(criteria).limit(50001), Application.class);
+                Query.query(criteria).limit(ADMIN_EXPORT_LIMIT + 1), Application.class);
 
-        if (applications.size() > 50000) {
+        if (applications.size() > ADMIN_EXPORT_LIMIT) {
             throw new BadRequestException(
-                    String.format("Export exceeds maximum limit of 50,000 rows. Found: %d+. Please add date filters.",
-                            50000));
+                    String.format("Export exceeds maximum limit of %,d rows. Found: %d+. Please add date filters.",
+                            ADMIN_EXPORT_LIMIT, ADMIN_EXPORT_LIMIT));
         }
 
         List<String> adminColumns = (columns != null && !columns.isEmpty()) ? columns : getAdminDefaultColumns();
@@ -172,7 +173,7 @@ public class ExportService {
         };
     }
 
-    // Escapes a CSV field value and neutralises spreadsheet formula injection.
+    // Leading =, +, -, @, |, \t trigger formula execution in spreadsheet apps (CSV injection).
     private String escapeCSV(String value) {
         if (value == null) {
             return "";

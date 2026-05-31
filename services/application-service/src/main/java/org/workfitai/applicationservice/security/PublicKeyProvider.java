@@ -33,6 +33,8 @@ import java.util.Map;
 @Slf4j
 public class PublicKeyProvider {
 
+    private static final String RSA_ALGORITHM = "RSA";
+
     private final AuthServiceClient authServiceClient;
 
     /**
@@ -122,7 +124,7 @@ public class PublicKeyProvider {
 
         // Parse as X509 encoded RSA public key
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
 
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }

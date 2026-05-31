@@ -46,20 +46,13 @@ public interface IApplicationService {
 
         /**
          * Get status change history for an application.
-         *
-         * @param id             Application ID
-         * @param authentication User authentication (for authorization)
-         * @return List of status changes in chronological order
+         * Authorization is enforced at the controller layer via @PreAuthorize.
          */
-        List<StatusChangeResponse> getStatusHistory(String id,
-                        org.springframework.security.core.Authentication authentication);
+        List<StatusChangeResponse> getStatusHistory(String id);
 
         /**
          * Get public HR notes for an application (visible to candidate).
-         *
-         * @param id             Application ID
-         * @param authentication User authentication (for authorization)
-         * @return List of public notes
+         * Authorization is enforced at the controller layer via @PreAuthorize.
          */
-        List<NoteResponse> getPublicNotes(String id, org.springframework.security.core.Authentication authentication);
+        List<NoteResponse> getPublicNotes(String id);
 }

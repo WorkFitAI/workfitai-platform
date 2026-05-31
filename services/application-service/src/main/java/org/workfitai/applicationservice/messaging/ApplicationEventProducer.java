@@ -1,6 +1,7 @@
 package org.workfitai.applicationservice.messaging;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -106,11 +107,11 @@ public class ApplicationEventProducer implements EventPublisherPort {
 
     @Override
     public void publishCandidateNotification(String applicationId, String candidateEmail, String candidateName,
-            String jobTitle, String companyName, java.time.Instant appliedAt) {
+            String jobTitle, String companyName, Instant appliedAt) {
         log.info("Publishing candidate notification: applicationId={}, email={}", applicationId, candidateEmail);
 
         try {
-            Map<String, Object> metadata = new java.util.HashMap<>();
+            Map<String, Object> metadata = new HashMap<>();
             metadata.put("candidateName", candidateName);
             metadata.put("jobTitle", jobTitle);
             metadata.put("companyName", companyName);
@@ -146,11 +147,11 @@ public class ApplicationEventProducer implements EventPublisherPort {
 
     @Override
     public void publishHrNotification(String applicationId, String hrEmail, String hrName,
-            String candidateName, String jobTitle, String companyName, java.time.Instant appliedAt) {
+            String candidateName, String jobTitle, String companyName, Instant appliedAt) {
         log.info("Publishing HR notification: applicationId={}, hrUsername={}", applicationId, hrName);
 
         try {
-            Map<String, Object> metadata = new java.util.HashMap<>();
+            Map<String, Object> metadata = new HashMap<>();
             metadata.put("hrName", hrName);
             metadata.put("candidateName", candidateName);
             metadata.put("jobTitle", jobTitle);

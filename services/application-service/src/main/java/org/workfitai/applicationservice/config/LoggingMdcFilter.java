@@ -35,6 +35,8 @@ public class LoggingMdcFilter extends OncePerRequestFilter {
     public static final String USERNAME_HEADER = "X-Username";
     public static final String ROLES_HEADER = "X-User-Roles";
 
+    private static final int REQUEST_ID_SHORT_LENGTH = 8;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
@@ -43,7 +45,7 @@ public class LoggingMdcFilter extends OncePerRequestFilter {
             // Extract or generate request ID
             String requestId = request.getHeader(REQUEST_ID_HEADER);
             if (requestId == null || requestId.isBlank()) {
-                requestId = UUID.randomUUID().toString().substring(0, 8);
+                requestId = UUID.randomUUID().toString().substring(0, REQUEST_ID_SHORT_LENGTH);
             }
 
             // Extract user info from headers (set by API Gateway)

@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ManagerStatsService {
 
+    private static final int TOP_JOBS_LIMIT = 10;
+
     private final ApplicationRepository applicationRepository;
 
     /**
@@ -201,7 +203,7 @@ public class ManagerStatsService {
                             .build();
                 })
                 .sorted((a, b) -> Long.compare(b.getApplicantCount(), a.getApplicantCount()))
-                .limit(10)
+                .limit(TOP_JOBS_LIMIT)
                 .toList();
     }
 }

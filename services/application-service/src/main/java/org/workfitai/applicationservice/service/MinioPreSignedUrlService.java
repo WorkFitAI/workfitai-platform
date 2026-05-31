@@ -1,5 +1,6 @@
 package org.workfitai.applicationservice.service;
 
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
@@ -109,6 +110,27 @@ public class MinioPreSignedUrlService {
         } catch (Exception e) {
             log.error("Failed to download file from MinIO: {}", e.getMessage(), e);
             throw new FileStorageException("Failed to download file: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Open a streaming download from MinIO. Caller must close the returned stream.
+     *
+     * @param objectKey The object key in MinIO
+     * @return InputStream for the file content
+     * @throws FileStorageException if opening the stream fails
+     */
+    public InputStream downloadStream(String objectKey) {
+        try {
+            log.info("Opening stream from MinIO: bucket={}, key={}", minioConfig.getBucket(), objectKey);
+            return minioClient.getObject(
+                    io.minio.GetObjectArgs.builder()
+                            .bucket(minioConfig.getBucket())
+                            .object(objectKey)
+                            .build());
+        } catch (Exception e) {
+            log.error("Failed to open stream from MinIO: {}", e.getMessage(), e);
+            throw new FileStorageException("Failed to stream file: " + e.getMessage(), e);
         }
     }
 

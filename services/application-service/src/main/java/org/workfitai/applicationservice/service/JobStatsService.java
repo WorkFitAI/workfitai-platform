@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.response.JobStatsResponse;
@@ -59,7 +60,7 @@ public class JobStatsService {
 
         // Total applications
         long totalApplications = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(criteria),
+            Query.query(criteria),
             Application.class
         );
 
@@ -171,7 +172,7 @@ public class JobStatsService {
                 .and("statusHistory").exists(true).ne(null);
 
         org.springframework.data.mongodb.core.query.Query query =
-            org.springframework.data.mongodb.core.query.Query.query(criteria);
+            Query.query(criteria);
 
         List<Application> applications = mongoTemplate.find(query, Application.class);
 

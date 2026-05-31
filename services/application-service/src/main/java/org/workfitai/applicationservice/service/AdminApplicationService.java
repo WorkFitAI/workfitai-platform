@@ -18,6 +18,7 @@ import org.workfitai.applicationservice.repository.ApplicationRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for admin-level application operations
@@ -218,7 +219,7 @@ public class AdminApplicationService {
                 "ADMIN",
                 null,
                 null,
-                java.util.Map.of("reason", reason, "warning", "HARD DELETE - DATA LOST"));
+                Map.of("reason", reason, "warning", "HARD DELETE - DATA LOST"));
 
         applicationRepository.delete(application);
 

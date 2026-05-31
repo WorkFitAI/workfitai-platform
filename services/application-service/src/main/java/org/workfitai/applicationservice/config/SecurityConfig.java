@@ -144,8 +144,7 @@ public class SecurityConfig {
         permsConverter.setAuthoritiesClaimName("perms");
         permsConverter.setAuthorityPrefix("");
 
-        log.info("✅ JWT Authentication Converter configured for roles : " + rolesConverter + " , and permissions: "
-                + permsConverter);
+        log.info("✅ JWT Authentication Converter configured for roles: {}, and permissions: {}", rolesConverter, permsConverter);
 
         // Combine both converters
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();

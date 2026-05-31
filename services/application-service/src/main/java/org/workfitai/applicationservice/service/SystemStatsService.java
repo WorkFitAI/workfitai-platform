@@ -3,9 +3,17 @@ package org.workfitai.applicationservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.LimitOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
 import org.workfitai.applicationservice.model.Application;
@@ -15,7 +23,8 @@ import org.workfitai.applicationservice.repository.ApplicationRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +35,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class SystemStatsService {
+
+    private static final int TOP_COMPANIES_LIMIT = 20;
+    private static final int TOP_JOBS_LIMIT = 10;
+    private static final int DAYS_PER_YEAR = 365;
+    private static final int DAYS_TWO_YEARS = 730;
+    private static final double MS_PER_DAY = 1000.0 * 60 * 60 * 24;
 
     private final ApplicationRepository applicationRepository;
     private final MongoTemplate mongoTemplate;
@@ -74,7 +89,7 @@ public class SystemStatsService {
     private SystemStatsResponse.PlatformTotals calculatePlatformTotalsWithAggregation() {
         // Count active applications (deletedAt is null)
         long totalApplications = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("deletedAt").isNull()
             ),
             Application.class
@@ -82,7 +97,7 @@ public class SystemStatsService {
 
         // Count deleted applications
         long totalDeleted = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("deletedAt").ne(null)
             ),
             Application.class
@@ -90,7 +105,7 @@ public class SystemStatsService {
 
         // Count distinct companies
         long totalCompanies = mongoTemplate.findDistinct(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("companyId").ne(null)
             ),
             "companyId",
@@ -100,7 +115,7 @@ public class SystemStatsService {
 
         // Count distinct jobs
         long totalJobs = mongoTemplate.findDistinct(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("jobId").exists(true)
             ),
             "jobId",
@@ -135,8 +150,8 @@ public class SystemStatsService {
             .count().as("applications")
             .addToSet("jobId").as("jobIds");
 
-        SortOperation sortByCount = Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "applications");
-        LimitOperation limitTo20 = Aggregation.limit(20);
+        SortOperation sortByCount = Aggregation.sort(Sort.Direction.DESC, "applications");
+        LimitOperation limitTo20 = Aggregation.limit(TOP_COMPANIES_LIMIT);
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
@@ -199,39 +214,39 @@ public class SystemStatsService {
         Instant sevenDaysAgo = now.minus(7, ChronoUnit.DAYS);
         Instant thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS);
         Instant sixtyDaysAgo = now.minus(60, ChronoUnit.DAYS);
-        Instant oneYearAgo = now.minus(365, ChronoUnit.DAYS);
-        Instant twoYearsAgo = now.minus(730, ChronoUnit.DAYS);
+        Instant oneYearAgo = now.minus(DAYS_PER_YEAR, ChronoUnit.DAYS);
+        Instant twoYearsAgo = now.minus(DAYS_TWO_YEARS, ChronoUnit.DAYS);
 
         long last7Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(sevenDaysAgo)
             ),
             Application.class
         );
 
         long last30Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(thirtyDaysAgo)
             ),
             Application.class
         );
 
         long previous30Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(sixtyDaysAgo).lt(thirtyDaysAgo)
             ),
             Application.class
         );
 
         long lastYear = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(oneYearAgo)
             ),
             Application.class
         );
 
         long previousYear = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(twoYearsAgo).lt(oneYearAgo)
             ),
             Application.class
@@ -266,8 +281,8 @@ public class SystemStatsService {
                 .otherwise(0)).as("hires")
             .first("companyId").as("companyId");
 
-        SortOperation sortByCount = Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "applications");
-        LimitOperation limitTo10 = Aggregation.limit(10);
+        SortOperation sortByCount = Aggregation.sort(Sort.Direction.DESC, "applications");
+        LimitOperation limitTo10 = Aggregation.limit(TOP_JOBS_LIMIT);
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
@@ -335,7 +350,7 @@ public class SystemStatsService {
         }
 
         // Convert milliseconds to days
-        double avgDays = avgDurationMs / (1000.0 * 60 * 60 * 24);
+        double avgDays = avgDurationMs / MS_PER_DAY;
         return String.format("%.1f days", avgDays);
     }
 }

@@ -42,16 +42,16 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-
-        JsonDeserializer<AuditEvent> jsonDeserializer = new JsonDeserializer<>(AuditEvent.class);
-        jsonDeserializer.setRemoveTypeHeaders(true);
-        jsonDeserializer.setUseTypeMapperForKey(false);
-        jsonDeserializer.addTrustedPackages("*");
+        // All JsonDeserializer config via props only — mixing setters + props throws IllegalStateException
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        // Ignore __TypeId__ headers from producers (auth-service, application-service emit
+        // their own local class name which doesn't exist on this classpath).
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new ErrorHandlingDeserializer<>(jsonDeserializer));
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(AuditEvent.class)));
     }
 
     @Bean

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.client.UserServiceClient;
 import org.workfitai.applicationservice.dto.FileUploadResult;
 import org.workfitai.applicationservice.dto.JobInfo;
@@ -50,6 +49,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationSagaOrchestrator {
 
+    // Short random suffix length for temp folder names during CV upload
+    private static final int TEMP_ID_SUFFIX_LENGTH = 8;
+    // "system" is a sentinel value used by job-service for auto-created jobs with no human HR owner
+    private static final String SYSTEM_USER = "system";
+
     private final ValidationPipeline validationPipeline;
     private final JobServicePort jobServicePort;
     private final FileStoragePort fileStoragePort;
@@ -60,13 +64,14 @@ public class ApplicationSagaOrchestrator {
 
     /**
      * Execute the full saga for creating an application.
+     * Not @Transactional — this is a distributed saga spanning MinIO + MongoDB + Kafka.
+     * Atomicity is provided by explicit compensation in {@link #compensate(ApplicationSagaContext)}.
      *
      * @param request  The application request with file
      * @param username The authenticated username
      * @return ApplicationResponse on success
      * @throws RuntimeException on any saga step failure
      */
-    @Transactional
     public ApplicationResponse createApplication(CreateApplicationRequest request, String username) {
         log.info("Starting application creation saga for user: {}, job: {}", username, request.getJobId());
 
@@ -129,7 +134,7 @@ public class ApplicationSagaOrchestrator {
         log.debug("Saga Step 3: UPLOAD_CV");
 
         // Use a temp folder initially, will be renamed after we have applicationId
-        String tempFolder = "temp-" + UUID.randomUUID().toString().substring(0, 8);
+        String tempFolder = "temp-" + UUID.randomUUID().toString().substring(0, TEMP_ID_SUFFIX_LENGTH);
 
         FileUploadResult result = fileStoragePort.uploadFile(
                 request.getCvPdfFile(),
@@ -208,7 +213,7 @@ public class ApplicationSagaOrchestrator {
                 .cvFileSize(fileResult.getFileSize())
                 .coverLetter(context.getCoverLetter())
                 .status(ApplicationStatus.APPLIED)
-                .statusHistory(new java.util.ArrayList<>(java.util.List.of(initialStatus)))
+                .statusHistory(new ArrayList<>(List.of(initialStatus)))
                 .assignedTo(validHR ? createdBy : null)
                 .assignedAt(validHR ? now : null)
                 .assignedBy(validHR ? "SYSTEM" : null)
@@ -251,7 +256,7 @@ public class ApplicationSagaOrchestrator {
             log.debug("Application created event published");
 
             // Publish JOB_STATS_UPDATE event for job-service
-            long totalApplications = applicationRepository.countByJobId(app.getJobId());
+            long totalApplications = applicationRepository.countByJobIdAndDeletedAtIsNull(app.getJobId());
             JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .jobId(UUID.fromString(app.getJobId()))
@@ -271,7 +276,7 @@ public class ApplicationSagaOrchestrator {
             List<String> usernamesToFetch = new ArrayList<>();
             usernamesToFetch.add(app.getUsername()); // Always fetch candidate
 
-            if (hrUsername != null && !hrUsername.isEmpty() && !hrUsername.equals("system")) {
+            if (hrUsername != null && !hrUsername.isEmpty() && !hrUsername.equals(SYSTEM_USER)) {
                 usernamesToFetch.add(hrUsername); // Add HR if valid
             }
 
@@ -285,14 +290,14 @@ public class ApplicationSagaOrchestrator {
                 log.debug("Fetched {} users from user-service", usersResponse.getData().size());
 
                 // Extract candidate info (REQUIRED)
-                var candidateInfo = usersResponse.getData().stream()
+                var candidateInfoOpt = usersResponse.getData().stream()
                         .filter(u -> app.getUsername().equals(u.username()))
-                        .findFirst()
-                        .orElse(null);
+                        .findFirst();
 
-                if (candidateInfo == null) {
+                if (candidateInfoOpt.isEmpty()) {
                     log.error("Failed to fetch candidate info for username: {}", app.getUsername());
                 } else {
+                    var candidateInfo = candidateInfoOpt.get();
                     // ALWAYS publish candidate notification
                     eventPublisher.publishCandidateNotification(
                             app.getId(),
@@ -305,13 +310,13 @@ public class ApplicationSagaOrchestrator {
                             candidateInfo.email(), candidateInfo.username());
 
                     // Publish HR notification ONLY if HR username is valid
-                    if (hrUsername != null && !hrUsername.isEmpty() && !hrUsername.equals("system")) {
-                        var hrInfo = usersResponse.getData().stream()
+                    if (hrUsername != null && !hrUsername.isEmpty() && !hrUsername.equals(SYSTEM_USER)) {
+                        var hrInfoOpt = usersResponse.getData().stream()
                                 .filter(u -> hrUsername.equals(u.username()))
-                                .findFirst()
-                                .orElse(null);
+                                .findFirst();
 
-                        if (hrInfo != null) {
+                        if (hrInfoOpt.isPresent()) {
+                            var hrInfo = hrInfoOpt.get();
                             eventPublisher.publishHrNotification(
                                     app.getId(),
                                     hrInfo.email(),

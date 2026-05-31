@@ -24,7 +24,6 @@ import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.port.outbound.EventPublisherPort;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
-import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.IApplicationService;
 import org.workfitai.applicationservice.validation.StatusTransitionValidator;
 
@@ -49,7 +48,6 @@ public class ApplicationServiceImpl implements IApplicationService {
     private final ApplicationMapper applicationMapper;
     private final EventPublisherPort eventPublisher;
     private final StatusTransitionValidator statusTransitionValidator;
-    private final ApplicationSecurity applicationSecurity;
 
     @Override
     public ApplicationResponse getApplicationById(String id) {
@@ -75,7 +73,7 @@ public class ApplicationServiceImpl implements IApplicationService {
             ApplicationStatus status,
             Pageable pageable) {
 
-        log.debug("Fetching applications for user {} with status {}", username, status);
+        log.debug(Messages.Log.FETCHING_USER_APPLICATIONS_BY_STATUS, username, status);
 
         Page<Application> page = applicationRepository.findByUsernameAndStatusAndDeletedAtIsNull(username, status,
                 pageable);
@@ -84,7 +82,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     public ResultPaginationDTO<ApplicationResponse> getApplicationsByJob(String jobId, Pageable pageable) {
-        log.debug("Fetching applications for job: {}", jobId);
+        log.debug(Messages.Log.FETCHING_JOB_APPLICATIONS, jobId);
 
         Page<Application> page = applicationRepository.findByJobIdAndDeletedAtIsNull(jobId, pageable);
         return buildPaginatedResponse(page);
@@ -96,7 +94,7 @@ public class ApplicationServiceImpl implements IApplicationService {
             ApplicationStatus status,
             Pageable pageable) {
 
-        log.debug("Fetching applications for job {} with status {}", jobId, status);
+        log.debug(Messages.Log.FETCHING_JOB_APPLICATIONS_BY_STATUS, jobId, status);
 
         Page<Application> page = applicationRepository.findByJobIdAndStatusAndDeletedAtIsNull(jobId, status, pageable);
         return buildPaginatedResponse(page);
@@ -190,27 +188,12 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<StatusChangeResponse> getStatusHistory(String id,
-            org.springframework.security.core.Authentication authentication) {
+    public List<StatusChangeResponse> getStatusHistory(String id) {
         log.debug("Fetching status history for application: {}", id);
 
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
-        // Verify user can view this application using ApplicationSecurity helper
-        // Allows: owner, HR with application:review, or admin
-        String username = applicationSecurity.getCurrentUsername(authentication);
-        boolean isOwner = application.getUsername().equals(username);
-        boolean hasReviewPermission = applicationSecurity.hasPermission(authentication, "application:review");
-        boolean isAdmin = applicationSecurity.isAdmin(authentication);
-
-        if (!isOwner && !hasReviewPermission && !isAdmin) {
-            log.warn("User {} attempted to view status history for application {} without proper permissions",
-                    username, id);
-            throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
-        }
-
-        // Return status history sorted by newest first
         return application.getStatusHistory().stream()
                 .sorted((a, b) -> b.getChangedAt().compareTo(a.getChangedAt()))
                 .map(this::mapToStatusChangeResponse)
@@ -219,27 +202,12 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NoteResponse> getPublicNotes(String id,
-            org.springframework.security.core.Authentication authentication) {
+    public List<NoteResponse> getPublicNotes(String id) {
         log.debug("Fetching public notes for application: {}", id);
 
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException(Messages.Error.APPLICATION_NOT_FOUND));
 
-        // Verify user can view this application using ApplicationSecurity helper
-        // Allows: owner, HR with application:review, or admin
-        String username = applicationSecurity.getCurrentUsername(authentication);
-        boolean isOwner = application.getUsername().equals(username);
-        boolean hasReviewPermission = applicationSecurity.hasPermission(authentication, "application:review");
-        boolean isAdmin = applicationSecurity.isAdmin(authentication);
-
-        if (!isOwner && !hasReviewPermission && !isAdmin) {
-            log.warn("User {} attempted to view public notes for application {} without proper permissions",
-                    username, id);
-            throw new ForbiddenException(Messages.Error.ACCESS_DENIED);
-        }
-
-        // Filter only candidate-visible notes
         return application.getNotes().stream()
                 .filter(Application.Note::isCandidateVisible)
                 .map(this::mapToNoteResponse)

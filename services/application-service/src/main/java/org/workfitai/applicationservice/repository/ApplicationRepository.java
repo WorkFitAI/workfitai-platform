@@ -80,6 +80,9 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
         /** Counts active applications for a job. */
         long countByJobIdAndDeletedAtIsNull(String jobId);
 
+        /** Checks if a non-deleted application with the given ID belongs to the given username. */
+        boolean existsByIdAndUsernameAndDeletedAtIsNull(String id, String username);
+
         // ==================== Phase 3: Company & Assignment Queries ====================
 
         /** Finds all active applications for a company. */
