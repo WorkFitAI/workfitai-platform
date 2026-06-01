@@ -8,18 +8,21 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Formats technical log entries into human-readable messages for end users.
- * 
- * Converts raw API calls and technical logs into understandable Vietnamese
- * descriptions
- * suitable for admin dashboards and user activity reports.
+ *
+ * Action-based messages are resolved from AuditPatternService (Redis-backed,
+ * admin-configurable). Path-based fallbacks remain hardcoded here.
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ActivityMessageFormatter {
+
+    private final AuditPatternService auditPatternService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
             .withZone(ZoneId.systemDefault());
@@ -54,102 +57,18 @@ public class ActivityMessageFormatter {
     }
 
     /**
-     * Format by business action.
-     * Made package-private so it can be used by AdminActivityService.
+     * Resolve a human-readable message for an action+entityType combination.
+     * Delegates to AuditPatternService so admins can customize messages at runtime.
+     * Made package-private so AdminActivityService can call it directly.
      */
     String formatByAction(String action, String entityType) {
-        // Handle null/empty cases
         if (action == null) {
             return null;
         }
-
-        // Build key - if entityType is empty/null, just use action alone
         String key = (entityType != null && !entityType.isEmpty())
                 ? action + "_" + entityType
                 : action;
-
-        Map<String, String> actionMessages = new HashMap<>();
-
-        // Job actions
-        actionMessages.put("CREATE_Job", "Tạo tin tuyển dụng mới");
-        actionMessages.put("UPDATE_Job", "Cập nhật tin tuyển dụng");
-        actionMessages.put("DELETE_Job", "Xóa tin tuyển dụng");
-        actionMessages.put("VIEW_Job", "Xem chi tiết tin tuyển dụng");
-        actionMessages.put("PUBLISH_Job", "Đăng tin tuyển dụng");
-        actionMessages.put("UNPUBLISH_Job", "Gỡ tin tuyển dụng");
-        actionMessages.put("CLOSE_Job", "Đóng tin tuyển dụng");
-        actionMessages.put("REOPEN_Job", "Mở lại tin tuyển dụng");
-        actionMessages.put("SEARCH_Job", "Tìm kiếm tin tuyển dụng");
-        actionMessages.put("FILTER_Job", "Lọc tin tuyển dụng");
-        actionMessages.put("EXPORT_Job", "Xuất danh sách tin tuyển dụng");
-
-        // Application actions
-        actionMessages.put("CREATE_Application", "Tạo hồ sơ ứng tuyển");
-        actionMessages.put("SUBMIT_Application", "Nộp hồ sơ ứng tuyển");
-        actionMessages.put("UPDATE_Application", "Cập nhật hồ sơ ứng tuyển");
-        actionMessages.put("WITHDRAW_Application", "Rút hồ sơ ứng tuyển");
-        actionMessages.put("VIEW_Application", "Xem hồ sơ ứng tuyển");
-        actionMessages.put("LIST_Application", "Xem danh sách hồ sơ ứng tuyển");
-        actionMessages.put("APPROVE_Application", "Duyệt hồ sơ ứng tuyển");
-        actionMessages.put("REJECT_Application", "Từ chối hồ sơ ứng tuyển");
-        actionMessages.put("REVIEW_Application", "Đánh giá hồ sơ ứng tuyển");
-        actionMessages.put("SHORTLIST_Application", "Chọn vào danh sách rút gọn");
-        actionMessages.put("INTERVIEW_Application", "Mời phỏng vấn");
-        actionMessages.put("OFFER_Application", "Gửi thư mời nhận việc");
-        actionMessages.put("SEARCH_Application", "Tìm kiếm hồ sơ ứng tuyển");
-        actionMessages.put("FILTER_Application", "Lọc hồ sơ ứng tuyển");
-        actionMessages.put("EXPORT_Application", "Xuất danh sách hồ sơ");
-
-        // Auth/Security actions (standalone - no entity type needed)
-        actionMessages.put("ENABLE_2FA", "Bật xác thực hai yếu tố");
-        actionMessages.put("DISABLE_2FA", "Tắt xác thực hai yếu tố");
-        actionMessages.put("VERIFY_2FA", "Xác thực mã 2FA");
-        actionMessages.put("VIEW_Sessions", "Xem danh sách phiên đăng nhập");
-        actionMessages.put("LOGOUT_Session", "Đăng xuất phiên làm việc");
-        actionMessages.put("LOGOUT_ALL", "Đăng xuất tất cả phiên làm việc");
-
-        // User/Profile actions
-        actionMessages.put("CREATE_User", "Tạo tài khoản người dùng");
-        actionMessages.put("UPDATE_User", "Cập nhật thông tin người dùng");
-        actionMessages.put("DELETE_User", "Xóa tài khoản người dùng");
-        actionMessages.put("VIEW_User", "Xem thông tin người dùng");
-        actionMessages.put("BLOCK_User", "Khóa tài khoản người dùng");
-        actionMessages.put("UNBLOCK_User", "Mở khóa tài khoản người dùng");
-        actionMessages.put("APPROVE_User", "Phê duyệt tài khoản người dùng");
-        actionMessages.put("DEACTIVATE_User", "Vô hiệu hóa tài khoản");
-        actionMessages.put("UPDATE_Profile", "Cập nhật hồ sơ cá nhân");
-        actionMessages.put("VIEW_Profile", "Xem hồ sơ cá nhân");
-        actionMessages.put("UPLOAD_Avatar", "Cập nhật ảnh đại diện");
-        actionMessages.put("DELETE_Avatar", "Xóa ảnh đại diện");
-        actionMessages.put("UPDATE_Settings", "Cập nhật cài đặt");
-        actionMessages.put("UPDATE_Privacy", "Cập nhật cài đặt riêng tư");
-        actionMessages.put("UPDATE_Notification", "Cập nhật cài đặt thông báo");
-
-        // HR Management actions (standalone - no entity type needed)
-        actionMessages.put("APPROVE_HR", "Phê duyệt tài khoản HR");
-        actionMessages.put("APPROVE_HR_MANAGER", "Phê duyệt tài khoản HR Manager");
-        actionMessages.put("REJECT_HR", "Từ chối tài khoản HR");
-        actionMessages.put("VIEW_HR", "Xem danh sách HR");
-        actionMessages.put("VIEW_HR_MANAGER", "Xem danh sách HR Manager");
-
-        // CV actions
-        actionMessages.put("UPLOAD_CV", "Tải lên CV");
-        actionMessages.put("UPDATE_CV", "Cập nhật CV");
-        actionMessages.put("DELETE_CV", "Xóa CV");
-        actionMessages.put("VIEW_CV", "Xem CV");
-        actionMessages.put("DOWNLOAD_CV", "Tải xuống CV");
-
-        // Company actions
-        actionMessages.put("CREATE_Company", "Tạo thông tin công ty");
-        actionMessages.put("UPDATE_Company", "Cập nhật thông tin công ty");
-        actionMessages.put("VIEW_Company", "Xem thông tin công ty");
-
-        // Report/Analytics
-        actionMessages.put("VIEW_Report", "Xem báo cáo");
-        actionMessages.put("EXPORT_Report", "Xuất báo cáo");
-        actionMessages.put("VIEW_Analytics", "Xem thống kê");
-
-        return actionMessages.get(key);
+        return auditPatternService.resolveMessage(key).orElse(null);
     }
 
     /**

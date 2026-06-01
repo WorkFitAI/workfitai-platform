@@ -1,15 +1,21 @@
 package org.workfitai.monitoringservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.Instant;
 import java.util.Map;
 
 /**
  * API response shape for a single audit event.
  * Returned by GET /api/admin/audit and GET /api/hrm/audit.
+ *
+ * displayMessage is the human-readable label resolved from the configurable
+ * audit patterns (AuditPatternService). Admins can customise these labels
+ * at runtime via PUT /api/admin/audit/patterns/{key}.
  */
 public record AuditEventResponse(
         String eventId,
-        String sourceService,
+        @JsonIgnore String sourceService,
         String actorUsername,
         String actorRole,
         String companyId,
@@ -18,5 +24,6 @@ public record AuditEventResponse(
         String action,
         Map<String, Object> before,
         Map<String, Object> after,
-        Instant occurredAt
+        Instant occurredAt,
+        String displayMessage
 ) {}

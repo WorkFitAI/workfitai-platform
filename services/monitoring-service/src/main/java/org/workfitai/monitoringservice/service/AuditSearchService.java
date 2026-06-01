@@ -41,6 +41,7 @@ import java.util.Map;
 public class AuditSearchService {
 
     private final ElasticsearchClient elasticsearchClient;
+    private final AuditPatternService auditPatternService;
 
     private static final String INDEX_PREFIX = "workfitai-audit-";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
@@ -181,18 +182,30 @@ public class AuditSearchService {
         java.time.Instant occurredAt = occurredAtStr != null
                 ? java.time.Instant.parse(occurredAtStr) : null;
 
+        String action        = (String) source.get("action");
+        String entityType    = (String) source.get("entityType");
+        String actorUsername = (String) source.get("actorUsername");
+        String entityId      = (String) source.get("entityId");
+
+        // Resolve template then substitute {actor} and {target} with event values.
+        String template = auditPatternService.resolveMessage(action).orElse(action);
+        String actor  = actorUsername != null ? actorUsername : "System";
+        String target = entityId     != null ? entityId : (entityType != null ? entityType : "");
+        String displayMessage = template.replace("{actor}", actor).replace("{target}", target);
+
         return new AuditEventResponse(
                 (String) source.get("eventId"),
                 (String) source.get("sourceService"),
-                (String) source.get("actorUsername"),
+                actorUsername,
                 (String) source.get("actorRole"),
                 (String) source.get("companyId"),
-                (String) source.get("entityType"),
-                (String) source.get("entityId"),
-                (String) source.get("action"),
+                entityType,
+                entityId,
+                action,
                 (Map<String, Object>) source.get("before"),
                 (Map<String, Object>) source.get("after"),
-                occurredAt
+                occurredAt,
+                displayMessage
         );
     }
 }
