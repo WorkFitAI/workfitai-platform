@@ -1,5 +1,6 @@
 package org.workfitai.userservice.aspect;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -10,6 +11,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.workfitai.userservice.dto.kafka.AuditEvent;
 import org.workfitai.userservice.dto.response.HRResponse;
 import org.workfitai.userservice.messaging.AuditEventPublisher;
@@ -149,7 +152,10 @@ public class AuditAspect {
                     action,
                     before,
                     after,
-                    Instant.now()
+                    Instant.now(),
+                    true,
+                    null,
+                    extractClientIp()
             ));
         } catch (Exception e) {
             log.error("[AUDIT] Failed to publish audit event [{} {}]: {}", action, entityId, e.getMessage());
@@ -184,5 +190,16 @@ public class AuditAspect {
             return claim != null ? claim.toString() : null;
         }
         return null;
+    }
+
+    private String extractClientIp() {
+        try {
+            HttpServletRequest req = ((ServletRequestAttributes)
+                    RequestContextHolder.currentRequestAttributes()).getRequest();
+            String xff = req.getHeader("X-Forwarded-For");
+            return (xff != null && !xff.isBlank()) ? xff.split(",")[0].trim() : req.getRemoteAddr();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

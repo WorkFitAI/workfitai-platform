@@ -18,10 +18,13 @@ public record AuditEvent(
         String actorUsername,        // who triggered the action
         String actorRole,            // ADMIN | HR_MANAGER | HR | CANDIDATE | SYSTEM
         String companyId,            // null for platform-level; non-null for company-scoped HRM events
-        String entityType,           // USER | ROLE | APPLICATION | CV | JOB | COMPANY
+        String entityType,           // USER | ROLE | APPLICATION | CV | JOB | COMPANY | SESSION | OAUTH
         String entityId,             // primary key of the affected entity
-        String action,               // standardized action (USER_BLOCKED, ROLE_GRANTED, etc.)
+        String action,               // standardized action (USER_BLOCKED, ROLE_GRANTED, AUTH_LOGIN_SUCCESS, etc.)
         Map<String, Object> before,  // state before action; null for CREATE events
         Map<String, Object> after,   // state after action;  null for DELETE events
-        Instant occurredAt           // event timestamp
+        Instant occurredAt,          // event timestamp
+        Boolean success,             // true = succeeded, false = failed, null = not tracked
+        String errorMessage,         // populated when success=false; null otherwise
+        String actorIp               // client IP; null for async/scheduled contexts
 ) {}

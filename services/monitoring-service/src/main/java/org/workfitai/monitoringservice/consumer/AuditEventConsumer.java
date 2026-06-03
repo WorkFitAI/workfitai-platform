@@ -30,15 +30,12 @@ public class AuditEventConsumer {
     )
     public void consume(@Payload AuditEvent event) {
         if (event == null) {
-            log.warn("[AUDIT-CONSUMER] Received null event, skipping");
-            return;
+            log.warn("[AUDIT-CONSUMER] Received null/unparseable event — will be routed to DLT by error handler");
+            throw new IllegalArgumentException("Null audit event received");
         }
-        try {
-            auditSearchService.index(event);
-            log.debug("[AUDIT-CONSUMER] Indexed event {} ({} {})",
-                    event.eventId(), event.action(), event.entityType());
-        } catch (Exception e) {
-            log.error("[AUDIT-CONSUMER] Failed to index event {}: {}", event.eventId(), e.getMessage(), e);
-        }
+        // Let exceptions propagate so DefaultErrorHandler can retry + route to DLT on exhaustion.
+        auditSearchService.index(event);
+        log.info("[AUDIT-CONSUMER] Indexed event {} ({} {} by {})",
+                event.eventId(), event.action(), event.entityType(), event.actorUsername());
     }
 }

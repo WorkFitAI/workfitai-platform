@@ -1,10 +1,13 @@
 package org.workfitai.authservice.service.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.workfitai.authservice.dto.kafka.AuditEvent;
 import org.workfitai.authservice.messaging.AuditEventPublisher;
 import org.workfitai.authservice.service.iGrantAuditService;
@@ -45,16 +48,8 @@ public class GrantAuditServiceImpl implements iGrantAuditService {
                          String resourceType, String resourceName) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-            // auth-service JwtAuthenticationFilter stores roles as plain names (e.g. "ADMIN", "HR_MANAGER")
-            // not ROLE_-prefixed, so we search the authorities as-is.
             String actorRole = extractRole(auth);
-
-            // companyId: auth-service's JwtAuthenticationFilter sets UsernamePasswordAuthenticationToken
-            // and does not parse the companyId claim into the principal details.
-            // ADMIN granting HR_MANAGER → platform-level (null is correct).
-            // HR_MANAGER granting HR → company-scoped; companyId enhancement tracked as open issue.
-            String companyId = null;
+            String companyId = extractCompanyId(auth);
 
             AuditEvent event = new AuditEvent(
                     UUID.randomUUID().toString(),
@@ -67,25 +62,46 @@ public class GrantAuditServiceImpl implements iGrantAuditService {
                     action,
                     null,
                     Map.of("targetUsername", target, "roleName", resourceName, "resourceType", resourceType),
-                    Instant.now()
+                    Instant.now(),
+                    true,
+                    null,
+                    extractClientIp()
             );
 
             publisher.publish(event);
 
         } catch (Exception ex) {
-            // Audit failure is non-fatal — log and continue
             log.error("[AUDIT] Failed to publish audit event [{} {} -> {}]: {}",
                     action, resourceName, target, ex.getMessage());
         }
     }
 
-    /** Extracts the first non-permission authority as the actor role. */
     private String extractRole(Authentication auth) {
         if (auth == null) return "SYSTEM";
         return auth.getAuthorities().stream()
                 .map(a -> a.getAuthority())
-                .filter(a -> !a.contains(":")) // skip permission authorities (e.g. "role:grant")
+                .filter(a -> !a.contains(":"))
                 .findFirst()
                 .orElse("SYSTEM");
+    }
+
+    /** Reads companyId from details stored by JwtAuthenticationFilter. */
+    private String extractCompanyId(Authentication auth) {
+        if (auth != null && auth.getDetails() instanceof Map<?, ?> details) {
+            Object claim = details.get("companyId");
+            return (claim != null && !claim.toString().isEmpty()) ? claim.toString() : null;
+        }
+        return null;
+    }
+
+    private String extractClientIp() {
+        try {
+            HttpServletRequest req = ((ServletRequestAttributes)
+                    RequestContextHolder.currentRequestAttributes()).getRequest();
+            String xff = req.getHeader("X-Forwarded-For");
+            return (xff != null && !xff.isBlank()) ? xff.split(",")[0].trim() : req.getRemoteAddr();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

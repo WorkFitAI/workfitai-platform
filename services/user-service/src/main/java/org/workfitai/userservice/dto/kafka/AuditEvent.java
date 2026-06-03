@@ -20,5 +20,8 @@ public record AuditEvent(
         String action,               // USER_CREATED | USER_BLOCKED | USER_UNBLOCKED | USER_DELETED | USER_APPROVED | USER_REJECTED
         Map<String, Object> before,  // state before action; null for CREATE
         Map<String, Object> after,   // state after action;  null for DELETE
-        Instant occurredAt
+        Instant occurredAt,
+        Boolean success,             // true = succeeded, false = failed, null = not tracked
+        String errorMessage,         // populated when success=false; null otherwise
+        String actorIp               // client IP; null for async/scheduled contexts
 ) {}

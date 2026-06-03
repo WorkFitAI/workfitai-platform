@@ -21,4 +21,12 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic auditEventsDltTopic() {
+        return TopicBuilder.name("audit-events.DLT")
+                .partitions(6)
+                .replicas(1)
+                .build();
+    }
 }

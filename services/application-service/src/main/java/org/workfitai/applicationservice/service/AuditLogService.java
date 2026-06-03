@@ -1,5 +1,6 @@
 package org.workfitai.applicationservice.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -7,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.workfitai.applicationservice.dto.kafka.AuditEvent;
 import org.workfitai.applicationservice.messaging.AuditEventPublisher;
 
@@ -19,9 +22,6 @@ import java.util.UUID;
  *
  * Replaces the old MongoDB audit_logs save. Audit data is now consumed by
  * monitoring-service and indexed in Elasticsearch (workfitai-audit-*).
- *
- * The logAction() signature is preserved so AuditAspect needs no changes.
- * @Async removed — publisher is already fire-and-forget, no need for a thread switch.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,26 +30,8 @@ public class AuditLogService {
 
     private final AuditEventPublisher auditEventPublisher;
 
-    // Local action name → canonical taxonomy
-    private static final Map<String, String> ACTION_MAP = Map.ofEntries(
-            Map.entry("CREATED",         "APP_CREATED"),
-            Map.entry("ADMIN_CREATED",   "APP_CREATED"),
-            Map.entry("STATUS_UPDATED",  "APP_STATUS_CHANGED"),
-            Map.entry("WITHDRAWN",       "APP_WITHDRAWN"),
-            Map.entry("ASSIGNED",        "APP_ASSIGNED"),
-            Map.entry("ADMIN_OVERRIDE",  "APP_OVERRIDE"),
-            Map.entry("ADMIN_RESTORED",  "APP_OVERRIDE"),
-            Map.entry("ADMIN_DELETED",   "APP_OVERRIDE"),
-            Map.entry("ADMIN_OPERATION", "APP_OVERRIDE"),
-            Map.entry("NOTE_ADDED",      "APP_STATUS_CHANGED"),
-            Map.entry("NOTE_UPDATED",    "APP_STATUS_CHANGED"),
-            Map.entry("NOTE_DELETED",    "APP_STATUS_CHANGED"),
-            Map.entry("NOTE_OPERATION",  "APP_STATUS_CHANGED")
-    );
-
     /**
-     * Log an action by publishing to Kafka.
-     * Signature unchanged — callers (AuditAspect, AdminApplicationService) need no edits.
+     * Log a successful action.
      */
     public void logAction(
             String entityType,
@@ -59,6 +41,36 @@ public class AuditLogService {
             Map<String, Object> beforeState,
             Map<String, Object> afterState,
             Map<String, Object> metadata
+    ) {
+        publish(entityType, entityId, action, performedBy, beforeState, afterState, metadata, true, null);
+    }
+
+    /**
+     * Log a failed action with an error message.
+     */
+    public void logFailure(
+            String entityType,
+            String entityId,
+            String action,
+            String performedBy,
+            String errorMessage,
+            Map<String, Object> metadata
+    ) {
+        publish(entityType, entityId, action, performedBy, null, null, metadata, false, errorMessage);
+    }
+
+    // ─── private ─────────────────────────────────────────────────────────────
+
+    private void publish(
+            String entityType,
+            String entityId,
+            String action,
+            String performedBy,
+            Map<String, Object> beforeState,
+            Map<String, Object> afterState,
+            Map<String, Object> metadata,
+            Boolean success,
+            String errorMessage
     ) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -70,22 +82,17 @@ public class AuditLogService {
                     extractCompanyId(auth),
                     entityType,
                     entityId,
-                    mapAction(action),
+                    action,
                     beforeState,
                     afterState,
-                    Instant.now()
+                    Instant.now(),
+                    success,
+                    errorMessage,
+                    extractClientIp()
             ));
         } catch (Exception e) {
-            // Never fail main operation due to audit issues
             log.error("Failed to publish audit event: {} - {} by {}", entityType, action, performedBy, e);
         }
-    }
-
-    // ─── private ─────────────────────────────────────────────────────────────
-
-    private String mapAction(String local) {
-        if (local == null) return "APP_STATUS_CHANGED";
-        return ACTION_MAP.getOrDefault(local, "APP_STATUS_CHANGED");
     }
 
     private String extractRole(Authentication auth) {
@@ -108,5 +115,16 @@ public class AuditLogService {
             return claim != null ? claim.toString() : null;
         }
         return null;
+    }
+
+    private String extractClientIp() {
+        try {
+            HttpServletRequest req = ((ServletRequestAttributes)
+                    RequestContextHolder.currentRequestAttributes()).getRequest();
+            String xff = req.getHeader("X-Forwarded-For");
+            return (xff != null && !xff.isBlank()) ? xff.split(",")[0].trim() : req.getRemoteAddr();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

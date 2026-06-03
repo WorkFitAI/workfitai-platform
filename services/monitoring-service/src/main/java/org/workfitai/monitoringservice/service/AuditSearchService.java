@@ -1,13 +1,16 @@
 package org.workfitai.monitoringservice.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,13 +19,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.workfitai.monitoringservice.dto.AuditEventResponse;
 import org.workfitai.monitoringservice.dto.AuditSearchRequest;
+import org.workfitai.monitoringservice.dto.AuditStatsResponse;
 import org.workfitai.monitoringservice.dto.kafka.AuditEvent;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,8 +67,17 @@ public class AuditSearchService {
                     .document(toDocument(event))));
             log.debug("[AUDIT-INDEX] {} {} {} → {}", event.sourceService(), event.action(),
                     event.entityId(), indexName);
+        } catch (ElasticsearchException e) {
+            // HTTP-level rejection (mapping conflict, bad request, etc.) — rethrow so
+            // DefaultErrorHandler retries and routes to DLT on exhaustion.
+            log.error("[AUDIT-INDEX] Elasticsearch rejected event {} ({}): {}",
+                    event.eventId(), event.action(), e.getMessage());
+            throw new RuntimeException("[AUDIT-INDEX] ES rejected event " + event.eventId(), e);
         } catch (IOException e) {
-            log.error("[AUDIT-INDEX] Failed to index event {} into {}: {}", event.eventId(), indexName, e.getMessage());
+            // Network/IO failure — same retry + DLT path.
+            log.error("[AUDIT-INDEX] IO error indexing event {} ({}): {}",
+                    event.eventId(), event.action(), e.getMessage());
+            throw new RuntimeException("[AUDIT-INDEX] IO error for event " + event.eventId(), e);
         }
     }
 
@@ -97,9 +112,11 @@ public class AuditSearchService {
         // Optional filters from request
         addTermFilter(filters, "sourceService", req.sourceService());
         addTermFilter(filters, "actorUsername", req.actorUsername());
+        addTermFilter(filters, "actorRole",     req.actorRole());
         addTermFilter(filters, "entityType",    req.entityType());
         addTermFilter(filters, "entityId",      req.entityId());
         addTermFilter(filters, "action",        req.action());
+        addBoolFilter(filters,  "success",      req.success());
 
         // ADMIN may filter by companyId optionally; HRM always uses forced value
         if (enforceCompanyScope && forcedCompanyId != null) {
@@ -112,8 +129,8 @@ public class AuditSearchService {
         if (req.from() != null || req.to() != null) {
             filters.add(Query.of(q -> q.range(r -> {
                 r.field("occurredAt");
-                if (req.from() != null) r.gte(co.elastic.clients.json.JsonData.of(req.from().toString()));
-                if (req.to()   != null) r.lte(co.elastic.clients.json.JsonData.of(req.to().toString()));
+                if (req.from() != null) r.gte(JsonData.of(req.from().toString()));
+                if (req.to()   != null) r.lte(JsonData.of(req.to().toString()));
                 return r;
             })));
         }
@@ -141,7 +158,7 @@ public class AuditSearchService {
             long total = response.hits().total() != null ? response.hits().total().value() : 0L;
             return new PageImpl<>(items, pageable, total);
 
-        } catch (IOException e) {
+        } catch (ElasticsearchException | IOException e) {
             log.error("[AUDIT-SEARCH] Elasticsearch query failed: {}", e.getMessage());
             return Page.empty(pageable);
         }
@@ -155,10 +172,15 @@ public class AuditSearchService {
         }
     }
 
+    private void addBoolFilter(List<Query> filters, String field, Boolean value) {
+        if (value != null) {
+            filters.add(Query.of(q -> q.term(t -> t.field(field).value(value))));
+        }
+    }
+
     /** Converts AuditEvent record to a plain Map for Elasticsearch indexing. */
-    @SuppressWarnings("unchecked")
     private Map<String, Object> toDocument(AuditEvent event) {
-        java.util.LinkedHashMap<String, Object> doc = new java.util.LinkedHashMap<>();
+        LinkedHashMap<String, Object> doc = new LinkedHashMap<>();
         doc.put("eventId",       event.eventId());
         doc.put("sourceService", event.sourceService());
         doc.put("actorUsername", event.actorUsername());
@@ -170,11 +192,14 @@ public class AuditSearchService {
         doc.put("before",        event.before());
         doc.put("after",         event.after());
         doc.put("occurredAt",    event.occurredAt() != null ? event.occurredAt().toString() : null);
+        doc.put("success",       event.success());
+        doc.put("errorMessage",  event.errorMessage());
+        doc.put("actorIp",       event.actorIp());
         return doc;
     }
 
     /** Maps a raw Elasticsearch hit (Map) back to an AuditEventResponse. */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // safe: ES returns Map<String, Object> for nested objects
     private AuditEventResponse toResponse(Map<?, ?> source) {
         if (source == null) return null;
 
@@ -193,6 +218,9 @@ public class AuditSearchService {
         String target = entityId     != null ? entityId : (entityType != null ? entityType : "");
         String displayMessage = template.replace("{actor}", actor).replace("{target}", target);
 
+        Object successObj = source.get("success");
+        Boolean success = successObj instanceof Boolean b ? b : null;
+
         return new AuditEventResponse(
                 (String) source.get("eventId"),
                 (String) source.get("sourceService"),
@@ -205,7 +233,65 @@ public class AuditSearchService {
                 (Map<String, Object>) source.get("before"),
                 (Map<String, Object>) source.get("after"),
                 occurredAt,
-                displayMessage
+                displayMessage,
+                success,
+                (String) source.get("errorMessage"),
+                (String) source.get("actorIp")
         );
+    }
+
+    // ─── Stats ───────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns aggregated statistics for the audit dashboard stats cards.
+     * Uses Elasticsearch terms aggregations — no document hits returned.
+     */
+    public AuditStatsResponse getAuditStats(Instant from, Instant to) {
+        List<Query> filters = new ArrayList<>();
+        if (from != null || to != null) {
+            filters.add(Query.of(q -> q.range(r -> {
+                r.field("occurredAt");
+                if (from != null) r.gte(JsonData.of(from.toString()));
+                if (to != null)   r.lte(JsonData.of(to.toString()));
+                return r;
+            })));
+        }
+
+        try {
+            SearchResponse<Void> response = elasticsearchClient.search(s -> s
+                    .index(INDEX_PREFIX + "*")
+                    .query(q -> q.bool(b -> b.filter(filters)))
+                    .size(0)
+                    .aggregations("byService", a -> a.terms(t -> t.field("sourceService").size(20)))
+                    .aggregations("byAction",  a -> a.terms(t -> t.field("action").size(50)))
+                    .aggregations("byActor",   a -> a.terms(t -> t.field("actorUsername").size(20)))
+                    .aggregations("failedEvents", a -> a
+                            .filter(f -> f.term(t -> t.field("success").value(false)))),
+                    Void.class);
+
+            long total  = response.hits().total() != null ? response.hits().total().value() : 0;
+            long failed = response.aggregations().get("failedEvents").filter().docCount();
+            double successRate = total > 0 ? (double) (total - failed) / total * 100.0 : 100.0;
+
+            Map<String, Long> byService = extractTermsCounts(
+                    response.aggregations().get("byService").sterms().buckets().array());
+            Map<String, Long> byAction = extractTermsCounts(
+                    response.aggregations().get("byAction").sterms().buckets().array());
+            Map<String, Long> byActor = extractTermsCounts(
+                    response.aggregations().get("byActor").sterms().buckets().array());
+
+            return new AuditStatsResponse(total, failed, Math.round(successRate * 10.0) / 10.0,
+                    byService, byAction, byActor);
+
+        } catch (ElasticsearchException | IOException e) {
+            log.error("[AUDIT-STATS] Elasticsearch aggregation failed: {}", e.getMessage());
+            return new AuditStatsResponse(0, 0, 100.0, Map.of(), Map.of(), Map.of());
+        }
+    }
+
+    private Map<String, Long> extractTermsCounts(List<StringTermsBucket> buckets) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        buckets.forEach(b -> result.put(b.key().stringValue(), b.docCount()));
+        return result;
     }
 }

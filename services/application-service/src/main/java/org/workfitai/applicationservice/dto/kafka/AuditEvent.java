@@ -15,10 +15,13 @@ public record AuditEvent(
         String actorUsername,        // who performed the action
         String actorRole,            // ADMIN | HR_MANAGER | HR | CANDIDATE | SYSTEM
         String companyId,            // null for platform-level ADMIN actions; set for HR/HR_MANAGER actions
-        String entityType,           // "APPLICATION"
+        String entityType,           // APPLICATION | APPLICATION_NOTE
         String entityId,             // application ID
-        String action,               // APP_CREATED | APP_STATUS_CHANGED | APP_WITHDRAWN | APP_ASSIGNED | APP_OVERRIDE
+        String action,               // APPLICATION_SUBMITTED | APPLICATION_STATUS_CHANGED | APPLICATION_WITHDRAWN | ...
         Map<String, Object> before,  // state before action; null for CREATE
         Map<String, Object> after,   // state after action;  null for DELETE
-        Instant occurredAt
+        Instant occurredAt,
+        Boolean success,             // true = succeeded, false = failed, null = not tracked
+        String errorMessage,         // populated when success=false; null otherwise
+        String actorIp               // client IP; null for async/scheduled contexts
 ) {}

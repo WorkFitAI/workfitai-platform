@@ -80,15 +80,9 @@ public class ElasticsearchIndexInitializer {
      */
     private void initAuditTemplate() {
         try {
-            boolean exists = elasticsearchClient.indices()
-                    .existsIndexTemplate(e -> e.name("workfitai-audit-template"))
-                    .value();
-
-            if (exists) {
-                log.info("✅ Index template 'workfitai-audit-template' already exists");
-                return;
-            }
-
+            // Always put (upsert) so new fields (actorIp, errorMessage) are picked up on restart.
+            // putIndexTemplate is idempotent; existing indices are unaffected — only new daily
+            // indices created after this update will use the refreshed mappings.
             elasticsearchClient.indices().putIndexTemplate(PutIndexTemplateRequest.of(t -> t
                     .name("workfitai-audit-template")
                     .indexPatterns(List.of("workfitai-audit-*"))
@@ -102,7 +96,7 @@ public class ElasticsearchIndexInitializer {
                                     .properties(buildAuditMappings())
                                     .dynamic(co.elastic.clients.elasticsearch._types.mapping.DynamicMapping.True)))));
 
-            log.info("✅ Successfully created index template 'workfitai-audit-template'");
+            log.info("✅ Audit index template 'workfitai-audit-template' applied");
 
         } catch (Exception e) {
             log.warn("⚠️ Failed to initialize Elasticsearch audit template: {}", e.getMessage());
@@ -119,7 +113,9 @@ public class ElasticsearchIndexInitializer {
                 Map.entry("entityType",    Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
                 Map.entry("entityId",      Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
                 Map.entry("action",        Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
-                Map.entry("occurredAt",    Property.of(p -> p.date(DateProperty.of(d -> d))))
+                Map.entry("actorIp",       Property.of(p -> p.keyword(KeywordProperty.of(k -> k)))),
+                Map.entry("occurredAt",    Property.of(p -> p.date(DateProperty.of(d -> d)))),
+                Map.entry("errorMessage",  Property.of(p -> p.text(TextProperty.of(t -> t))))
                 // before / after → dynamic objects, not indexed (display only)
         );
     }

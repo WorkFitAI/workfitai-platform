@@ -1,7 +1,5 @@
 package org.workfitai.monitoringservice.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.time.Instant;
 import java.util.Map;
 
@@ -15,7 +13,7 @@ import java.util.Map;
  */
 public record AuditEventResponse(
         String eventId,
-        @JsonIgnore String sourceService,
+        String sourceService,
         String actorUsername,
         String actorRole,
         String companyId,
@@ -25,5 +23,8 @@ public record AuditEventResponse(
         Map<String, Object> before,
         Map<String, Object> after,
         Instant occurredAt,
-        String displayMessage
+        String displayMessage,
+        Boolean success,
+        String errorMessage,
+        String actorIp
 ) {}

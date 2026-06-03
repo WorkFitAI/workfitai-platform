@@ -13,12 +13,14 @@ import org.workfitai.monitoringservice.dto.*;
 import org.workfitai.monitoringservice.service.AdminActivityService;
 import org.workfitai.monitoringservice.service.AuditSearchService;
 
+import java.time.Instant;
+
 /**
  * Admin-only endpoints for user activity monitoring, system management, and unified audit logs.
  * All endpoints require ADMIN role.
  */
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('ADMIN')")
@@ -125,9 +127,6 @@ public class AdminController {
      *
      * All query params are optional. Results sorted by occurredAt DESC.
      * Backed by Elasticsearch workfitai-audit-* indices (daily rolling).
-     *
-     * @param req      optional filters: sourceService, actorUsername, entityType, entityId, action, companyId, from, to
-     * @param pageable pagination (default size=50)
      */
     @GetMapping("/audit")
     public ResponseEntity<Page<AuditEventResponse>> getAuditLogs(
@@ -137,5 +136,20 @@ public class AdminController {
 
         log.debug("Admin querying audit logs: {}", req);
         return ResponseEntity.ok(auditSearchService.searchAdmin(req, pageable));
+    }
+
+    /**
+     * Aggregated audit statistics for the dashboard stats cards.
+     *
+     * @param from start of time range (ISO-8601 instant, optional)
+     * @param to   end of time range (ISO-8601 instant, optional)
+     */
+    @GetMapping("/audit/stats")
+    public ResponseEntity<AuditStatsResponse> getAuditStats(
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to) {
+
+        log.debug("Admin querying audit stats from={} to={}", from, to);
+        return ResponseEntity.ok(auditSearchService.getAuditStats(from, to));
     }
 }
