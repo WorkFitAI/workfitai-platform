@@ -13,7 +13,6 @@ import java.util.Map;
  */
 public record AuditEventResponse(
         String eventId,
-        String sourceService,
         String actorUsername,
         String actorRole,
         String companyId,

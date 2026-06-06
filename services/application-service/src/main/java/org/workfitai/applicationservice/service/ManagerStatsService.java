@@ -2,6 +2,7 @@ package org.workfitai.applicationservice.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,13 +10,23 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.DateOperators;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.dto.response.ManagerStatsResponse;
+import org.workfitai.applicationservice.dto.response.ManagerStatsResponse.DailyApplicationCount;
 import org.workfitai.applicationservice.dto.response.ManagerStatsResponse.JobApplicationCount;
 import org.workfitai.applicationservice.dto.response.ManagerStatsResponse.TeamPerformanceResponse;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
+import org.workfitai.applicationservice.util.ApplicationFunnelCalculator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +50,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ManagerStatsService {
 
     private static final int TOP_JOBS_LIMIT = 10;
+    private static final int STUCK_APPLICATION_DAYS = 7;
+    private static final int VOLUME_TREND_DAYS = 30;
 
     private final ApplicationRepository applicationRepository;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * Get manager dashboard statistics for a company.
@@ -71,13 +85,60 @@ public class ManagerStatsService {
         // Top jobs by applicant count
         List<JobApplicationCount> topJobs = calculateTopJobs(applications);
 
+        long stuckCount = calculateStuckApplications(companyId);
+        Map<String, Double> conversionRates = calculateConversionRates(byStatus);
+        List<DailyApplicationCount> volumeTrend = calculateVolumeTrend(companyId);
+
         return ManagerStatsResponse.builder()
                 .totalApplications(totalApplications)
                 .byStatus(byStatus)
                 .teamPerformance(teamPerformance)
                 .topJobs(topJobs)
                 .byDepartment(new HashMap<>()) // TODO: Requires department field
+                .stuckApplicationsCount(stuckCount)
+                .conversionRates(conversionRates)
+                .volumeTrend(volumeTrend)
                 .build();
+    }
+
+    private long calculateStuckApplications(String companyId) {
+        Instant cutoff = Instant.now().minus(STUCK_APPLICATION_DAYS, ChronoUnit.DAYS);
+        return applicationRepository.countByCompanyIdAndStatusInAndDeletedAtIsNullAndUpdatedAtBefore(
+                companyId,
+                List.of(ApplicationStatus.APPLIED, ApplicationStatus.REVIEWING),
+                cutoff
+        );
+    }
+
+    private Map<String, Double> calculateConversionRates(Map<String, Long> byStatus) {
+        return ApplicationFunnelCalculator.calculateFunnelRates(byStatus);
+    }
+
+    private List<DailyApplicationCount> calculateVolumeTrend(String companyId) {
+        Instant since = Instant.now().minus(VOLUME_TREND_DAYS, ChronoUnit.DAYS);
+
+        MatchOperation match = Aggregation.match(
+                Criteria.where("companyId").is(companyId)
+                        .and("deletedAt").isNull()
+                        .and("createdAt").gte(since)
+        );
+
+        ProjectionOperation project = Aggregation.project()
+                .and(DateOperators.dateOf("createdAt").toString("%Y-%m-%d")).as("dateStr");
+
+        GroupOperation group = Aggregation.group("dateStr").count().as("count");
+        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+
+        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
+
+        return mongoTemplate.aggregate(aggregation, "applications", Map.class)
+                .getMappedResults()
+                .stream()
+                .map(r -> new DailyApplicationCount(
+                        (String) r.get("_id"),
+                        ((Number) r.get("count")).longValue()
+                ))
+                .toList();
     }
 
     /**

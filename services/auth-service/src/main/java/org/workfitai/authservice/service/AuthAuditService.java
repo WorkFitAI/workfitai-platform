@@ -71,15 +71,6 @@ public class AuthAuditService {
         publish("USER", username, "AUTH_2FA_LOGIN_FAILED", username, null, null, false, errorMessage);
     }
 
-    public void logTokenRefreshed(String username) {
-        publish("USER", username, "AUTH_TOKEN_REFRESHED", username,
-                null, Map.of("refreshedAt", Instant.now().toString()), true, null);
-    }
-
-    public void logTokenRefreshFailed(String errorMessage) {
-        publish("USER", "unknown", "AUTH_TOKEN_REFRESHED", "unknown", null, null, false, errorMessage);
-    }
-
     // ─── Password events ──────────────────────────────────────────────────────────
 
     public void logPasswordChanged(String username) {
@@ -235,7 +226,10 @@ public class AuthAuditService {
     }
 
     private String extractRole(Authentication auth) {
-        if (auth == null) return "SYSTEM";
+        if (auth == null || !auth.isAuthenticated()
+                || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
         return auth.getAuthorities().stream()
                 .map(a -> a.getAuthority())
                 .filter(a -> !a.contains(":"))

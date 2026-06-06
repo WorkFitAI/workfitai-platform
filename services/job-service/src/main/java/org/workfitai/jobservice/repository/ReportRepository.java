@@ -30,4 +30,14 @@ public interface ReportRepository extends JpaRepository<Report, UUID>, JpaSpecif
             @Param("allowedCurrentStatuses") List<EReportStatus> allowedCurrentStatuses
     );
 
+    long countByStatus(EReportStatus status);
+
+    @Query("""
+                SELECT COUNT(r) FROM Report r
+                WHERE r.job.company.companyNo = :companyId
+                  AND r.status = :status
+            """)
+    long countByJobCompanyAndStatus(@Param("companyId") String companyId,
+                                    @Param("status") EReportStatus status);
+
 }

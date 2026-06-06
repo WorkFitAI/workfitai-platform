@@ -10,6 +10,7 @@ public record AuditStatsResponse(
         long totalEvents,
         long failedEvents,
         double successRate,
+        long uniqueActors,
         Map<String, Long> byService,
         Map<String, Long> byAction,
         Map<String, Long> byActor

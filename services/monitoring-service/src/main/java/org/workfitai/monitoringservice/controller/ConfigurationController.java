@@ -1,6 +1,6 @@
 package org.workfitai.monitoringservice.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.vault.support.VaultResponse;
@@ -12,14 +12,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/config")
+@RequiredArgsConstructor
 public class ConfigurationController {
 
     private final ConfigurationService configurationService;
-
-    @Autowired
-    public ConfigurationController(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
 
     @PostMapping("/init")
     public ResponseEntity<Map<String, Object>> initializeConfigs(@RequestBody Map<String, Object> request) {

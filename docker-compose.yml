@@ -316,6 +316,7 @@ services:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - RECOMMENDATION_ENGINE_URL=http://recommendation-engine:8000
     depends_on:
       consul:
         condition: service_started
@@ -330,6 +331,12 @@ services:
       auth-service:
         condition: service_healthy
     networks: [workfitai-net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
     profiles: ["services", "full"]
 
   cv-service:
@@ -868,64 +875,71 @@ services:
     profiles: ["infra", "full"]
 
   ### Recommendation Engine Service (Python FastAPI) ###
-  # recommendation-engine:
-  #   build:
-  #     context: ./services/recommendation-engine
-  #     dockerfile: Dockerfile
-  #   container_name: recommendation-engine
-  #   restart: unless-stopped
-  #   labels:
-  #     - "workfitai.service=recommendation-engine"
-  #     - "workfitai.logs=enabled"
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       tag: "{{.Name}}/recommendation-engine"
-  #       max-size: "10m"
-  #       max-file: "3"
-  #   ports:
-  #     - "8001:8000"
-  #   env_file:
-  #     - .env.local
-  #   environment:
-  #     # Service Configuration
-  #     - SERVICE_NAME=recommendation-engine
-  #     - VERSION=1.0.0
-  #     - ENVIRONMENT=docker
-  #     - HOST=0.0.0.0
-  #     - PORT=8000
-  #     - LOG_LEVEL=INFO
-  #     # Vault Configuration
-  #     - VAULT_ENABLED=true
-  #     - VAULT_ADDR=http://vault:8200
-  #     - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
-  #     # Override critical paths (not in Vault)
-  #     - MODEL_PATH=/app/models/bi-encoder-e5-large
-  #     - FAISS_INDEX_PATH=/app/data/faiss_index
-  #   volumes:
-  #     # Mount pre-trained model (read-only)
-  #     - ./services/recommendation-engine/models:/app/models:ro
-  #     # Mount data directory for FAISS index persistence
-  #     - recommendation-data:/app/data
-  #     # Mount logs directory
-  #     - ./services/recommendation-engine/logs:/app/logs
-  #   depends_on:
-  #     vault:
-  #       condition: service_healthy
-  #     vault-init:
-  #       condition: service_completed_successfully
-  #     kafka:
-  #       condition: service_healthy
-  #     consul:
-  #       condition: service_started
-  #   networks: [ workfitai-net ]
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 60s
-  #   profiles: [ "services", "full" ]
+  recommendation-engine:
+    build:
+      context: ./services/recommendation-engine
+      dockerfile: Dockerfile
+    container_name: recommendation-engine
+    restart: unless-stopped
+    mem_limit: 4g
+    mem_reservation: 2g
+    labels:
+      - "workfitai.service=recommendation-engine"
+      - "workfitai.logs=enabled"
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.Name}}/recommendation-engine"
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env.local
+    environment:
+      # Service Configuration
+      - SERVICE_NAME=recommendation-engine
+      - VERSION=1.0.0
+      - ENVIRONMENT=docker
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+      # Vault Configuration
+      - VAULT_ENABLED=true
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      # Override critical paths (not in Vault)
+      - MODEL_PATH=/app/models/bi-encoder-e5-large
+      - CROSS_ENCODER_PATH=/app/models/cross-encoder
+      - FAISS_INDEX_PATH=/app/data/faiss_index
+      # Job Service for initial sync — use internal container port 9005, not host-mapped 9082
+      - JOB_SERVICE_URL=http://job-service:9005
+    command: ["bash", "/app/run-docker.sh"]
+    volumes:
+      - ./services/recommendation-engine/run-docker.sh:/app/run-docker.sh:ro
+      # Mount pre-trained models (read-only)
+      - ./services/recommendation-engine/models:/app/models:ro
+      # Persist data dir (FAISS files are cleaned on startup; volume holds .model_dimension and other data)
+      - recommendation-data:/app/data
+    depends_on:
+      vault:
+        condition: service_healthy
+      vault-init:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_healthy
+      consul:
+        condition: service_started
+      job-service:
+        condition: service_healthy
+    networks: [workfitai-net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    profiles: ["services", "full"]
 
   ### Database Dump / Import Tools (utility, no restart policy) ###
   db-dump-postgres:

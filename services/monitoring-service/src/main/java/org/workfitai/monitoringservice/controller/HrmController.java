@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.monitoringservice.dto.AuditEventResponse;
 import org.workfitai.monitoringservice.dto.AuditSearchRequest;
+import org.workfitai.monitoringservice.dto.HrmDashboardResponse;
 import org.workfitai.monitoringservice.service.AuditSearchService;
+import org.workfitai.monitoringservice.service.HrmDashboardService;
 
 /**
  * HRM-only audit endpoints — all results auto-scoped to the caller's companyId from JWT.
@@ -33,6 +35,21 @@ import org.workfitai.monitoringservice.service.AuditSearchService;
 public class HrmController {
 
     private final AuditSearchService auditSearchService;
+    private final HrmDashboardService hrmDashboardService;
+
+    /**
+     * Company-scoped dashboard: manager app stats + audit stats.
+     * companyId always extracted from JWT — never a query param.
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<HrmDashboardResponse> getDashboard(Authentication authentication) {
+        String companyId = extractCompanyId(authentication);
+        if (companyId == null) {
+            log.warn("[HRM-DASH] HR_MANAGER {} has no companyId claim", authentication.getName());
+            return ResponseEntity.ok(new HrmDashboardResponse(null, null, null));
+        }
+        return ResponseEntity.ok(hrmDashboardService.getDashboard(companyId));
+    }
 
     /**
      * Company-scoped audit history for HR_MANAGER.

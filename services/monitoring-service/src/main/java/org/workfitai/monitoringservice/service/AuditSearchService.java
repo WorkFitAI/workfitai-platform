@@ -204,8 +204,7 @@ public class AuditSearchService {
         if (source == null) return null;
 
         String occurredAtStr = (String) source.get("occurredAt");
-        java.time.Instant occurredAt = occurredAtStr != null
-                ? java.time.Instant.parse(occurredAtStr) : null;
+        Instant occurredAt = occurredAtStr != null ? Instant.parse(occurredAtStr) : null;
 
         String action        = (String) source.get("action");
         String entityType    = (String) source.get("entityType");
@@ -223,7 +222,6 @@ public class AuditSearchService {
 
         return new AuditEventResponse(
                 (String) source.get("eventId"),
-                (String) source.get("sourceService"),
                 actorUsername,
                 (String) source.get("actorRole"),
                 (String) source.get("companyId"),
@@ -262,15 +260,17 @@ public class AuditSearchService {
                     .index(INDEX_PREFIX + "*")
                     .query(q -> q.bool(b -> b.filter(filters)))
                     .size(0)
-                    .aggregations("byService", a -> a.terms(t -> t.field("sourceService").size(20)))
-                    .aggregations("byAction",  a -> a.terms(t -> t.field("action").size(50)))
-                    .aggregations("byActor",   a -> a.terms(t -> t.field("actorUsername").size(20)))
-                    .aggregations("failedEvents", a -> a
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
+                    .aggregations("failedEvents",    a -> a
                             .filter(f -> f.term(t -> t.field("success").value(false)))),
                     Void.class);
 
-            long total  = response.hits().total() != null ? response.hits().total().value() : 0;
-            long failed = response.aggregations().get("failedEvents").filter().docCount();
+            long total        = response.hits().total() != null ? response.hits().total().value() : 0;
+            long failed       = response.aggregations().get("failedEvents").filter().docCount();
+            long uniqueActors = response.aggregations().get("uniqueActors").cardinality().value();
             double successRate = total > 0 ? (double) (total - failed) / total * 100.0 : 100.0;
 
             Map<String, Long> byService = extractTermsCounts(
@@ -281,11 +281,54 @@ public class AuditSearchService {
                     response.aggregations().get("byActor").sterms().buckets().array());
 
             return new AuditStatsResponse(total, failed, Math.round(successRate * 10.0) / 10.0,
-                    byService, byAction, byActor);
+                    uniqueActors, byService, byAction, byActor);
 
         } catch (ElasticsearchException | IOException e) {
             log.error("[AUDIT-STATS] Elasticsearch aggregation failed: {}", e.getMessage());
-            return new AuditStatsResponse(0, 0, 100.0, Map.of(), Map.of(), Map.of());
+            return new AuditStatsResponse(0, 0, 100.0, 0, Map.of(), Map.of(), Map.of());
+        }
+    }
+
+    /**
+     * Returns aggregated audit statistics scoped to a specific company.
+     * Used by HRM dashboard to show company-level audit health.
+     */
+    public AuditStatsResponse getAuditStatsForCompany(String companyId) {
+        List<Query> filters = new ArrayList<>();
+        filters.add(Query.of(q -> q.term(t -> t.field("companyId").value(companyId))));
+
+        try {
+            SearchResponse<Void> response = elasticsearchClient.search(s -> s
+                    .index(INDEX_PREFIX + "*")
+                    .query(q -> q.bool(b -> b.filter(filters)))
+                    .size(0)
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
+                    .aggregations("failedEvents",    a -> a
+                            .filter(f -> f.term(t -> t.field("success").value(false)))),
+                    Void.class);
+
+            long total        = response.hits().total() != null ? response.hits().total().value() : 0;
+            long failed       = response.aggregations().get("failedEvents").filter().docCount();
+            long uniqueActors = response.aggregations().get("uniqueActors").cardinality().value();
+            double successRate = total > 0 ? (double) (total - failed) / total * 100.0 : 100.0;
+
+            Map<String, Long> byService = extractTermsCounts(
+                    response.aggregations().get("byService").sterms().buckets().array());
+            Map<String, Long> byAction = extractTermsCounts(
+                    response.aggregations().get("byAction").sterms().buckets().array());
+            Map<String, Long> byActor = extractTermsCounts(
+                    response.aggregations().get("byActor").sterms().buckets().array());
+
+            return new AuditStatsResponse(total, failed, Math.round(successRate * 10.0) / 10.0,
+                    uniqueActors, byService, byAction, byActor);
+
+        } catch (ElasticsearchException | IOException e) {
+            log.error("[AUDIT-STATS-COMPANY] Elasticsearch aggregation failed for company {}: {}",
+                    companyId, e.getMessage());
+            return new AuditStatsResponse(0, 0, 100.0, 0, Map.of(), Map.of(), Map.of());
         }
     }
 

@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.workfitai.authservice.dto.request.Enable2FARequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
@@ -44,9 +45,6 @@ public class AuthAuditAspect {
 
     @Pointcut("execution(* org.workfitai.authservice.service.impl.AuthServiceImpl.verify2FALogin(..))")
     public void verify2FALoginPointcut() {}
-
-    @Pointcut("execution(* org.workfitai.authservice.service.impl.AuthServiceImpl.refresh(..))")
-    public void tokenRefreshPointcut() {}
 
     @Pointcut("execution(* org.workfitai.authservice.service.PasswordService.changePassword(..))")
     public void changePasswordPointcut() {}
@@ -189,27 +187,6 @@ public class AuthAuditAspect {
             authAuditService.log2FALoginFailed(identity, ex.getMessage());
         } catch (Exception e) {
             log.error("Audit error on verify2FALoginPointcut failure", e);
-        }
-    }
-
-    // ─── Token Refresh ────────────────────────────────────────────────────────
-
-    @AfterReturning(pointcut = "tokenRefreshPointcut()")
-    public void logTokenRefreshed(JoinPoint jp) {
-        try {
-            String username = extractCurrentPrincipal();
-            authAuditService.logTokenRefreshed(username);
-        } catch (Exception e) {
-            log.error("Audit error on tokenRefreshPointcut success", e);
-        }
-    }
-
-    @AfterThrowing(pointcut = "tokenRefreshPointcut()", throwing = "ex")
-    public void logTokenRefreshFailed(JoinPoint jp, Throwable ex) {
-        try {
-            authAuditService.logTokenRefreshFailed(ex.getMessage());
-        } catch (Exception e) {
-            log.error("Audit error on tokenRefreshPointcut failure", e);
         }
     }
 
@@ -492,8 +469,7 @@ public class AuthAuditAspect {
 
     private String extractCurrentPrincipal() {
         try {
-            var auth = org.springframework.security.core.context.SecurityContextHolder
-                    .getContext().getAuthentication();
+            var auth = SecurityContextHolder.getContext().getAuthentication();
             return (auth != null && auth.isAuthenticated()) ? auth.getName() : "unknown";
         } catch (Exception e) {
             return "unknown";

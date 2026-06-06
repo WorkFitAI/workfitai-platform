@@ -6,9 +6,11 @@ import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.request.Skill.ReqCreateSkillDTO;
 import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.Skill.ResSkillDTO;
+import org.workfitai.jobservice.model.dto.response.Skill.ResTopSkillDTO;
 import org.workfitai.jobservice.model.dto.response.Skill.ResUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface iSkillService {
@@ -21,4 +23,6 @@ public interface iSkillService {
     ResUpdateSkillDTO update(ReqUpdateSkillDTO dto);
 
     void delete(UUID id);
+
+    List<ResTopSkillDTO> getTopSkillsByDemand(int limit);
 }

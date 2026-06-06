@@ -32,6 +32,7 @@ public class MessageConstant {
     public static final String SKILL_CREATED_SUCCESSFULLY = "Skill created successfully";
     public static final String SKILL_DETAIL_FETCHED_SUCCESSFULLY = "Skill fetched successfully";
     public static final String SKILL_ALL_FETCHED_SUCCESSFULLY = "Skills fetched successfully";
+    public static final String SKILL_TOP_FETCHED_SUCCESSFULLY = "Top skills fetched successfully";
     public static final String SKILL_UPDATED_SUCCESSFULLY = "Skill updated successfully";
     public static final String SKILL_DELETED_SUCCESSFULLY = "Skill deleted successfully";
     public static final String SKILL_NOT_FOUND = "Skill not found";

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.DateOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.LimitOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
@@ -19,6 +20,7 @@ import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
+import org.workfitai.applicationservice.util.ApplicationFunnelCalculator;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -40,6 +42,7 @@ public class SystemStatsService {
     private static final int TOP_JOBS_LIMIT = 10;
     private static final int DAYS_PER_YEAR = 365;
     private static final int DAYS_TWO_YEARS = 730;
+    private static final int VOLUME_TREND_DAYS = 30;
     private static final double MS_PER_DAY = 1000.0 * 60 * 60 * 24;
 
     private final ApplicationRepository applicationRepository;
@@ -60,7 +63,7 @@ public class SystemStatsService {
         // Calculate stats by company (top 20)
         List<SystemStatsResponse.CompanyStats> byCompany = calculateCompanyStatsWithAggregation();
 
-        // Calculate stats by status
+        // Calculate stats by status — reused for conversion rates
         Map<String, Long> byStatus = calculateStatusStatsWithAggregation();
 
         // Calculate growth metrics using aggregation
@@ -70,7 +73,13 @@ public class SystemStatsService {
         List<SystemStatsResponse.TopJob> topJobs = calculateTopJobsWithAggregation();
 
         // Calculate average time to hire using aggregation
-        String avgTimeToHire = calculateAvgTimeToHireWithAggregation();
+        double avgTimeToHire = calculateAvgTimeToHireWithAggregation();
+
+        // Platform-wide funnel conversion rates derived from byStatus
+        Map<String, Double> platformConversionRates = ApplicationFunnelCalculator.calculateFunnelRates(byStatus);
+
+        // Platform-wide daily volume trend (last 30 days) for line chart
+        List<SystemStatsResponse.DailyCount> volumeTrend = calculateVolumeTrendWithAggregation();
 
         return new SystemStatsResponse(
             platformTotals,
@@ -78,7 +87,9 @@ public class SystemStatsService {
             byStatus,
             growthMetrics,
             topJobs,
-            avgTimeToHire
+            avgTimeToHire,
+            platformConversionRates,
+            volumeTrend
         );
     }
 
@@ -312,45 +323,62 @@ public class SystemStatsService {
     }
 
     /**
-     * Calculate average time to hire (platform-wide) using MongoDB aggregation
+     * Calculate average time to hire (platform-wide) in days using MongoDB aggregation.
+     * Returns a double (days) so the UI can use it directly in numeric comparisons and chart axes.
      */
-    private String calculateAvgTimeToHireWithAggregation() {
-        // Match only HIRED applications with updatedAt
+    private double calculateAvgTimeToHireWithAggregation() {
         MatchOperation matchHired = Aggregation.match(
             Criteria.where("status").is(ApplicationStatus.HIRED)
                 .and("createdAt").ne(null)
                 .and("updatedAt").ne(null)
         );
 
-        // Project: Calculate duration in milliseconds (createdAt → hired)
         ProjectionOperation projectDuration = Aggregation.project()
             .and("updatedAt").as("updatedAt")
             .and("createdAt").as("createdAt")
             .andExpression("updatedAt - createdAt").as("durationMs");
 
-        // Group: Calculate average duration
         GroupOperation groupAvg = Aggregation.group()
             .avg("durationMs").as("avgDurationMs");
 
-        Aggregation aggregation = Aggregation.newAggregation(
-            matchHired,
-            projectDuration,
-            groupAvg
-        );
+        Aggregation aggregation = Aggregation.newAggregation(matchHired, projectDuration, groupAvg);
 
         var results = mongoTemplate.aggregate(aggregation, "applications", Map.class).getMappedResults();
 
-        if (results.isEmpty()) {
-            return "0.0 days";
-        }
+        if (results.isEmpty()) return 0.0;
 
         Double avgDurationMs = (Double) results.get(0).get("avgDurationMs");
-        if (avgDurationMs == null || avgDurationMs == 0) {
-            return "0.0 days";
-        }
+        if (avgDurationMs == null || avgDurationMs == 0) return 0.0;
 
-        // Convert milliseconds to days
-        double avgDays = avgDurationMs / MS_PER_DAY;
-        return String.format("%.1f days", avgDays);
+        return Math.round((avgDurationMs / MS_PER_DAY) * 10.0) / 10.0;
+    }
+
+    /**
+     * Platform-wide daily application volume for the last 30 days.
+     * Provides the time-series data needed for admin volume line charts.
+     */
+    private List<SystemStatsResponse.DailyCount> calculateVolumeTrendWithAggregation() {
+        Instant since = Instant.now().minus(VOLUME_TREND_DAYS, ChronoUnit.DAYS);
+
+        MatchOperation match = Aggregation.match(
+            Criteria.where("deletedAt").isNull().and("createdAt").gte(since)
+        );
+
+        ProjectionOperation project = Aggregation.project()
+            .and(DateOperators.dateOf("createdAt").toString("%Y-%m-%d")).as("dateStr");
+
+        GroupOperation group = Aggregation.group("dateStr").count().as("count");
+        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+
+        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
+
+        return mongoTemplate.aggregate(aggregation, "applications", Map.class)
+            .getMappedResults()
+            .stream()
+            .map(r -> new SystemStatsResponse.DailyCount(
+                (String) r.get("_id"),
+                ((Number) r.get("count")).longValue()
+            ))
+            .toList();
     }
 }

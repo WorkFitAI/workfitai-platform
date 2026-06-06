@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
+import org.workfitai.jobservice.model.enums.JobStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -44,4 +45,33 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
       AND j.isDeleted = false
       """)
   List<Job> findJobsToClose(@Param("now") Instant now);
+
+  @Query("SELECT j.status, COUNT(j) FROM Job j WHERE j.isDeleted = false GROUP BY j.status")
+  List<Object[]> countByStatusRaw();
+
+  @Query("""
+      SELECT COUNT(j) FROM Job j
+      WHERE j.status = 'PUBLISHED'
+        AND j.isDeleted = false
+        AND j.expiresAt > :now
+        AND j.expiresAt <= :deadline
+      """)
+  long countExpiringSoon(@Param("now") Instant now, @Param("deadline") Instant deadline);
+
+  @Query("SELECT COALESCE(SUM(j.views), 0) FROM Job j WHERE j.isDeleted = false")
+  long sumAllViews();
+
+  long countByCompanyCompanyNoAndStatusAndIsDeletedFalse(String companyNo, JobStatus status);
+
+  @Query("""
+      SELECT COUNT(j) FROM Job j
+      WHERE j.company.companyNo = :companyId
+        AND j.status = 'PUBLISHED'
+        AND j.isDeleted = false
+        AND j.expiresAt > :now
+        AND j.expiresAt <= :deadline
+      """)
+  long countExpiringByCompany(@Param("companyId") String companyId,
+                               @Param("now") Instant now,
+                               @Param("deadline") Instant deadline);
 }
