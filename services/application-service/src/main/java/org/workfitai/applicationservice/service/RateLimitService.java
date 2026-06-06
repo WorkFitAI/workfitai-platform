@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Simple in-process rate limiting service.
@@ -22,6 +23,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Service
 @Slf4j
 public class RateLimitService {
+
+    // Runs nightly at 3 AM to evict stale in-memory entries and prevent unbounded growth.
+    private static final String CLEANUP_CRON = "0 0 3 * * ?";
+    private static final int STALE_ENTRY_CLEANUP_DAYS = 7;
 
     // Map: operation -> (username -> queue of request timestamps)
     private final Map<String, Map<String, Queue<Instant>>> rateLimits = new ConcurrentHashMap<>();
@@ -131,23 +136,22 @@ public class RateLimitService {
      * Scheduled cleanup of expired entries (runs daily at 3 AM)
      * Prevents memory leaks from stale data
      */
-    @Scheduled(cron = "0 0 3 * * ?")
+    @Scheduled(cron = CLEANUP_CRON)
     public void cleanupExpiredEntries() {
         log.info("Starting scheduled cleanup of expired rate limit entries...");
 
-        // Use AtomicInteger for lambda-safe counter
-        java.util.concurrent.atomic.AtomicInteger totalRemoved = new java.util.concurrent.atomic.AtomicInteger(0);
+        AtomicInteger totalRemoved = new AtomicInteger(0);
 
         for (Map.Entry<String, Map<String, Queue<Instant>>> operationEntry : rateLimits.entrySet()) {
             String operation = operationEntry.getKey();
             Map<String, Queue<Instant>> userLimits = operationEntry.getValue();
 
-            Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+            Instant staleThreshold = Instant.now().minus(STALE_ENTRY_CLEANUP_DAYS, ChronoUnit.DAYS);
 
             // Remove users with no recent activity
             userLimits.entrySet().removeIf(entry -> {
                 Queue<Instant> timestamps = entry.getValue();
-                timestamps.removeIf(timestamp -> timestamp.isBefore(sevenDaysAgo));
+                timestamps.removeIf(timestamp -> timestamp.isBefore(staleThreshold));
 
                 if (timestamps.isEmpty()) {
                     totalRemoved.incrementAndGet();

@@ -1,5 +1,6 @@
 package org.workfitai.applicationservice.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,6 +81,9 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
         /** Counts active applications for a job. */
         long countByJobIdAndDeletedAtIsNull(String jobId);
 
+        /** Checks if a non-deleted application with the given ID belongs to the given username. */
+        boolean existsByIdAndUsernameAndDeletedAtIsNull(String id, String username);
+
         // ==================== Phase 3: Company & Assignment Queries ====================
 
         /** Finds all active applications for a company. */
@@ -112,6 +116,13 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
 
         /** Finds all applications for company (for export — no pagination). Use with row limit. */
         List<Application> findByCompanyIdAndDeletedAtIsNull(String companyId);
+
+        /** Counts applications stuck in APPLIED/REVIEWING that haven't been updated since cutoff. */
+        long countByCompanyIdAndStatusInAndDeletedAtIsNullAndUpdatedAtBefore(
+                String companyId,
+                List<ApplicationStatus> statuses,
+                Instant cutoff
+        );
 
         /**
          * Finds all applications for a company (including soft-deleted).

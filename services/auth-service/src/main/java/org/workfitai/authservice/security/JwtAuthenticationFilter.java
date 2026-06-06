@@ -96,6 +96,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("Authenticated user: " + username + " with authorities: " + authorities);
 
                     var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    // Store companyId in details so audit services can access it
+                    String companyId = (String) claims.get("companyId");
+                    auth.setDetails(java.util.Map.of("companyId", companyId != null ? companyId : ""));
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception e) {

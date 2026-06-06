@@ -424,6 +424,12 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("hr:search"); // Can search HR team
             permissions.add("hr:approve");
 
+            // HR staff management within company — can only grant/revoke the HR role
+            // to users in the same company. Service layer enforces company scope.
+            permissions.add("role:grant");
+            permissions.add("role:revoke");
+            permissions.add("role:read");
+
             // Candidate viewing (for recruitment)
             permissions.add("candidate:read");
             permissions.add("candidate:list");
@@ -531,7 +537,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
             permissions.add("role:grant");
             permissions.add("role:revoke");
 
-            // Permission management (full CRUD)
+            // Permission management (full CRUD — ADMIN only)
             permissions.add("perm:create");
             permissions.add("perm:read");
             permissions.add("perm:update");

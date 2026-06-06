@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MinioFileStorageAdapter implements FileStoragePort {
 
+    private static final int UNIQUE_FILENAME_PREFIX_LENGTH = 8;
+
     private final MinioClient minioClient;
     private final MinioConfig minioConfig;
 
@@ -64,7 +66,7 @@ public class MinioFileStorageAdapter implements FileStoragePort {
         validateFile(file);
 
         String originalFilename = file.getOriginalFilename();
-        String uniqueFilename = UUID.randomUUID().toString().substring(0, 8) + "_" + originalFilename;
+        String uniqueFilename = UUID.randomUUID().toString().substring(0, UNIQUE_FILENAME_PREFIX_LENGTH) + "_" + originalFilename;
         String objectKey = String.format("%s/%s/%s", username, folder, uniqueFilename);
 
         try (InputStream inputStream = file.getInputStream()) {

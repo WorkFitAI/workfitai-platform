@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
@@ -48,6 +49,9 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class ApplicationStatsService {
 
+    private static final int RECENT_APPLICATIONS_LIMIT = 10;
+    private static final long EIGHT_WEEKS_IN_SECONDS = 8L * 7 * 24 * 60 * 60;
+
     private final ApplicationRepository applicationRepository;
     private final MongoTemplate mongoTemplate;
     private final ApplicationMapper applicationMapper;
@@ -69,7 +73,7 @@ public class ApplicationStatsService {
 
         // Total count
         long totalApplications = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(criteria),
+            Query.query(criteria),
             Application.class
         );
 
@@ -77,7 +81,7 @@ public class ApplicationStatsService {
         Map<String, Long> byStatus = getApplicationsByStatus(criteria);
 
         // Recent applications (last 10)
-        List<ApplicationResponse> recentApplications = getRecentApplications(criteria, 10);
+        List<ApplicationResponse> recentApplications = getRecentApplications(criteria, RECENT_APPLICATIONS_LIMIT);
 
         // By job
         List<DashboardStatsResponse.JobApplicationCount> byJob = getApplicationsByJob(criteria);
@@ -141,7 +145,7 @@ public class ApplicationStatsService {
      */
     private List<ApplicationResponse> getRecentApplications(Criteria baseCriteria, int limit) {
         org.springframework.data.mongodb.core.query.Query query =
-            org.springframework.data.mongodb.core.query.Query.query(baseCriteria)
+            Query.query(baseCriteria)
                 .with(Sort.by(Sort.Direction.DESC, "createdAt"))
                 .limit(limit);
 
@@ -189,11 +193,11 @@ public class ApplicationStatsService {
      */
     private List<DashboardStatsResponse.WeeklyCount> getWeeklyTrend(Criteria baseCriteria) {
         // Get applications from last 8 weeks
-        Instant eightWeeksAgo = Instant.now().minusSeconds(8 * 7 * 24 * 60 * 60);
+        Instant eightWeeksAgo = Instant.now().minusSeconds(EIGHT_WEEKS_IN_SECONDS);
         Criteria criteriaWithDate = baseCriteria.and("createdAt").gte(eightWeeksAgo);
 
         org.springframework.data.mongodb.core.query.Query query =
-            org.springframework.data.mongodb.core.query.Query.query(criteriaWithDate);
+            Query.query(criteriaWithDate);
 
         List<Application> applications = mongoTemplate.find(query, Application.class);
 

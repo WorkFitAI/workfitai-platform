@@ -76,6 +76,9 @@ public final class Messages {
         public static final String APPLICATION_CREATED = "Application created successfully: id={}";
         public static final String FETCHING_APPLICATION = "Fetching application by id: {}";
         public static final String FETCHING_USER_APPLICATIONS = "Fetching applications for user: {}";
+        public static final String FETCHING_USER_APPLICATIONS_BY_STATUS = "Fetching applications for user {} with status {}";
+        public static final String FETCHING_JOB_APPLICATIONS = "Fetching applications for job: {}";
+        public static final String FETCHING_JOB_APPLICATIONS_BY_STATUS = "Fetching applications for job {} with status {}";
         public static final String UPDATING_STATUS = "Updating application {} status to {}";
         public static final String STATUS_UPDATED = "Application {} status updated to {}";
         public static final String WITHDRAWING_APPLICATION = "User {} withdrawing application {}";

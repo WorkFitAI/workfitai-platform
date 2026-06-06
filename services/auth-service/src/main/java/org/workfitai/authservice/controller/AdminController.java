@@ -1,7 +1,6 @@
 package org.workfitai.authservice.controller;
 
 import java.util.List;
-import java.util.Set;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +19,7 @@ import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.request.BatchCreatePermissionsRequest;
 import org.workfitai.authservice.dto.request.BatchCreateRolesRequest;
 import org.workfitai.authservice.dto.request.BatchRolePermissionsRequest;
+import org.workfitai.authservice.dto.request.CloneRoleRequest;
 import org.workfitai.authservice.dto.request.RolePermissionRequest;
 import org.workfitai.authservice.dto.request.UpdatePermissionRequest;
 import org.workfitai.authservice.dto.request.UpdateRoleRequest;
@@ -32,7 +32,6 @@ import org.workfitai.authservice.mapper.PermissionMapper;
 import org.workfitai.authservice.mapper.RoleMapper;
 import org.workfitai.authservice.service.iPermissionService;
 import org.workfitai.authservice.service.iRoleService;
-import org.workfitai.authservice.service.iUserRoleService;
 
 @RestController
 @PreAuthorize("hasAuthority('ADMIN')")
@@ -41,7 +40,6 @@ public class AdminController {
 
     private final iPermissionService permissionService;
     private final iRoleService roleService;
-    private final iUserRoleService userRoleService;
     private final PermissionMapper permissionMapper;
     private final RoleMapper roleMapper;
 
@@ -157,6 +155,21 @@ public class AdminController {
         return ResponseEntity.ok(ResponseData.success(Messages.Success.ROLE_DELETED));
     }
 
+    /**
+     * Clone an existing role into a new named role, copying all its permissions.
+     * Useful for creating custom roles based on the 4 system roles.
+     * The clone is independent — edits to the source do not affect it.
+     */
+    @PostMapping("/roles/{roleName}/clone")
+    @PreAuthorize("hasAuthority('role:create')")
+    public ResponseEntity<ResponseData<RoleResponse>> cloneRole(
+            @PathVariable String roleName,
+            @Valid @RequestBody CloneRoleRequest request) {
+        var cloned = roleService.cloneRole(roleName, request.getName(), request.getDescription());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ResponseData.success(Messages.Success.ROLE_CLONED, roleMapper.toResponse(cloned)));
+    }
+
     // ==================== ROLE-PERMISSION MANAGEMENT ====================
 
     @PostMapping("/roles/{roleName}/permissions")
@@ -199,31 +212,4 @@ public class AdminController {
                 .ok(ResponseData.success(Messages.Success.ROLE_PERMISSIONS_REMOVED_BATCH, roleMapper.toResponse(updated)));
     }
 
-    // ==================== USER-ROLE MANAGEMENT ====================
-
-    @PostMapping("/users/{username}/roles")
-    @PreAuthorize("hasAuthority('role:grant')")
-    public ResponseEntity<ResponseData<Void>> grantRole(
-            @PathVariable String username,
-            @RequestParam String role) {
-        userRoleService.grantRoleToUser(username, role);
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.ROLE_GRANTED));
-    }
-
-    @DeleteMapping("/users/{username}/roles")
-    @PreAuthorize("hasAuthority('role:revoke')")
-    public ResponseEntity<ResponseData<Void>> revokeRole(
-            @PathVariable String username,
-            @RequestParam String role) {
-        userRoleService.revokeRoleFromUser(username, role);
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.ROLE_REVOKED));
-    }
-
-    @GetMapping("/users/{username}/roles")
-    @PreAuthorize("hasAuthority('role:read')")
-    public ResponseEntity<ResponseData<Set<String>>> listUserRoles(
-            @PathVariable String username) {
-        Set<String> roles = userRoleService.getUserRoles(username);
-        return ResponseEntity.ok(ResponseData.success(Messages.Success.USER_ROLES_FETCHED, roles));
-    }
 }

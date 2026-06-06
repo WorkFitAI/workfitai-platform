@@ -14,10 +14,12 @@ import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.dto.response.Skill.ResSkillDTO;
+import org.workfitai.jobservice.model.dto.response.Skill.ResTopSkillDTO;
 import org.workfitai.jobservice.model.dto.response.Skill.ResUpdateSkillDTO;
 import org.workfitai.jobservice.service.iSkillService;
 import org.workfitai.jobservice.util.ApiMessage;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.workfitai.jobservice.util.MessageConstant.*;
@@ -28,6 +30,14 @@ import static org.workfitai.jobservice.util.MessageConstant.*;
 @Validated
 public class SkillController {
     private final iSkillService skillService;
+
+    @GetMapping("/top")
+    @PreAuthorize("hasAuthority('skill:list')")
+    @ApiMessage(SKILL_TOP_FETCHED_SUCCESSFULLY)
+    public RestResponse<List<ResTopSkillDTO>> getTopSkills(
+            @RequestParam(defaultValue = "20") int limit) {
+        return RestResponse.success(skillService.getTopSkillsByDemand(limit));
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('skill:read')")

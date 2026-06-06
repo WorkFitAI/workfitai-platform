@@ -3,6 +3,8 @@ package org.workfitai.applicationservice.service;
 import java.time.Instant;
 import java.util.List;
 
+import org.bson.Document;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -114,14 +116,9 @@ public class ApplicationSearchService {
         }
 
         if (searchText != null && !searchText.trim().isEmpty()) {
-            String escapedText = escapeRegex(searchText.trim());
-            criteria.and("coverLetter").regex(escapedText, "i");
+            criteria.and("$text").is(new Document("$search", searchText.trim()));
         }
 
         return criteria;
-    }
-
-    private String escapeRegex(String text) {
-        return text.replaceAll("([.?*+^$\\[\\]\\\\(){}|])", "\\\\$1");
     }
 }

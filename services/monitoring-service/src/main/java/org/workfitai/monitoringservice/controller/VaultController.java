@@ -1,8 +1,7 @@
 package org.workfitai.monitoringservice.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.monitoringservice.config.VaultInitializer;
@@ -13,18 +12,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vault")
+@RequiredArgsConstructor
+@Slf4j
 public class VaultController {
-
-    private static final Logger logger = LoggerFactory.getLogger(VaultController.class);
 
     private final ConfigurationService configurationService;
     private final VaultInitializer vaultInitializer;
-
-    @Autowired
-    public VaultController(ConfigurationService configurationService, VaultInitializer vaultInitializer) {
-        this.configurationService = configurationService;
-        this.vaultInitializer = vaultInitializer;
-    }
 
     @PostMapping("/reinitialize")
     public ResponseEntity<Map<String, Object>> reinitializeSecrets() {
@@ -34,12 +27,12 @@ public class VaultController {
             vaultInitializer.run();
             response.put("status", "success");
             response.put("message", "Vault secrets reinitialized successfully");
-            logger.info("Vault secrets manually reinitialized via API");
+            log.info("Vault secrets manually reinitialized via API");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "error");
             response.put("message", "Failed to reinitialize vault secrets: " + e.getMessage());
-            logger.error("Failed to manually reinitialize vault secrets", e);
+            log.error("Failed to manually reinitialize vault secrets", e);
             return ResponseEntity.internalServerError().body(response);
         }
     }

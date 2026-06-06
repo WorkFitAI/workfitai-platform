@@ -53,6 +53,30 @@ public class ManagerStatsResponse {
      */
     private Map<String, Long> byDepartment;
 
+    /** Applications stuck in APPLIED or REVIEWING for more than 7 days without an update. */
+    private Long stuckApplicationsCount;
+
+    /**
+     * Stage-to-stage conversion rates.
+     * Keys: APPLIED_TO_REVIEWING, REVIEWING_TO_INTERVIEW, INTERVIEW_TO_OFFER, OFFER_TO_HIRED
+     * Values: 0.0–1.0
+     */
+    private Map<String, Double> conversionRates;
+
+    /**
+     * Daily application volume over the last 30 days, sorted ascending by date.
+     */
+    private List<DailyApplicationCount> volumeTrend;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyApplicationCount {
+        private String date;  // ISO date "2026-06-01"
+        private long count;
+    }
+
     /**
      * Inner class for team performance metrics.
      */

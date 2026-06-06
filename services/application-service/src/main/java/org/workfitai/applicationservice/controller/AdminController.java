@@ -23,13 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
-import org.workfitai.applicationservice.dto.response.AuditLogResponse;
 import org.workfitai.applicationservice.dto.response.ExportResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
-import org.workfitai.applicationservice.model.AuditLog;
 import org.workfitai.applicationservice.service.AdminApplicationService;
-import org.workfitai.applicationservice.service.AuditLogService;
 import org.workfitai.applicationservice.service.ExportService;
 import org.workfitai.applicationservice.service.RateLimitService;
 import org.workfitai.applicationservice.service.SystemStatsService;
@@ -42,20 +39,23 @@ import java.util.List;
  * All endpoints require ROLE_ADMIN.
  */
 @RestController
-@RequestMapping("/api/v1/applications/admin")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminController {
 
+    private static final int EXPORT_RATE_LIMIT = 5;
+    private static final int EXPORT_RATE_WINDOW_HOURS = 24;
+    private static final int SECONDS_PER_HOUR = 3600;
+
     private final AdminApplicationService adminApplicationService;
     private final SystemStatsService systemStatsService;
-    private final AuditLogService auditLogService;
     private final ExportService exportService;
     private final RateLimitService rateLimitService;
 
     /**
      * 1. Get all applications (no company filter)
-     * GET /api/v1/applications/admin/all?page=0&size=50
+     * GET /application/admin/all?page=0&size=50
      */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -72,50 +72,8 @@ public class AdminController {
     }
 
     /**
-     * 2. Get audit logs
-     * GET /api/v1/applications/admin/audit?entityId={id}&performedBy={user}&action={action}&fromDate={date}&page=0
-     */
-    @GetMapping("/audit")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<Page<AuditLogResponse>>> getAuditLogs(
-            @RequestParam(required = false) String entityId,
-            @RequestParam(required = false) String performedBy,
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        log.info("ADMIN: Querying audit logs, entityId={}, performedBy={}, action={}", entityId, performedBy, action);
-
-        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(new RestResponse<>(400, "fromDate must be before toDate"));
-        }
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<AuditLog> auditLogs = auditLogService.queryAuditLogs(entityId, performedBy, action, fromDate, toDate, pageable);
-
-        Page<AuditLogResponse> response = auditLogs.map(l ->
-                new AuditLogResponse(
-                        l.getId(),
-                        l.getEntityType(),
-                        l.getEntityId(),
-                        l.getAction(),
-                        l.getPerformedBy(),
-                        l.getPerformedAt(),
-                        l.getBeforeState(),
-                        l.getAfterState(),
-                        l.getMetadata(),
-                        l.getContainsPII()
-                )
-        );
-
-        return ResponseEntity.ok(new RestResponse<>(200, "Audit logs fetched successfully", response));
-    }
-
-    /**
      * 3. Full data export (admin-only, includes deleted)
-     * POST /api/v1/applications/admin/export
+     * POST /application/admin/export
      * Rate limit: 5 exports per day per admin
      */
     @PostMapping("/export")
@@ -129,14 +87,14 @@ public class AdminController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth != null ? auth.getName() : "unknown";
 
-        if (!rateLimitService.isAllowed("admin-export", username, 5, 24)) {
-            int remaining = rateLimitService.getRemainingRequests("admin-export", username, 5, 24);
-            long resetHours = rateLimitService.getResetTimeSeconds("admin-export", username, 24) / 3600;
+        if (!rateLimitService.isAllowed("admin-export", username, EXPORT_RATE_LIMIT, EXPORT_RATE_WINDOW_HOURS)) {
+            int remaining = rateLimitService.getRemainingRequests("admin-export", username, EXPORT_RATE_LIMIT, EXPORT_RATE_WINDOW_HOURS);
+            long resetHours = rateLimitService.getResetTimeSeconds("admin-export", username, EXPORT_RATE_WINDOW_HOURS) / SECONDS_PER_HOUR;
 
             log.warn("ADMIN: Export rate limit exceeded for user={}, remaining={}, resetIn={}h", username, remaining, resetHours);
 
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(
-                    new RestResponse<>(429, String.format("Export rate limit exceeded. Limit: 5 per day. Reset in %d hours.", resetHours))
+                    new RestResponse<>(429, String.format("Export rate limit exceeded. Limit: %d per day. Reset in %d hours.", EXPORT_RATE_LIMIT, resetHours))
             );
         }
 
@@ -153,7 +111,7 @@ public class AdminController {
 
     /**
      * 4. System statistics
-     * GET /api/v1/applications/admin/stats
+     * GET /application/admin/stats
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
@@ -164,7 +122,7 @@ public class AdminController {
 
     /**
      * 5. Manually create application (bypass Saga)
-     * POST /api/v1/applications/admin/create
+     * POST /application/admin/create
      */
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
@@ -186,7 +144,7 @@ public class AdminController {
 
     /**
      * 6. Override any application field (USE WITH CAUTION)
-     * PUT /api/v1/applications/admin/{id}/override
+     * PUT /application/admin/{id}/override
      */
     @PutMapping("/{id}/override")
     @PreAuthorize("hasRole('ADMIN')")
@@ -207,7 +165,7 @@ public class AdminController {
 
     /**
      * 7. Get soft-deleted applications
-     * GET /api/v1/applications/admin/deleted?page=0&size=20
+     * GET /application/admin/deleted?page=0&size=20
      */
     @GetMapping("/deleted")
     @PreAuthorize("hasRole('ADMIN')")
@@ -225,7 +183,7 @@ public class AdminController {
 
     /**
      * 8. Restore soft-deleted application
-     * PUT /api/v1/applications/admin/{id}/restore
+     * PUT /application/admin/{id}/restore
      */
     @PutMapping("/{id}/restore")
     @PreAuthorize("hasRole('ADMIN')")

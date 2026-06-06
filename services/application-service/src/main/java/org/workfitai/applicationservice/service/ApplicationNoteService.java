@@ -73,6 +73,7 @@ public class ApplicationNoteService {
 
     /**
      * Update an existing note.
+     * Uses atomic $set with array filters to prevent note loss under concurrent updates.
      */
     public NoteResponse updateNote(String applicationId, String noteId, UpdateNoteRequest request, String username) {
         log.info("Updating note: appId={}, noteId={}, user={}", applicationId, noteId, username);
@@ -89,18 +90,29 @@ public class ApplicationNoteService {
             throw new ForbiddenException("Only the note author can update it");
         }
 
+        Update update = new Update();
         if (request.getContent() != null) {
-            note.setContent(request.getContent());
+            update.set("notes.$[elem].content", request.getContent());
         }
         if (request.getCandidateVisible() != null) {
-            note.setCandidateVisible(request.getCandidateVisible());
+            update.set("notes.$[elem].candidateVisible", request.getCandidateVisible());
         }
-        note.setUpdatedAt(Instant.now());
+        update.set("notes.$[elem].updatedAt", Instant.now());
 
-        applicationRepository.save(application);
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("_id").is(applicationId).and("deletedAt").isNull()),
+                update.filterArray(Criteria.where("elem.id").is(noteId)),
+                Application.class);
+
+        Application updated = applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
+                .orElseThrow(() -> new NotFoundException("Application not found"));
 
         log.info("Note updated successfully: noteId={}", noteId);
-        return toResponse(note);
+        return updated.getNotes().stream()
+                .filter(n -> n.getId().equals(noteId))
+                .findFirst()
+                .map(this::toResponse)
+                .orElseThrow(() -> new NotFoundException("Note not found after update"));
     }
 
     /**

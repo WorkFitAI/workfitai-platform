@@ -29,6 +29,7 @@ public class MongoConfig {
 
                 // TTL index for password_reset_tokens collection
                 createTtlIndex(mongoTemplate, "password_reset_tokens", "expiresAt");
+                // Note: grant_audit_logs indexes removed — collection replaced by Elasticsearch via monitoring-service
 
                 log.info("MongoDB TTL indexes created successfully");
             } catch (Exception e) {
@@ -50,5 +51,16 @@ public class MongoConfig {
                 .name(fieldName + "_ttl"));
 
         log.info("Created TTL index on {}.{}", collectionName, fieldName);
+    }
+
+    private void createAscendingIndex(MongoTemplate mongoTemplate, String collectionName, String fieldName) {
+        MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
+
+        Document indexKeys = new Document(fieldName, 1);
+
+        collection.createIndex(indexKeys, new com.mongodb.client.model.IndexOptions()
+                .name(fieldName + "_idx"));
+
+        log.info("Created ascending index on {}.{}", collectionName, fieldName);
     }
 }

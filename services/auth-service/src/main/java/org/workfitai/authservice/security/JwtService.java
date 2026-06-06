@@ -74,12 +74,12 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // fetch all permissions for these roles
+        // Fetch all permissions for these roles — permissions always come from roles, never directly from user
         Set<String> perms = roles.stream()
                 .flatMap(r -> roleService.getPermissions(r).stream())
                 .collect(Collectors.toSet());
 
-        // Get user entity to access email
+        // Get user entity to access email and company info
         User userEntity = userRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new IllegalStateException("User not found: " + user.getUsername()));
 

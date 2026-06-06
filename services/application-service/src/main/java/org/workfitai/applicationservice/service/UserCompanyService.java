@@ -24,11 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserCompanyService {
 
+    private static final int CACHE_MAX_SIZE = 5000;
+    private static final int CACHE_TTL_MINUTES = 10;
+
     private final UserServiceClient userServiceClient;
 
     private final Cache<String, String> companyIdCache = Caffeine.newBuilder()
-            .maximumSize(5000)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .maximumSize(CACHE_MAX_SIZE)
+            .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
             .build();
 
     /**

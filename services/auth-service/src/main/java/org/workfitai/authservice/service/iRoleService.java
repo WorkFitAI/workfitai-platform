@@ -17,4 +17,10 @@ public interface iRoleService {
     Role removePermissions(String roleName, List<String> permNames);
     Set<String> getPermissions(String roleName);
     List<Role> listAll();
+
+    /**
+     * Clone all permissions from {@code sourceRoleName} into a new role.
+     * The new role is independent — further edits to the source do not affect the clone.
+     */
+    Role cloneRole(String sourceRoleName, String newRoleName, String description);
 }

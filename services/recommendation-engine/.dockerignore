@@ -27,6 +27,7 @@ MANIFEST
 venv/
 ENV/
 env/
+.env
 .venv
 
 # IDE

@@ -8,8 +8,11 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.dto.response.NotificationSettingsResponse;
+import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.dto.response.UserInfoServeForJobResponse;
+import org.workfitai.userservice.dto.response.UserPlatformStatsResponse;
 import org.workfitai.userservice.service.NotificationSettingsService;
+import org.workfitai.userservice.service.UserPlatformStatsService;
 import org.workfitai.userservice.service.impl.UserServiceImpl;
 
 /**
@@ -25,6 +28,8 @@ public class InternalApiController {
         private final NotificationSettingsService notificationSettingsService;
 
         private final UserServiceImpl userService;
+
+        private final UserPlatformStatsService userPlatformStatsService;
 
         /**
          * Get notification settings by email (for notification-service)
@@ -70,6 +75,11 @@ public class InternalApiController {
                         @RequestParam List<String> usernames) {
                 List<UserInfoServeForJobResponse> users = userService.getUsersByUsernamesServeForJobUpdate(usernames);
                 return ResponseEntity.ok(users);
+        }
+
+        @GetMapping("/admin/stats")
+        public ResponseEntity<ResponseData<UserPlatformStatsResponse>> getPlatformStats() {
+                return ResponseEntity.ok(ResponseData.success(userPlatformStatsService.getStats()));
         }
 
 }

@@ -2,24 +2,37 @@ package org.workfitai.monitoringservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.monitoringservice.dto.*;
 import org.workfitai.monitoringservice.service.AdminActivityService;
+import org.workfitai.monitoringservice.service.AdminDashboardService;
+import org.workfitai.monitoringservice.service.AuditSearchService;
+
+import java.time.Instant;
 
 /**
- * Admin-only endpoints for user activity monitoring and system management.
+ * Admin-only endpoints for user activity monitoring, system management, and unified audit logs.
  * All endpoints require ADMIN role.
  */
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final AdminActivityService adminActivityService;
+    private final AuditSearchService auditSearchService;
+    private final AdminDashboardService adminDashboardService;
 
     /**
      * Get user activities for admin dashboard.
@@ -99,7 +112,7 @@ public class AdminController {
 
     /**
      * Get user activity summary statistics.
-     * 
+     *
      * @param hours Time range in hours (default 24)
      * @return Activity summary with statistics
      */
@@ -112,5 +125,74 @@ public class AdminController {
         ActivitySummary summary = adminActivityService.getActivitySummary(hours);
 
         return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * Unified audit log endpoint accessible by ADMIN, HR_MANAGER, and HR.
+     *
+     * ADMIN: unrestricted — all companies, all services.
+     * HR_MANAGER / HR: auto-scoped to their companyId from JWT (cannot override).
+     *
+     * All query params are optional. Results sorted by occurredAt DESC.
+     * Backed by Elasticsearch workfitai-audit-* indices (daily rolling).
+     */
+    @GetMapping("/audit")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_MANAGER', 'HR')")
+    public ResponseEntity<Page<AuditEventResponse>> getAuditLogs(
+            AuditSearchRequest req,
+            @PageableDefault(size = 50, sort = "occurredAt", direction = Sort.Direction.DESC)
+            Pageable pageable,
+            Authentication authentication) {
+
+        boolean isHrm = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_HR_MANAGER")
+                        || a.getAuthority().equals("ROLE_HR"));
+
+        if (isHrm) {
+            String companyId = extractCompanyId(authentication);
+            if (companyId == null) {
+                log.warn("[AUDIT] {} has no companyId claim — returning empty", authentication.getName());
+                return ResponseEntity.ok(Page.empty(pageable));
+            }
+            log.debug("[AUDIT] hrm user={} companyId={}", authentication.getName(), companyId);
+            return ResponseEntity.ok(auditSearchService.searchHrm(companyId, req, pageable));
+        }
+
+        log.debug("[AUDIT] admin user={}", authentication.getName());
+        return ResponseEntity.ok(auditSearchService.searchAdmin(req, pageable));
+    }
+
+    /** Extracts companyId from the JWT "companyId" claim. Returns null if absent. */
+    private String extractCompanyId(Authentication authentication) {
+        if (authentication instanceof JwtAuthenticationToken jwtToken) {
+            Jwt jwt = jwtToken.getToken();
+            Object claim = jwt.getClaims().get("companyId");
+            return claim != null ? claim.toString() : null;
+        }
+        return null;
+    }
+
+    /**
+     * Unified admin dashboard: application stats + top skills + audit stats.
+     * Partial failure is tolerated — null sections mean a downstream service was unavailable.
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<AdminDashboardResponse> getDashboard() {
+        return ResponseEntity.ok(adminDashboardService.getDashboard());
+    }
+
+    /**
+     * Aggregated audit statistics for the dashboard stats cards.
+     *
+     * @param from start of time range (ISO-8601 instant, optional)
+     * @param to   end of time range (ISO-8601 instant, optional)
+     */
+    @GetMapping("/audit/stats")
+    public ResponseEntity<AuditStatsResponse> getAuditStats(
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to) {
+
+        log.debug("Admin querying audit stats from={} to={}", from, to);
+        return ResponseEntity.ok(auditSearchService.getAuditStats(from, to));
     }
 }

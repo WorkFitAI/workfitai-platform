@@ -11,6 +11,7 @@ import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.request.BulkUpdateRequest;
 import org.workfitai.applicationservice.dto.response.BulkUpdateResult;
 import org.workfitai.applicationservice.exception.BadRequestException;
+import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.exception.NotFoundException;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
@@ -52,78 +53,60 @@ public class BulkOperationService {
 
     /**
      * Update status of multiple applications in a single transaction.
+     * All-or-nothing: any single failure rolls back all prior saves via @Transactional.
      *
-     * @param request   Bulk update request with application IDs and new status
-     * @param updatedBy Username performing the update
-     * @return Result with success/failure details
-     * @throws BadRequestException if validation fails
+     * @param request         Bulk update request with application IDs and new status
+     * @param updatedBy       Username performing the update
+     * @param callerCompanyId Caller's company from JWT — null means admin (bypass company check)
+     * @return Result with success details
+     * @throws BadRequestException if size limit exceeded
+     * @throws ForbiddenException  if any application belongs to a different company
      */
     @Transactional
-    public BulkUpdateResult bulkUpdateStatus(BulkUpdateRequest request, String updatedBy) {
+    public BulkUpdateResult bulkUpdateStatus(BulkUpdateRequest request, String updatedBy, String callerCompanyId) {
         log.info("Starting bulk status update: applicationCount={}, newStatus={}, updatedBy={}",
                 request.getApplicationIds().size(), request.getStatus(), updatedBy);
 
-        // Validate request size
         if (request.getApplicationIds().size() > MAX_BULK_SIZE) {
             throw new BadRequestException(
                     "Cannot update more than " + MAX_BULK_SIZE + " applications at once");
         }
 
         List<BulkUpdateResult.ApplicationUpdateResult> results = new ArrayList<>();
-        int successCount = 0;
-        int failureCount = 0;
 
-        // Process each application
         for (String applicationId : request.getApplicationIds()) {
-            try {
-                updateSingleApplication(applicationId, request.getStatus(), request.getReason(), updatedBy);
-                results.add(BulkUpdateResult.ApplicationUpdateResult.builder()
-                        .applicationId(applicationId)
-                        .success(true)
-                        .build());
-                successCount++;
-            } catch (Exception e) {
-                log.error("Failed to update application {}: {}", applicationId, e.getMessage());
-                results.add(BulkUpdateResult.ApplicationUpdateResult.builder()
-                        .applicationId(applicationId)
-                        .success(false)
-                        .errorMessage(e.getMessage())
-                        .build());
-                failureCount++;
-
-                // Rollback entire transaction on any failure (all-or-nothing)
-                throw new BadRequestException(
-                        "Bulk update failed for application " + applicationId + ": " + e.getMessage());
-            }
+            // Throws immediately on any failure — @Transactional rolls back all prior saves
+            updateSingleApplication(applicationId, request.getStatus(), request.getReason(), updatedBy, callerCompanyId);
+            results.add(BulkUpdateResult.ApplicationUpdateResult.builder()
+                    .applicationId(applicationId)
+                    .success(true)
+                    .build());
         }
 
-        log.info("Bulk update completed: success={}, failure={}", successCount, failureCount);
+        log.info("Bulk update completed: success={}", results.size());
 
         return BulkUpdateResult.builder()
-                .successCount(successCount)
-                .failureCount(failureCount)
+                .successCount(results.size())
+                .failureCount(0)
                 .results(results)
                 .build();
     }
 
-    /**
-     * Update a single application's status within the bulk operation.
-     *
-     * @param applicationId Application to update
-     * @param newStatus     New status
-     * @param reason        Optional reason for change
-     * @param updatedBy     Username performing update
-     * @throws NotFoundException   if application not found
-     * @throws BadRequestException if status transition is invalid
-     */
     private void updateSingleApplication(
             String applicationId,
             ApplicationStatus newStatus,
             String reason,
-            String updatedBy) {
+            String updatedBy,
+            String callerCompanyId) {
 
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(applicationId)
                 .orElseThrow(() -> new NotFoundException("Application not found: " + applicationId));
+
+        // Enforce company scoping — null callerCompanyId means admin (bypass)
+        if (callerCompanyId != null && !callerCompanyId.equals(application.getCompanyId())) {
+            throw new ForbiddenException(
+                    "Application " + applicationId + " does not belong to your company");
+        }
 
         ApplicationStatus previousStatus = application.getStatus();
 

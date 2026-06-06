@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
@@ -208,6 +209,7 @@ public class Application {
      * Cover letter from the applicant.
      * Explains motivation and fit for the position.
      */
+    @TextIndexed
     @Size(max = 5000, message = "Cover letter cannot exceed 5000 characters")
     private String coverLetter;
 

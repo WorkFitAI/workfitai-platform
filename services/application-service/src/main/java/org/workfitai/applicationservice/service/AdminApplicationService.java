@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Service for admin-level application operations
  * Bypasses normal validation and business rules
- * ALL OPERATIONS ARE AUDITED
+ * ALL OPERATIONS ARE AUDITED via AuditAspect AOP
  */
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,6 @@ public class AdminApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
-    private final AuditLogService auditLogService;
 
     /**
      * Manually create an application (bypasses Saga workflow)
@@ -209,16 +208,6 @@ public class AdminApplicationService {
 
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Application not found: " + id));
-
-        // Audit log before deletion
-        auditLogService.logAction(
-                "APPLICATION",
-                id,
-                "PERMANENTLY_DELETED",
-                "ADMIN",
-                null,
-                null,
-                java.util.Map.of("reason", reason, "warning", "HARD DELETE - DATA LOST"));
 
         applicationRepository.delete(application);
 

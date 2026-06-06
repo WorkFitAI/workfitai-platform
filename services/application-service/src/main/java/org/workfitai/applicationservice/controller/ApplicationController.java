@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.constants.Messages;
@@ -55,6 +56,8 @@ import org.workfitai.applicationservice.dto.response.ApiError;
 @SecurityRequirement(name = "bearerAuth")
 public class ApplicationController {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final IApplicationService applicationService;
     private final ApplicationSagaOrchestrator sagaOrchestrator;
     private final ApplicationSecurity applicationSecurity;
@@ -87,7 +90,7 @@ public class ApplicationController {
             Authentication authentication) {
 
         String username = applicationSecurity.getCurrentUsername(authentication);
-        size = Math.min(size, 100);
+        size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         ResultPaginationDTO<ApplicationResponse> result = (status != null)
@@ -164,7 +167,7 @@ public class ApplicationController {
             @PathVariable String id,
             Authentication authentication) {
 
-        List<StatusChangeResponse> history = applicationService.getStatusHistory(id, authentication);
+        List<StatusChangeResponse> history = applicationService.getStatusHistory(id);
         return ResponseEntity.ok(RestResponse.success(history));
     }
 
@@ -180,7 +183,7 @@ public class ApplicationController {
             @PathVariable String id,
             Authentication authentication) {
 
-        List<NoteResponse> notes = applicationService.getPublicNotes(id, authentication);
+        List<NoteResponse> notes = applicationService.getPublicNotes(id);
         return ResponseEntity.ok(RestResponse.success(notes));
     }
 }

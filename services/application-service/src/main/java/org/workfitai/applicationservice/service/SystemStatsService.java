@@ -3,19 +3,30 @@ package org.workfitai.applicationservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.DateOperators;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.LimitOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
 import org.workfitai.applicationservice.model.Application;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.repository.ApplicationRepository;
+import org.workfitai.applicationservice.util.ApplicationFunnelCalculator;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +37,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class SystemStatsService {
+
+    private static final int TOP_COMPANIES_LIMIT = 20;
+    private static final int TOP_JOBS_LIMIT = 10;
+    private static final int DAYS_PER_YEAR = 365;
+    private static final int DAYS_TWO_YEARS = 730;
+    private static final int VOLUME_TREND_DAYS = 30;
+    private static final double MS_PER_DAY = 1000.0 * 60 * 60 * 24;
 
     private final ApplicationRepository applicationRepository;
     private final MongoTemplate mongoTemplate;
@@ -45,7 +63,7 @@ public class SystemStatsService {
         // Calculate stats by company (top 20)
         List<SystemStatsResponse.CompanyStats> byCompany = calculateCompanyStatsWithAggregation();
 
-        // Calculate stats by status
+        // Calculate stats by status — reused for conversion rates
         Map<String, Long> byStatus = calculateStatusStatsWithAggregation();
 
         // Calculate growth metrics using aggregation
@@ -55,7 +73,13 @@ public class SystemStatsService {
         List<SystemStatsResponse.TopJob> topJobs = calculateTopJobsWithAggregation();
 
         // Calculate average time to hire using aggregation
-        String avgTimeToHire = calculateAvgTimeToHireWithAggregation();
+        double avgTimeToHire = calculateAvgTimeToHireWithAggregation();
+
+        // Platform-wide funnel conversion rates derived from byStatus
+        Map<String, Double> platformConversionRates = ApplicationFunnelCalculator.calculateFunnelRates(byStatus);
+
+        // Platform-wide daily volume trend (last 30 days) for line chart
+        List<SystemStatsResponse.DailyCount> volumeTrend = calculateVolumeTrendWithAggregation();
 
         return new SystemStatsResponse(
             platformTotals,
@@ -63,7 +87,9 @@ public class SystemStatsService {
             byStatus,
             growthMetrics,
             topJobs,
-            avgTimeToHire
+            avgTimeToHire,
+            platformConversionRates,
+            volumeTrend
         );
     }
 
@@ -74,7 +100,7 @@ public class SystemStatsService {
     private SystemStatsResponse.PlatformTotals calculatePlatformTotalsWithAggregation() {
         // Count active applications (deletedAt is null)
         long totalApplications = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("deletedAt").isNull()
             ),
             Application.class
@@ -82,7 +108,7 @@ public class SystemStatsService {
 
         // Count deleted applications
         long totalDeleted = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("deletedAt").ne(null)
             ),
             Application.class
@@ -90,7 +116,7 @@ public class SystemStatsService {
 
         // Count distinct companies
         long totalCompanies = mongoTemplate.findDistinct(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("companyId").ne(null)
             ),
             "companyId",
@@ -100,7 +126,7 @@ public class SystemStatsService {
 
         // Count distinct jobs
         long totalJobs = mongoTemplate.findDistinct(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("jobId").exists(true)
             ),
             "jobId",
@@ -135,8 +161,8 @@ public class SystemStatsService {
             .count().as("applications")
             .addToSet("jobId").as("jobIds");
 
-        SortOperation sortByCount = Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "applications");
-        LimitOperation limitTo20 = Aggregation.limit(20);
+        SortOperation sortByCount = Aggregation.sort(Sort.Direction.DESC, "applications");
+        LimitOperation limitTo20 = Aggregation.limit(TOP_COMPANIES_LIMIT);
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
@@ -199,39 +225,39 @@ public class SystemStatsService {
         Instant sevenDaysAgo = now.minus(7, ChronoUnit.DAYS);
         Instant thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS);
         Instant sixtyDaysAgo = now.minus(60, ChronoUnit.DAYS);
-        Instant oneYearAgo = now.minus(365, ChronoUnit.DAYS);
-        Instant twoYearsAgo = now.minus(730, ChronoUnit.DAYS);
+        Instant oneYearAgo = now.minus(DAYS_PER_YEAR, ChronoUnit.DAYS);
+        Instant twoYearsAgo = now.minus(DAYS_TWO_YEARS, ChronoUnit.DAYS);
 
         long last7Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(sevenDaysAgo)
             ),
             Application.class
         );
 
         long last30Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(thirtyDaysAgo)
             ),
             Application.class
         );
 
         long previous30Days = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(sixtyDaysAgo).lt(thirtyDaysAgo)
             ),
             Application.class
         );
 
         long lastYear = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(oneYearAgo)
             ),
             Application.class
         );
 
         long previousYear = mongoTemplate.count(
-            org.springframework.data.mongodb.core.query.Query.query(
+            Query.query(
                 Criteria.where("createdAt").gte(twoYearsAgo).lt(oneYearAgo)
             ),
             Application.class
@@ -266,8 +292,8 @@ public class SystemStatsService {
                 .otherwise(0)).as("hires")
             .first("companyId").as("companyId");
 
-        SortOperation sortByCount = Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "applications");
-        LimitOperation limitTo10 = Aggregation.limit(10);
+        SortOperation sortByCount = Aggregation.sort(Sort.Direction.DESC, "applications");
+        LimitOperation limitTo10 = Aggregation.limit(TOP_JOBS_LIMIT);
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
@@ -297,45 +323,62 @@ public class SystemStatsService {
     }
 
     /**
-     * Calculate average time to hire (platform-wide) using MongoDB aggregation
+     * Calculate average time to hire (platform-wide) in days using MongoDB aggregation.
+     * Returns a double (days) so the UI can use it directly in numeric comparisons and chart axes.
      */
-    private String calculateAvgTimeToHireWithAggregation() {
-        // Match only HIRED applications with updatedAt
+    private double calculateAvgTimeToHireWithAggregation() {
         MatchOperation matchHired = Aggregation.match(
             Criteria.where("status").is(ApplicationStatus.HIRED)
                 .and("createdAt").ne(null)
                 .and("updatedAt").ne(null)
         );
 
-        // Project: Calculate duration in milliseconds (createdAt → hired)
         ProjectionOperation projectDuration = Aggregation.project()
             .and("updatedAt").as("updatedAt")
             .and("createdAt").as("createdAt")
             .andExpression("updatedAt - createdAt").as("durationMs");
 
-        // Group: Calculate average duration
         GroupOperation groupAvg = Aggregation.group()
             .avg("durationMs").as("avgDurationMs");
 
-        Aggregation aggregation = Aggregation.newAggregation(
-            matchHired,
-            projectDuration,
-            groupAvg
-        );
+        Aggregation aggregation = Aggregation.newAggregation(matchHired, projectDuration, groupAvg);
 
         var results = mongoTemplate.aggregate(aggregation, "applications", Map.class).getMappedResults();
 
-        if (results.isEmpty()) {
-            return "0.0 days";
-        }
+        if (results.isEmpty()) return 0.0;
 
         Double avgDurationMs = (Double) results.get(0).get("avgDurationMs");
-        if (avgDurationMs == null || avgDurationMs == 0) {
-            return "0.0 days";
-        }
+        if (avgDurationMs == null || avgDurationMs == 0) return 0.0;
 
-        // Convert milliseconds to days
-        double avgDays = avgDurationMs / (1000.0 * 60 * 60 * 24);
-        return String.format("%.1f days", avgDays);
+        return Math.round((avgDurationMs / MS_PER_DAY) * 10.0) / 10.0;
+    }
+
+    /**
+     * Platform-wide daily application volume for the last 30 days.
+     * Provides the time-series data needed for admin volume line charts.
+     */
+    private List<SystemStatsResponse.DailyCount> calculateVolumeTrendWithAggregation() {
+        Instant since = Instant.now().minus(VOLUME_TREND_DAYS, ChronoUnit.DAYS);
+
+        MatchOperation match = Aggregation.match(
+            Criteria.where("deletedAt").isNull().and("createdAt").gte(since)
+        );
+
+        ProjectionOperation project = Aggregation.project()
+            .and(DateOperators.dateOf("createdAt").toString("%Y-%m-%d")).as("dateStr");
+
+        GroupOperation group = Aggregation.group("dateStr").count().as("count");
+        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+
+        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
+
+        return mongoTemplate.aggregate(aggregation, "applications", Map.class)
+            .getMappedResults()
+            .stream()
+            .map(r -> new SystemStatsResponse.DailyCount(
+                (String) r.get("_id"),
+                ((Number) r.get("count")).longValue()
+            ))
+            .toList();
     }
 }

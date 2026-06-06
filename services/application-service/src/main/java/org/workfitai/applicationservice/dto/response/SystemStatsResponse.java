@@ -12,7 +12,9 @@ public record SystemStatsResponse(
     Map<String, Long> byStatus,
     GrowthMetrics growthMetrics,
     List<TopJob> topJobs,
-    String avgTimeToHire
+    double avgTimeToHire,
+    Map<String, Double> platformConversionRates,
+    List<DailyCount> volumeTrend
 ) {
     public record PlatformTotals(
         long totalApplications,
@@ -43,4 +45,6 @@ public record SystemStatsResponse(
         long applications,
         long hires
     ) {}
+
+    public record DailyCount(String date, long count) {}
 }
