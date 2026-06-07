@@ -59,6 +59,8 @@ public class ResJobDetailsForAdminDTO {
     @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
 
+    private String jobCategoryName;
+
     // Company info
     private ResCompanyDTO company;
 

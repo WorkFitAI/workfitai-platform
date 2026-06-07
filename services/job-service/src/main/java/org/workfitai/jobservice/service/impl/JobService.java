@@ -1,6 +1,7 @@
 package org.workfitai.jobservice.service.impl;
 
 import org.springframework.transaction.annotation.Transactional;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.repository.JobCategoryRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.security.SecurityUtils;
@@ -61,6 +63,8 @@ public class JobService implements iJobService {
 
     private final SkillRepository skillRepository;
 
+    private final JobCategoryRepository jobCategoryRepository;
+
     private final CompanyRepository companyRepository;
 
     private final CloudinaryService cloudinaryService;
@@ -74,13 +78,15 @@ public class JobService implements iJobService {
     private final OutboxService outboxService;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-            SkillRepository skillRepository, CompanyRepository companyRepository,
+            SkillRepository skillRepository, JobCategoryRepository jobCategoryRepository,
+            CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
             NotificationProducer notificationProducer, UserFeignClient userFeignClient,
             NotificationService notificationService, OutboxService outboxService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
+        this.jobCategoryRepository = jobCategoryRepository;
         this.companyRepository = companyRepository;
         this.cloudinaryService = cloudinaryService;
         this.jobEventProducer = jobEventProducer;
@@ -203,7 +209,7 @@ public class JobService implements iJobService {
         }
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
-            Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
+            Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository, jobCategoryRepository);
             log.debug("Mapped job entity: {}", job);
             checkJobSkills(job, null);
             checkCompany(job, null);
@@ -286,7 +292,7 @@ public class JobService implements iJobService {
         // Clone the old job for change detection
         Job oldJob = cloneJobForComparison(dbJob);
 
-        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
+        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository, jobCategoryRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
 

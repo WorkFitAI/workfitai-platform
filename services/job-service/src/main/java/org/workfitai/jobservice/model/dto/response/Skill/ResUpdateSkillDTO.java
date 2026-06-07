@@ -4,12 +4,22 @@ import lombok.*;
 
 import java.util.UUID;
 
+import org.workfitai.jobservice.model.dto.AuditableResponse;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ResUpdateSkillDTO {
+public class ResUpdateSkillDTO implements AuditableResponse {
     private UUID skillId;
     private String name;
+
+    @JsonIgnore
+    @Override
+    public String getAuditId() {
+        return skillId.toString();
+    }
 }

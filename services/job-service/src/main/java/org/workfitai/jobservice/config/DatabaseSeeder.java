@@ -4,6 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.Report;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.EReportStatus;
@@ -11,6 +12,7 @@ import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.repository.JobCategoryRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
@@ -28,16 +30,19 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final JobRepository jobRepository;
         private final SkillRepository skillRepository;
         private final ReportRepository reportRepository;
+        private final JobCategoryRepository jobCategoryRepository;
 
         public DatabaseSeeder(
                         CompanyRepository companyRepository,
                         JobRepository jobRepository,
                         SkillRepository skillRepository,
-                        ReportRepository reportRepository) {
+                        ReportRepository reportRepository,
+                        JobCategoryRepository jobCategoryRepository) {
                 this.companyRepository = companyRepository;
                 this.jobRepository = jobRepository;
                 this.skillRepository = skillRepository;
                 this.reportRepository = reportRepository;
+                this.jobCategoryRepository = jobCategoryRepository;
         }
 
         @Override
@@ -47,6 +52,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 long countCompanies = this.companyRepository.count();
                 long countJobs = this.jobRepository.count();
                 long countSkills = this.skillRepository.count();
+                long countCategories = this.jobCategoryRepository.count();
 
                 /* ===================== COMPANY SEED ===================== */
                 if (countCompanies == 0) {
@@ -118,11 +124,30 @@ public class DatabaseSeeder implements CommandLineRunner {
                                         new Skill("MongoDB")));
                 }
 
+                /* ===================== JOB CATEGORY SEED ===================== */
+                if (countCategories == 0) {
+
+                        jobCategoryRepository.saveAll(List.of(
+                                        JobCategory.builder().name("Backend Development").build(),
+                                        JobCategory.builder().name("Frontend Development").build(),
+                                        JobCategory.builder().name("Fullstack Development").build(),
+                                        JobCategory.builder().name("Mobile Development").build(),
+                                        JobCategory.builder().name("DevOps").build(),
+                                        JobCategory.builder().name("Cloud Computing").build(),
+                                        JobCategory.builder().name("Data Engineering").build(),
+                                        JobCategory.builder().name("Data Science").build(),
+                                        JobCategory.builder().name("Cyber Security").build(),
+                                        JobCategory.builder().name("Artificial Intelligence").build()));
+
+                        System.out.println(">>> Seeded 10 job categories");
+                }
+
                 /* ===================== JOB SEED ===================== */
                 if (countJobs == 0) {
 
                         List<Company> companies = companyRepository.findAll();
                         List<Skill> allSkills = skillRepository.findAll();
+                        List<JobCategory> categories = jobCategoryRepository.findAll();
                         Random rand = new Random();
 
                         List<Job> jobs = new ArrayList<>();
@@ -145,6 +170,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 for (int s = 0; s < 3; s++) {
                                         jobSkills.add(allSkills.get(rand.nextInt(allSkills.size())));
                                 }
+
+                                JobCategory category = categories.get(rand.nextInt(categories.size()));
 
                                 /* ========= Tạo nội dung text mẫu ========= */
                                 String longDesc = "Mô tả chi tiết công việc cho vị trí " +
@@ -197,7 +224,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                                 .quantity(1 + rand.nextInt(5))
                                                 .totalApplications(0)
                                                 .expiresAt(Instant.now()
-                                                                .plusSeconds(60L * 60 * 24 * (15 + rand.nextInt(30))))
+                                                                .plusSeconds(60L * 60 * 24 * (15 + rand.nextInt(60))))
                                                 .status(JobStatus.PUBLISHED)
                                                 .educationLevel("Đại học CNTT")
                                                 .benefits(benefits)
@@ -205,6 +232,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                                 .responsibilities(responsibilities)
                                                 .company(company)
                                                 .skills(jobSkills)
+                                                .jobCategory(category)
                                                 .build();
 
                                 jobs.add(job);

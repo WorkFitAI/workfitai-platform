@@ -4,12 +4,16 @@ import lombok.*;
 
 import java.time.Instant;
 
+import org.workfitai.jobservice.model.dto.AuditableResponse;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ResUpdateCompanyDTO {
+public class ResUpdateCompanyDTO implements AuditableResponse {
 
     private String companyNo;
     private String name;
@@ -19,5 +23,11 @@ public class ResUpdateCompanyDTO {
     private String address;
     private String size;
     private Instant lastModifiedDate;
+
+    @JsonIgnore
+    @Override
+    public String getAuditId() {
+        return companyNo;
+    }
 
 }

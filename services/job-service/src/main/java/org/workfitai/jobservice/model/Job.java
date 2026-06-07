@@ -109,8 +109,8 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @JoinColumn(name = "company_id", nullable = false)
     @NotNull(message = "Company must not be null")
     private Company company;
-
     @NotNull(message = "isDeleted must not be null")
+
     private boolean isDeleted;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -122,6 +122,9 @@ public class Job extends AbstractAuditingEntity<UUID> {
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("job")
     private List<Report> reports = new ArrayList<>();
+
+    @ManyToOne
+    private JobCategory jobCategory;
 
     @Override
     public UUID getId() {

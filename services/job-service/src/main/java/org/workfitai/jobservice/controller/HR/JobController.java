@@ -64,13 +64,15 @@ public class JobController {
     @PostMapping()
     @ApiMessage(JOB_CREATED_SUCCESSFULLY)
     public RestResponse<ResCreateJobDTO> create(@Valid @RequestBody ReqJobDTO jobDTO) {
+        System.out.println("Received job creation request: " + jobDTO);
         return RestResponse.created(jobService.createJob(jobDTO));
     }
 
     @PreAuthorize("hasAuthority('job:update')")
     @PutMapping()
     @ApiMessage(JOB_UPDATED_SUCCESSFULLY)
-    public RestResponse<ResUpdateJobDTO> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO) throws InvalidDataException {
+    public RestResponse<ResUpdateJobDTO> update(@Valid @RequestBody ReqUpdateJobDTO jobDTO)
+            throws InvalidDataException {
         Optional<Job> currentJob = this.jobService.getJobById(jobDTO.getJobId());
         if (currentJob.isEmpty()) {
             throw new InvalidDataException(JOB_NOT_FOUND);
