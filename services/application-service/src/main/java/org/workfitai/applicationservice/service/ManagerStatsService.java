@@ -89,6 +89,10 @@ public class ManagerStatsService {
         Map<String, Double> conversionRates = calculateConversionRates(byStatus);
         List<DailyApplicationCount> volumeTrend = calculateVolumeTrend(companyId);
 
+        long offerAcceptedCount = applicationRepository
+                .countByCompanyIdAndStatusAndDeletedAtIsNull(companyId, ApplicationStatus.HIRED);
+        long offerRejectedCount = calculateOfferRejectedCount(companyId);
+
         return ManagerStatsResponse.builder()
                 .totalApplications(totalApplications)
                 .byStatus(byStatus)
@@ -98,7 +102,24 @@ public class ManagerStatsService {
                 .stuckApplicationsCount(stuckCount)
                 .conversionRates(conversionRates)
                 .volumeTrend(volumeTrend)
+                .offerAcceptedCount(offerAcceptedCount)
+                .offerRejectedCount(offerRejectedCount)
                 .build();
+    }
+
+    /**
+     * Counts applications for a company that had an OFFER→REJECTED status transition.
+     * Deduplicates per application _id to avoid double-counting.
+     */
+    private long calculateOfferRejectedCount(String companyId) {
+        Aggregation agg = Aggregation.newAggregation(
+            Aggregation.match(Criteria.where("deletedAt").isNull().and("companyId").is(companyId)),
+            Aggregation.unwind("statusHistory"),
+            Aggregation.match(Criteria.where("statusHistory.previousStatus").is("OFFER")
+                    .and("statusHistory.newStatus").is("REJECTED")),
+            Aggregation.group("_id")
+        );
+        return (long) mongoTemplate.aggregate(agg, "applications", Map.class).getMappedResults().size();
     }
 
     private long calculateStuckApplications(String companyId) {

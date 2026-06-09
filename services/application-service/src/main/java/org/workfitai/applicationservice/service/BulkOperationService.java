@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
@@ -63,6 +64,7 @@ public class BulkOperationService {
      * @throws ForbiddenException  if any application belongs to a different company
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public BulkUpdateResult bulkUpdateStatus(BulkUpdateRequest request, String updatedBy, String callerCompanyId) {
         log.info("Starting bulk status update: applicationCount={}, newStatus={}, updatedBy={}",
                 request.getApplicationIds().size(), request.getStatus(), updatedBy);

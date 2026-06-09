@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "56bc31cf-289d-4099-aa63-885a3181bc2a",
+    "_postman_id": "9e56dfe3-4afe-4de9-ace4-9a4ee13ad4f8",
     "name": "1. WorkFitAI - Auth Service",
     "description": "Authentication, Authorization, Role Management & Approval Workflows\n\nBase URL: {{base_url}}/auth\nPort: 9080 -> 9085 (gateway)\nConsul: auth\nDB: MongoDB + Redis\n\nEndpoints coverage:\n- Authentication (register, login, verify-otp, 2FA, logout, refresh, me)\n- Password Management (forgot, verify-reset-otp, reset, change, set)\n- 2FA Management (enable, disable, status)\n- Session Management (list, delete, delete-all)\n- OAuth (authorize, exchange, link, unlink, linked-accounts, auth-status)\n- Approval (pending, approve-hr-manager, approve-hr, reject)\n- Permission CRUD + batch\n- Role CRUD + batch + clone + permission assignment\n- User Role Grant/Revoke + batch\n- Audit Log (all logs, by target, by grantor, my trail)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "39571017",
-    "_collection_link": "https://go.postman.co/collection/39571017-56bc31cf-289d-4099-aa63-885a3181bc2a?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/39571017-9e56dfe3-4afe-4de9-ace4-9a4ee13ad4f8?source=collection_link"
   },
   "item": [
     {
@@ -68,6 +68,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -80,7 +108,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr1Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr1FullName}}\",\n  \"phoneNumber\": \"{{hr1Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hr1Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr1FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager1Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -110,6 +138,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -122,7 +178,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr2Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr2FullName}}\",\n  \"phoneNumber\": \"{{hr2Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hr2Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr2FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager1Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -152,6 +208,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -164,7 +248,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr3Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr3FullName}}\",\n  \"phoneNumber\": \"{{hr3Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hr3Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr3FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager1Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -194,6 +278,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -206,7 +318,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr4Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr4FullName}}\",\n  \"phoneNumber\": \"{{hr4Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hr4Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr4FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager2Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -236,6 +348,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -248,7 +388,77 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr5Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr5FullName}}\",\n  \"phoneNumber\": \"{{hr5Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManagerEmail}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hr5Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr5FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager2Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register HR 6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR registered. Next: Verify OTP, Wait for HR_MANAGER approval');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{hr6Email}}\",\n  \"password\": \"{{hrPassword}}\",\n  \"role\": \"HR\",\n  \"fullName\": \"{{hr6FullName}}\",\n  \"phoneNumber\": \"{{hrPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrDepartment}}\",\n    \"hrManagerEmail\": \"{{hrManager2Email}}\",\n    \"address\": \"{{hrAddress}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -283,6 +493,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -295,7 +516,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr1Email}}\",\n  \"otp\": \"215142\"\n}"
+              "raw": "{\n  \"email\": \"{{hr1Email}}\",\n  \"otp\": \"762985\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -325,6 +546,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -337,7 +569,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr2Email}}\",\n  \"otp\": \"479007\"\n}"
+              "raw": "{\n  \"email\": \"{{hr2Email}}\",\n  \"otp\": \"662037\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -367,6 +599,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -379,7 +622,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr3Email}}\",\n  \"otp\": \"859377\"\n}"
+              "raw": "{\n  \"email\": \"{{hr3Email}}\",\n  \"otp\": \"603577\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -409,6 +652,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -421,7 +675,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr4Email}}\",\n  \"otp\": \"366031\"\n}"
+              "raw": "{\n  \"email\": \"{{hr4Email}}\",\n  \"otp\": \"425223\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -451,6 +705,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -463,7 +728,60 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hr5Email}}\",\n  \"otp\": \"496345\"\n}"
+              "raw": "{\n  \"email\": \"{{hr5Email}}\",\n  \"otp\": \"366829\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP - HR 6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('OTP verified. Status: WAIT_APPROVED');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{hr6Email}}\",\n  \"otp\": \"509892\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -498,6 +816,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"candidatePhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -510,7 +856,77 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"password\": \"{{candidatePassword}}\",\n  \"role\": \"CANDIDATE\",\n  \"fullName\": \"{{candidateFullName}}\",\n  \"phoneNumber\": \"{{candidatePhone}}\"\n}"
+              "raw": "{\n  \"email\": \"{{candidate1Email}}\",\n  \"password\": \"{{candidatePassword}}\",\n  \"role\": \"CANDIDATE\",\n  \"fullName\": \"{{candidate1FullName}}\",\n  \"phoneNumber\": \"{{candidatePhone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register CANDIDATE 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('CANDIDATE registered. Next: Verify OTP (123456)');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"candidatePhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{candidate2Email}}\",\n  \"password\": \"{{candidatePassword}}\",\n  \"role\": \"CANDIDATE\",\n  \"fullName\": \"{{candidate2FullName}}\",\n  \"phoneNumber\": \"{{candidatePhone}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -582,6 +998,34 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrManagerPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -594,7 +1038,77 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hrManager2Email}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"role\": \"HR_MANAGER\",\n  \"fullName\": \"{{hrManager2FullName}}\",\n  \"phoneNumber\": \"{{hrManager2Phone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrManagerDepartment}}\",\n    \"address\": \"{{hrManagerAddress}}\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{companyNo2}}\",\n    \"name\": \"{{companyName2}}\",\n    \"logoUrl\": \"{{companyLogoUrl}}\",\n    \"websiteUrl\": \"{{companyWebsiteUrl}}\",\n    \"description\": \"{{companyDescription}}\",\n    \"address\": \"{{companyAddress}}\",\n    \"size\": \"{{companySize}}\"\n  }\n}"
+              "raw": "{\n  \"email\": \"{{hrManager1Email}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"role\": \"HR_MANAGER\",\n  \"fullName\": \"{{hrManager1FullName}}\",\n  \"phoneNumber\": \"{{hrManagerPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrManagerDepartment}}\",\n    \"address\": \"{{hrManagerAddress}}\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{company1No}}\",\n    \"name\": \"{{company1Name}}\",\n    \"logoUrl\": \"{{companyLogoUrl}}\",\n    \"websiteUrl\": \"{{company1WebsiteUrl}}\",\n    \"description\": \"{{companyDescription}}\",\n    \"address\": \"{{companyAddress}}\",\n    \"size\": \"{{companySize}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register HR_MANAGER2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR_MANAGER registered. Next: Verify OTP, Wait for ADMIN approval');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Function to generate a random 10-digit number starting with 0",
+                  "function generateRandomVietnamesePhone() {",
+                  "    let phoneNumber = \"0\";",
+                  "    // Loop 9 times to append 9 random digits (0-9)",
+                  "    for (let i = 0; i < 9; i++) {",
+                  "        phoneNumber += Math.floor(Math.random() * 10);",
+                  "    }",
+                  "    return phoneNumber;",
+                  "}",
+                  "",
+                  "// Generate the phone number",
+                  "const randomPhone = generateRandomVietnamesePhone();",
+                  "",
+                  "// Set the environment or collection variable",
+                  "pm.variables.set(\"hrManagerPhone\", randomPhone);",
+                  "",
+                  "// Optional: Log it to the Postman Console to verify",
+                  "console.log(\"Generated Random Phone:\", randomPhone);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{hrManager2Email}}\",\n  \"password\": \"{{hrManagerPassword}}\",\n  \"role\": \"HR_MANAGER\",\n  \"fullName\": \"{{hrManager2FullName}}\",\n  \"phoneNumber\": \"{{hrManagerPhone}}\",\n  \"hrProfile\": {\n    \"department\": \"{{hrManagerDepartment}}\",\n    \"address\": \"{{hrManagerAddress}}\"\n  },\n  \"company\": {\n    \"companyNo\": \"{{company2No}}\",\n    \"name\": \"{{company2Name}}\",\n    \"logoUrl\": \"{{companyLogoUrl}}\",\n    \"websiteUrl\": \"{{company2WebsiteUrl}}\",\n    \"description\": \"{{companyDescription}}\",\n    \"address\": \"{{companyAddress}}\",\n    \"size\": \"{{companySize}}\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -624,6 +1138,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -636,7 +1161,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"142519\"\n}"
+              "raw": "{\n  \"email\": \"{{candidate2Email}}\",\n  \"otp\": \"718309\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -694,7 +1219,7 @@
           "response": []
         },
         {
-          "name": "Verify OTP - HR_MANAGER",
+          "name": "Verify OTP - HR Manager",
           "event": [
             {
               "listen": "test",
@@ -703,6 +1228,17 @@
                   "if (pm.response.code === 200) {",
                   "    console.log('OTP verified. Status: WAIT_APPROVED');",
                   "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -720,7 +1256,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{hrManager2Email}}\",\n  \"otp\": \"717844\"\n}"
+              "raw": "{\n  \"email\": \"{{hrManager2Email}}\",\n  \"otp\": \"967253\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-otp",
@@ -881,6 +1417,13 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
             }
           ],
           "request": {
@@ -897,7 +1440,73 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"usernameOrEmail\": \"{{hrManagerEmail}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+              "raw": "{\n  \"usernameOrEmail\": \"{{hrManager1Email}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - HR_MANAGER2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.status === 200 && response.data) {",
+                  "        if (response.data.require2FA) {",
+                  "            pm.environment.set('twoFaTempToken', response.data.tempToken);",
+                  "            console.log('2FA required. tempToken saved.');",
+                  "        } else {",
+                  "            pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+                  "            pm.environment.set('hrManagerUsername', response.data.username);",
+                  "            pm.environment.set('access_token', response.data.accessToken);",
+                  "            console.log('Login successful. Expires in (ms): ' + response.data.expiryInMs);",
+                  "        }",
+                  "    } else {",
+                  "        console.warn('Status was not 200 or Data was missing inside the body.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Device-Id",
+                "value": "{{deviceId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"{{hrManager2Email}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -1200,6 +1809,13 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
             }
           ],
           "request": {
@@ -1212,7 +1828,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{candidateEmail}}\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"hrtest1@gmail.com\",\n  \"otp\": \"087123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-reset-otp",
@@ -1276,7 +1892,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"{{candidatePassword}}\",\n  \"newPassword\": \"NewPass@123\",\n  \"confirmPassword\": \"NewPass@123\"\n}"
+              "raw": "{\n  \"currentPassword\": \"Manager@Secure123\",\n  \"newPassword\": \"Password@123\",\n  \"confirmPassword\": \"Password@123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/change-password",
@@ -1792,6 +2408,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -1812,20 +2439,17 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"approvedBy\": \"{{adminEmail}}\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/auth/admin/approve-hr-manager/{{pendingUserId}}",
+              "raw": "{{base_url}}/user/hr/username/{{hrManager1Username}}/approve-manager",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "auth",
-                "admin",
-                "approve-hr-manager",
-                "{{pendingUserId}}"
+                "user",
+                "hr",
+                "username",
+                "{{hrManager1Username}}",
+                "approve-manager"
               ]
             }
           },
@@ -1846,6 +2470,17 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
@@ -1854,7 +2489,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{hrManagerAccessToken}}",
+                  "value": "{{access_token}}",
                   "type": "string"
                 }
               ]
@@ -1866,20 +2501,17 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"approvedBy\": \"{{hrManagerEmail}}\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/auth/admin/approve-hr/{{pendingUserId}}",
+              "raw": "{{base_url}}/user/hr/username/{{hr2Username}}/approve",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "auth",
-                "admin",
-                "approve-hr",
-                "{{pendingUserId}}"
+                "user",
+                "hr",
+                "username",
+                "{{hr2Username}}",
+                "approve"
               ]
             }
           },
@@ -1919,6 +2551,519 @@
                 "admin",
                 "reject",
                 "{{pendingUserId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bulk Approval HR",
+      "item": [
+        {
+          "name": "Login - HR_MANAGER 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.status === 200 && response.data) {",
+                  "        if (response.data.require2FA) {",
+                  "            pm.environment.set('twoFaTempToken', response.data.tempToken);",
+                  "            console.log('2FA required. tempToken saved.');",
+                  "        } else {",
+                  "            pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+                  "            pm.environment.set('hrManagerUsername', response.data.username);",
+                  "            pm.environment.set('access_token', response.data.accessToken);",
+                  "            console.log('Login successful. Expires in (ms): ' + response.data.expiryInMs);",
+                  "        }",
+                  "    } else {",
+                  "        console.warn('Status was not 200 or Data was missing inside the body.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Device-Id",
+                "value": "{{deviceId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"{{hrManager1Email}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr1Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr1Username}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr2Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr2Username}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr3Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr3Username}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - HR_MANAGER 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.status === 200 && response.data) {",
+                  "        if (response.data.require2FA) {",
+                  "            pm.environment.set('twoFaTempToken', response.data.tempToken);",
+                  "            console.log('2FA required. tempToken saved.');",
+                  "        } else {",
+                  "            pm.environment.set('hrManagerAccessToken', response.data.accessToken);",
+                  "            pm.environment.set('hrManagerUsername', response.data.username);",
+                  "            pm.environment.set('access_token', response.data.accessToken);",
+                  "            console.log('Login successful. Expires in (ms): ' + response.data.expiryInMs);",
+                  "        }",
+                  "    } else {",
+                  "        console.warn('Status was not 200 or Data was missing inside the body.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Device-Id",
+                "value": "{{deviceId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"{{hrManager2Email}}\",\n  \"password\": \"{{hrManagerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr4Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr4Username}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr5Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr5Username}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve HR 6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('HR approved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/hr/username/{{hr6Username}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "hr",
+                "username",
+                "{{hr6Username}}",
+                "approve"
               ]
             }
           },
@@ -2157,7 +3302,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{adminAccessToken}}",
+                  "value": "{{access_token}}",
                   "type": "string"
                 }
               ]
@@ -2386,7 +3531,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"HR_SENIOR\",\n  \"description\": \"Senior HR role cloned from HR\"\n}"
+              "raw": "{\n  \"name\": \"HR_MASTER\",\n  \"description\": \"Senior HR role cloned from HR MANAGER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/roles/{{roleName}}/clone",
@@ -2687,7 +3832,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"roles\": [\"HR\", \"MODERATOR\"]\n}"
+              "raw": "{\n  \"roles\": [\"HR\", \"HR_MASTER\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles/batch",
@@ -2727,7 +3872,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"roles\": [\"HR\", \"MODERATOR\"]\n}"
+              "raw": "{\n  \"roles\": [\"HR\", \"HR_MASTER\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/users/{{targetUsername}}/roles/batch",
@@ -2740,132 +3885,6 @@
                 "{{targetUsername}}",
                 "roles",
                 "batch"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Audit Log Management",
-      "item": [
-        {
-          "name": "Get All Audit Logs (ADMIN)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminAccessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/audit/grants",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "audit",
-                "grants"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Audit Logs by Target User",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminAccessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/audit/grants/target/{{targetUsername}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "audit",
-                "grants",
-                "target",
-                "{{targetUsername}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Audit Logs by Grantor",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminAccessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/audit/grants/grantor/{{targetUsername}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "audit",
-                "grants",
-                "grantor",
-                "{{targetUsername}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get My Audit Trail",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/audit/grants/me",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "audit",
-                "grants",
-                "me"
               ]
             }
           },

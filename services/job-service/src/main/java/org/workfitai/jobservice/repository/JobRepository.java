@@ -13,6 +13,7 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
+import org.workfitai.jobservice.model.enums.EmploymentType;
 
 import java.time.Instant;
 import java.util.List;
@@ -63,6 +64,10 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
 
   long countByCompanyCompanyNoAndStatusAndIsDeletedFalse(String companyNo, JobStatus status);
 
+  boolean existsByTitleAndCompany_CompanyNo(String title, String companyNo);
+
+  Job findByTitleAndCompany_CompanyNo(String title, String companyNo);
+
   @Query("""
       SELECT COUNT(j) FROM Job j
       WHERE j.company.companyNo = :companyId
@@ -74,4 +79,26 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
   long countExpiringByCompany(@Param("companyId") String companyId,
                                @Param("now") Instant now,
                                @Param("deadline") Instant deadline);
+
+  // --- Platform-wide stats queries ---
+
+  @Query("SELECT j.employmentType, COUNT(j) FROM Job j WHERE j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.employmentType")
+  List<Object[]> countPublishedByEmploymentType();
+
+  @Query("SELECT j.experienceLevel, COUNT(j) FROM Job j WHERE j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.experienceLevel")
+  List<Object[]> countPublishedByExperienceLevel();
+
+  @Query("SELECT j FROM Job j LEFT JOIN FETCH j.company WHERE j.status = 'PUBLISHED' AND j.isDeleted = false ORDER BY j.views DESC LIMIT 10")
+  List<Job> findTop10PublishedByViewsDesc();
+
+  // --- Company-scoped stats queries (HRM) ---
+
+  @Query("SELECT j.employmentType, COUNT(j) FROM Job j WHERE j.company.companyNo = :companyId AND j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.employmentType")
+  List<Object[]> countPublishedByEmploymentTypeForCompany(@Param("companyId") String companyId);
+
+  @Query("SELECT j.experienceLevel, COUNT(j) FROM Job j WHERE j.company.companyNo = :companyId AND j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.experienceLevel")
+  List<Object[]> countPublishedByExperienceLevelForCompany(@Param("companyId") String companyId);
+
+  @Query("SELECT j FROM Job j LEFT JOIN FETCH j.company WHERE j.company.companyNo = :companyId AND j.status = 'PUBLISHED' AND j.isDeleted = false ORDER BY j.views DESC LIMIT 10")
+  List<Job> findTop10PublishedByCompanyAndViewsDesc(@Param("companyId") String companyId);
 }
