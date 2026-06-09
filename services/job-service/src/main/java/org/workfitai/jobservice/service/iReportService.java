@@ -2,7 +2,6 @@ package org.workfitai.jobservice.service;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.model.Report;
@@ -17,11 +16,9 @@ public interface iReportService {
     String createReport(
             ReqCreateReport req,
             MultipartFile[] files,
-            String currentUser
-    ) throws IOException, InvalidDataException;
+            String currentUser) throws IOException, InvalidDataException;
 
     ResultPaginationDTO fetchAllReportsGrouped(Specification<Report> spec, Pageable pageable);
 
-    @Transactional
-    void changeStatusByJobId(UUID jobId, EReportStatus newStatus);
+    void changeStatus(UUID jobId, EReportStatus newStatus);
 }

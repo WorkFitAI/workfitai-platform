@@ -13,14 +13,18 @@ import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.config.errors.ResourceConflictException;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.JobReportSnapshot;
 import org.workfitai.jobservice.model.Report;
+import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.JobInfoDTO;
 import org.workfitai.jobservice.model.dto.request.Report.ReqCreateReport;
+import org.workfitai.jobservice.model.dto.response.Report.ResJobReportSnapshot;
 import org.workfitai.jobservice.model.dto.response.Report.ResReport;
 import org.workfitai.jobservice.model.dto.response.Report.ResReportGroup;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.EReportStatus;
 import org.workfitai.jobservice.model.mapper.ReportMapper;
+import org.workfitai.jobservice.repository.JobReportSnapshotRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.service.CloudinaryService;
@@ -28,6 +32,7 @@ import org.workfitai.jobservice.service.iReportService;
 import org.workfitai.jobservice.util.PaginationUtils;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,168 +42,283 @@ import static org.workfitai.jobservice.util.MessageConstant.*;
 @Service
 @Slf4j
 public class ReportService implements iReportService {
-    private final ReportRepository reportRepository;
+        private final ReportRepository reportRepository;
 
-    private final JobRepository jobRepository;
+        private final JobRepository jobRepository;
 
-    private final CloudinaryService cloudinaryService;
+        private final JobReportSnapshotRepository snapshotRepository;
 
-    private final ReportMapper reportMapper;
+        private final CloudinaryService cloudinaryService;
 
-    ReportService(final ReportRepository reportRepository, final JobRepository jobRepository, final CloudinaryService cloudinaryService, final ReportMapper reportMapper) {
-        this.reportRepository = reportRepository;
-        this.jobRepository = jobRepository;
-        this.cloudinaryService = cloudinaryService;
-        this.reportMapper = reportMapper;
-    }
+        private final ReportMapper reportMapper;
 
-    @Override
-    public String createReport(
-            ReqCreateReport req,
-            MultipartFile[] files,
-            String currentUser
-    ) throws IOException, InvalidDataException {
-
-        Job job = jobRepository.findById(req.getJobId())
-                .orElseThrow(() -> new InvalidDataException(JOB_NOT_FOUND));
-
-        boolean alreadyReported = reportRepository
-                .existsByJob_JobIdAndCreatedBy(job.getJobId(), currentUser);
-
-        if (alreadyReported) {
-            throw new ResourceNotFoundException(REPORT_CREATE_CONFLICT);
+        ReportService(final ReportRepository reportRepository, final JobRepository jobRepository,
+                        final JobReportSnapshotRepository snapshotRepository, final CloudinaryService cloudinaryService,
+                        final ReportMapper reportMapper) {
+                this.reportRepository = reportRepository;
+                this.jobRepository = jobRepository;
+                this.snapshotRepository = snapshotRepository;
+                this.cloudinaryService = cloudinaryService;
+                this.reportMapper = reportMapper;
         }
 
-        List<String> imageUrls = new ArrayList<>();
-        if (files != null) {
-            for (MultipartFile file : files) {
-                String url = cloudinaryService.uploadFile(file, "reports");
-                imageUrls.add(url);
-            }
+        @Override
+        @Transactional
+        public String createReport(
+                        ReqCreateReport req,
+                        MultipartFile[] files,
+                        String currentUser) throws IOException {
+
+                Job job = jobRepository.findById(req.getJobId())
+                                .orElseThrow(() -> new InvalidDataException(JOB_NOT_FOUND));
+
+                boolean alreadyReported = reportRepository.existsByJob_JobIdAndCreatedBy(
+                                job.getJobId(),
+                                currentUser);
+
+                if (alreadyReported) {
+                        throw new ResourceConflictException(
+                                        REPORT_CREATE_CONFLICT);
+                }
+
+                List<String> imageUrls = new ArrayList<>();
+
+                if (files != null) {
+                        for (MultipartFile file : files) {
+                                imageUrls.add(
+                                                cloudinaryService.uploadFile(
+                                                                file,
+                                                                "reports"));
+                        }
+                }
+
+                Report report = reportMapper.toEntity(req);
+                report.setJob(job);
+                report.setImages(imageUrls);
+
+                report = reportRepository.save(report);
+
+                JobReportSnapshot snapshot = JobReportSnapshot.builder()
+                                .report(report)
+                                .jobId(job.getJobId())
+                                .title(job.getTitle())
+                                .description(job.getDescription())
+                                .shortDescription(job.getShortDescription())
+                                .location(job.getLocation())
+                                .currency(job.getCurrency())
+                                .salaryMin(job.getSalaryMin())
+                                .salaryMax(job.getSalaryMax())
+                                .requirements(job.getRequirements())
+                                .benefits(job.getBenefits())
+                                .responsibilities(job.getResponsibilities())
+                                .companyName(
+                                                job.getCompany() != null
+                                                                ? job.getCompany().getName()
+                                                                : null)
+                                .skills(
+                                                job.getSkills() == null
+                                                                ? ""
+                                                                : job.getSkills()
+                                                                                .stream()
+                                                                                .map(Skill::getName)
+                                                                                .collect(Collectors.joining(", ")))
+                                .reportedAt(Instant.now())
+                                .educationLevel(job.getEducationLevel())
+                                .employmentType(job.getEmploymentType().toString())
+                                .requiredExperience(job.getRequiredExperience())
+                                .experienceLevel(job.getExperienceLevel().toString())
+
+                                .build();
+
+                snapshotRepository.save(snapshot);
+
+                return REPORT_CREATED_SUCCESSFULLY;
         }
 
-        Report report = reportMapper.toEntity(req);
-        report.setJob(job);
-        report.setImages(imageUrls);
+        @Override
+        public ResultPaginationDTO fetchAllReportsGrouped(
+                        Specification<Report> spec,
+                        Pageable pageable) {
 
-        reportRepository.save(report);
+                List<ResReport> allReports = getReportDTOList(spec);
 
-        return REPORT_CREATED_SUCCESSFULLY;
-    }
+                if (allReports.isEmpty()) {
+                        return PaginationUtils.toResultPaginationDTO(
+                                        new PageImpl<>(List.of(), pageable, 0),
+                                        Function.identity());
+                }
 
-    @Override
-    public ResultPaginationDTO fetchAllReportsGrouped(
-            Specification<Report> spec,
-            Pageable pageable
-    ) {
-        // 1. Lấy toàn bộ report + map sang DTO
-        List<ResReport> allReports = getReportDTOList(spec);
+                Set<UUID> jobIds = allReports.stream()
+                                .map(ResReport::getJobId)
+                                .collect(Collectors.toSet());
 
-        // 2. Lấy tất cả jobId
-        Set<UUID> jobIds = allReports.stream()
-                .map(ResReport::getJobId)
-                .collect(Collectors.toSet());
+                Set<UUID> reportIds = allReports.stream()
+                                .map(ResReport::getReportId)
+                                .collect(Collectors.toSet());
 
-        // 3. Query Job + Company theo jobId
-        Map<UUID, JobInfoDTO> jobInfoMap = jobRepository
-                .findAllById(jobIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        Job::getJobId,
-                        j -> new JobInfoDTO(
-                                j.getCompany() != null
-                                        ? j.getCompany().getName()
-                                        : "Unknown",
-                                j.isDeleted()
-                        )
-                ));
+                Map<UUID, JobInfoDTO> jobInfoMap = jobRepository
+                                .findAllById(jobIds)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                Job::getJobId,
+                                                job -> new JobInfoDTO(
+                                                                job.getCompany() != null
+                                                                                ? job.getCompany().getName()
+                                                                                : "Unknown",
+                                                                job.isDeleted())));
 
-        // 4. Gom nhóm theo jobId + status
-        List<ResReportGroup> grouped = allReports.stream()
-                .collect(Collectors.groupingBy(
-                        r -> r.getJobId() + "|" + r.getStatus()
-                ))
-                .entrySet()
-                .stream()
-                .map(e -> {
-                    String[] keys = e.getKey().split("\\|");
-                    UUID jobId = UUID.fromString(keys[0]);
-                    EReportStatus status = EReportStatus.valueOf(keys[1]);
+                Map<UUID, JobReportSnapshot> snapshotMap = snapshotRepository
+                                .findAllByReport_ReportIdIn(reportIds)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                snapshot -> snapshot.getReport().getReportId(),
+                                                Function.identity()));
 
-                    List<ResReport> reports = e.getValue();
-                    JobInfoDTO jobInfo = jobInfoMap.get(jobId);
+                List<ResReportGroup> grouped = allReports.stream()
+                                .collect(Collectors.groupingBy(
+                                                ResReport::getJobId))
+                                .entrySet()
+                                .stream()
+                                .map(entry -> {
 
-                    return ResReportGroup.builder()
-                            .jobId(jobId)
-                            .companyName(
-                                    jobInfo != null
-                                            ? jobInfo.getCompanyName()
-                                            : "Unknown"
-                            )
-                            .isDeleted(
-                                    jobInfo != null ? jobInfo.isDeleted() : false
-                            )
-                            .status(status)
-                            .reportCount(reports.size())
-                            .reports(reports)
-                            .build();
-                })
-                // sort job bị report nhiều nhất lên đầu
-                .sorted((a, b) ->
-                        Integer.compare(b.getReportCount(), a.getReportCount())
-                )
-                .toList();
+                                        UUID jobId = entry.getKey();
 
-        // 5. Phân trang GROUP
-        int total = grouped.size();
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), total);
+                                        List<ResReport> reports = entry.getValue();
 
-        List<ResReportGroup> pageContent =
-                (start <= end) ? grouped.subList(start, end) : List.of();
+                                        JobInfoDTO jobInfo = jobInfoMap.get(jobId);
 
-        Page<ResReportGroup> page = new PageImpl<>(
-                pageContent,
-                pageable,
-                total
-        );
+                                        ResReport latestReport = reports.stream()
+                                                        .max(Comparator.comparing(
+                                                                        ResReport::getCreatedDate))
+                                                        .orElse(null);
 
-        // 6. Build response pagination chuẩn
-        return PaginationUtils.toResultPaginationDTO(
-                page,
-                Function.identity()
-        );
-    }
+                                        JobReportSnapshot snapshot = latestReport == null
+                                                        ? null
+                                                        : snapshotMap.get(
+                                                                        latestReport.getReportId());
 
-    // Phương thức lấy tất cả report và map sang DTO
-    @EntityGraph(attributePaths = "images")
-    private List<ResReport> getReportDTOList(Specification<Report> spec) {
-        List<Report> reports = reportRepository.findAll(spec);
-        return reports.stream()
-                .map(reportMapper::toDto)
-                .toList();
-    }
+                                        return ResReportGroup.builder()
+                                                        .jobId(jobId)
+                                                        .companyName(
+                                                                        snapshot != null
+                                                                                        ? snapshot.getCompanyName()
+                                                                                        : (jobInfo != null
+                                                                                                        ? jobInfo.getCompanyName()
+                                                                                                        : "Unknown"))
+                                                        .isDeleted(
+                                                                        jobInfo != null
+                                                                                        && jobInfo.isDeleted())
+                                                        .reportCount(reports.size())
+                                                        .reports(reports)
+                                                        .snapshot(
+                                                                        snapshot == null
+                                                                                        ? null
+                                                                                        : ResJobReportSnapshot.builder()
+                                                                                                        .snapshotId(
+                                                                                                                        snapshot.getSnapshotId())
+                                                                                                        .title(
+                                                                                                                        snapshot.getTitle())
+                                                                                                        .description(
+                                                                                                                        snapshot.getDescription())
+                                                                                                        .shortDescription(
+                                                                                                                        snapshot.getShortDescription())
+                                                                                                        .location(
+                                                                                                                        snapshot.getLocation())
+                                                                                                        .currency(
+                                                                                                                        snapshot.getCurrency())
+                                                                                                        .salaryMin(
+                                                                                                                        snapshot.getSalaryMin())
+                                                                                                        .salaryMax(
+                                                                                                                        snapshot.getSalaryMax())
+                                                                                                        .requirements(
+                                                                                                                        snapshot.getRequirements())
+                                                                                                        .benefits(
+                                                                                                                        snapshot.getBenefits())
+                                                                                                        .responsibilities(
+                                                                                                                        snapshot.getResponsibilities())
+                                                                                                        .skills(
+                                                                                                                        snapshot.getSkills())
+                                                                                                        .companyName(
+                                                                                                                        snapshot.getCompanyName())
+                                                                                                        .employmentType(
+                                                                                                                        snapshot.getEmploymentType())
+                                                                                                        .requiredExperience(
+                                                                                                                        snapshot.getRequiredExperience())
+                                                                                                        .experienceLevel(
+                                                                                                                        snapshot.getExperienceLevel())
+                                                                                                        .educationLevel(snapshot
+                                                                                                                        .getEducationLevel())
+                                                                                                        .reportedAt(
+                                                                                                                        snapshot.getReportedAt())
+                                                                                                        .build())
+                                                        .build();
+                                })
+                                .sorted(
+                                                Comparator.comparingInt(
+                                                                ResReportGroup::getReportCount).reversed())
+                                .toList();
 
-    @Transactional
-    public void changeStatusByJobId(UUID jobId, EReportStatus newStatus) {
-        List<EReportStatus> allowedCurrentStatuses = switch (newStatus) {
-            case IN_PROGRESS -> List.of(EReportStatus.PENDING);
-            case RESOLVED, DECLINE -> List.of(EReportStatus.PENDING, EReportStatus.IN_PROGRESS);
-            default -> List.of();
-        };
+                int total = grouped.size();
 
-        if (allowedCurrentStatuses.isEmpty()) {
-            throw new ResourceConflictException("Cannot move to status " + newStatus);
+                int start = (int) pageable.getOffset();
+                int end = Math.min(
+                                start + pageable.getPageSize(),
+                                total);
+
+                List<ResReportGroup> pageContent = start < total
+                                ? grouped.subList(start, end)
+                                : List.of();
+
+                Page<ResReportGroup> page = new PageImpl<>(
+                                pageContent,
+                                pageable,
+                                total);
+
+                return PaginationUtils.toResultPaginationDTO(
+                                page,
+                                Function.identity());
         }
 
-        int updated = reportRepository.updateStatusWithWorkflow(
-                jobId,
-                newStatus,
-                allowedCurrentStatuses
-        );
-
-        if (updated == 0) {
-            throw new ResourceConflictException("No reports updated. Workflow violation or all reports already at " + newStatus);
+        // Phương thức lấy tất cả report và map sang DTO
+        @EntityGraph(attributePaths = "images")
+        private List<ResReport> getReportDTOList(Specification<Report> spec) {
+                List<Report> reports = reportRepository.findAll(spec);
+                return reports.stream()
+                                .map(reportMapper::toDto)
+                                .toList();
         }
-    }
+
+        @Transactional
+        public void changeStatus(
+                        UUID reportId,
+                        EReportStatus newStatus) {
+
+                Report report = reportRepository.findById(reportId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Report not found"));
+
+                EReportStatus currentStatus = report.getStatus();
+
+                boolean validTransition = switch (newStatus) {
+                        case IN_PROGRESS ->
+                                currentStatus == EReportStatus.PENDING;
+
+                        case RESOLVED, DECLINE ->
+                                currentStatus == EReportStatus.PENDING
+                                                || currentStatus == EReportStatus.IN_PROGRESS;
+
+                        default -> false;
+                };
+
+                if (!validTransition) {
+                        throw new ResourceConflictException(
+                                        "Cannot move from "
+                                                        + currentStatus
+                                                        + " to "
+                                                        + newStatus);
+                }
+
+                report.setStatus(newStatus);
+
+                reportRepository.save(report);
+        }
 }

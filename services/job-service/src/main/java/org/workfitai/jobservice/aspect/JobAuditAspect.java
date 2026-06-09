@@ -11,11 +11,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.workfitai.jobservice.model.dto.AuditableResponse;
+import org.workfitai.jobservice.model.dto.request.Report.ReqCreateReport;
 import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
+import org.workfitai.jobservice.model.enums.EReportStatus;
 import org.workfitai.jobservice.service.AuditLogService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Aspect
 @Component
@@ -528,35 +531,46 @@ public class JobAuditAspect {
   public void updateCategoryPointcut() {
   }
 
-  @AfterReturning("updateCategoryPointcut()")
-  public void afterUpdateCategory(JoinPoint jp) {
+  @AfterReturning("createReportPointcut()")
+  public void afterCreateReport(JoinPoint jp) {
 
-    String categoryId = (String) jp.getArgs()[0];
+    ReqCreateReport req = (ReqCreateReport) jp.getArgs()[0];
+    String jobId = req.getJobId().toString();
+
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
 
-      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-        @Override
-        public void afterCommit() {
-          auditLogService.logAction(
-              "JOB_CATEGORY",
-              categoryId,
-              "CATEGORY_UPDATED",
-              currentUsername(),
-              null,
-              Map.of("categoryId", categoryId),
-              metadata("Category updated SUCCESS"));
-        }
-      });
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+
+            @Override
+            public void afterCommit() {
+
+              auditLogService.logAction(
+                  "REPORT",
+                  jobId,
+                  "REPORT_CREATED",
+                  currentUsername(),
+                  null,
+                  Map.of(
+                      "jobId", jobId),
+                  metadata("Report created SUCCESS"));
+            }
+          });
+
     } else {
-      log.warn("No active transaction for categoryId={}", categoryId);
+
+      log.warn("No active transaction for jobId={}", jobId);
+
       auditLogService.logAction(
-          "JOB_CATEGORY",
-          categoryId,
-          "CATEGORY_UPDATED",
+          "REPORT",
+          jobId,
+          "REPORT_CREATED",
           currentUsername(),
           null,
-          Map.of("categoryId", categoryId),
-          metadata("Category updated SUCCESS without transaction"));
+          Map.of(
+              "jobId", jobId),
+          metadata(
+              "Report created SUCCESS without transaction"));
     }
   }
 
@@ -602,6 +616,119 @@ public class JobAuditAspect {
         metadata("Category delete failed"));
   }
 
+  // ───────────────────────── CREATE REPORT ─────────────────────────
+
+  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService.createReport(..))")
+  public void createReportPointcut() {
+  }
+
+  @AfterReturning(pointcut = "createReportPointcut()", returning = "result")
+  public void afterCreateReport(
+      JoinPoint jp,
+      Object result) {
+
+    String jobId = ((ReqCreateReport) jp.getArgs()[0]).getJobId().toString();
+
+    auditLogService.logAction(
+        "REPORT",
+        jobId,
+        "REPORT_CREATED",
+        currentUsername(),
+        null,
+        Map.of(
+            "result", result,
+            "jobId", jobId),
+        metadata("Report created successfully"));
+  }
+
+  @AfterThrowing(pointcut = "createReportPointcut()", throwing = "ex")
+  public void createReportFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    String jobId = null;
+
+    if (jp.getArgs().length > 0
+        && jp.getArgs()[0] instanceof ReqCreateReport req) {
+      jobId = req.getJobId().toString();
+    }
+
+    auditLogService.logFailure(
+        "REPORT",
+        jobId != null
+            ? jobId
+            : "unknown",
+        "REPORT_CREATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Report creation failed"));
+  }
+
+  // ───────────────────────── UPDATE STATUS REPORT ─────────────────────────
+  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService.changeStatus(..))")
+  public void updateReportStatusPointcut() {
+  }
+
+  @AfterReturning("updateReportStatusPointcut()")
+  public void afterUpdateReportStatus(JoinPoint jp) {
+
+    UUID reportId = (UUID) jp.getArgs()[0];
+    EReportStatus newStatus = (EReportStatus) jp.getArgs()[1];
+
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+
+            @Override
+            public void afterCommit() {
+
+              auditLogService.logAction(
+                  "REPORT",
+                  reportId.toString(),
+                  "REPORT_STATUS_UPDATED",
+                  currentUsername(),
+                  null,
+                  Map.of(
+                      "reportId", reportId,
+                      "newStatus", newStatus),
+                  metadata("Report status updated SUCCESS"));
+            }
+          });
+
+    } else {
+
+      log.warn("No active transaction for reportId={}", reportId);
+
+      auditLogService.logAction(
+          "REPORT",
+          reportId.toString(),
+          "REPORT_STATUS_UPDATED",
+          currentUsername(),
+          null,
+          Map.of(
+              "reportId", reportId,
+              "newStatus", newStatus),
+          metadata("Report status updated SUCCESS without transaction"));
+    }
+  }
+
+  @AfterThrowing(pointcut = "updateReportStatusPointcut()", throwing = "ex")
+  public void updateReportStatusFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    UUID reportId = (UUID) jp.getArgs()[0];
+
+    auditLogService.logFailure(
+        "REPORT",
+        reportId.toString(),
+        "REPORT_STATUS_UPDATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Report status update failed"));
+  }
+
   // ───────────────────────── HELPERS ─────────────────────────
 
   private String currentUsername() {
@@ -622,4 +749,5 @@ public class JobAuditAspect {
     }
     return "unknown";
   }
+
 }

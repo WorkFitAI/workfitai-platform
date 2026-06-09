@@ -2,9 +2,11 @@ package org.workfitai.jobservice.config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.JobCategory;
+import org.workfitai.jobservice.model.JobReportSnapshot;
 import org.workfitai.jobservice.model.Report;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.EReportStatus;
@@ -13,6 +15,7 @@ import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobCategoryRepository;
+import org.workfitai.jobservice.repository.JobReportSnapshotRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
@@ -22,8 +25,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class DatabaseSeeder implements CommandLineRunner {
 
         private final CompanyRepository companyRepository;
@@ -31,18 +36,21 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final SkillRepository skillRepository;
         private final ReportRepository reportRepository;
         private final JobCategoryRepository jobCategoryRepository;
+        private final JobReportSnapshotRepository jobReportSnapshotRepository;
 
         public DatabaseSeeder(
                         CompanyRepository companyRepository,
                         JobRepository jobRepository,
                         SkillRepository skillRepository,
                         ReportRepository reportRepository,
-                        JobCategoryRepository jobCategoryRepository) {
+                        JobCategoryRepository jobCategoryRepository,
+                        JobReportSnapshotRepository jobReportSnapshotRepository) {
                 this.companyRepository = companyRepository;
                 this.jobRepository = jobRepository;
                 this.skillRepository = skillRepository;
                 this.reportRepository = reportRepository;
                 this.jobCategoryRepository = jobCategoryRepository;
+                this.jobReportSnapshotRepository = jobReportSnapshotRepository;
         }
 
         @Override
@@ -233,6 +241,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                                 .company(company)
                                                 .skills(jobSkills)
                                                 .jobCategory(category)
+                                                .educationLevel("Bachelor regarding the field.")
                                                 .build();
 
                                 jobs.add(job);
@@ -243,22 +252,35 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 /* ===================== REPORT SEED ===================== */
                 long countReports = reportRepository.count();
+
                 if (countReports == 0) {
+
                         List<Job> jobs = jobRepository.findAll().subList(0, 4);
+
                         List<Report> reports = new ArrayList<>();
+                        List<JobReportSnapshot> snapshots = new ArrayList<>();
+
                         Random rand = new Random();
 
                         int totalReports = 0;
+
                         while (totalReports < 20) {
+
                                 for (Job job : jobs) {
+
                                         int reportsForJob = 1 + rand.nextInt(5);
+
                                         for (int i = 0; i < reportsForJob && totalReports < 20; i++) {
+
                                                 Report report = Report.builder()
                                                                 .job(job)
-                                                                .reportContent("Nội dung report #" + (i + 1)
-                                                                                + " cho job: " + job.getTitle())
+                                                                .reportContent(
+                                                                                "Nội dung report #" + (i + 1)
+                                                                                                + " cho job: "
+                                                                                                + job.getTitle())
                                                                 .status(EReportStatus.PENDING)
                                                                 .build();
+
                                                 reports.add(report);
                                                 totalReports++;
                                         }
@@ -266,7 +288,52 @@ public class DatabaseSeeder implements CommandLineRunner {
                         }
 
                         reportRepository.saveAll(reports);
-                        System.out.println(">>> Seeded " + reports.size() + " reports");
+
+                        for (Report report : reports) {
+
+                                Job job = report.getJob();
+
+                                JobReportSnapshot snapshot = JobReportSnapshot.builder()
+                                                .report(report)
+                                                .jobId(job.getJobId())
+                                                .title(job.getTitle())
+                                                .description(job.getDescription())
+                                                .shortDescription(job.getShortDescription())
+                                                .location(job.getLocation())
+                                                .salaryMin(job.getSalaryMin())
+                                                .salaryMax(job.getSalaryMax())
+                                                .requirements(job.getRequirements())
+                                                .benefits(job.getBenefits())
+                                                .responsibilities(job.getResponsibilities())
+                                                .skills(
+                                                                job.getSkills()
+                                                                                .stream()
+                                                                                .map(Skill::getName)
+                                                                                .collect(Collectors.joining(", ")))
+                                                .companyName(
+                                                                job.getCompany() != null
+                                                                                ? job.getCompany().getName()
+                                                                                : "Unknown")
+                                                .reportedAt(Instant.now())
+                                                .build();
+
+                                snapshots.add(snapshot);
+                        }
+
+                        jobReportSnapshotRepository.saveAll(snapshots);
+
+                        System.out.println(
+                                        "Reports: " + reportRepository.count());
+
+                        System.out.println(
+                                        "Snapshots: " + jobReportSnapshotRepository.count());
+
+                        System.out.println(
+                                        ">>> Seeded "
+                                                        + reports.size()
+                                                        + " reports and "
+                                                        + snapshots.size()
+                                                        + " snapshots");
                 }
                 System.out.println(">>> END INIT SAMPLE DATA");
         }

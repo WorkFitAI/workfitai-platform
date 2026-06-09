@@ -15,5 +15,6 @@ public class ResReportGroup {
     private int reportCount;
     private String companyName;
     private List<ResReport> reports;
+    private ResJobReportSnapshot snapshot;
     private boolean isDeleted;
 }
