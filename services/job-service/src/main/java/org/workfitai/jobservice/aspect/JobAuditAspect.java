@@ -10,9 +10,12 @@ import org.aspectj.lang.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.model.dto.AuditableResponse;
+import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
 import org.workfitai.jobservice.model.dto.request.Report.ReqCreateReport;
 import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
+import org.workfitai.jobservice.model.dto.response.Recommendation.ResJobRecommendationDTO;
 import org.workfitai.jobservice.model.enums.EReportStatus;
 import org.workfitai.jobservice.service.AuditLogService;
 
@@ -727,6 +730,236 @@ public class JobAuditAspect {
         currentUsername(),
         ex.getMessage(),
         metadata("Report status update failed"));
+  }
+
+  // ───────────────────────── Notification Sent ─────────────────────────
+
+  @Pointcut("execution(* org.workfitai.jobservice.service.impl.JobService.sendJobCreatedNotification(..))")
+  public void sendNotificationPointcut() {
+  }
+
+  @AfterReturning("sendNotificationPointcut()")
+  public void afterSendNotification(JoinPoint jp) {
+
+    NotificationEvent event = (NotificationEvent) jp.getArgs()[0];
+
+    auditLogService.logAction(
+        "NOTIFICATION",
+        event.getReferenceId(),
+        "NOTIFICATION_SENT",
+        currentUsername(),
+        null,
+        Map.of(
+            "eventType", event.getEventType(),
+            "recipient", event.getRecipientEmail()),
+        metadata("Notification sent successfully"));
+  }
+
+  @AfterThrowing(pointcut = "sendNotificationPointcut()", throwing = "ex")
+  public void afterSendNotificationFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    NotificationEvent event = (NotificationEvent) jp.getArgs()[0];
+
+    auditLogService.logFailure(
+        "NOTIFICATION",
+        event.getReferenceId(),
+        "NOTIFICATION_SENT",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Notification send failed"));
+  }
+
+  @Pointcut("execution(* org.workfitai.jobservice.service.JobService.updateStats(..))")
+  public void updateJobStatsPointcut() {
+  }
+
+  @AfterReturning("updateJobStatsPointcut()")
+  public void afterUpdateJobStats(JoinPoint jp) {
+
+    UUID jobId = (UUID) jp.getArgs()[0];
+    int applyCount = (Integer) jp.getArgs()[1];
+    String operation = (String) jp.getArgs()[2];
+
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              auditLogService.logAction(
+                  "JOB",
+                  jobId.toString(),
+                  "JOB_APPLICATION_STATS_UPDATED",
+                  currentUsername(),
+                  null,
+                  Map.of(
+                      "jobId", jobId.toString(),
+                      "applyCount", applyCount,
+                      "operation", operation),
+                  metadata("Job application stats updated successfully"));
+            }
+          });
+
+    } else {
+
+      auditLogService.logAction(
+          "JOB",
+          jobId.toString(),
+          "JOB_APPLICATION_STATS_UPDATED",
+          currentUsername(),
+          null,
+          Map.of(
+              "jobId", jobId.toString(),
+              "applyCount", applyCount,
+              "operation", operation),
+          metadata("Job application stats updated successfully without transaction"));
+    }
+  }
+
+  @AfterThrowing(pointcut = "updateJobStatsPointcut()", throwing = "ex")
+  public void logUpdateJobStatsFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    UUID jobId = (UUID) jp.getArgs()[0];
+
+    auditLogService.logFailure(
+        "JOB",
+        jobId != null ? jobId.toString() : "unknown",
+        "JOB_APPLICATION_STATS_UPDATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Job application stats update failed"));
+  }
+
+  // ───────────────────────── Recommendation ─────────────────────────
+  @Pointcut("execution(* org.workfitai.jobservice.service.iRecommendationService.getRecommendationsByCV(..))")
+  public void getRecommendationsByCVPointcut() {
+  }
+
+  @AfterReturning(pointcut = "getRecommendationsByCVPointcut()", returning = "result")
+  public void afterGetRecommendationsByCV(
+      JoinPoint jp,
+      Object result) {
+
+    String userId = (String) jp.getArgs()[0];
+    Integer topK = (Integer) jp.getArgs()[1];
+
+    ResJobRecommendationDTO response = (ResJobRecommendationDTO) result;
+
+    auditLogService.logAction(
+        "JOB_RECOMMENDATION",
+        userId,
+        "CV_RECOMMENDATION_GENERATED",
+        currentUsername(),
+        null,
+        Map.of(
+            "userId", userId,
+            "topK", topK != null ? topK : 20,
+            "totalResults", response.getTotalResults()),
+        metadata("CV recommendation generated successfully"));
+  }
+
+  @AfterThrowing(pointcut = "getRecommendationsByCVPointcut()", throwing = "ex")
+  public void logGetRecommendationsByCVFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    String userId = (String) jp.getArgs()[0];
+
+    auditLogService.logFailure(
+        "JOB_RECOMMENDATION",
+        userId,
+        "CV_RECOMMENDATION_GENERATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("CV recommendation generation failed"));
+  }
+
+  @Pointcut("execution(* org.workfitai.jobservice.service.JobRecommendationService.getRecommendationsByProfile(..))")
+  public void getRecommendationsByProfilePointcut() {
+  }
+
+  @AfterReturning(pointcut = "getRecommendationsByProfilePointcut()", returning = "result")
+  public void afterGetRecommendationsByProfile(
+      JoinPoint jp,
+      Object result) {
+
+    ReqJobRecommendationDTO request = (ReqJobRecommendationDTO) jp.getArgs()[0];
+
+    ResJobRecommendationDTO response = (ResJobRecommendationDTO) result;
+
+    auditLogService.logAction(
+        "JOB_RECOMMENDATION",
+        "PROFILE",
+        "PROFILE_RECOMMENDATION_GENERATED",
+        currentUsername(),
+        null,
+        Map.of(
+            "topK", request.getTopK(),
+            "totalResults", response.getTotalResults()),
+        metadata("Profile recommendation generated successfully"));
+  }
+
+  @AfterThrowing(pointcut = "getRecommendationsByProfilePointcut()", throwing = "ex")
+  public void logGetRecommendationsByProfileFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    auditLogService.logFailure(
+        "JOB_RECOMMENDATION",
+        "PROFILE",
+        "PROFILE_RECOMMENDATION_GENERATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Profile recommendation generation failed"));
+  }
+
+  @Pointcut("execution(* org.workfitai.jobservice.service.JobRecommendationService.getSimilarJobs(..))")
+  public void getSimilarJobsPointcut() {
+  }
+
+  @AfterReturning(pointcut = "getSimilarJobsPointcut()", returning = "result")
+  public void afterGetSimilarJobs(
+      JoinPoint jp,
+      Object result) {
+
+    UUID jobId = (UUID) jp.getArgs()[0];
+    Integer topK = (Integer) jp.getArgs()[1];
+    Boolean excludeSameCompany = (Boolean) jp.getArgs()[2];
+
+    ResJobRecommendationDTO response = (ResJobRecommendationDTO) result;
+
+    auditLogService.logAction(
+        "JOB",
+        jobId.toString(),
+        "SIMILAR_JOBS_GENERATED",
+        currentUsername(),
+        null,
+        Map.of(
+            "jobId", jobId.toString(),
+            "topK", topK != null ? topK : 10,
+            "excludeSameCompany", excludeSameCompany,
+            "totalResults", response.getTotalResults()),
+        metadata("Similar jobs generated successfully"));
+  }
+
+  @AfterThrowing(pointcut = "getSimilarJobsPointcut()", throwing = "ex")
+  public void logGetSimilarJobsFailed(
+      JoinPoint jp,
+      Throwable ex) {
+
+    UUID jobId = (UUID) jp.getArgs()[0];
+
+    auditLogService.logFailure(
+        "JOB",
+        jobId != null ? jobId.toString() : "unknown",
+        "SIMILAR_JOBS_GENERATED",
+        currentUsername(),
+        ex.getMessage(),
+        metadata("Similar jobs generation failed"));
   }
 
   // ───────────────────────── HELPERS ─────────────────────────
