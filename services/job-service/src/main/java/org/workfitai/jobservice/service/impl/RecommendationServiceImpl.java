@@ -166,8 +166,8 @@ public class RecommendationServiceImpl implements iRecommendationService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error getting recommendations: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to get recommendations from engine", e);
+            log.warn("Recommendation engine unavailable, returning empty results. Cause: {}", e.getMessage());
+            return buildEmptyResponse();
         }
     }
 
@@ -263,8 +263,8 @@ public class RecommendationServiceImpl implements iRecommendationService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error getting similar jobs: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to get similar jobs from engine", e);
+            log.warn("Similar jobs engine unavailable, returning empty results. Cause: {}", e.getMessage());
+            return buildEmptyResponse();
         }
     }
 

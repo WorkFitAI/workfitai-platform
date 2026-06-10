@@ -12,8 +12,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.model.dto.AuditableResponse;
+import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
 import org.workfitai.jobservice.model.dto.request.Report.ReqCreateReport;
+import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.Skill.ReqUpdateSkillDTO;
 import org.workfitai.jobservice.model.dto.response.Recommendation.ResJobRecommendationDTO;
 import org.workfitai.jobservice.model.enums.EReportStatus;
@@ -33,7 +35,7 @@ public class JobAuditAspect {
 
   // ───────────────────────── CREATE JOB ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService.createJob(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService+.createJob(..))")
   public void createJobPointcut() {
   }
 
@@ -41,28 +43,40 @@ public class JobAuditAspect {
   public void afterCreateJob(JoinPoint jp, Object result) {
 
     String jobId = extractId(result);
-    TransactionSynchronizationManager.registerSynchronization(
-        new TransactionSynchronization() {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
 
-          @Override
-          public void afterCommit() {
-            auditLogService.logAction(
-                "JOB",
-                jobId,
-                "JOB_CREATED",
-                currentUsername(),
-                null,
-                Map.of("jobId", jobId),
-                metadata("Job created SUCCESS after commit"));
-          }
-
-          @Override
-          public void afterCompletion(int status) {
-            if (status == STATUS_ROLLED_BACK) {
-              log.warn("CREATE rolled back jobId={}", jobId);
+            @Override
+            public void afterCommit() {
+              auditLogService.logAction(
+                  "JOB",
+                  jobId,
+                  "JOB_CREATED",
+                  currentUsername(),
+                  null,
+                  Map.of("jobId", jobId),
+                  metadata("Job created SUCCESS after commit"));
             }
-          }
-        });
+
+            @Override
+            public void afterCompletion(int status) {
+              if (status == STATUS_ROLLED_BACK) {
+                log.warn("CREATE rolled back jobId={}", jobId);
+              }
+            }
+          });
+    } else {
+      log.warn("No active transaction for jobId={}", jobId);
+      auditLogService.logAction(
+          "JOB",
+          jobId,
+          "JOB_CREATED",
+          currentUsername(),
+          null,
+          Map.of("jobId", jobId),
+          metadata("Job created SUCCESS without transaction"));
+    }
   }
 
   @AfterThrowing(pointcut = "createJobPointcut()", throwing = "ex")
@@ -78,7 +92,7 @@ public class JobAuditAspect {
 
   // ───────────────────────── UPDATE JOB ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService.updateJob(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService+.updateJob(..))")
   public void updateJobPointcut() {
   }
 
@@ -128,16 +142,16 @@ public class JobAuditAspect {
 
   // ───────────────────────── DELETE JOB (SOFT DELETE) ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService.deleteJob(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService+.deleteJob(..))")
   public void deleteJobPointcut() {
   }
 
   @AfterReturning(pointcut = "deleteJobPointcut()")
   public void afterDeleteJob(JoinPoint jp) {
 
-    String jobId = (String) jp.getArgs()[0];
+    String jobId = jp.getArgs()[0].toString();
 
-    log.warn("No active transaction for jobId={}", jobId);
+    log.info("Job soft deleted, jobId={}", jobId);
     auditLogService.logAction(
         "JOB",
         jobId,
@@ -151,7 +165,7 @@ public class JobAuditAspect {
   @AfterThrowing(pointcut = "deleteJobPointcut()", throwing = "ex")
   public void logJobDeleteFailed(JoinPoint jp, Throwable ex) {
 
-    String jobId = (String) jp.getArgs()[0];
+    String jobId = jp.getArgs()[0].toString();
 
     auditLogService.logFailure(
         "JOB",
@@ -164,36 +178,48 @@ public class JobAuditAspect {
 
   // ───────────────────────── UPDATE JOB STATUS ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService.updateStatus(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobService+.updateStatus(..))")
   public void updateStatusJobPointcut() {
   }
 
   @AfterReturning(pointcut = "updateStatusJobPointcut()", returning = "result")
   public void afterUpdateStatus(JoinPoint jp, Object result) {
 
-    String jobId = (String) jp.getArgs()[0]; // jobId param
+    String jobId = ((Job) jp.getArgs()[0]).getJobId().toString();
 
-    TransactionSynchronizationManager.registerSynchronization(
-        new TransactionSynchronization() {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
 
-          @Override
-          public void afterCommit() {
-            auditLogService.logAction(
-                "JOB",
-                jobId,
-                "JOB_STATUS_UPDATED",
-                currentUsername(),
-                null,
-                Map.of("jobId", jobId),
-                metadata("Job status updated SUCCESS"));
-          }
-        });
+            @Override
+            public void afterCommit() {
+              auditLogService.logAction(
+                  "JOB",
+                  jobId,
+                  "JOB_STATUS_UPDATED",
+                  currentUsername(),
+                  null,
+                  Map.of("jobId", jobId),
+                  metadata("Job status updated SUCCESS"));
+            }
+          });
+    } else {
+      log.warn("No active transaction for jobId={}", jobId);
+      auditLogService.logAction(
+          "JOB",
+          jobId,
+          "JOB_STATUS_UPDATED",
+          currentUsername(),
+          null,
+          Map.of("jobId", jobId),
+          metadata("Job status updated SUCCESS without transaction"));
+    }
   }
 
   @AfterThrowing(pointcut = "updateStatusJobPointcut()", throwing = "ex")
   public void logStatusUpdateFailed(JoinPoint jp, Throwable ex) {
 
-    String jobId = (String) jp.getArgs()[0];
+    String jobId = ((Job) jp.getArgs()[0]).getJobId().toString();
 
     auditLogService.logFailure(
         "JOB",
@@ -206,7 +232,7 @@ public class JobAuditAspect {
 
   // ───────────────────────── CREATE COMPANY ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService.create(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService+.create(..))")
   public void createCompanyPointcut() {
   }
 
@@ -243,24 +269,15 @@ public class JobAuditAspect {
     }
   }
 
-  @AfterThrowing("createCategoryPointcut()")
-  public void createCategoryFailed(Throwable ex) {
-    auditLogService.logFailure("JOB_CATEGORY", "unknown",
-        "CATEGORY_CREATED",
-        currentUsername(),
-        ex.getMessage(),
-        metadata("Category create failed"));
-  }
-
   // ───────────────────────── UPDATE COMPANY ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService.update(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService+.update(..))")
   public void updateCompanyPointcut() {
   }
 
-  @AfterReturning("updateCompanyPointcut()")
-  public void afterUpdateCompany(JoinPoint jp) {
+  @AfterReturning(pointcut = "updateCompanyPointcut()", returning = "result")
+  public void afterUpdateCompany(JoinPoint jp, Object result) {
 
-    String companyId = (String) jp.getArgs()[0];
+    String companyId = extractId(result);
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         @Override
@@ -290,7 +307,7 @@ public class JobAuditAspect {
 
   @AfterThrowing(pointcut = "updateCompanyPointcut()", throwing = "ex")
   public void updateCompanyFailed(JoinPoint jp, Throwable ex) {
-    String companyId = (String) jp.getArgs()[0];
+    String companyId = "unknown";
 
     auditLogService.logFailure(
         "COMPANY",
@@ -302,7 +319,7 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── DELETE COMPANY ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService.delete(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iCompanyService+.delete(..))")
   public void deleteCompanyPointcut() {
   }
 
@@ -334,7 +351,7 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── CREATE SKILL ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService.create(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService+.create(..))")
   public void createSkillPointcut() {
   }
 
@@ -371,17 +388,8 @@ public class JobAuditAspect {
     }
   }
 
-  @AfterThrowing("createSkillPointcut()")
-  public void createSkillFailed(Throwable ex) {
-    auditLogService.logFailure("SKILL", "unknown",
-        "SKILL_CREATED",
-        currentUsername(),
-        ex.getMessage(),
-        metadata("Skill create failed"));
-  }
-
   // ───────────────────────── UPDATE SKILL ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService.update(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService+.update(..))")
   public void updateSkillPointcut() {
   }
 
@@ -438,14 +446,14 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── DELETE SKILL ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService.delete(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iSkillService+.delete(..))")
   public void deleteSkillPointcut() {
   }
 
   @AfterReturning("deleteSkillPointcut()")
   public void afterDeleteSkill(JoinPoint jp) {
 
-    String skillId = (String) jp.getArgs()[0];
+    String skillId = jp.getArgs()[0].toString();
 
     auditLogService.logAction(
         "SKILL",
@@ -457,9 +465,9 @@ public class JobAuditAspect {
         metadata("Skill deleted SUCCESS without transaction"));
   }
 
-  @AfterThrowing("deleteSkillPointcut()")
+  @AfterThrowing(pointcut = "deleteSkillPointcut()", throwing = "ex")
   public void deleteSkillFailed(JoinPoint jp, Throwable ex) {
-    String skillId = (String) jp.getArgs()[0];
+    String skillId = jp.getArgs()[0].toString();
 
     auditLogService.logFailure("SKILL", skillId,
         "SKILL_DELETED",
@@ -470,7 +478,7 @@ public class JobAuditAspect {
 
   // ───────────────────────── CREATE JOB CATEGORY ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService.create(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService+.create(..))")
   public void createJobCategoryPointcut() {
   }
 
@@ -530,56 +538,45 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── UPDATE JOB CATEGORY ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService.update(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService+.update(..))")
   public void updateCategoryPointcut() {
   }
 
-  @AfterReturning("createReportPointcut()")
-  public void afterCreateReport(JoinPoint jp) {
+  @AfterReturning(pointcut = "updateCategoryPointcut()", returning = "result")
+  public void afterUpdateCategory(JoinPoint jp, Object result) {
 
-    ReqCreateReport req = (ReqCreateReport) jp.getArgs()[0];
-    String jobId = req.getJobId().toString();
-
+    String categoryId = extractId(result);
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
-
-      TransactionSynchronizationManager.registerSynchronization(
-          new TransactionSynchronization() {
-
-            @Override
-            public void afterCommit() {
-
-              auditLogService.logAction(
-                  "REPORT",
-                  jobId,
-                  "REPORT_CREATED",
-                  currentUsername(),
-                  null,
-                  Map.of(
-                      "jobId", jobId),
-                  metadata("Report created SUCCESS"));
-            }
-          });
-
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          auditLogService.logAction(
+              "JOB_CATEGORY",
+              categoryId,
+              "CATEGORY_UPDATED",
+              currentUsername(),
+              null,
+              Map.of("categoryId", categoryId),
+              metadata("Job category updated SUCCESS"));
+        }
+      });
     } else {
-
-      log.warn("No active transaction for jobId={}", jobId);
-
+      log.warn("No active transaction for categoryId={}", categoryId);
       auditLogService.logAction(
-          "REPORT",
-          jobId,
-          "REPORT_CREATED",
+          "JOB_CATEGORY",
+          categoryId,
+          "CATEGORY_UPDATED",
           currentUsername(),
           null,
-          Map.of(
-              "jobId", jobId),
-          metadata(
-              "Report created SUCCESS without transaction"));
+          Map.of("categoryId", categoryId),
+          metadata("Job category updated SUCCESS without transaction"));
     }
   }
 
-  @AfterThrowing("updateCategoryPointcut()")
+  @AfterThrowing(pointcut = "updateCategoryPointcut()", throwing = "ex")
   public void updateCategoryFailed(JoinPoint jp, Throwable ex) {
-    String categoryId = (String) jp.getArgs()[0];
+    ReqUpdateJobCategoryDTO dto = (ReqUpdateJobCategoryDTO) jp.getArgs()[0];
+    String categoryId = dto.getId() != null ? dto.getId().toString() : "unknown";
 
     auditLogService.logFailure("JOB_CATEGORY", categoryId,
         "CATEGORY_UPDATED",
@@ -589,14 +586,14 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── DELETE JOB CATEGORY ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService.delete(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iJobCategoryService+.delete(..))")
   public void deleteCategoryPointcut() {
   }
 
   @AfterReturning("deleteCategoryPointcut()")
   public void afterDeleteCategory(JoinPoint jp) {
 
-    String categoryId = (String) jp.getArgs()[0];
+    String categoryId = jp.getArgs()[0].toString();
 
     auditLogService.logAction(
         "JOB_CATEGORY",
@@ -608,9 +605,9 @@ public class JobAuditAspect {
         metadata("Category deleted SUCCESS without transaction"));
   }
 
-  @AfterThrowing("deleteCategoryPointcut()")
+  @AfterThrowing(pointcut = "deleteCategoryPointcut()", throwing = "ex")
   public void deleteCategoryFailed(JoinPoint jp, Throwable ex) {
-    String categoryId = (String) jp.getArgs()[0];
+    String categoryId = jp.getArgs()[0].toString();
 
     auditLogService.logFailure("JOB_CATEGORY", categoryId,
         "CATEGORY_DELETED",
@@ -621,7 +618,7 @@ public class JobAuditAspect {
 
   // ───────────────────────── CREATE REPORT ─────────────────────────
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService.createReport(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService+.createReport(..))")
   public void createReportPointcut() {
   }
 
@@ -668,7 +665,7 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── UPDATE STATUS REPORT ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService.changeStatus(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iReportService+.changeStatus(..))")
   public void updateReportStatusPointcut() {
   }
 
@@ -771,7 +768,7 @@ public class JobAuditAspect {
         metadata("Notification send failed"));
   }
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.JobService.updateStats(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.impl.JobService.updateStats(..))")
   public void updateJobStatsPointcut() {
   }
 
@@ -835,7 +832,7 @@ public class JobAuditAspect {
   }
 
   // ───────────────────────── Recommendation ─────────────────────────
-  @Pointcut("execution(* org.workfitai.jobservice.service.iRecommendationService.getRecommendationsByCV(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iRecommendationService+.getRecommendationsByCV(..))")
   public void getRecommendationsByCVPointcut() {
   }
 
@@ -878,7 +875,7 @@ public class JobAuditAspect {
         metadata("CV recommendation generation failed"));
   }
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.JobRecommendationService.getRecommendationsByProfile(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iRecommendationService+.getRecommendationsByProfile(..))")
   public void getRecommendationsByProfilePointcut() {
   }
 
@@ -917,7 +914,7 @@ public class JobAuditAspect {
         metadata("Profile recommendation generation failed"));
   }
 
-  @Pointcut("execution(* org.workfitai.jobservice.service.JobRecommendationService.getSimilarJobs(..))")
+  @Pointcut("execution(* org.workfitai.jobservice.service.iRecommendationService+.getSimilarJobs(..))")
   public void getSimilarJobsPointcut() {
   }
 

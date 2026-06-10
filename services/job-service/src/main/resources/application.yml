@@ -80,6 +80,13 @@ service:
   auth:
     url: ${AUTH_SERVICE_URL:http://localhost:9080}
 
+feign:
+  client:
+    config:
+      recommendation-engine:
+        connectTimeout: 5000
+        readTimeout: 30000
+
 server:
   port: ${SERVER_PORT:9005}
 
@@ -143,7 +150,7 @@ spring:
         spring.json.use.type.headers: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
@@ -158,6 +165,13 @@ service:
     url: ${CV_SERVICE_URL:http://cv-service:9005}
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+
+feign:
+  client:
+    config:
+      recommendation-engine:
+        connectTimeout: 5000
+        readTimeout: 30000
 
 ---
 # =============================================================================
@@ -201,7 +215,7 @@ spring:
       auto-offset-reset: earliest
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
