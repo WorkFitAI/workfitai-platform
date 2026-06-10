@@ -13,8 +13,9 @@ public final class ApplicationFunnelCalculator {
 
     /**
      * Computes stage-to-stage conversion rates.
-     * APPLIED_TO_REVIEWING = REVIEWING / total-entered (all non-terminal candidates)
-     * Others = count(next stage) / count(current stage), 0.0 when denominator is 0.
+     * byStatus must contain "ever been in" counts (each application counted once per stage
+     * it has passed through), not just current-state snapshots.
+     * Rate = count(ever reached next stage) / count(ever reached this stage).
      */
     public static Map<String, Double> calculateFunnelRates(Map<String, Long> byStatus) {
         long applied   = getCount(byStatus, "APPLIED");
@@ -23,13 +24,11 @@ public final class ApplicationFunnelCalculator {
         long offer     = getCount(byStatus, "OFFER");
         long hired     = getCount(byStatus, "HIRED");
 
-        long totalEntered = applied + reviewing + interview + offer + hired;
-
         Map<String, Double> rates = new HashMap<>();
-        rates.put("APPLIED_TO_REVIEWING",  totalEntered > 0 ? (double) reviewing  / totalEntered : 0.0);
-        rates.put("REVIEWING_TO_INTERVIEW", reviewing   > 0 ? (double) interview  / reviewing    : 0.0);
-        rates.put("INTERVIEW_TO_OFFER",     interview   > 0 ? (double) offer      / interview    : 0.0);
-        rates.put("OFFER_TO_HIRED",         offer       > 0 ? (double) hired      / offer        : 0.0);
+        rates.put("APPLIED_TO_REVIEWING",   applied   > 0 ? (double) reviewing / applied   : 0.0);
+        rates.put("REVIEWING_TO_INTERVIEW", reviewing > 0 ? (double) interview / reviewing : 0.0);
+        rates.put("INTERVIEW_TO_OFFER",     interview > 0 ? (double) offer     / interview : 0.0);
+        rates.put("OFFER_TO_HIRED",         offer     > 0 ? (double) hired     / offer     : 0.0);
         return rates;
     }
 

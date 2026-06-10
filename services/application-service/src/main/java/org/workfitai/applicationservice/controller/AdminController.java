@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
+import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.service.AdminApplicationService;
+import org.workfitai.applicationservice.service.SystemStatsService;
 
 /**
  * Admin-only controller for application management.
@@ -32,6 +34,18 @@ import org.workfitai.applicationservice.service.AdminApplicationService;
 public class AdminController {
 
     private final AdminApplicationService adminApplicationService;
+    private final SystemStatsService systemStatsService;
+
+    /**
+     * Get platform-wide application statistics.
+     * GET /admin/stats
+     */
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RestResponse<SystemStatsResponse>> getSystemStats() {
+        log.info("ADMIN: Fetching system statistics");
+        return ResponseEntity.ok(new RestResponse<>(200, "System statistics fetched successfully", systemStatsService.getSystemStats()));
+    }
 
     /**
      * Get all applications with optional filters (status, company, username).

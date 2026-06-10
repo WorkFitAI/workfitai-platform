@@ -3,9 +3,11 @@ package org.workfitai.applicationservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.bson.Document;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.data.mongodb.core.aggregation.DateOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
@@ -202,15 +204,37 @@ public class SystemStatsService {
     }
 
     /**
-     * Calculate statistics by status using MongoDB aggregation
+     * Calculate statistics by status using MongoDB aggregation.
+     * Counts each application once per unique status it has ever been in
+     * (current status + all statuses from statusHistory), enabling accurate funnel rates.
      */
     private Map<String, Long> calculateStatusStatsWithAggregation() {
         MatchOperation matchActive = Aggregation.match(Criteria.where("deletedAt").isNull());
-        GroupOperation groupByStatus = Aggregation.group("status").count().as("count");
+
+        // Build allStatuses = $setUnion of every status the application has ever had:
+        // - statusHistory[].newStatus  (stages it transitioned TO)
+        // - statusHistory[].previousStatus  (stages it transitioned FROM, captures initial APPLIED)
+        // - [$status]  (current state, covers apps with no history yet)
+        AggregationOperation addAllStatuses = ctx -> new Document("$addFields", new Document("allStatuses",
+            new Document("$setUnion", List.of(
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.newStatus")),
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.previousStatus")),
+                List.of("$status")
+            ))
+        ));
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
-            groupByStatus
+            addAllStatuses,
+            Aggregation.unwind("allStatuses"),
+            Aggregation.match(Criteria.where("allStatuses").ne(null)),
+            Aggregation.group("allStatuses").count().as("count")
         );
 
         var results = mongoTemplate.aggregate(aggregation, "applications", Map.class).getMappedResults();
