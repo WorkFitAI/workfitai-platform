@@ -27,10 +27,8 @@ public class ReportController {
     @ApiMessage(REPORT_CREATED_SUCCESSFULLY)
     public RestResponse<String> createReport(
             @RequestPart("data") ReqCreateReport req,
-            @RequestPart(value = "files", required = false) MultipartFile[] files
-    ) throws Exception {
+            @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
         return RestResponse.success(
-                reportService.createReport(req, files, SecurityUtils.getCurrentUser())
-        );
+                reportService.createReport(req, files, SecurityUtils.getCurrentUser()));
     }
 }

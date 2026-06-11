@@ -19,7 +19,6 @@ import java.util.UUID;
 import static org.workfitai.jobservice.util.MessageConstant.REPORT_ALL_FETCHED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.REPORT_UPDATE_STATS_SUCCESSFULLY;
 
-
 @RestController("adminReportController")
 @RequestMapping("/admin/reports")
 public class ReportController {
@@ -35,8 +34,7 @@ public class ReportController {
     @ApiMessage(REPORT_ALL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO> getReportsGrouped(
             @Filter Specification<Report> spec,
-            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
+            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return RestResponse.success(reportService.fetchAllReportsGrouped(spec, pageable));
     }
 
@@ -45,9 +43,8 @@ public class ReportController {
     @ApiMessage(REPORT_UPDATE_STATS_SUCCESSFULLY)
     public RestResponse<String> changeStatusByJobId(
             @PathVariable UUID jobId,
-            @PathVariable EReportStatus newStatus
-    ) {
-        reportService.changeStatusByJobId(jobId, newStatus);
+            @PathVariable EReportStatus newStatus) {
+        reportService.changeStatus(jobId, newStatus);
         return RestResponse.success("Changed status of reports for job " + jobId + " to " + newStatus);
     }
 }

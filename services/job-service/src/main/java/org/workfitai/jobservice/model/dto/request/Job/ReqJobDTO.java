@@ -87,11 +87,15 @@ public class ReqJobDTO {
     @NotEmpty(message = "Job must have at least one skill")
     private List<UUID> skillIds;
 
+    @NotNull(message = "Job category must not be null")
+    private UUID jobCategoryId;
+
     private MultipartFile bannerFile;
 
     @AssertTrue(message = "salaryMax must be greater than or equal to salaryMin")
     public boolean isSalaryValid() {
-        if (salaryMin == null || salaryMax == null) return true;
+        if (salaryMin == null || salaryMax == null)
+            return true;
         return salaryMax.compareTo(salaryMin) >= 0;
     }
 }

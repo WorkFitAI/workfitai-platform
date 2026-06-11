@@ -46,6 +46,7 @@ public class Report extends AbstractAuditingEntity<UUID> {
 
     @PrePersist
     public void init() {
-        if (status == null) status = EReportStatus.PENDING;
+        if (status == null)
+            status = EReportStatus.PENDING;
     }
 }

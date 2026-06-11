@@ -28,6 +28,7 @@ public class ResJobDTO {
     private Instant expiresAt;
     @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;
+    private String jobCategoryName;
     private ResCompanyDTO company;
     private Instant createdDate;
     private JobStatus status;

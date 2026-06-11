@@ -12,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 
 import java.util.List;
@@ -120,6 +121,14 @@ public class GlobalException {
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Transaction failed"
                 ));
+    }
+
+    /* ===================== CLIENT DISCONNECT ===================== */
+
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleClientDisconnect(AsyncRequestNotUsableException ex) {
+        log.debug("Client disconnected during response write: {}", ex.getMessage());
+        // No response body — socket is already closed
     }
 
     /* ===================== FALLBACK ===================== */
