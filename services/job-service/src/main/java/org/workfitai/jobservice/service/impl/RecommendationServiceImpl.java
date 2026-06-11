@@ -1,6 +1,5 @@
 package org.workfitai.jobservice.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -167,8 +166,8 @@ public class RecommendationServiceImpl implements iRecommendationService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error getting recommendations: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to get recommendations from engine", e);
+            log.warn("Recommendation engine unavailable, returning empty results. Cause: {}", e.getMessage());
+            return buildEmptyResponse();
         }
     }
 
@@ -264,8 +263,8 @@ public class RecommendationServiceImpl implements iRecommendationService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error getting similar jobs: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to get similar jobs from engine", e);
+            log.warn("Similar jobs engine unavailable, returning empty results. Cause: {}", e.getMessage());
+            return buildEmptyResponse();
         }
     }
 

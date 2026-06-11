@@ -69,8 +69,10 @@ public class ReqUpdateJobDTO {
 
     @NotNull(message = "CompanyId must not be null")
     private String companyNo;
-    
+
     private List<UUID> skillIds;
+
+    private UUID jobCategoryId;
 
     private JobStatus status;
 

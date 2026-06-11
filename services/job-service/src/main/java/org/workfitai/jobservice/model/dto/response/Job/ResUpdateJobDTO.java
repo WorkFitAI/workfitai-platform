@@ -1,7 +1,10 @@
 package org.workfitai.jobservice.model.dto.response.Job;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+
+import org.workfitai.jobservice.model.dto.AuditableResponse;
 import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
@@ -16,7 +19,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class ResUpdateJobDTO {
+public class ResUpdateJobDTO implements AuditableResponse {
 
     private UUID postId;
 
@@ -65,9 +68,17 @@ public class ResUpdateJobDTO {
     @JsonIgnoreProperties("jobs")
     private List<String> skillNames;
 
+    private String jobCategoryName;
+
     private String bannerUrl;
 
     private Instant createdDate;
 
     private Instant lastModifiedDate;
+
+    @JsonIgnore
+    @Override
+    public String getAuditId() {
+        return postId.toString();
+    }
 }

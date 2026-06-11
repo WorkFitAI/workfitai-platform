@@ -1,6 +1,7 @@
 package org.workfitai.jobservice.service.impl;
 
 import org.springframework.transaction.annotation.Transactional;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.OutboxExpiredJobEvent;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
@@ -30,6 +32,7 @@ import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.repository.JobCategoryRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.security.SecurityUtils;
@@ -46,6 +49,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CLOSE_CONFLICT;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_DRAFT_EXPIRED_NEEDS_UPDATING;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_ACCESS;
@@ -61,6 +65,8 @@ public class JobService implements iJobService {
 
     private final SkillRepository skillRepository;
 
+    private final JobCategoryRepository jobCategoryRepository;
+
     private final CompanyRepository companyRepository;
 
     private final CloudinaryService cloudinaryService;
@@ -74,13 +80,15 @@ public class JobService implements iJobService {
     private final OutboxService outboxService;
 
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
-            SkillRepository skillRepository, CompanyRepository companyRepository,
+            SkillRepository skillRepository, JobCategoryRepository jobCategoryRepository,
+            CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
             NotificationProducer notificationProducer, UserFeignClient userFeignClient,
             NotificationService notificationService, OutboxService outboxService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
+        this.jobCategoryRepository = jobCategoryRepository;
         this.companyRepository = companyRepository;
         this.cloudinaryService = cloudinaryService;
         this.jobEventProducer = jobEventProducer;
@@ -203,7 +211,7 @@ public class JobService implements iJobService {
         }
         try {
             log.debug("Creating job with DTO: {}", jobDTO);
-            Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
+            Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository, jobCategoryRepository);
             log.debug("Mapped job entity: {}", job);
             checkJobSkills(job, null);
             checkCompany(job, null);
@@ -286,9 +294,12 @@ public class JobService implements iJobService {
         // Clone the old job for change detection
         Job oldJob = cloneJobForComparison(dbJob);
 
-        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository);
+        Job job = jobMapper.toEntity(jobDTO, companyRepository, skillRepository, jobCategoryRepository);
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
+
+        JobCategory category = jobCategoryRepository.findById(jobDTO.getJobCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(JOB_CATEGORY_NOT_FOUND));
 
         dbJob.setTitle(HtmlSanitizer.sanitize(job.getTitle()));
         dbJob.setDescription(HtmlSanitizer.sanitize(job.getDescription()));
@@ -305,6 +316,7 @@ public class JobService implements iJobService {
         dbJob.setEmploymentType(job.getEmploymentType());
         dbJob.setQuantity(job.getQuantity());
         dbJob.setExpiresAt(job.getExpiresAt());
+        dbJob.setJobCategory(category);
 
         this.jobRepository.save(dbJob);
 

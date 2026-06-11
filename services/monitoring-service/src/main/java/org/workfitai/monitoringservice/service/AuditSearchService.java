@@ -168,7 +168,7 @@ public class AuditSearchService {
 
     private void addTermFilter(List<Query> filters, String field, String value) {
         if (value != null && !value.isBlank()) {
-            filters.add(Query.of(q -> q.term(t -> t.field(field).value(value))));
+            filters.add(Query.of(q -> q.term(t -> t.field(field + ".keyword").value(value))));
         }
     }
 
@@ -260,10 +260,10 @@ public class AuditSearchService {
                     .index(INDEX_PREFIX + "*")
                     .query(q -> q.bool(b -> b.filter(filters)))
                     .size(0)
-                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
-                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
-                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
-                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService.keyword").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action.keyword").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername.keyword").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername.keyword")))
                     .aggregations("failedEvents",    a -> a
                             .filter(f -> f.term(t -> t.field("success").value(false)))),
                     Void.class);
@@ -295,17 +295,17 @@ public class AuditSearchService {
      */
     public AuditStatsResponse getAuditStatsForCompany(String companyId) {
         List<Query> filters = new ArrayList<>();
-        filters.add(Query.of(q -> q.term(t -> t.field("companyId").value(companyId))));
+        filters.add(Query.of(q -> q.term(t -> t.field("companyId.keyword").value(companyId))));
 
         try {
             SearchResponse<Void> response = elasticsearchClient.search(s -> s
                     .index(INDEX_PREFIX + "*")
                     .query(q -> q.bool(b -> b.filter(filters)))
                     .size(0)
-                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
-                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
-                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
-                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService.keyword").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action.keyword").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername.keyword").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername.keyword")))
                     .aggregations("failedEvents",    a -> a
                             .filter(f -> f.term(t -> t.field("success").value(false)))),
                     Void.class);

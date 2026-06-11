@@ -69,7 +69,6 @@ public class CompanyService implements iCompanyService {
         return companyMapper.toResUpdateDTO(company);
     }
 
-
     @Override
     public void delete(String id) {
         if (!companyRepository.existsById(id)) {

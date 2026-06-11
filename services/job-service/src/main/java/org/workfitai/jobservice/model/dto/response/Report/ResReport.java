@@ -4,7 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.workfitai.jobservice.model.dto.AuditableResponse;
 import org.workfitai.jobservice.model.enums.EReportStatus;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResReport {
+public class ResReport implements AuditableResponse {
     private UUID reportId;
     private String reportContent;
     private EReportStatus status;
@@ -22,4 +26,10 @@ public class ResReport {
     private String createdBy;
     private List<String> imageUrls;
     private Instant createdDate;
+
+    @Override
+    @JsonIgnore
+    public String getAuditId() {
+        return reportId.toString();
+    }
 }

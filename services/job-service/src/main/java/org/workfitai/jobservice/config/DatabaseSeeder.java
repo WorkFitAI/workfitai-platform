@@ -2,8 +2,11 @@ package org.workfitai.jobservice.config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.JobCategory;
+import org.workfitai.jobservice.model.JobReportSnapshot;
 import org.workfitai.jobservice.model.Report;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.enums.EReportStatus;
@@ -11,6 +14,8 @@ import org.workfitai.jobservice.model.enums.EmploymentType;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.repository.CompanyRepository;
+import org.workfitai.jobservice.repository.JobCategoryRepository;
+import org.workfitai.jobservice.repository.JobReportSnapshotRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
@@ -20,24 +25,32 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class DatabaseSeeder implements CommandLineRunner {
 
         private final CompanyRepository companyRepository;
         private final JobRepository jobRepository;
         private final SkillRepository skillRepository;
         private final ReportRepository reportRepository;
+        private final JobCategoryRepository jobCategoryRepository;
+        private final JobReportSnapshotRepository jobReportSnapshotRepository;
 
         public DatabaseSeeder(
                         CompanyRepository companyRepository,
                         JobRepository jobRepository,
                         SkillRepository skillRepository,
-                        ReportRepository reportRepository) {
+                        ReportRepository reportRepository,
+                        JobCategoryRepository jobCategoryRepository,
+                        JobReportSnapshotRepository jobReportSnapshotRepository) {
                 this.companyRepository = companyRepository;
                 this.jobRepository = jobRepository;
                 this.skillRepository = skillRepository;
                 this.reportRepository = reportRepository;
+                this.jobCategoryRepository = jobCategoryRepository;
+                this.jobReportSnapshotRepository = jobReportSnapshotRepository;
         }
 
         @Override
@@ -47,6 +60,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 long countCompanies = this.companyRepository.count();
                 long countJobs = this.jobRepository.count();
                 long countSkills = this.skillRepository.count();
+                long countCategories = this.jobCategoryRepository.count();
 
                 /* ===================== COMPANY SEED ===================== */
                 if (countCompanies == 0) {
@@ -118,11 +132,30 @@ public class DatabaseSeeder implements CommandLineRunner {
                                         new Skill("MongoDB")));
                 }
 
+                /* ===================== JOB CATEGORY SEED ===================== */
+                if (countCategories == 0) {
+
+                        jobCategoryRepository.saveAll(List.of(
+                                        JobCategory.builder().name("Backend Development").build(),
+                                        JobCategory.builder().name("Frontend Development").build(),
+                                        JobCategory.builder().name("Fullstack Development").build(),
+                                        JobCategory.builder().name("Mobile Development").build(),
+                                        JobCategory.builder().name("DevOps").build(),
+                                        JobCategory.builder().name("Cloud Computing").build(),
+                                        JobCategory.builder().name("Data Engineering").build(),
+                                        JobCategory.builder().name("Data Science").build(),
+                                        JobCategory.builder().name("Cyber Security").build(),
+                                        JobCategory.builder().name("Artificial Intelligence").build()));
+
+                        System.out.println(">>> Seeded 10 job categories");
+                }
+
                 /* ===================== JOB SEED ===================== */
                 if (countJobs == 0) {
 
                         List<Company> companies = companyRepository.findAll();
                         List<Skill> allSkills = skillRepository.findAll();
+                        List<JobCategory> categories = jobCategoryRepository.findAll();
                         Random rand = new Random();
 
                         List<Job> jobs = new ArrayList<>();
@@ -145,6 +178,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 for (int s = 0; s < 3; s++) {
                                         jobSkills.add(allSkills.get(rand.nextInt(allSkills.size())));
                                 }
+
+                                JobCategory category = categories.get(rand.nextInt(categories.size()));
 
                                 /* ========= Tạo nội dung text mẫu ========= */
                                 String longDesc = "Mô tả chi tiết công việc cho vị trí " +
@@ -197,7 +232,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                                 .quantity(1 + rand.nextInt(5))
                                                 .totalApplications(0)
                                                 .expiresAt(Instant.now()
-                                                                .plusSeconds(60L * 60 * 24 * (15 + rand.nextInt(30))))
+                                                                .plusSeconds(60L * 60 * 24 * (15 + rand.nextInt(60))))
                                                 .status(JobStatus.PUBLISHED)
                                                 .educationLevel("Đại học CNTT")
                                                 .benefits(benefits)
@@ -205,6 +240,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                                                 .responsibilities(responsibilities)
                                                 .company(company)
                                                 .skills(jobSkills)
+                                                .jobCategory(category)
+                                                .educationLevel("Bachelor regarding the field.")
                                                 .build();
 
                                 jobs.add(job);
@@ -215,22 +252,35 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 /* ===================== REPORT SEED ===================== */
                 long countReports = reportRepository.count();
+
                 if (countReports == 0) {
+
                         List<Job> jobs = jobRepository.findAll().subList(0, 4);
+
                         List<Report> reports = new ArrayList<>();
+                        List<JobReportSnapshot> snapshots = new ArrayList<>();
+
                         Random rand = new Random();
 
                         int totalReports = 0;
+
                         while (totalReports < 20) {
+
                                 for (Job job : jobs) {
+
                                         int reportsForJob = 1 + rand.nextInt(5);
+
                                         for (int i = 0; i < reportsForJob && totalReports < 20; i++) {
+
                                                 Report report = Report.builder()
                                                                 .job(job)
-                                                                .reportContent("Nội dung report #" + (i + 1)
-                                                                                + " cho job: " + job.getTitle())
+                                                                .reportContent(
+                                                                                "Nội dung report #" + (i + 1)
+                                                                                                + " cho job: "
+                                                                                                + job.getTitle())
                                                                 .status(EReportStatus.PENDING)
                                                                 .build();
+
                                                 reports.add(report);
                                                 totalReports++;
                                         }
@@ -238,7 +288,52 @@ public class DatabaseSeeder implements CommandLineRunner {
                         }
 
                         reportRepository.saveAll(reports);
-                        System.out.println(">>> Seeded " + reports.size() + " reports");
+
+                        for (Report report : reports) {
+
+                                Job job = report.getJob();
+
+                                JobReportSnapshot snapshot = JobReportSnapshot.builder()
+                                                .report(report)
+                                                .jobId(job.getJobId())
+                                                .title(job.getTitle())
+                                                .description(job.getDescription())
+                                                .shortDescription(job.getShortDescription())
+                                                .location(job.getLocation())
+                                                .salaryMin(job.getSalaryMin())
+                                                .salaryMax(job.getSalaryMax())
+                                                .requirements(job.getRequirements())
+                                                .benefits(job.getBenefits())
+                                                .responsibilities(job.getResponsibilities())
+                                                .skills(
+                                                                job.getSkills()
+                                                                                .stream()
+                                                                                .map(Skill::getName)
+                                                                                .collect(Collectors.joining(", ")))
+                                                .companyName(
+                                                                job.getCompany() != null
+                                                                                ? job.getCompany().getName()
+                                                                                : "Unknown")
+                                                .reportedAt(Instant.now())
+                                                .build();
+
+                                snapshots.add(snapshot);
+                        }
+
+                        jobReportSnapshotRepository.saveAll(snapshots);
+
+                        System.out.println(
+                                        "Reports: " + reportRepository.count());
+
+                        System.out.println(
+                                        "Snapshots: " + jobReportSnapshotRepository.count());
+
+                        System.out.println(
+                                        ">>> Seeded "
+                                                        + reports.size()
+                                                        + " reports and "
+                                                        + snapshots.size()
+                                                        + " snapshots");
                 }
                 System.out.println(">>> END INIT SAMPLE DATA");
         }
