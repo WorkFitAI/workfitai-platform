@@ -16,6 +16,14 @@ import org.workfitai.jobservice.service.iJobCategoryService;
 import org.workfitai.jobservice.util.ApiMessage;
 
 import jakarta.validation.Valid;
+
+import static org.workfitai.jobservice.util.MessageConstant.JOB_ALL_FETCHED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_ALL_FETCHED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_CREATED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_DELETED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_FETCHED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_UPDATED_SUCCESSFULLY;
+
 import java.util.UUID;
 
 @RestController
@@ -27,7 +35,7 @@ public class JobCategoryController {
   private final iJobCategoryService jobCategoryService;
 
   @GetMapping("/{id}")
-  @ApiMessage("Get job category successfully")
+  @ApiMessage(JOB_CATEGORY_FETCHED_SUCCESSFULLY)
   public RestResponse<ResJobCategoryDTO> getById(
       @PathVariable UUID id) {
 
@@ -36,7 +44,7 @@ public class JobCategoryController {
   }
 
   @GetMapping
-  @ApiMessage("Get all job categories successfully")
+  @ApiMessage(JOB_CATEGORY_ALL_FETCHED_SUCCESSFULLY)
   public RestResponse<ResultPaginationDTO> getAll(
       @Filter Specification<JobCategory> spec,
       Pageable pageable) {
@@ -46,7 +54,7 @@ public class JobCategoryController {
   }
 
   @PostMapping
-  @ApiMessage("Create job category successfully")
+  @ApiMessage(JOB_CATEGORY_CREATED_SUCCESSFULLY)
   public RestResponse<ResJobCategoryDTO> create(
       @Valid @RequestBody ReqCreateJobCategoryDTO dto) {
     return RestResponse.success(
@@ -54,7 +62,7 @@ public class JobCategoryController {
   }
 
   @PutMapping
-  @ApiMessage("Update job category successfully")
+  @ApiMessage(JOB_CATEGORY_UPDATED_SUCCESSFULLY)
   public RestResponse<ResJobCategoryDTO> update(
       @Valid @RequestBody ReqUpdateJobCategoryDTO dto) {
 
@@ -63,7 +71,7 @@ public class JobCategoryController {
   }
 
   @DeleteMapping("/{id}")
-  @ApiMessage("Delete job category successfully")
+  @ApiMessage(JOB_CATEGORY_DELETED_SUCCESSFULLY)
   public RestResponse<Void> delete(
       @PathVariable UUID id) {
 
