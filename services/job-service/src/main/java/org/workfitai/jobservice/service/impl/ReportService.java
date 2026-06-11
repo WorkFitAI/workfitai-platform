@@ -95,6 +95,7 @@ public class ReportService implements iReportService {
                 Report report = reportMapper.toEntity(req);
                 report.setJob(job);
                 report.setImages(imageUrls);
+                report.setStatus(EReportStatus.PENDING);
 
                 report = reportRepository.save(report);
 
@@ -196,6 +197,19 @@ public class ReportService implements iReportService {
                                                         ? null
                                                         : snapshotMap.get(
                                                                         latestReport.getReportId());
+                                        EReportStatus groupStatus;
+
+                                        if (reports.stream().anyMatch(r -> r.getStatus() == EReportStatus.PENDING)) {
+                                                groupStatus = EReportStatus.PENDING;
+                                        } else if (reports.stream()
+                                                        .anyMatch(r -> r.getStatus() == EReportStatus.IN_PROGRESS)) {
+                                                groupStatus = EReportStatus.IN_PROGRESS;
+                                        } else if (reports.stream()
+                                                        .anyMatch(r -> r.getStatus() == EReportStatus.RESOLVED)) {
+                                                groupStatus = EReportStatus.RESOLVED;
+                                        } else {
+                                                groupStatus = EReportStatus.DECLINE;
+                                        }
 
                                         return ResReportGroup.builder()
                                                         .jobId(jobId)
@@ -210,6 +224,7 @@ public class ReportService implements iReportService {
                                                                                         && jobInfo.isDeleted())
                                                         .reportCount(reports.size())
                                                         .reports(reports)
+                                                        .status(groupStatus)
                                                         .snapshot(
                                                                         snapshot == null
                                                                                         ? null
