@@ -39,12 +39,12 @@ public class ReportController {
     }
 
     @PreAuthorize("hasAuthority('report:stats')")
-    @PutMapping("/{reportId}/status/{newStatus}")
+    @PutMapping("/{jobId}/status/{newStatus}")
     @ApiMessage(REPORT_UPDATE_STATS_SUCCESSFULLY)
     public RestResponse<String> changeStatusByJobId(
-            @PathVariable UUID reportId,
+            @PathVariable UUID jobId,
             @PathVariable EReportStatus newStatus) {
-        reportService.changeStatus(reportId, newStatus);
-        return RestResponse.success("Changed status of report " + reportId + " to " + newStatus);
+        reportService.changeStatus(jobId, newStatus);
+        return RestResponse.success("Changed status of reports for job " + jobId + " to " + newStatus);
     }
 }

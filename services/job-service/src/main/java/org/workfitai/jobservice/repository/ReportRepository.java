@@ -14,30 +14,35 @@ import java.util.UUID;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, UUID>, JpaSpecificationExecutor<Report> {
-    boolean existsByJob_JobIdAndCreatedBy(UUID jobId, String createdBy);
+        boolean existsByJob_JobIdAndCreatedBy(UUID jobId, String createdBy);
 
-    @Modifying
-    @Query("""
-                UPDATE Report r
-                SET r.status = :newStatus
-                WHERE r.job.jobId = :jobId
-                  AND r.status <> :newStatus
-                  AND r.status IN :allowedCurrentStatuses
-            """)
-    int updateStatusWithWorkflow(
-            @Param("jobId") UUID jobId,
-            @Param("newStatus") EReportStatus newStatus,
-            @Param("allowedCurrentStatuses") List<EReportStatus> allowedCurrentStatuses
-    );
+        @Modifying
+        @Query("""
+                            UPDATE Report r
+                            SET r.status = :newStatus
+                            WHERE r.job.jobId = :jobId
+                              AND r.status <> :newStatus
+                              AND r.status IN :allowedCurrentStatuses
+                        """)
+        int updateStatusWithWorkflow(
+                        @Param("jobId") UUID jobId,
+                        @Param("newStatus") EReportStatus newStatus,
+                        @Param("allowedCurrentStatuses") List<EReportStatus> allowedCurrentStatuses);
 
-    long countByStatus(EReportStatus status);
+        long countByStatus(EReportStatus status);
 
-    @Query("""
-                SELECT COUNT(r) FROM Report r
-                WHERE r.job.company.companyNo = :companyId
-                  AND r.status = :status
-            """)
-    long countByJobCompanyAndStatus(@Param("companyId") String companyId,
-                                    @Param("status") EReportStatus status);
+        @Query("""
+                            SELECT COUNT(r) FROM Report r
+                            WHERE r.job.company.companyNo = :companyId
+                              AND r.status = :status
+                        """)
+        long countByJobCompanyAndStatus(@Param("companyId") String companyId,
+                        @Param("status") EReportStatus status);
 
+        @Query("""
+                            SELECT r
+                            FROM Report r
+                            WHERE r.job.jobId = :jobId
+                        """)
+        List<Report> findAllByJobId(@Param("jobId") UUID jobId);
 }

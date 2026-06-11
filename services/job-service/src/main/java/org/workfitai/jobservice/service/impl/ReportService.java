@@ -305,35 +305,44 @@ public class ReportService implements iReportService {
 
         @Transactional
         public void changeStatus(
-                        UUID reportId,
+                        UUID jobId,
                         EReportStatus newStatus) {
 
-                Report report = reportRepository.findById(reportId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Report not found"));
+                List<Report> reports = reportRepository.findAllByJobId(jobId);
 
-                EReportStatus currentStatus = report.getStatus();
-
-                boolean validTransition = switch (newStatus) {
-                        case IN_PROGRESS ->
-                                currentStatus == EReportStatus.PENDING;
-
-                        case RESOLVED, DECLINE ->
-                                currentStatus == EReportStatus.PENDING
-                                                || currentStatus == EReportStatus.IN_PROGRESS;
-
-                        default -> false;
-                };
-
-                if (!validTransition) {
-                        throw new ResourceConflictException(
-                                        "Cannot move from "
-                                                        + currentStatus
-                                                        + " to "
-                                                        + newStatus);
+                if (reports.isEmpty()) {
+                        throw new ResourceNotFoundException(
+                                        "No reports found for job: " + jobId);
                 }
 
-                report.setStatus(newStatus);
+                for (Report report : reports) {
 
-                reportRepository.save(report);
+                        EReportStatus currentStatus = report.getStatus();
+
+                        boolean validTransition = switch (newStatus) {
+                                case IN_PROGRESS ->
+                                        currentStatus == EReportStatus.PENDING;
+
+                                case RESOLVED, DECLINE ->
+                                        currentStatus == EReportStatus.PENDING
+                                                        || currentStatus == EReportStatus.IN_PROGRESS;
+
+                                default -> false;
+                        };
+
+                        if (!validTransition) {
+                                throw new ResourceConflictException(
+                                                "Cannot move report "
+                                                                + report.getReportId()
+                                                                + " from "
+                                                                + currentStatus
+                                                                + " to "
+                                                                + newStatus);
+                        }
+
+                        report.setStatus(newStatus);
+                }
+
+                reportRepository.saveAll(reports);
         }
 }
