@@ -18,6 +18,7 @@ public class MessageConstant {
     public static final String JOB_BANNER_UPLOAD_FAILED = "Failed to upload job banner";
     public static final String JOB_BANNER_INVALID_FILE = "Invalid file for job banner";
     public static final String JOB_BANNER_NOT_FOUND = "Job banner not found";
+    public static final String JOB_CATEGORY_NOT_FOUND = "Job category not found";
     public static final String JOB_HAVE_NO_PERMISSION_TO_UPDATE = "You don't have permission to update this job";
     public static final String JOB_HAVE_NO_PERMISSION_TO_DELETE = "You don't have permission to delete this job";
     public static final String JOB_DRAFT_EXPIRED_NEEDS_UPDATING = "Job is expired. Please update expiration date before publishing.";

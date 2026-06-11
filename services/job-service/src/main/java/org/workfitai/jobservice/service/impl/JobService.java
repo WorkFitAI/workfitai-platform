@@ -20,6 +20,7 @@ import org.workfitai.jobservice.dto.kafka.NotificationEvent;
 import org.workfitai.jobservice.messaging.NotificationProducer;
 import org.workfitai.jobservice.model.Company;
 import org.workfitai.jobservice.model.Job;
+import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.OutboxExpiredJobEvent;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
@@ -48,6 +49,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_NOT_FOUND;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CLOSE_CONFLICT;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_DRAFT_EXPIRED_NEEDS_UPDATING;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_ACCESS;
@@ -296,6 +298,9 @@ public class JobService implements iJobService {
         checkJobSkills(job, dbJob);
         checkCompany(job, dbJob);
 
+        JobCategory category = jobCategoryRepository.findById(jobDTO.getJobCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(JOB_CATEGORY_NOT_FOUND));
+
         dbJob.setTitle(HtmlSanitizer.sanitize(job.getTitle()));
         dbJob.setDescription(HtmlSanitizer.sanitize(job.getDescription()));
         dbJob.setShortDescription(HtmlSanitizer.sanitize(job.getShortDescription()));
@@ -311,6 +316,7 @@ public class JobService implements iJobService {
         dbJob.setEmploymentType(job.getEmploymentType());
         dbJob.setQuantity(job.getQuantity());
         dbJob.setExpiresAt(job.getExpiresAt());
+        dbJob.setJobCategory(category);
 
         this.jobRepository.save(dbJob);
 
