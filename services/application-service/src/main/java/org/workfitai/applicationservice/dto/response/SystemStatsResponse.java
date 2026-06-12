@@ -14,7 +14,9 @@ public record SystemStatsResponse(
     List<TopJob> topJobs,
     double avgTimeToHire,
     Map<String, Double> platformConversionRates,
-    List<DailyCount> volumeTrend
+    List<DailyCount> volumeTrend,
+    long offerAcceptedCount,
+    long offerRejectedCount
 ) {
     public record PlatformTotals(
         long totalApplications,

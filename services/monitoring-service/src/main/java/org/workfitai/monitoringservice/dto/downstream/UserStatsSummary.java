@@ -11,7 +11,11 @@ public record UserStatsSummary(
         long totalBlocked,
         long totalDeleted,
         Map<String, Long> candidateByEducation,
-        List<ExperienceBucket> candidateByExperience
+        List<ExperienceBucket> candidateByExperience,
+        List<CompanyHrCount> hrsByCompany
 ) {
     public record ExperienceBucket(String level, long count) {}
+
+    public record CompanyHrCount(String companyNo, String companyName,
+                                  long hrCount, long hrManagerCount) {}
 }

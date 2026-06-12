@@ -68,6 +68,10 @@ public class ManagerStatsResponse {
      */
     private List<DailyApplicationCount> volumeTrend;
 
+    private Long offerAcceptedCount;
+
+    private Long offerRejectedCount;
+
     @Data
     @Builder
     @NoArgsConstructor

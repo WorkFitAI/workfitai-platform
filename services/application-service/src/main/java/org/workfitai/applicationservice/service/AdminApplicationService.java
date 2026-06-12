@@ -3,7 +3,11 @@ package org.workfitai.applicationservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
@@ -31,6 +35,7 @@ public class AdminApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * Manually create an application (bypasses Saga workflow)
@@ -141,24 +146,80 @@ public class AdminApplicationService {
     }
 
     /**
-     * Get all applications (no company filter)
-     * Admin-only global view
+     * Get all applications with optional filters.
+     * Admin sees everything including soft-deleted by default (includeDeleted=true).
      */
-    public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
-        Page<Application> applications = applicationRepository.findAll(pageable);
-        return applications.map(applicationMapper::toResponse);
+    public Page<ApplicationResponse> getApplications(
+            ApplicationStatus status,
+            String companyId,
+            String username,
+            boolean includeDeleted,
+            Pageable pageable
+    ) {
+        Query query = new Query();
+
+        if (status != null) {
+            query.addCriteria(Criteria.where("status").is(status));
+        }
+        if (companyId != null && !companyId.isBlank()) {
+            query.addCriteria(Criteria.where("companyId").is(companyId));
+        }
+        if (username != null && !username.isBlank()) {
+            query.addCriteria(Criteria.where("username").is(username));
+        }
+        if (!includeDeleted) {
+            query.addCriteria(Criteria.where("deletedAt").isNull());
+        }
+
+        long total = mongoTemplate.count(query, Application.class);
+        query.with(pageable);
+        List<Application> applications = mongoTemplate.find(query, Application.class);
+
+        List<ApplicationResponse> responses = applications.stream()
+                .map(applicationMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(responses, pageable, total);
     }
 
     /**
-     * Get soft-deleted applications
+     * Soft-delete an application: sets deletedAt/deletedBy and changes status to WITHDRAWN.
      */
-    public Page<ApplicationResponse> getDeletedApplications(Pageable pageable) {
-        Page<Application> deleted = applicationRepository.findByDeletedAtIsNotNull(pageable);
-        return deleted.map(applicationMapper::toResponse);
+    @Transactional
+    public ApplicationResponse softDeleteApplication(String id, String adminUsername, String reason) {
+        log.warn("ADMIN: Soft-deleting application id={}, by={}, reason={}", id, adminUsername, reason);
+
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Application not found: " + id));
+
+        if (application.getDeletedAt() != null) {
+            throw new IllegalStateException("Application is already deleted: " + id);
+        }
+
+        ApplicationStatus previousStatus = application.getStatus();
+
+        application.setDeletedAt(Instant.now());
+        application.setDeletedBy(adminUsername);
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+        application.setUpdatedAt(Instant.now());
+
+        Application.StatusChange statusChange = Application.StatusChange.builder()
+                .previousStatus(previousStatus)
+                .newStatus(ApplicationStatus.WITHDRAWN)
+                .changedBy(adminUsername)
+                .changedAt(Instant.now())
+                .reason(reason)
+                .build();
+        application.getStatusHistory().add(statusChange);
+
+        Application saved = applicationRepository.save(application);
+        log.info("ADMIN: Application soft-deleted id={}", saved.getId());
+        return applicationMapper.toResponse(saved);
     }
 
     /**
-     * Restore a soft-deleted application
+     * Restore an admin-deleted application: clears soft-delete markers
+     * and restores the status prior to the admin's WITHDRAWN change.
      */
     @Transactional
     public ApplicationResponse restoreApplication(String id) {
@@ -171,30 +232,35 @@ public class AdminApplicationService {
             throw new IllegalStateException("Application is not deleted: " + id);
         }
 
-        // Restore application
         application.setDeletedAt(null);
         application.setDeletedBy(null);
         application.setUpdatedAt(Instant.now());
 
-        // Restore to previous status (before WITHDRAWN)
-        // If status is WITHDRAWN, restore to APPLIED
-        if (application.getStatus() == ApplicationStatus.WITHDRAWN) {
-            application.setStatus(ApplicationStatus.APPLIED);
-            // TODO: Implement addStatusChange helper method in Application model
-            Application.StatusChange statusChange = Application.StatusChange.builder()
-                    .previousStatus(ApplicationStatus.WITHDRAWN)
-                    .newStatus(ApplicationStatus.APPLIED)
-                    .changedBy("ADMIN")
-                    .changedAt(Instant.now())
-                    .reason("Restored from deleted")
-                    .build();
-            application.getStatusHistory().add(statusChange);
+        // Find the status before the admin-applied WITHDRAWN from history
+        ApplicationStatus restoreStatus = ApplicationStatus.APPLIED;
+        List<Application.StatusChange> history = application.getStatusHistory();
+        if (history != null) {
+            for (int i = history.size() - 1; i >= 0; i--) {
+                Application.StatusChange change = history.get(i);
+                if (change.getNewStatus() == ApplicationStatus.WITHDRAWN && change.getPreviousStatus() != null) {
+                    restoreStatus = change.getPreviousStatus();
+                    break;
+                }
+            }
         }
 
+        application.setStatus(restoreStatus);
+        Application.StatusChange statusChange = Application.StatusChange.builder()
+                .previousStatus(ApplicationStatus.WITHDRAWN)
+                .newStatus(restoreStatus)
+                .changedBy("ADMIN")
+                .changedAt(Instant.now())
+                .reason("Restored by admin")
+                .build();
+        application.getStatusHistory().add(statusChange);
+
         Application saved = applicationRepository.save(application);
-
         log.info("ADMIN: Application restored successfully id={}", saved.getId());
-
         return applicationMapper.toResponse(saved);
     }
 

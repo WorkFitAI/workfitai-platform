@@ -11,7 +11,9 @@ public record ManagerStatsSummary(
         List<JobCount> topJobs,
         Long stuckApplicationsCount,
         Map<String, Double> conversionRates,
-        List<DailyCount> volumeTrend
+        List<DailyCount> volumeTrend,
+        Long offerAcceptedCount,
+        Long offerRejectedCount
 ) {
     public record TeamMember(String hrUsername, Long assigned, Long reviewed,
                              Double avgTimeToReviewDays, Double conversionRate) {}

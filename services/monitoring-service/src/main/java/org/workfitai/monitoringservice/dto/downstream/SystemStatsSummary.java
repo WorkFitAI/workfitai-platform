@@ -12,7 +12,9 @@ public record SystemStatsSummary(
         List<TopJob> topJobs,
         double avgTimeToHire,
         Map<String, Double> platformConversionRates,
-        List<DailyCount> volumeTrend
+        List<DailyCount> volumeTrend,
+        long offerAcceptedCount,
+        long offerRejectedCount
 ) {
     public record PlatformTotals(long totalApplications, long totalDeleted, long totalCompanies, long totalJobs) {}
 

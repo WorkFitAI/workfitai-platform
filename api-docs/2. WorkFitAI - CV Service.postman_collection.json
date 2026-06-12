@@ -1,0 +1,283 @@
+{
+  "info": {
+    "_postman_id": "b4e227a0-af86-4ba6-a2e0-154a399d5806",
+    "name": "2. WorkFitAI - CV Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39571017",
+    "_collection_link": "https://go.postman.co/collection/38440076-b4e227a0-af86-4ba6-a2e0-154a399d5806?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "update a cv",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateAccessToken}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"headline\": \"Backend Java Developer\",\r\n  \"summary\": \"Experienced in Spring Boot, MongoDB, and REST API.\",\r\n  \"pdfUrl\": \"https://example.com/cv/backend-java.pdf\",\r\n  \"belongTo\": \"123e4567-e89b-12d3-a456-426614174000\",\r\n  \"templateType\": \"GENERAL\",\r\n  \"sections\": {\r\n    \"skills\": [\"Java\", \"Spring Boot\", \"MongoDB\", \"REST APIs\"],\r\n    \"experiences\": [\r\n      {\r\n        \"company\": \"Tech Solutions\",\r\n        \"role\": \"Software Engineer\",\r\n        \"from\": \"2020-05-01\",\r\n        \"to\": \"2021-12-31\",\r\n        \"description\": \"Built internal tools using Java\"\r\n      }\r\n    ],\r\n    \"education\": [\r\n      {\r\n        \"school\": \"Hanoi University of Science and Technology\",\r\n        \"degree\": \"Bachelor of Computer Science\",\r\n        \"from\": \"2016-09-01\",\r\n        \"to\": \"2020-06-30\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/{{cvId}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "{{cvId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create a cv",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateAccessToken}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"headline\": \"Data Scientists\",\r\n  \"summary\": \"Specialized in ML, AI, and big data analytics.\",\r\n  \"templateType\": \"TECH\",\r\n  \"sections\": {\r\n    \"skills\": [\"Python\", \"TensorFlow\", \"PyTorch\", \"SQL\", \"Data Analysis\"],\r\n    \"experiences\": [\r\n      {\r\n        \"company\": \"AI Labs\",\r\n        \"role\": \"Data Scientist\",\r\n        \"from\": \"2020-02-01\",\r\n        \"to\": \"2025-06-30\",\r\n        \"description\": \"Built ML models for predictive analytics\"\r\n      }\r\n    ],\r\n    \"education\": [\r\n      {\r\n        \"school\": \"HCM University of Science\",\r\n        \"degree\": \"Master in Data Science\",\r\n        \"from\": \"2017-09-01\",\r\n        \"to\": \"2019-06-30\"\r\n      }\r\n    ],\r\n    \"projects\": [\r\n      {\r\n        \"name\": \"Customer Churn Prediction\",\r\n        \"description\": \"Developed model to predict customer churn with 92% accuracy\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/cv/candidate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get cv",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/id/{{cvId}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "id",
+            "{{cvId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get list cv",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/{{username}}?page=0&size=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "{{username}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            },
+            {
+              "key": "templateType",
+              "value": "UPLOAD",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UploadCV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "templateType",
+              "value": "UPLOAD",
+              "type": "text",
+              "uuid": "09657371-2f0d-4965-bcae-2f5e502ee196"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "974d0edf-3f7f-4c5a-8d74-8fa9687516a6",
+              "src": "/C:/Users/vanph/Downloads/CV_NguyenChiThanh.pdf"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/upload",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete a cv",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/6944e564d0c5e9597e5352e4",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "6944e564d0c5e9597e5352e4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Download CV",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/download/3286652b-4eb9-47d1-b6e1-76b4bf84b991-Resume_1747419436.pdf",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "download",
+            "3286652b-4eb9-47d1-b6e1-76b4bf84b991-Resume_1747419436.pdf"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get cadidate's cvs",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/cv/candidate/{{username}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cv",
+            "candidate",
+            "{{username}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
