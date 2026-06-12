@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -107,6 +108,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse updateStatus(String id, ApplicationStatus newStatus, String updatedBy) {
         log.info(Messages.Log.UPDATING_STATUS, id, newStatus);
 

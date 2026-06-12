@@ -28,7 +28,7 @@ import org.workfitai.monitoringservice.service.HrmDashboardService;
  * HR_MANAGER cannot supply a different companyId — it is always taken from their token.
  */
 @RestController
-@RequestMapping("/api/hrm")
+@RequestMapping("/hrm")
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('HR_MANAGER')")

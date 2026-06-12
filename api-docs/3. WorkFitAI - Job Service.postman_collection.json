@@ -1,0 +1,803 @@
+{
+  "info": {
+    "_postman_id": "83f3b504-1ffe-4c0c-a801-0fe0e71d4a59",
+    "name": "3. WorkFitAI - Job Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39571017",
+    "_collection_link": "https://go.postman.co/collection/38440076-83f3b504-1ffe-4c0c-a801-0fe0e71d4a59?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "✔ get a job",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/job/public/jobs/{{jobId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ get jobs",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/job/public/jobs?size=30&sort=createdDate,desc&page=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "30"
+                },
+                {
+                  "key": "filter",
+                  "value": "experienceLevel : 'MID' or experienceLevel : 'SENIOR' and salaryMin >: 800",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "createdDate,desc"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get featured jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/job/public/jobs/featured",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "jobs",
+                "featured"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get similar jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/job/public/jobs/{{jobId}}/similar",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "jobs",
+                "{{jobId}}",
+                "similar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Company",
+      "item": [
+        {
+          "name": "✔ get companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/job/public/companies",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "companies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ create companies",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"companyNo\": \"C001\",\r\n    \"name\": \"TechCorp\",\r\n    \"logoUrl\": \"https://logo.com/logo.png\",\r\n    \"websiteUrl\": \"https://techcorp.com\",\r\n    \"description\": \"Công ty công nghệ\",\r\n    \"address\": \"123 Nguyen Trai, HCM\",\r\n    \"size\": \"50-100\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/public/companies",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "companies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ update company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "companyNo",
+                  "value": "C005_VNPT",
+                  "type": "text",
+                  "uuid": "96ff93a1-69a1-4a10-b1bc-b864792bb970"
+                },
+                {
+                  "key": "logoFile",
+                  "type": "file",
+                  "uuid": "891b7df0-5122-4555-8e87-09fde8cb4748",
+                  "src": "/D:/Pictures/20241004080352 - Copy.png"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "b788c7d2-2645-4b84-973d-ae2437a0e917",
+                  "disabled": true
+                },
+                {
+                  "key": "websiteUrl",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "67dfa6c8-ee5f-4e78-9dc2-708e5459bcaf",
+                  "disabled": true
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "1adebb93-3544-4b18-8a56-fe4e87a5713c",
+                  "disabled": true
+                },
+                {
+                  "key": "address",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "205366e1-b0b7-44e8-bfc0-c2878ea2bb2e",
+                  "disabled": true
+                },
+                {
+                  "key": "size",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "ef9663bf-6e47-4dc3-92d6-8311c9885e84",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/hr/companies",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "companies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/job/public/companies/{{company_no}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "companies",
+                "{{company_no}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company's Published Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/job/public/companies/{{company_no}}/jobs?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "companies",
+                "{{company_no}}",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SKill",
+      "item": [
+        {
+          "name": "✔ get skills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/job/public/skills",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "skills"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ create skill",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Golang\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/public/skills",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "skills"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ update skills",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"skillId\": \"014f8d5a-a45f-4b29-b965-533f17ca9991\",\r\n    \"name\": \"Go\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/public/skills",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "skills"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HR",
+      "item": [
+        {
+          "name": "✔ update a job",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"jobId\": \"{{job_update_id}}\",\r\n  \"title\": \"Java Backend Developer Update\",\r\n  \"description\": \"We are looking for a Java Backend Developer with strong experience in Spring Boot and Microservices.\",\r\n  \"shortDescription\": \"Looking for a new position\",\r\n  \"employmentType\": \"FULL_TIME\",\r\n  \"experienceLevel\": \"MID\",\r\n  \"salaryMin\": 1500.00,\r\n  \"salaryMax\": 3000.00,\r\n  \"currency\": \"VND\",\r\n  \"location\": \"Hồ Chí Minh\",\r\n  \"quantity\": 3,\r\n  \"expiresAt\": \"2025-12-31T23:59:59Z\",\r\n  \"educationLevel\": \"Bachelor Degree in Computer Science\",\r\n  \"companyNo\": \"{{company_no}}\", \r\n  \"skillIds\": [\r\n    \"{{skillID_1}}\",\r\n    \"{{skillID_2}}\"\r\n  ]\r\n}\r\n\r\n\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/hr/jobs",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "jobId",
+                  "value": null,
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ create new job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {\r",
+                  "    const response = pm.response.json();\r",
+                  "    \r",
+                  "    if (response.status === 200 && response.data) {\r",
+                  "        \r",
+                  "        pm.environment.set('jobId', response.data.postId);\r",
+                  "    } else {\r",
+                  "        console.warn(\"Status was not 200 or Data was missing inside the body.\");\r",
+                  "    }\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Reactjs Senior Developer\",\r\n  \"description\": \"We are looking for a Java Backend Developer with strong experience in Go and Microservices.\",\r\n  \"shortDescription\": \"Looking for a new position\",\r\n  \"employmentType\": \"FULL_TIME\",\r\n  \"experienceLevel\": \"SENIOR\",\r\n  \"salaryMin\": 500.00,\r\n  \"salaryMax\": 800.00,\r\n  \"currency\": \"USD\",\r\n  \"location\": \"Ha Noi City\",\r\n  \"quantity\": 10,\r\n  \"expiresAt\": \"2026-12-31T23:59:59Z\",\r\n  \"educationLevel\": \"Bachelor Degree in Computer Science\",\r\n  \"benefits\": \"So good\",\r\n  \"requirements\": \"Ok\",\r\n  \"responsibilities\": \"Great!\",\r\n  \"companyNo\": \"{{company_no}}\",\r\n  \"views\": 0,\r\n  \"skillIds\": [\r\n    \"{{skillID_1}}\",\r\n    \"{{skillID_2}}\"\r\n  ]\r\n}\r\n\r\n\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/job/hr/jobs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "jobs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ change status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/job/hr/jobs/{{jobId}}/PUBLISHED",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "jobs",
+                "{{jobId}}",
+                "PUBLISHED"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ get a job",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/job/hr/jobs/{{jobId}}",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update banner",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "fb05951e-7123-4ca7-8d6b-b24261eff876",
+                  "src": "/C:/Users/acer/Downloads/fpt-banner.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{gateway_url}}/job/public/hr/jobs/{{jobId}}/banner",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "public",
+                "hr",
+                "jobs",
+                "{{jobId}}",
+                "banner"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✔ get jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/job/hr/jobs?page=0&size=12",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "hr",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "12"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report",
+      "item": [
+        {
+          "name": "get reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/job/admin/reports/grouped?page=0&size=4&filter=status:'PENDING'",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "admin",
+                "reports",
+                "grouped"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "4"
+                },
+                {
+                  "key": "filter",
+                  "value": "status:'PENDING'"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "reportContent",
+                  "value": "Fake News",
+                  "type": "text",
+                  "uuid": "bbdaa35d-5f5e-4b3c-9038-770aa6ba5e8a",
+                  "disabled": true
+                },
+                {
+                  "key": "jobId",
+                  "value": "{{job_report_id}}",
+                  "type": "text",
+                  "uuid": "7ced8922-fd9b-4e04-87be-c18326b9a264",
+                  "disabled": true
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "uuid": "a926b9b9-bde5-4894-8c8d-8a75303b4d71",
+                  "src": "/C:/Users/acer/Downloads/ticket.png"
+                },
+                {
+                  "key": "data",
+                  "type": "file",
+                  "uuid": "4baa7d4b-6b4a-41b3-8baf-ab629922f05c",
+                  "src": "/C:/Users/acer/Downloads/create_report.json"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/job/candidate/reports",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "candidate",
+                "reports"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "change stats",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/job/admin/reports/{{job_report_id}}/status/IN_PROGRESS",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job",
+                "admin",
+                "reports",
+                "{{job_report_id}}",
+                "status",
+                "IN_PROGRESS"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "✔ delete a job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/job/admin/jobs/{{jobId}}",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "job",
+                "admin",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

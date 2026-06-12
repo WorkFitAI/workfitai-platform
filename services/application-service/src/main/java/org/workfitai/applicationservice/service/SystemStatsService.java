@@ -3,9 +3,11 @@ package org.workfitai.applicationservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.bson.Document;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.data.mongodb.core.aggregation.DateOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
@@ -81,6 +83,9 @@ public class SystemStatsService {
         // Platform-wide daily volume trend (last 30 days) for line chart
         List<SystemStatsResponse.DailyCount> volumeTrend = calculateVolumeTrendWithAggregation();
 
+        long offerAcceptedCount = applicationRepository.countByStatusAndDeletedAtIsNull(ApplicationStatus.HIRED);
+        long offerRejectedCount = calculateOfferRejectedCount();
+
         return new SystemStatsResponse(
             platformTotals,
             byCompany,
@@ -89,7 +94,9 @@ public class SystemStatsService {
             topJobs,
             avgTimeToHire,
             platformConversionRates,
-            volumeTrend
+            volumeTrend,
+            offerAcceptedCount,
+            offerRejectedCount
         );
     }
 
@@ -197,15 +204,37 @@ public class SystemStatsService {
     }
 
     /**
-     * Calculate statistics by status using MongoDB aggregation
+     * Calculate statistics by status using MongoDB aggregation.
+     * Counts each application once per unique status it has ever been in
+     * (current status + all statuses from statusHistory), enabling accurate funnel rates.
      */
     private Map<String, Long> calculateStatusStatsWithAggregation() {
         MatchOperation matchActive = Aggregation.match(Criteria.where("deletedAt").isNull());
-        GroupOperation groupByStatus = Aggregation.group("status").count().as("count");
+
+        // Build allStatuses = $setUnion of every status the application has ever had:
+        // - statusHistory[].newStatus  (stages it transitioned TO)
+        // - statusHistory[].previousStatus  (stages it transitioned FROM, captures initial APPLIED)
+        // - [$status]  (current state, covers apps with no history yet)
+        AggregationOperation addAllStatuses = ctx -> new Document("$addFields", new Document("allStatuses",
+            new Document("$setUnion", List.of(
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.newStatus")),
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.previousStatus")),
+                List.of("$status")
+            ))
+        ));
 
         Aggregation aggregation = Aggregation.newAggregation(
             matchActive,
-            groupByStatus
+            addAllStatuses,
+            Aggregation.unwind("allStatuses"),
+            Aggregation.match(Criteria.where("allStatuses").ne(null)),
+            Aggregation.group("allStatuses").count().as("count")
         );
 
         var results = mongoTemplate.aggregate(aggregation, "applications", Map.class).getMappedResults();
@@ -290,7 +319,8 @@ public class SystemStatsService {
             .sum(ConditionalOperators.when(Criteria.where("status").is(ApplicationStatus.HIRED))
                 .then(1)
                 .otherwise(0)).as("hires")
-            .first("companyId").as("companyId");
+            .first("companyId").as("companyId")
+            .first("jobSnapshot.title").as("jobTitle");
 
         SortOperation sortByCount = Aggregation.sort(Sort.Direction.DESC, "applications");
         LimitOperation limitTo10 = Aggregation.limit(TOP_JOBS_LIMIT);
@@ -310,10 +340,11 @@ public class SystemStatsService {
                 long applications = ((Number) result.get("applications")).longValue();
                 long hires = ((Number) result.get("hires")).longValue();
                 String companyId = result.get("companyId") != null ? (String) result.get("companyId") : "Unknown";
+                String jobTitle = result.get("jobTitle") != null ? (String) result.get("jobTitle") : jobId;
 
                 return new SystemStatsResponse.TopJob(
                     jobId,
-                    "Job " + jobId, // TODO: Fetch job title from job-service
+                    jobTitle,
                     "Company " + companyId,
                     applications,
                     hires
@@ -351,6 +382,21 @@ public class SystemStatsService {
         if (avgDurationMs == null || avgDurationMs == 0) return 0.0;
 
         return Math.round((avgDurationMs / MS_PER_DAY) * 10.0) / 10.0;
+    }
+
+    /**
+     * Counts applications that had an OFFER→REJECTED status transition (platform-wide).
+     * Uses $unwind + $match to find transitions in statusHistory, then deduplicates by _id.
+     */
+    private long calculateOfferRejectedCount() {
+        Aggregation agg = Aggregation.newAggregation(
+            Aggregation.match(Criteria.where("deletedAt").isNull()),
+            Aggregation.unwind("statusHistory"),
+            Aggregation.match(Criteria.where("statusHistory.previousStatus").is("OFFER")
+                    .and("statusHistory.newStatus").is("REJECTED")),
+            Aggregation.group("_id")
+        );
+        return (long) mongoTemplate.aggregate(agg, "applications", Map.class).getMappedResults().size();
     }
 
     /**

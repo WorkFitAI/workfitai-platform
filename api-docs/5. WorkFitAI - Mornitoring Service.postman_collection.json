@@ -1,0 +1,138 @@
+{
+  "info": {
+    "_postman_id": "b9f11435-b8dc-42b6-8409-aa9b6b9f7367",
+    "name": "5. WorkFitAI - Mornitoring Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39571017",
+    "_collection_link": "https://go.postman.co/collection/39571017-b9f11435-b8dc-42b6-8409-aa9b6b9f7367?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Audit",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/monitoring/admin/audit?page=0&size=100",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "monitoring",
+            "admin",
+            "audit"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "100"
+            },
+            {
+              "key": "action",
+              "value": "APPLICATION",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin dashboard",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/monitoring/admin/dashboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "monitoring",
+            "admin",
+            "dashboard"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0",
+              "disabled": true
+            },
+            {
+              "key": "size",
+              "value": "100",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HRM dashboard",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/monitoring/api/hrm/dashboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "monitoring",
+            "api",
+            "hrm",
+            "dashboard"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0",
+              "disabled": true
+            },
+            {
+              "key": "size",
+              "value": "100",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

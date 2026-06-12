@@ -1,41 +1,30 @@
 package org.workfitai.applicationservice.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
-import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
-import org.workfitai.applicationservice.dto.response.ExportResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.SystemStatsResponse;
+import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.service.AdminApplicationService;
-import org.workfitai.applicationservice.service.ExportService;
-import org.workfitai.applicationservice.service.RateLimitService;
 import org.workfitai.applicationservice.service.SystemStatsService;
 
-import java.time.Instant;
-import java.util.List;
-
 /**
- * Admin-only controller for system-level operations.
+ * Admin-only controller for application management.
  * All endpoints require ROLE_ADMIN.
  */
 @RestController
@@ -44,74 +33,12 @@ import java.util.List;
 @Slf4j
 public class AdminController {
 
-    private static final int EXPORT_RATE_LIMIT = 5;
-    private static final int EXPORT_RATE_WINDOW_HOURS = 24;
-    private static final int SECONDS_PER_HOUR = 3600;
-
     private final AdminApplicationService adminApplicationService;
     private final SystemStatsService systemStatsService;
-    private final ExportService exportService;
-    private final RateLimitService rateLimitService;
 
     /**
-     * 1. Get all applications (no company filter)
-     * GET /application/admin/all?page=0&size=50
-     */
-    @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<Page<ApplicationResponse>>> getAllApplications(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        log.info("ADMIN: Fetching all applications, page={}, size={}", page, size);
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ApplicationResponse> applications = adminApplicationService.getAllApplications(pageable);
-
-        return ResponseEntity.ok(new RestResponse<>(200, "All applications fetched successfully", applications));
-    }
-
-    /**
-     * 3. Full data export (admin-only, includes deleted)
-     * POST /application/admin/export
-     * Rate limit: 5 exports per day per admin
-     */
-    @PostMapping("/export")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<ExportResponse>> exportAllApplications(
-            @RequestParam(defaultValue = "false") boolean includeDeleted,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
-            @RequestBody(required = false) List<String> columns
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth != null ? auth.getName() : "unknown";
-
-        if (!rateLimitService.isAllowed("admin-export", username, EXPORT_RATE_LIMIT, EXPORT_RATE_WINDOW_HOURS)) {
-            int remaining = rateLimitService.getRemainingRequests("admin-export", username, EXPORT_RATE_LIMIT, EXPORT_RATE_WINDOW_HOURS);
-            long resetHours = rateLimitService.getResetTimeSeconds("admin-export", username, EXPORT_RATE_WINDOW_HOURS) / SECONDS_PER_HOUR;
-
-            log.warn("ADMIN: Export rate limit exceeded for user={}, remaining={}, resetIn={}h", username, remaining, resetHours);
-
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(
-                    new RestResponse<>(429, String.format("Export rate limit exceeded. Limit: %d per day. Reset in %d hours.", EXPORT_RATE_LIMIT, resetHours))
-            );
-        }
-
-        log.warn("ADMIN: Full platform export requested by user={}, includeDeleted={}", username, includeDeleted);
-
-        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(new RestResponse<>(400, "fromDate must be before toDate"));
-        }
-
-        ExportResponse export = exportService.exportAllApplications(includeDeleted, fromDate, toDate, columns);
-
-        return ResponseEntity.ok(new RestResponse<>(200, "Export generated successfully", export));
-    }
-
-    /**
-     * 4. System statistics
-     * GET /application/admin/stats
+     * Get platform-wide application statistics.
+     * GET /admin/stats
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
@@ -121,71 +48,54 @@ public class AdminController {
     }
 
     /**
-     * 5. Manually create application (bypass Saga)
-     * POST /application/admin/create
+     * Get all applications with optional filters (status, company, username).
+     * Includes withdrawn and soft-deleted applications by default.
+     * GET /admin/applications?page=0&size=50&status=APPLIED&companyId=xxx&username=xxx&includeDeleted=true
      */
-    @PostMapping("/create")
+    @GetMapping("/applications")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<ApplicationResponse>> createApplication(
-            @Valid @RequestBody AdminCreateApplicationRequest request
-    ) {
-        log.warn("ADMIN: Manual application creation requested for user={}, job={}", request.username(), request.jobId());
-
-        if (request.reason() == null || request.reason().isBlank()) {
-            return ResponseEntity.badRequest().body(new RestResponse<>(400, "Reason is required for admin manual creation"));
-        }
-
-        ApplicationResponse application = adminApplicationService.createApplication(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new RestResponse<>(201, "Application created successfully (manual creation)", application)
-        );
-    }
-
-    /**
-     * 6. Override any application field (USE WITH CAUTION)
-     * PUT /application/admin/{id}/override
-     */
-    @PutMapping("/{id}/override")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<ApplicationResponse>> overrideApplication(
-            @PathVariable String id,
-            @Valid @RequestBody AdminOverrideRequest request
-    ) {
-        log.warn("ADMIN: Override requested for application id={}, reason={}", id, request.reason());
-
-        if (request.reason() == null || request.reason().isBlank()) {
-            return ResponseEntity.badRequest().body(new RestResponse<>(400, "Reason is required for admin override operations"));
-        }
-
-        ApplicationResponse application = adminApplicationService.overrideApplication(id, request);
-
-        return ResponseEntity.ok(new RestResponse<>(200, "Application overridden successfully", application));
-    }
-
-    /**
-     * 7. Get soft-deleted applications
-     * GET /application/admin/deleted?page=0&size=20
-     */
-    @GetMapping("/deleted")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RestResponse<Page<ApplicationResponse>>> getDeletedApplications(
+    public ResponseEntity<RestResponse<Page<ApplicationResponse>>> getApplications(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(required = false) String companyId,
+            @RequestParam(required = false) String username,
+            @RequestParam(defaultValue = "true") boolean includeDeleted
     ) {
-        log.info("ADMIN: Fetching deleted applications, page={}, size={}", page, size);
+        log.info("ADMIN: Fetching applications, page={}, size={}, status={}, companyId={}, username={}, includeDeleted={}",
+                page, size, status, companyId, username, includeDeleted);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<ApplicationResponse> deleted = adminApplicationService.getDeletedApplications(pageable);
+        Page<ApplicationResponse> applications = adminApplicationService.getApplications(
+                status, companyId, username, includeDeleted, pageable);
 
-        return ResponseEntity.ok(new RestResponse<>(200, "Deleted applications fetched successfully", deleted));
+        return ResponseEntity.ok(new RestResponse<>(200, "Applications fetched successfully", applications));
     }
 
     /**
-     * 8. Restore soft-deleted application
-     * PUT /application/admin/{id}/restore
+     * Soft-delete an application: sets deletedAt, deletedBy, and changes status to WITHDRAWN.
+     * DELETE /admin/applications/{id}?reason=xxx
      */
-    @PutMapping("/{id}/restore")
+    @DeleteMapping("/applications/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RestResponse<ApplicationResponse>> deleteApplication(
+            @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "Admin deleted") String reason
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String adminUsername = auth != null ? auth.getName() : "ADMIN";
+
+        log.warn("ADMIN: Soft-deleting application id={}, by={}, reason={}", id, adminUsername, reason);
+
+        ApplicationResponse application = adminApplicationService.softDeleteApplication(id, adminUsername, reason);
+        return ResponseEntity.ok(new RestResponse<>(200, "Application deleted successfully", application));
+    }
+
+    /**
+     * Restore an admin-deleted application: clears soft-delete markers and restores previous status.
+     * PUT /admin/applications/{id}/restore
+     */
+    @PutMapping("/applications/{id}/restore")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<ApplicationResponse>> restoreApplication(
             @PathVariable String id

@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.DateOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
@@ -89,6 +91,10 @@ public class ManagerStatsService {
         Map<String, Double> conversionRates = calculateConversionRates(byStatus);
         List<DailyApplicationCount> volumeTrend = calculateVolumeTrend(companyId);
 
+        long offerAcceptedCount = applicationRepository
+                .countByCompanyIdAndStatusAndDeletedAtIsNull(companyId, ApplicationStatus.HIRED);
+        long offerRejectedCount = calculateOfferRejectedCount(companyId);
+
         return ManagerStatsResponse.builder()
                 .totalApplications(totalApplications)
                 .byStatus(byStatus)
@@ -98,7 +104,24 @@ public class ManagerStatsService {
                 .stuckApplicationsCount(stuckCount)
                 .conversionRates(conversionRates)
                 .volumeTrend(volumeTrend)
+                .offerAcceptedCount(offerAcceptedCount)
+                .offerRejectedCount(offerRejectedCount)
                 .build();
+    }
+
+    /**
+     * Counts applications for a company that had an OFFER→REJECTED status transition.
+     * Deduplicates per application _id to avoid double-counting.
+     */
+    private long calculateOfferRejectedCount(String companyId) {
+        Aggregation agg = Aggregation.newAggregation(
+            Aggregation.match(Criteria.where("deletedAt").isNull().and("companyId").is(companyId)),
+            Aggregation.unwind("statusHistory"),
+            Aggregation.match(Criteria.where("statusHistory.previousStatus").is("OFFER")
+                    .and("statusHistory.newStatus").is("REJECTED")),
+            Aggregation.group("_id")
+        );
+        return (long) mongoTemplate.aggregate(agg, "applications", Map.class).getMappedResults().size();
     }
 
     private long calculateStuckApplications(String companyId) {
@@ -142,23 +165,44 @@ public class ManagerStatsService {
     }
 
     /**
-     * Calculate status breakdown using count queries for better performance.
-     *
-     * @param companyId Company ID
-     * @return Map of status to count
+     * Calculate status breakdown counting each application once per unique status
+     * it has ever been in (current status + full statusHistory), so funnel rates
+     * reflect real pipeline throughput rather than just current-state snapshots.
      */
     private Map<String, Long> calculateStatusBreakdown(String companyId) {
-        Map<String, Long> byStatus = new HashMap<>();
+        MatchOperation matchActive = Aggregation.match(
+            Criteria.where("companyId").is(companyId).and("deletedAt").isNull()
+        );
 
-        // Count for each status using repository methods
-        for (ApplicationStatus status : ApplicationStatus.values()) {
-            long count = applicationRepository.countByCompanyIdAndStatusAndDeletedAtIsNull(companyId, status);
-            if (count > 0) {
-                byStatus.put(status.name(), count);
-            }
-        }
+        AggregationOperation addAllStatuses = ctx -> new Document("$addFields", new Document("allStatuses",
+            new Document("$setUnion", List.of(
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.newStatus")),
+                new Document("$map", new Document()
+                    .append("input", new Document("$ifNull", List.of("$statusHistory", List.of())))
+                    .append("as", "h")
+                    .append("in", "$$h.previousStatus")),
+                List.of("$status")
+            ))
+        ));
 
-        return byStatus;
+        Aggregation aggregation = Aggregation.newAggregation(
+            matchActive,
+            addAllStatuses,
+            Aggregation.unwind("allStatuses"),
+            Aggregation.match(Criteria.where("allStatuses").ne(null)),
+            Aggregation.group("allStatuses").count().as("count")
+        );
+
+        var results = mongoTemplate.aggregate(aggregation, "applications", Map.class).getMappedResults();
+
+        return results.stream()
+            .collect(Collectors.toMap(
+                result -> (String) result.get("_id"),
+                result -> ((Number) result.get("count")).longValue()
+            ));
     }
 
     /**

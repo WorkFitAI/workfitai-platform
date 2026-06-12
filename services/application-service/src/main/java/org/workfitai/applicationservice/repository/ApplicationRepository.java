@@ -111,6 +111,9 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
         /** Counts active applications assigned to HR user. */
         long countByAssignedToAndDeletedAtIsNull(String assignedTo);
 
+        /** Counts active applications by status (platform-wide). */
+        long countByStatusAndDeletedAtIsNull(ApplicationStatus status);
+
         /** Counts active applications for company by status. */
         long countByCompanyIdAndStatusAndDeletedAtIsNull(String companyId, ApplicationStatus status);
 
