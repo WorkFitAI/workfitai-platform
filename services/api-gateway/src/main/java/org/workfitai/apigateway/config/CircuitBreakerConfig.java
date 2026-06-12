@@ -150,7 +150,7 @@ public class CircuitBreakerConfig {
     }
 
     /**
-     * Job Service Circuit Breaker
+     * Job Service Circuit Breaker (regular CRUD endpoints)
      * More lenient - can handle slower responses
      * Ignores client errors (4xx) - only trips on server errors (5xx) and timeouts
      */
@@ -159,26 +159,63 @@ public class CircuitBreakerConfig {
         return factory -> factory.configure(builder -> builder
                 .circuitBreakerConfig(io.github.resilience4j.circuitbreaker.CircuitBreakerConfig.custom()
                         .slidingWindowSize(10)
-                        .failureRateThreshold(60.0f) // More tolerant
+                        .failureRateThreshold(60.0f)
                         .slowCallRateThreshold(70.0f)
-                        .slowCallDurationThreshold(Duration.ofSeconds(5)) // Allow slower calls
+                        .slowCallDurationThreshold(Duration.ofSeconds(5))
                         .waitDurationInOpenState(Duration.ofSeconds(30))
                         .permittedNumberOfCallsInHalfOpenState(5)
                         .minimumNumberOfCalls(5)
                         .automaticTransitionFromOpenToHalfOpenEnabled(true)
-                        // Ignore client errors (4xx), only record server errors (5xx)
                         .recordException(throwable -> {
                             if (throwable instanceof WebClientResponseException webClientException) {
                                 int statusCode = webClientException.getStatusCode().value();
-                                return statusCode >= 500; // Only record 5xx as failures
+                                return statusCode >= 500;
                             }
-                            return true; // Record timeouts, connection errors, etc.
+                            return true;
                         })
                         .build())
                 .timeLimiterConfig(TimeLimiterConfig.custom()
-                        .timeoutDuration(Duration.ofSeconds(15)) // Longer timeout
+                        .timeoutDuration(Duration.ofSeconds(15))
                         .cancelRunningFuture(true)
                         .build())
                 .build(), "job");
+    }
+
+    /**
+     * Job Recommendations Circuit Breaker
+     *
+     * Isolated from the regular "job" CB so slow or failed AI calls do not trip
+     * the breaker for unrelated job CRUD endpoints.
+     *
+     * Timeout chain (each layer must be longer than the one below it):
+     *   Feign readTimeout (60s) < CB timeLimiter (90s) < route RESPONSE_TIMEOUT_ATTR (120s)
+     *
+     * Thresholds are intentionally lenient because latency varies widely on CPU inference.
+     */
+    @Bean
+    public Customizer<ReactiveResilience4JCircuitBreakerFactory> jobRecommendationsCustomizer() {
+        return factory -> factory.configure(builder -> builder
+                .circuitBreakerConfig(io.github.resilience4j.circuitbreaker.CircuitBreakerConfig.custom()
+                        .slidingWindowSize(10)
+                        .failureRateThreshold(80.0f)    // very lenient
+                        .slowCallRateThreshold(100.0f)  // never treat slow calls as failures
+                        .slowCallDurationThreshold(Duration.ofSeconds(90))
+                        .waitDurationInOpenState(Duration.ofSeconds(60))
+                        .permittedNumberOfCallsInHalfOpenState(3)
+                        .minimumNumberOfCalls(5)
+                        .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                        .recordException(throwable -> {
+                            if (throwable instanceof WebClientResponseException webClientException) {
+                                int statusCode = webClientException.getStatusCode().value();
+                                return statusCode >= 500;
+                            }
+                            return true;
+                        })
+                        .build())
+                .timeLimiterConfig(TimeLimiterConfig.custom()
+                        .timeoutDuration(Duration.ofSeconds(90))
+                        .cancelRunningFuture(true)
+                        .build())
+                .build(), "job-recommendations");
     }
 }
