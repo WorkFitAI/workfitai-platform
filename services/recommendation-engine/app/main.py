@@ -16,6 +16,7 @@ import uvicorn
 
 from app.config import get_settings
 from app.api.routes import router
+from app.api.cv_rank_routes import router as cv_rank_router
 
 # Configure logging
 logging.basicConfig(
@@ -30,7 +31,8 @@ app_state = {
     "faiss_manager": None,
     "kafka_consumer": None,
     "resume_parser": None,
-    "reranker": None
+    "reranker": None,
+    "cv_ranking_pipeline": None,
 }
 
 
@@ -94,6 +96,25 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Initial sync failed: {e}", exc_info=True)
                 logger.warning("Service will continue without initial data")
         
+        # Initialize CV ranking pipeline (if enabled)
+        if settings.ENABLE_CV_RANKING:
+            logger.info("Initializing CV Ranking Pipeline...")
+            try:
+                from app.services.cv_ranking_service import build_pipeline
+                app_state["cv_ranking_pipeline"] = build_pipeline(settings.CV_RANKING_CONFIG_PATH)
+                if app_state["cv_ranking_pipeline"].is_ready:
+                    logger.info("✓ CV Ranking Pipeline ready")
+                else:
+                    logger.warning(
+                        "CV Ranking Pipeline initialized but not ready "
+                        "(model weights missing in cv-refer directory)"
+                    )
+            except Exception as e:
+                logger.error(f"Failed to initialize CV Ranking Pipeline: {e}", exc_info=True)
+                logger.warning("CV ranking endpoint will return 503 until models are available")
+        else:
+            logger.info("CV Ranking Pipeline disabled")
+
         # Start Kafka consumer (if enabled)
         if settings.ENABLE_KAFKA_CONSUMER:
             logger.info("Starting Kafka consumer...")
@@ -211,6 +232,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Include API routes
 app.include_router(router)
+app.include_router(cv_rank_router)
 
 
 # Health check endpoint
@@ -284,6 +306,7 @@ app.state.embedding_generator = lambda: app_state["model"]  # Alias for clarity
 app.state.faiss_manager = lambda: app_state["faiss_manager"]
 app.state.resume_parser = lambda: app_state["resume_parser"]
 app.state.reranker = lambda: app_state["reranker"]
+app.state.cv_ranking_pipeline = lambda: app_state["cv_ranking_pipeline"]
 
 
 if __name__ == "__main__":

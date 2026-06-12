@@ -70,14 +70,14 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, env="PORT")
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
     
-    # Model Configuration
-    MODEL_PATH: str = Field(default="/app/models/bi-encoder-e5-large", env="MODEL_PATH")
+    # Model Configuration (job-recommend)
+    MODEL_PATH: str = Field(default="/app/models/job-recommend/bi-encoder-e5-large", env="MODEL_PATH")
     MODEL_DIMENSION: int = Field(default=1024, env="MODEL_DIMENSION")
     BATCH_SIZE: int = Field(default=32, env="BATCH_SIZE")
-    
-    # Cross-Encoder Reranking
+
+    # Cross-Encoder Reranking (job-recommend)
     ENABLE_RERANKING: bool = Field(default=True, env="ENABLE_RERANKING")
-    CROSS_ENCODER_PATH: str = Field(default="/app/models/cross-encoder", env="CROSS_ENCODER_PATH")
+    CROSS_ENCODER_PATH: str = Field(default="/app/models/job-recommend/cross-encoder", env="CROSS_ENCODER_PATH")
     RERANK_TOP_K: int = Field(default=50, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
     RERANK_TOP_N: int = Field(default=20, env="RERANK_TOP_N")  # Return top-N after reranking
     
@@ -121,10 +121,16 @@ class Settings(BaseSettings):
     # Initial Sync
     ENABLE_INITIAL_SYNC: bool = Field(default=True, env="ENABLE_INITIAL_SYNC")
     INITIAL_SYNC_BATCH_SIZE: int = Field(default=50, env="INITIAL_SYNC_BATCH_SIZE")
-    
+
     # Periodic Rebuild
     ENABLE_PERIODIC_REBUILD: bool = Field(default=False, env="ENABLE_PERIODIC_REBUILD")
     REBUILD_INTERVAL_HOURS: int = Field(default=24, env="REBUILD_INTERVAL_HOURS")
+
+    # CV Ranking Pipeline (cv-refer)
+    ENABLE_CV_RANKING: bool = Field(default=True, env="ENABLE_CV_RANKING")
+    CV_RANKING_CONFIG_PATH: str = Field(
+        default="/app/config/cv_ranking_config.yaml", env="CV_RANKING_CONFIG_PATH"
+    )
     
     def get_kafka_topics(self) -> list[str]:
         """Get list of Kafka topics to subscribe to"""

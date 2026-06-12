@@ -24,9 +24,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY app/ ./app/
+COPY src/ ./src/
+COPY config/ ./config/
 
 # Create directories for models and data
-RUN mkdir -p /app/models /app/data /app/logs
+RUN mkdir -p /app/models/job-recommend /app/models/cv-refer /app/data /app/logs
 
 # Expose FastAPI port
 EXPOSE 8000
