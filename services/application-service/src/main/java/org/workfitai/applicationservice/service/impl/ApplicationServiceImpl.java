@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.constants.Messages;
 import org.workfitai.applicationservice.dto.kafka.ApplicationStatusChangedEvent;
 import org.workfitai.applicationservice.dto.kafka.JobStatsUpdateEvent;
+import org.workfitai.applicationservice.dto.response.ActivePoolResponse;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
@@ -214,6 +215,40 @@ public class ApplicationServiceImpl implements IApplicationService {
         return application.getNotes().stream()
                 .filter(Application.Note::isCandidateVisible)
                 .map(this::mapToNoteResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivePoolResponse> getActivePool() {
+        List<ApplicationStatus> poolStatuses = List.of(
+                ApplicationStatus.APPLIED,
+                ApplicationStatus.REVIEWING,
+                ApplicationStatus.INTERVIEW);
+
+        return applicationRepository.findByStatusInAndDeletedAtIsNull(poolStatuses)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Application::getJobId,
+                        Collectors.mapping(
+                                app -> ActivePoolResponse.ApplicantSnapshot.builder()
+                                        .username(app.getUsername())
+                                        .cvSnapshotId(app.getCvSnapshotId())
+                                        // CV text fields are not stored in Application entity to avoid bloat.
+                                        // On cold start, recommendation-engine uses cvSnapshotId to fetch fields
+                                        // from cv-service via POST /internal/cvs/batch-by-application-ids,
+                                        // or falls back to empty strings (ranking still works, just less accurate).
+                                        .resumeSummary("")
+                                        .resumeExperience("")
+                                        .resumeSkills("")
+                                        .resumeEducation("")
+                                        .build(),
+                                Collectors.toList())))
+                .entrySet().stream()
+                .map(e -> ActivePoolResponse.builder()
+                        .jobId(e.getKey())
+                        .applicants(e.getValue())
+                        .build())
                 .collect(Collectors.toList());
     }
 

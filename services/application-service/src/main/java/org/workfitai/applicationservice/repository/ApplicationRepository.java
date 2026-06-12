@@ -143,4 +143,7 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
          */
         @Deprecated
         List<Application> findByDeletedAtIsNull();
+
+        /** Finds all active applications in the given statuses — used for cv-refer initial sync. */
+        List<Application> findByStatusInAndDeletedAtIsNull(List<ApplicationStatus> statuses);
 }

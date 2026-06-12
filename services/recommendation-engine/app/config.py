@@ -70,14 +70,14 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, env="PORT")
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
     
-    # Model Configuration
-    MODEL_PATH: str = Field(default="/app/models/bi-encoder-e5-large", env="MODEL_PATH")
+    # Model Configuration (job-recommend)
+    MODEL_PATH: str = Field(default="/app/models/job-recommend/bi-encoder-e5-large", env="MODEL_PATH")
     MODEL_DIMENSION: int = Field(default=1024, env="MODEL_DIMENSION")
     BATCH_SIZE: int = Field(default=32, env="BATCH_SIZE")
-    
-    # Cross-Encoder Reranking
+
+    # Cross-Encoder Reranking (job-recommend)
     ENABLE_RERANKING: bool = Field(default=True, env="ENABLE_RERANKING")
-    CROSS_ENCODER_PATH: str = Field(default="/app/models/cross-encoder", env="CROSS_ENCODER_PATH")
+    CROSS_ENCODER_PATH: str = Field(default="/app/models/job-recommend/cross-encoder", env="CROSS_ENCODER_PATH")
     RERANK_TOP_K: int = Field(default=50, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
     RERANK_TOP_N: int = Field(default=20, env="RERANK_TOP_N")  # Return top-N after reranking
     
@@ -95,10 +95,23 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_JOB_EXPIRED: str = Field(default="job.expired", env="KAFKA_TOPIC_JOB_EXPIRED")
     KAFKA_AUTO_OFFSET_RESET: str = Field(default="earliest", env="KAFKA_AUTO_OFFSET_RESET")
     ENABLE_KAFKA_CONSUMER: bool = Field(default=True, env="ENABLE_KAFKA_CONSUMER")
+
+    # CV-Refer Kafka topics
+    KAFKA_TOPIC_APPLICATION_EVENTS: str = Field(default="application-events", env="KAFKA_TOPIC_APPLICATION_EVENTS")
+    KAFKA_TOPIC_APPLICATION_STATUS: str = Field(default="application-status", env="KAFKA_TOPIC_APPLICATION_STATUS")
+    KAFKA_TOPIC_CV_UPDATED: str = Field(default="cv.updated", env="KAFKA_TOPIC_CV_UPDATED")
+    KAFKA_CV_REFER_GROUP: str = Field(default="recommendation-engine-cv-refer", env="KAFKA_CV_REFER_GROUP")
     
     # Job Service Integration
     JOB_SERVICE_URL: str = Field(default="http://job-service:9082", env="JOB_SERVICE_URL")
     JOB_SERVICE_TIMEOUT: int = Field(default=30, env="JOB_SERVICE_TIMEOUT")
+
+    # Application Service & CV Service (for cv-refer initial sync)
+    APPLICATION_SERVICE_URL: str = Field(default="http://application-service:9084", env="APPLICATION_SERVICE_URL")
+    CV_SERVICE_URL: str = Field(default="http://cv-service:9083", env="CV_SERVICE_URL")
+    INTERNAL_SERVICE_TIMEOUT: int = Field(default=30, env="INTERNAL_SERVICE_TIMEOUT")
+    ENABLE_CV_REFER_INITIAL_SYNC: bool = Field(default=True, env="ENABLE_CV_REFER_INITIAL_SYNC")
+    CV_REFER_SYNC_BATCH_SIZE: int = Field(default=200, env="CV_REFER_SYNC_BATCH_SIZE")
     
     # Resume Processing
     MAX_RESUME_SIZE_MB: int = Field(default=5, env="MAX_RESUME_SIZE_MB")
@@ -121,10 +134,26 @@ class Settings(BaseSettings):
     # Initial Sync
     ENABLE_INITIAL_SYNC: bool = Field(default=True, env="ENABLE_INITIAL_SYNC")
     INITIAL_SYNC_BATCH_SIZE: int = Field(default=50, env="INITIAL_SYNC_BATCH_SIZE")
-    
+
     # Periodic Rebuild
     ENABLE_PERIODIC_REBUILD: bool = Field(default=False, env="ENABLE_PERIODIC_REBUILD")
     REBUILD_INTERVAL_HOURS: int = Field(default=24, env="REBUILD_INTERVAL_HOURS")
+
+    # CV Ranking Pipeline (cv-refer)
+    ENABLE_CV_RANKING: bool = Field(default=True, env="ENABLE_CV_RANKING")
+    CV_RANKING_CONFIG_PATH: str = Field(
+        default="/app/config/cv_ranking_config.yaml", env="CV_RANKING_CONFIG_PATH"
+    )
+    # Individual model paths for cv-refer pipeline
+    CV_RANKING_BI_ENCODER_PATH: str = Field(
+        default="/app/models/cv-refer/bi-encoder", env="CV_RANKING_BI_ENCODER_PATH"
+    )
+    CV_RANKING_CROSS_ENCODER_PATH: str = Field(
+        default="/app/models/cv-refer/cross-encoder", env="CV_RANKING_CROSS_ENCODER_PATH"
+    )
+    CV_RANKING_EXPLANATION_T5_PATH: str = Field(
+        default="/app/models/cv-refer/explanation-t5", env="CV_RANKING_EXPLANATION_T5_PATH"
+    )
     
     def get_kafka_topics(self) -> list[str]:
         """Get list of Kafka topics to subscribe to"""

@@ -17,22 +17,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.constant.ErrorConst;
+import org.workfitai.cvservice.dto.kafka.CvUpdatedEvent;
 import org.workfitai.cvservice.dto.kafka.NotificationEvent;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.errors.ResourceNotFoundException;
+import org.workfitai.cvservice.messaging.CvEventProducer;
 import org.workfitai.cvservice.messaging.NotificationProducer;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
+import org.workfitai.cvservice.model.dto.response.CvDataResponse;
+import org.workfitai.cvservice.model.dto.response.CvSnapshotResponse;
 import org.workfitai.cvservice.model.dto.response.ResCvDTO;
 import org.workfitai.cvservice.model.dto.response.ResultPaginationDTO;
+import org.workfitai.cvservice.model.enums.TemplateType;
 import org.workfitai.cvservice.model.mapper.CVMapper;
 import org.workfitai.cvservice.repository.CVRepository;
 import org.workfitai.cvservice.service.factory.CvCreationFactory;
 import org.workfitai.cvservice.service.iCVService;
 import org.workfitai.cvservice.service.shared.FileService;
 import org.workfitai.cvservice.service.strategy.CvCreationStrategy;
+import org.workfitai.cvservice.service.strategy.UploadCvStrategy;
 import org.workfitai.cvservice.utils.CvQueryBuilder;
 import org.workfitai.cvservice.utils.PaginationUtils;
 import org.workfitai.cvservice.validation.FileValidator;
@@ -53,6 +59,8 @@ public class CVService implements iCVService {
     private final CvCreationFactory cvCreationFactory;
     private final FileService fileService;
     private final NotificationProducer notificationProducer;
+    private final CvEventProducer cvEventProducer;
+    private final UploadCvStrategy uploadCvStrategy;
 
     // ---------------- CREATE ----------------
     @Override
@@ -169,7 +177,29 @@ public class CVService implements iCVService {
         }
 
         CVMapper.INSTANCE.updateFromDto(req, cv);
-        return CVMapper.INSTANCE.toResDTO(repository.save(cv));
+        CV saved = repository.save(cv);
+
+        publishCvUpdatedEvent(saved);
+
+        return CVMapper.INSTANCE.toResDTO(saved);
+    }
+
+    private void publishCvUpdatedEvent(CV cv) {
+        try {
+            CvUpdatedEvent event = CvUpdatedEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .username(cv.getBelongTo())
+                    .cvId(cv.getCvId())
+                    .resumeSummary(cv.getSummary() != null ? cv.getSummary() : "")
+                    .resumeExperience(extractSection(cv.getSections(), "experience"))
+                    .resumeSkills(extractSection(cv.getSections(), "skills"))
+                    .resumeEducation(extractSection(cv.getSections(), "education"))
+                    .updatedAt(cv.getUpdatedAt() != null ? cv.getUpdatedAt() : Instant.now())
+                    .build();
+            cvEventProducer.sendCvUpdated(event);
+        } catch (Exception e) {
+            log.error("Failed to publish cv.updated event for CV: {}", cv.getCvId(), e);
+        }
     }
 
     // ---------------- SOFT DELETE ----------------
@@ -205,6 +235,117 @@ public class CVService implements iCVService {
         if ("upload".equalsIgnoreCase(type) && dto instanceof ReqCvUploadDTO upload) {
             FileValidator.validate(upload.getFile());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractSection(Map<String, Object> sections, String key) {
+        if (sections == null || !sections.containsKey(key)) {
+            return "";
+        }
+        Object value = sections.get(key);
+        if (value instanceof List<?> list) {
+            return String.join("\n", (List<String>) list);
+        }
+        return value != null ? value.toString() : "";
+    }
+
+    @Override
+    public List<CvDataResponse> getCvDataBatch(List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return List.of();
+        }
+        // One query, then group by belongTo and keep the latest CV per user
+        return repository.findByBelongToInAndIsExistTrue(usernames)
+                .stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        CV::getBelongTo,
+                        java.util.stream.Collectors.collectingAndThen(
+                                java.util.stream.Collectors.maxBy(
+                                        java.util.Comparator.comparing(cv ->
+                                                cv.getUpdatedAt() != null ? cv.getUpdatedAt() : cv.getCreatedAt())),
+                                opt -> opt.map(cv -> CvDataResponse.builder()
+                                        .username(cv.getBelongTo())
+                                        .resumeSummary(cv.getSummary() != null ? cv.getSummary() : "")
+                                        .resumeExperience(extractSection(cv.getSections(), "experience"))
+                                        .resumeSkills(extractSection(cv.getSections(), "skills"))
+                                        .resumeEducation(extractSection(cv.getSections(), "education"))
+                                        .build()).orElse(null))))
+                .values()
+                .stream()
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // ---------------- APPLICATION SNAPSHOT ----------------
+    @Override
+    public CvSnapshotResponse createApplicationSnapshot(
+            String username,
+            String applicationId,
+            org.springframework.web.multipart.MultipartFile file) {
+
+        try {
+            // Reuse existing PDF → sections logic from UploadCvStrategy
+            var parsed = uploadCvStrategy.parsePdfFile(file);
+
+            // Build sections map
+            Map<String, Object> sections = new HashMap<>();
+            sections.put("skills",        parsed.getSkills());
+            sections.put("projects",      parsed.getProjects());
+            sections.put("experience",    parsed.getExperience());
+            sections.put("education",     parsed.getEducation());
+            sections.put("languages",     parsed.getLanguages());
+            sections.put("objective",     parsed.getObjective());
+            sections.put("certifications",parsed.getCertifications());
+
+            String summary = String.join("\n",
+                    parsed.getSummary() != null ? parsed.getSummary() : List.of());
+
+            // Build snapshot CV entity — not a regular user CV (isExist kept true for queryability)
+            CV snapshot = new CV();
+            snapshot.setBelongTo(username);
+            snapshot.setApplicationId(applicationId);
+            snapshot.setTemplateType(TemplateType.UPLOAD);   // reuse existing enum value
+            snapshot.setSections(sections);
+            snapshot.setSummary(summary);
+            snapshot.setHeadline(parsed.getHeadline());
+            snapshot.setExist(true);
+
+            CV saved = repository.save(snapshot);
+
+            log.info("CV snapshot created: cvId={} applicationId={} username={}",
+                    saved.getCvId(), applicationId, username);
+
+            return CvSnapshotResponse.builder()
+                    .cvId(saved.getCvId())
+                    .summary(summary)
+                    .experience(extractSection(saved.getSections(), "experience"))
+                    .skills(extractSection(saved.getSections(), "skills"))
+                    .education(extractSection(saved.getSections(), "education"))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Failed to create CV snapshot for applicationId={} username={}: {}",
+                    applicationId, username, e.getMessage(), e);
+            throw new RuntimeException("CV snapshot creation failed", e);
+        }
+    }
+
+    // ---------------- BATCH SNAPSHOT BY APPLICATION IDS ----------------
+    @Override
+    public List<CvSnapshotResponse> getCvSnapshotsByApplicationIds(List<String> applicationIds) {
+        if (applicationIds == null || applicationIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByApplicationIdIn(applicationIds)
+                .stream()
+                .map(cv -> CvSnapshotResponse.builder()
+                        .cvId(cv.getCvId())
+                        .summary(cv.getSummary() != null ? cv.getSummary() : "")
+                        .experience(extractSection(cv.getSections(), "experience"))
+                        .skills(extractSection(cv.getSections(), "skills"))
+                        .education(extractSection(cv.getSections(), "education"))
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private String getCurrentUsername() {

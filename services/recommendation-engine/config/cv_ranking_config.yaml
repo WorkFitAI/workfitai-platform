@@ -1,0 +1,20 @@
+model_dir: /app/models/cv-refer
+
+# Stage 1: Bi-Encoder + FAISS
+top_k: 100           # Candidates retrieved by bi-encoder for reranking
+bi_encoder_model: bi-encoder   # subdir under model_dir
+
+# Stage 2: Cross-Encoder
+top_n: 20            # Final candidates returned after cross-encoder
+cross_encoder_model: cross-encoder
+
+# Stage 3: T5 Explanation
+t5_model: t5-explanation
+
+# Score thresholds
+min_score: 20.0          # CVs below this are excluded from results entirely
+good_fit_threshold: 55.0  # CVs >= this get label "Good Fit"
+
+# Batch processing
+batch_size: 32
+device: cpu   # or "cuda" when GPU is available

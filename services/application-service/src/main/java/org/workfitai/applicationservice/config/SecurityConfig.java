@@ -74,6 +74,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/actuator/**").permitAll()
+                        // Internal service-to-service endpoints (Docker-network only, not routed by API Gateway)
+                        .requestMatchers("/internal/**").permitAll()
                         // .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // All other requests require authentication

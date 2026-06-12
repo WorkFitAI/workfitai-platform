@@ -1,5 +1,6 @@
 package org.workfitai.applicationservice.saga;
 
+import org.workfitai.applicationservice.dto.CvSnapshotResponse;
 import org.workfitai.applicationservice.dto.FileUploadResult;
 import org.workfitai.applicationservice.dto.JobInfo;
 import org.workfitai.applicationservice.model.Application;
@@ -28,6 +29,14 @@ public class ApplicationSagaContext {
     // Saga step results (accumulated as saga progresses)
     private JobInfo jobInfo;
     private FileUploadResult fileUploadResult;
+
+    /**
+     * CV snapshot response from cv-service.
+     * Populated during SNAPSHOT_CV step; null when cv-service is unavailable.
+     * Null value is acceptable — ranking still works with empty CV data (best-effort).
+     */
+    private CvSnapshotResponse cvSnapshot;
+
     private Application savedApplication;
 
     // Tracking
@@ -39,10 +48,11 @@ public class ApplicationSagaContext {
      * Saga steps in execution order.
      */
     public enum SagaStep {
-        VALIDATE, // Run validation pipeline
-        FETCH_JOB_INFO, // Get job details for snapshot
-        UPLOAD_CV, // Upload CV to MinIO
+        VALIDATE,        // Run validation pipeline
+        FETCH_JOB_INFO,  // Get job details for snapshot
+        UPLOAD_CV,       // Upload CV to MinIO
+        SNAPSHOT_CV,     // Create CV snapshot in cv-service (best-effort)
         SAVE_APPLICATION, // Persist to MongoDB
-        PUBLISH_EVENTS // Fire Kafka events
+        PUBLISH_EVENTS   // Fire Kafka events
     }
 }

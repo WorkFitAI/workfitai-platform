@@ -45,6 +45,14 @@ public class CV {
     @NotNull
     private TemplateType templateType;
 
+    /**
+     * Application snapshot linkage.
+     * null  = regular user-owned CV
+     * non-null = immutable snapshot created when candidate applied (links to application-service applicationId)
+     */
+    @Indexed
+    private String applicationId;
+
     private Map<String, Object> sections = new HashMap<>();
 
     private boolean isExist = true;

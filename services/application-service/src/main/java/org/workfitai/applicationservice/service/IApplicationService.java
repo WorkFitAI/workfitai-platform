@@ -3,6 +3,7 @@ package org.workfitai.applicationservice.service;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.workfitai.applicationservice.dto.response.ActivePoolResponse;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
@@ -55,4 +56,11 @@ public interface IApplicationService {
          * Authorization is enforced at the controller layer via @PreAuthorize.
          */
         List<NoteResponse> getPublicNotes(String id);
+
+        /**
+         * Returns the set of active applicants grouped by jobId.
+         * Active statuses: APPLIED, REVIEWING, INTERVIEW.
+         * Used by recommendation-engine at startup to warm up CvReferStore.
+         */
+        List<ActivePoolResponse> getActivePool();
 }

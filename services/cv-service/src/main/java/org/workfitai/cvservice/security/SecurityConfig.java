@@ -26,6 +26,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**", "/refresh",
                                 "/actuator/**", "/error",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/public/**").permitAll()
+                        // Internal service-to-service endpoints (Docker-network only, not routed by API Gateway)
+                        .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/hr/**").hasRole("HR")
                         .requestMatchers("/candidate/**").hasRole("CANDIDATE")
