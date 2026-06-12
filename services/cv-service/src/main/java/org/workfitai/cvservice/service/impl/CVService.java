@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.constant.ErrorConst;
+import org.workfitai.cvservice.dto.kafka.CvUpdatedEvent;
 import org.workfitai.cvservice.dto.kafka.NotificationEvent;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.errors.ResourceNotFoundException;
+import org.workfitai.cvservice.messaging.CvEventProducer;
 import org.workfitai.cvservice.messaging.NotificationProducer;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.request.ReqCvDTO;
@@ -53,6 +55,7 @@ public class CVService implements iCVService {
     private final CvCreationFactory cvCreationFactory;
     private final FileService fileService;
     private final NotificationProducer notificationProducer;
+    private final CvEventProducer cvEventProducer;
 
     // ---------------- CREATE ----------------
     @Override
@@ -169,7 +172,29 @@ public class CVService implements iCVService {
         }
 
         CVMapper.INSTANCE.updateFromDto(req, cv);
-        return CVMapper.INSTANCE.toResDTO(repository.save(cv));
+        CV saved = repository.save(cv);
+
+        publishCvUpdatedEvent(saved);
+
+        return CVMapper.INSTANCE.toResDTO(saved);
+    }
+
+    private void publishCvUpdatedEvent(CV cv) {
+        try {
+            CvUpdatedEvent event = CvUpdatedEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .username(cv.getBelongTo())
+                    .cvId(cv.getCvId())
+                    .resumeSummary(cv.getSummary() != null ? cv.getSummary() : "")
+                    .resumeExperience(extractSection(cv.getSections(), "experience"))
+                    .resumeSkills(extractSection(cv.getSections(), "skills"))
+                    .resumeEducation(extractSection(cv.getSections(), "education"))
+                    .updatedAt(cv.getUpdatedAt() != null ? cv.getUpdatedAt() : Instant.now())
+                    .build();
+            cvEventProducer.sendCvUpdated(event);
+        } catch (Exception e) {
+            log.error("Failed to publish cv.updated event for CV: {}", cv.getCvId(), e);
+        }
     }
 
     // ---------------- SOFT DELETE ----------------
@@ -205,6 +230,18 @@ public class CVService implements iCVService {
         if ("upload".equalsIgnoreCase(type) && dto instanceof ReqCvUploadDTO upload) {
             FileValidator.validate(upload.getFile());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractSection(Map<String, Object> sections, String key) {
+        if (sections == null || !sections.containsKey(key)) {
+            return "";
+        }
+        Object value = sections.get(key);
+        if (value instanceof List<?> list) {
+            return String.join("\n", (List<String>) list);
+        }
+        return value != null ? value.toString() : "";
     }
 
     private String getCurrentUsername() {

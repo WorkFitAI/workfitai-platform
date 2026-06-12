@@ -19,7 +19,9 @@ import org.workfitai.jobservice.model.dto.response.Job.ResUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
+import org.workfitai.jobservice.model.dto.response.Recommendation.ResCvRankingDTO;
 import org.workfitai.jobservice.service.iJobService;
+import org.workfitai.jobservice.service.iRecommendationService;
 import org.workfitai.jobservice.util.ApiMessage;
 
 import java.io.IOException;
@@ -33,9 +35,11 @@ import static org.workfitai.jobservice.util.MessageConstant.*;
 @Transactional
 public class JobController {
     private final iJobService jobService;
+    private final iRecommendationService recommendationService;
 
-    public JobController(iJobService jobService) {
+    public JobController(iJobService jobService, iRecommendationService recommendationService) {
         this.jobService = jobService;
+        this.recommendationService = recommendationService;
     }
 
     @PreAuthorize("hasAuthority('job:list')")
@@ -102,5 +106,15 @@ public class JobController {
         }
 
         return RestResponse.success(this.jobService.updateStatus(currentJob.get(), status));
+    }
+
+    @PreAuthorize("hasAuthority('job:read')")
+    @PostMapping("/{id}/cv-ranking")
+    @ApiMessage("CV ranking completed")
+    public RestResponse<ResCvRankingDTO> rankCvs(@PathVariable("id") UUID id) throws InvalidDataException {
+        if (this.jobService.getJobById(id).isEmpty()) {
+            throw new InvalidDataException(JOB_NOT_FOUND);
+        }
+        return RestResponse.success(recommendationService.rankCvsByJob(id));
     }
 }

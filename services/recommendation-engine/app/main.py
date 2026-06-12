@@ -30,9 +30,11 @@ app_state = {
     "model": None,
     "faiss_manager": None,
     "kafka_consumer": None,
+    "cv_refer_consumer": None,
     "resume_parser": None,
     "reranker": None,
     "cv_ranking_pipeline": None,
+    "cv_refer_store": None,
 }
 
 
@@ -96,6 +98,11 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Initial sync failed: {e}", exc_info=True)
                 logger.warning("Service will continue without initial data")
         
+        # Initialize cv-refer store (always; Kafka consumer writes, route reads)
+        from app.services.cv_refer_store import get_store
+        app_state["cv_refer_store"] = get_store()
+        logger.info("✓ CvReferStore initialised")
+
         # Initialize CV ranking pipeline (if enabled)
         if settings.ENABLE_CV_RANKING:
             logger.info("Initializing CV Ranking Pipeline...")
@@ -145,6 +152,26 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to start Kafka consumer: {e}", exc_info=True)
                 logger.warning("Service will continue without Kafka integration")
+
+            # Start cv-refer consumer (application-events, application-status, cv.updated)
+            try:
+                from app.kafka_consumer.cv_refer_consumer import CvReferConsumer
+                cv_refer_kafka_config = {
+                    "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                    "group_id": settings.KAFKA_CV_REFER_GROUP,
+                    "topic_application_events": settings.KAFKA_TOPIC_APPLICATION_EVENTS,
+                    "topic_application_status": settings.KAFKA_TOPIC_APPLICATION_STATUS,
+                    "topic_cv_updated": settings.KAFKA_TOPIC_CV_UPDATED,
+                }
+                app_state["cv_refer_consumer"] = CvReferConsumer(
+                    kafka_config=cv_refer_kafka_config,
+                    store=app_state["cv_refer_store"],
+                )
+                app_state["cv_refer_consumer"].start()
+                logger.info("✓ CvReferConsumer started")
+            except Exception as e:
+                logger.error(f"Failed to start CvReferConsumer: {e}", exc_info=True)
+                logger.warning("CV ranking by job will not have synced applicant data")
         
         logger.info("=" * 60)
         logger.info(f"🚀 {settings.SERVICE_NAME} is ready!")
@@ -170,13 +197,20 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to save index: {e}")
         
-        # Stop Kafka consumer
+        # Stop Kafka consumers
         if app_state["kafka_consumer"]:
             try:
                 app_state["kafka_consumer"].stop()
                 logger.info("✓ Kafka consumer stopped")
             except Exception as e:
                 logger.error(f"Failed to stop Kafka consumer: {e}")
+
+        if app_state["cv_refer_consumer"]:
+            try:
+                app_state["cv_refer_consumer"].stop()
+                logger.info("✓ CvReferConsumer stopped")
+            except Exception as e:
+                logger.error(f"Failed to stop CvReferConsumer: {e}")
         
         logger.info("Shutdown complete")
 
@@ -307,6 +341,7 @@ app.state.faiss_manager = lambda: app_state["faiss_manager"]
 app.state.resume_parser = lambda: app_state["resume_parser"]
 app.state.reranker = lambda: app_state["reranker"]
 app.state.cv_ranking_pipeline = lambda: app_state["cv_ranking_pipeline"]
+app.state.cv_refer_store = lambda: app_state["cv_refer_store"]
 
 
 if __name__ == "__main__":

@@ -95,6 +95,12 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_JOB_EXPIRED: str = Field(default="job.expired", env="KAFKA_TOPIC_JOB_EXPIRED")
     KAFKA_AUTO_OFFSET_RESET: str = Field(default="earliest", env="KAFKA_AUTO_OFFSET_RESET")
     ENABLE_KAFKA_CONSUMER: bool = Field(default=True, env="ENABLE_KAFKA_CONSUMER")
+
+    # CV-Refer Kafka topics
+    KAFKA_TOPIC_APPLICATION_EVENTS: str = Field(default="application-events", env="KAFKA_TOPIC_APPLICATION_EVENTS")
+    KAFKA_TOPIC_APPLICATION_STATUS: str = Field(default="application-status", env="KAFKA_TOPIC_APPLICATION_STATUS")
+    KAFKA_TOPIC_CV_UPDATED: str = Field(default="cv.updated", env="KAFKA_TOPIC_CV_UPDATED")
+    KAFKA_CV_REFER_GROUP: str = Field(default="recommendation-engine-cv-refer", env="KAFKA_CV_REFER_GROUP")
     
     # Job Service Integration
     JOB_SERVICE_URL: str = Field(default="http://job-service:9082", env="JOB_SERVICE_URL")
