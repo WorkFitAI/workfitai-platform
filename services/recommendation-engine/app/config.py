@@ -144,6 +144,16 @@ class Settings(BaseSettings):
     CV_RANKING_CONFIG_PATH: str = Field(
         default="/app/config/cv_ranking_config.yaml", env="CV_RANKING_CONFIG_PATH"
     )
+    # Individual model paths for cv-refer pipeline
+    CV_RANKING_BI_ENCODER_PATH: str = Field(
+        default="/app/models/cv-refer/bi-encoder", env="CV_RANKING_BI_ENCODER_PATH"
+    )
+    CV_RANKING_CROSS_ENCODER_PATH: str = Field(
+        default="/app/models/cv-refer/cross-encoder", env="CV_RANKING_CROSS_ENCODER_PATH"
+    )
+    CV_RANKING_EXPLANATION_T5_PATH: str = Field(
+        default="/app/models/cv-refer/explanation-t5", env="CV_RANKING_EXPLANATION_T5_PATH"
+    )
     
     def get_kafka_topics(self) -> list[str]:
         """Get list of Kafka topics to subscribe to"""

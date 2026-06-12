@@ -908,17 +908,38 @@ services:
       - VAULT_ENABLED=true
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
-      # Override critical paths (not in Vault)
-      - MODEL_PATH=/app/models/bi-encoder-e5-large
-      - CROSS_ENCODER_PATH=/app/models/cross-encoder
+      # ── job-recommend model paths ──────────────────────────────────
+      - MODEL_PATH=/app/models/job-recommend/bi-encoder-e5-large
+      - CROSS_ENCODER_PATH=/app/models/job-recommend/cross-encoder
       - FAISS_INDEX_PATH=/app/data/faiss_index
-      # Job Service for initial sync — use internal container port 9005, not host-mapped 9082
+      # ── cv-refer model paths ───────────────────────────────────────
+      - CV_RANKING_BI_ENCODER_PATH=/app/models/cv-refer/bi-encoder
+      - CV_RANKING_CROSS_ENCODER_PATH=/app/models/cv-refer/cross-encoder
+      - CV_RANKING_EXPLANATION_T5_PATH=/app/models/cv-refer/explanation-t5
+      - ENABLE_CV_RANKING=${ENABLE_CV_RANKING:-true}
+      - CV_RANKING_CONFIG_PATH=/app/config/cv_ranking_config.yaml
+      # ── Service URLs (internal Docker network — port 9005) ─────────
+      # Job service for job-recommend initial sync
       - JOB_SERVICE_URL=http://job-service:9005
+      # Application + CV service for cv-refer initial sync
+      - APPLICATION_SERVICE_URL=http://application-service:9005
+      - CV_SERVICE_URL=http://cv-service:9005
+      - INTERNAL_SERVICE_TIMEOUT=${INTERNAL_SERVICE_TIMEOUT:-30}
+      # ── cv-refer sync settings ─────────────────────────────────────
+      - ENABLE_CV_REFER_INITIAL_SYNC=${ENABLE_CV_REFER_INITIAL_SYNC:-true}
+      - CV_REFER_SYNC_BATCH_SIZE=${CV_REFER_SYNC_BATCH_SIZE:-200}
+      # ── Kafka ──────────────────────────────────────────────────────
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_TOPIC_APPLICATION_EVENTS=application-events
+      - KAFKA_TOPIC_APPLICATION_STATUS=application-status
+      - KAFKA_CV_REFER_GROUP=recommendation-engine-cv-refer
     command: ["bash", "/app/run-docker.sh"]
     volumes:
       - ./services/recommendation-engine/run-docker.sh:/app/run-docker.sh:ro
       # Mount pre-trained models (read-only)
       - ./services/recommendation-engine/models:/app/models:ro
+      # Mount cv_ranking_config.yaml
+      - ./services/recommendation-engine/config:/app/config:ro
       # Persist data dir (FAISS files are cleaned on startup; volume holds .model_dimension and other data)
       - recommendation-data:/app/data
     depends_on:
@@ -932,6 +953,10 @@ services:
         condition: service_started
       job-service:
         condition: service_healthy
+      application-service:
+        condition: service_started
+      cv-service:
+        condition: service_started
     networks: [workfitai-net]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -940,6 +965,7 @@ services:
       retries: 3
       start_period: 120s
     profiles: ["services", "full"]
+
 
   ### Database Dump / Import Tools (utility, no restart policy) ###
   db-dump-postgres:
