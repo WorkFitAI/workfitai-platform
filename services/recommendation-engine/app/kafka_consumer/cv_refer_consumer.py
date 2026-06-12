@@ -4,10 +4,10 @@ Kafka consumer for cv-refer feature.
 Subscribed topics:
   application-events  — APPLICATION_CREATED, APPLICATION_WITHDRAWN
   application-status  — STATUS_CHANGED
-  cv.updated          — CvUpdatedEvent (from cv-service)
 
-Updates CvReferStore in-memory state so that rank-by-job requests
-require zero additional network calls.
+CV structured fields (summary, experience, skills, education) are now embedded
+directly in APPLICATION_CREATED events by application-service (which calls cv-service
+during the SNAPSHOT_CV saga step). No additional HTTP call is needed at ranking time.
 """
 
 import json
@@ -35,7 +35,6 @@ class CvReferConsumer:
         self._topics = [
             kafka_config["topic_application_events"],
             kafka_config["topic_application_status"],
-            kafka_config["topic_cv_updated"],
         ]
         logger.info("CvReferConsumer initialised for topics: %s", self._topics)
 
@@ -109,8 +108,6 @@ class CvReferConsumer:
             self._on_application_withdrawn(event)
         elif event_type == "STATUS_CHANGED":
             self._on_status_changed(event)
-        elif "cv.updated" in topic:
-            self._on_cv_updated(event)
         else:
             logger.debug("CvReferConsumer: ignored event_type=%s topic=%s", event_type, topic)
 
@@ -119,12 +116,46 @@ class CvReferConsumer:
     # ------------------------------------------------------------------ #
 
     def _on_application_created(self, event: Dict) -> None:
+        """
+        Handle APPLICATION_CREATED event.
+
+        Since application-service now embeds CV snapshot fields (summary, experience,
+        skills, education) directly in the event payload (populated from cv-service
+        during the SNAPSHOT_CV saga step), we can populate both the applicant pool
+        and the cv_data store in a single handler — no extra HTTP call needed.
+        """
         data = event.get("data", {})
         job_id = data.get("jobId")
         username = data.get("username")
-        if job_id and username:
-            self._store.add_applicant(job_id, username)
-            logger.info("cv-refer: application created — jobId=%s username=%s", job_id, username)
+        if not job_id or not username:
+            return
+
+        # Add to applicant pool
+        self._store.add_applicant(job_id, username)
+
+        # Populate CV snapshot from event payload (best-effort: may be empty strings if
+        # cv-service was unavailable during snapshot creation, ranking will still work)
+        snapshot = {
+            "summary":    data.get("resumeSummary", ""),
+            "experience": data.get("resumeExperience", ""),
+            "skills":     data.get("resumeSkills", ""),
+            "education":  data.get("resumeEducation", ""),
+        }
+
+        # Only store if there's at least some non-empty field to avoid polluting the store
+        # with empty records that would cause unnecessary cache misses
+        if any(snapshot.values()):
+            self._store.set_cv_snapshot(job_id, username, snapshot)
+            logger.info(
+                "cv-refer: APPLICATION_CREATED — jobId=%s username=%s (snapshot stored, cvSnapshotId=%s)",
+                job_id, username, data.get("cvSnapshotId", "none"),
+            )
+        else:
+            logger.warning(
+                "cv-refer: APPLICATION_CREATED — jobId=%s username=%s — CV snapshot fields empty "
+                "(cv-service may have been unavailable during SNAPSHOT_CV step)",
+                job_id, username,
+            )
 
     def _on_application_withdrawn(self, event: Dict) -> None:
         data = event.get("data", {})
@@ -142,16 +173,3 @@ class CvReferConsumer:
         if job_id and username:
             self._store.on_status_changed(job_id, username, new_status)
             logger.info("cv-refer: status changed — jobId=%s username=%s newStatus=%s", job_id, username, new_status)
-
-    def _on_cv_updated(self, event: Dict) -> None:
-        username = event.get("username")
-        if not username:
-            return
-        cv = {
-            "resumeSummary": event.get("resumeSummary", ""),
-            "resumeExperience": event.get("resumeExperience", ""),
-            "resumeSkills": event.get("resumeSkills", ""),
-            "resumeEducation": event.get("resumeEducation", ""),
-        }
-        self._store.update_cv_data(username, cv)
-        logger.info("cv-refer: CV data updated for username=%s", username)

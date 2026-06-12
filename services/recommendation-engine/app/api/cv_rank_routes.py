@@ -128,22 +128,23 @@ async def rank_by_job(
             detail=f"No active applicants in ranking pool for job {job_id}.",
         )
 
-    # 2. Build ResumeRequest list — skip applicants whose CV data hasn't synced yet
+    # 2. Build ResumeRequest list from per-application CV snapshots
     resumes = []
     missing_cv = []
     idx_to_username: dict[int, str] = {}   # maps resume_index → username for result enrichment
     for idx, username in enumerate(usernames):
-        cv = store.get_cv_data(username)
+        cv = store.get_cv_data(job_id, username)
         if cv is None:
             missing_cv.append(username)
             continue
         idx_to_username[idx] = username
+        # cv_data stores structured fields extracted by cv-service: summary, experience, skills, education
         resumes.append(ResumeRequest(
             resume_index=idx,
-            resume_summary=cv.get("resumeSummary", ""),
-            resume_experience=cv.get("resumeExperience", ""),
-            resume_skills=cv.get("resumeSkills", ""),
-            resume_education=cv.get("resumeEducation", ""),
+            resume_summary=cv.get("summary", ""),
+            resume_experience=cv.get("experience", ""),
+            resume_skills=cv.get("skills", ""),
+            resume_education=cv.get("education", ""),
         ))
 
     if missing_cv:

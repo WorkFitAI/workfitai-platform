@@ -160,6 +160,13 @@ public class Application {
      */
     private Long cvFileSize;
 
+    /**
+     * ID of the immutable CV snapshot document in cv-service.
+     * Created during the SNAPSHOT_CV saga step by calling cv-service internal API.
+     * Null when cv-service is unavailable (best-effort; ranking still works with empty data).
+     */
+    private String cvSnapshotId;
+
     // ==================== Soft Delete Fields ====================
 
     /**

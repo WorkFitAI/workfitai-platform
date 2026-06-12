@@ -67,6 +67,12 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
         }
     }
 
+    /** Parse a PDF MultipartFile into structured CV sections. Used by snapshot creation. */
+    public ParsedCvData parsePdfFile(MultipartFile file) throws IOException {
+        String text = extractPdfText(file);
+        return parseCvText(text);
+    }
+
     private String extractPdfText(MultipartFile file) throws IOException {
         try (PDDocument doc = PDDocument.load(file.getInputStream())) {
             PDFTextStripper stripper = new PDFTextStripper();

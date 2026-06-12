@@ -67,6 +67,13 @@ app:
       job-stats-update: job-stats-update
       notification-events: notification-events
 
+# =============================================================================
+# CV Service Internal URL (for CV snapshot creation during apply saga)
+# Overridden per profile below
+# =============================================================================
+cv-service:
+  internal-url: ${CV_SERVICE_INTERNAL_URL:http://cv-service:8080}
+
 server:
   port: ${SERVER_PORT:9084}
 
@@ -161,3 +168,6 @@ logging:
     org.springframework.cloud.vault: DEBUG
     org.springframework.kafka: DEBUG
     org.springframework.security: DEBUG
+
+cv-service:
+  internal-url: http://localhost:8082

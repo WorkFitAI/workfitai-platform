@@ -93,5 +93,40 @@ public class ApplicationCreatedEvent {
          */
         @JsonProperty("candidateName")
         private String candidateName;
+
+        // ==================== CV Snapshot Fields ====================
+        // Populated from cv-service snapshot at apply time.
+        // Empty strings when cv-service was unavailable (best-effort).
+
+        /**
+         * MongoDB ID of the immutable CV snapshot in cv-service.
+         */
+        @JsonProperty("cvSnapshotId")
+        private String cvSnapshotId;
+
+        /**
+         * Extracted summary/objective section from the candidate's CV PDF.
+         */
+        @JsonProperty("resumeSummary")
+        private String resumeSummary;
+
+        /**
+         * Extracted work-experience section from the candidate's CV PDF.
+         */
+        @JsonProperty("resumeExperience")
+        private String resumeExperience;
+
+        /**
+         * Extracted skills section from the candidate's CV PDF.
+         */
+        @JsonProperty("resumeSkills")
+        private String resumeSkills;
+
+        /**
+         * Extracted education section from the candidate's CV PDF.
+         */
+        @JsonProperty("resumeEducation")
+        private String resumeEducation;
+
     }
 }

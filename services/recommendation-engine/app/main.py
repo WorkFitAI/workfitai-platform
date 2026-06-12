@@ -103,6 +103,22 @@ async def lifespan(app: FastAPI):
         app_state["cv_refer_store"] = get_store()
         logger.info("✓ CvReferStore initialised")
 
+        # Warm up CvReferStore from authoritative services (mirrors job_sync pattern)
+        if settings.ENABLE_CV_REFER_INITIAL_SYNC:
+            logger.info("Starting cv-refer initial sync...")
+            try:
+                from app.services.cv_refer_sync import sync_cv_refer_from_services
+                await sync_cv_refer_from_services(app_state["cv_refer_store"], settings)
+                store_stats = app_state["cv_refer_store"].get_stats()
+                logger.info(
+                    "✓ cv-refer sync complete: %d jobs, %d CV profiles",
+                    store_stats["total_jobs_tracked"],
+                    store_stats["total_cv_profiles"],
+                )
+            except Exception as e:
+                logger.error("cv-refer initial sync failed: %s", e, exc_info=True)
+                logger.warning("CvReferStore is empty — will rebuild from Kafka events as they arrive")
+
         # Initialize CV ranking pipeline (if enabled)
         if settings.ENABLE_CV_RANKING:
             logger.info("Initializing CV Ranking Pipeline...")
@@ -161,7 +177,6 @@ async def lifespan(app: FastAPI):
                     "group_id": settings.KAFKA_CV_REFER_GROUP,
                     "topic_application_events": settings.KAFKA_TOPIC_APPLICATION_EVENTS,
                     "topic_application_status": settings.KAFKA_TOPIC_APPLICATION_STATUS,
-                    "topic_cv_updated": settings.KAFKA_TOPIC_CV_UPDATED,
                 }
                 app_state["cv_refer_consumer"] = CvReferConsumer(
                     kafka_config=cv_refer_kafka_config,

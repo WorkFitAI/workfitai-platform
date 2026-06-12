@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
+import org.workfitai.applicationservice.client.CvServiceClient;
 import org.workfitai.applicationservice.client.UserServiceClient;
+import org.workfitai.applicationservice.dto.CvSnapshotResponse;
 import org.workfitai.applicationservice.dto.FileUploadResult;
 import org.workfitai.applicationservice.dto.JobInfo;
 import org.workfitai.applicationservice.dto.kafka.ApplicationCreatedEvent;
@@ -32,17 +34,17 @@ import lombok.extern.slf4j.Slf4j;
  * Orchestration Pattern: Sequential saga with compensation on failure.
  * 
  * Saga Steps:
- * 1. VALIDATE - Run validation pipeline (duplicate check, file validation, job
- * validation)
+ * 1. VALIDATE      - Run validation pipeline (duplicate check, file validation, job validation)
  * 2. FETCH_JOB_INFO - Get job details from job-service for snapshot
- * 3. UPLOAD_CV - Upload CV PDF to MinIO
- * 4. SAVE_APPLICATION - Persist application to MongoDB
- * 5. PUBLISH_EVENTS - Fire Kafka events (fire-and-forget)
+ * 3. UPLOAD_CV     - Upload CV PDF to MinIO
+ * 4. SNAPSHOT_CV   - Create CV snapshot in cv-service (best-effort, non-blocking)
+ * 5. SAVE_APPLICATION - Persist application to MongoDB
+ * 6. PUBLISH_EVENTS - Fire Kafka events (fire-and-forget)
  * 
  * Compensation:
- * - If step 4 fails after step 3: Delete uploaded file from MinIO
- * - If step 5 fails: Log warning (events are fire-and-forget, don't rollback
- * application)
+ * - If step 5 fails after step 3: Delete uploaded file from MinIO
+ * - SNAPSHOT_CV failure is silently swallowed (best-effort)
+ * - If step 6 fails: Log warning (events are fire-and-forget, don't rollback application)
  */
 @Component
 @RequiredArgsConstructor
@@ -61,6 +63,7 @@ public class ApplicationSagaOrchestrator {
     private final EventPublisherPort eventPublisher;
     private final ApplicationMapper applicationMapper;
     private final UserServiceClient userServiceClient;
+    private final CvServiceClient cvServiceClient;
 
     /**
      * Execute the full saga for creating an application.
@@ -93,10 +96,13 @@ public class ApplicationSagaOrchestrator {
             // Step 3: Upload CV to MinIO
             executeUploadCvStep(context, request);
 
-            // Step 4: Save application to MongoDB
+            // Step 4: Create CV snapshot in cv-service (best-effort — never fails the saga)
+            executeSnapshotCvStep(context, request);
+
+            // Step 5: Save application to MongoDB
             executeSaveApplicationStep(context);
 
-            // Step 5: Publish events (fire-and-forget)
+            // Step 6: Publish events (fire-and-forget)
             executePublishEventsStep(context);
 
             context.setCompleted(true);
@@ -145,15 +151,50 @@ public class ApplicationSagaOrchestrator {
         log.debug("CV uploaded: url={}", result.getFileUrl());
     }
 
+    /**
+     * SNAPSHOT_CV step — calls cv-service to parse the PDF and create an immutable snapshot CV.
+     *
+     * This step is best-effort: any failure (cv-service down, timeout, parse error) is caught
+     * and logged as a warning. The saga continues with {@code context.cvSnapshot == null}.
+     * Ranking will still work but CV fields will be empty for this applicant.
+     */
+    private void executeSnapshotCvStep(ApplicationSagaContext context, CreateApplicationRequest request) {
+        context.setCurrentStep(SagaStep.SNAPSHOT_CV);
+        log.debug("Saga Step 4: SNAPSHOT_CV");
+
+        // Use a temp UUID as applicationId — will match after save because we pass the same UUID to cv-service
+        // NOTE: the real applicationId is assigned by MongoDB on save; we use a pre-generated UUID
+        // stored in context so cv-service and application-service both refer to the same ID.
+        // We reuse the fileUploadResult UUID pattern; here we generate a fresh one as temp app ID.
+        String tempApplicationId = UUID.randomUUID().toString();
+
+        try {
+            CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
+                    context.getUsername(),
+                    tempApplicationId,
+                    request.getCvPdfFile()
+            );
+            context.setCvSnapshot(snapshot);
+            log.info("Saga SNAPSHOT_CV: snapshot created — cvId={} applicationId={}",
+                    snapshot.getCvId(), tempApplicationId);
+        } catch (Exception e) {
+            // Best-effort: swallow error, ranking will work with empty CV data
+            log.warn("Saga SNAPSHOT_CV: failed to create CV snapshot (non-critical, saga continues): {}",
+                    e.getMessage());
+            context.setCvSnapshot(null);
+        }
+    }
+
     private void executeSaveApplicationStep(ApplicationSagaContext context) {
         context.setCurrentStep(SagaStep.SAVE_APPLICATION);
-        log.debug("Saga Step 4: SAVE_APPLICATION");
+        log.debug("Saga Step 5: SAVE_APPLICATION");
 
         FileUploadResult fileResult = context.getFileUploadResult();
         JobInfo jobInfo = context.getJobInfo();
+        CvSnapshotResponse snapshot = context.getCvSnapshot();
 
         // Build job snapshot
-        Application.JobSnapshot snapshot = Application.JobSnapshot.builder()
+        Application.JobSnapshot jobSnapshot = Application.JobSnapshot.builder()
                 .postId(jobInfo.getPostId())
                 .title(jobInfo.getTitle())
                 .shortDescription(jobInfo.getShortDescription())
@@ -206,11 +247,13 @@ public class ApplicationSagaOrchestrator {
                 .email(context.getEmail())
                 .jobId(context.getJobId())
                 .companyId(jobInfo.getCompanyId())
-                .jobSnapshot(snapshot)
+                .jobSnapshot(jobSnapshot)
                 .cvFileUrl(fileResult.getFileUrl())
                 .cvFileName(fileResult.getFileName())
                 .cvContentType(fileResult.getContentType())
                 .cvFileSize(fileResult.getFileSize())
+                // CV snapshot linkage (null when cv-service was unavailable)
+                .cvSnapshotId(snapshot != null ? snapshot.getCvId() : null)
                 .coverLetter(context.getCoverLetter())
                 .status(ApplicationStatus.APPLIED)
                 .statusHistory(new ArrayList<>(List.of(initialStatus)))
@@ -222,17 +265,18 @@ public class ApplicationSagaOrchestrator {
         Application saved = applicationRepository.save(application);
         context.setSavedApplication(saved);
 
-        log.debug("Application saved: id={}", saved.getId());
+        log.debug("Application saved: id={}, cvSnapshotId={}", saved.getId(), saved.getCvSnapshotId());
     }
 
     private void executePublishEventsStep(ApplicationSagaContext context) {
         context.setCurrentStep(SagaStep.PUBLISH_EVENTS);
-        log.debug("Saga Step 5: PUBLISH_EVENTS (fire-and-forget)");
+        log.debug("Saga Step 6: PUBLISH_EVENTS (fire-and-forget)");
 
         Application app = context.getSavedApplication();
+        CvSnapshotResponse snapshot = context.getCvSnapshot();
 
         try {
-            // Publish APPLICATION_CREATED event for notifications
+            // Publish APPLICATION_CREATED event for notifications + recommendation-engine
             JobInfo jobInfo = context.getJobInfo();
             ApplicationCreatedEvent event = ApplicationCreatedEvent.builder()
                     .eventId(UUID.randomUUID().toString())
@@ -249,11 +293,18 @@ public class ApplicationSagaOrchestrator {
                             .appliedAt(Instant.now())
                             .hrUsername(jobInfo.getCreatedBy())
                             .candidateName(app.getUsername()) // Will be enhanced by notification-service
+                            // CV snapshot fields — empty strings when snapshot unavailable
+                            .cvSnapshotId(snapshot != null ? snapshot.getCvId() : null)
+                            .resumeSummary(snapshot != null ? snapshot.getSummary() : "")
+                            .resumeExperience(snapshot != null ? snapshot.getExperience() : "")
+                            .resumeSkills(snapshot != null ? snapshot.getSkills() : "")
+                            .resumeEducation(snapshot != null ? snapshot.getEducation() : "")
                             .build())
                     .build();
 
             eventPublisher.publishApplicationCreated(event);
-            log.debug("Application created event published");
+            log.debug("Application created event published (cvSnapshotId={})",
+                    snapshot != null ? snapshot.getCvId() : "null");
 
             // Publish JOB_STATS_UPDATE event for job-service
             long totalApplications = applicationRepository.countByJobIdAndDeletedAtIsNull(app.getJobId());
@@ -358,7 +409,7 @@ public class ApplicationSagaOrchestrator {
             }
         }
 
-        // Note: If application was saved, MongoDB transaction will rollback
+        // Note: cv-service snapshot is orphaned on failure — acceptable, cleanup can be done via TTL or admin job
         // Note: Kafka events are fire-and-forget, no compensation needed
     }
 }

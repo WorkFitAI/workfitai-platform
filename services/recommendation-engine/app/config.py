@@ -105,6 +105,13 @@ class Settings(BaseSettings):
     # Job Service Integration
     JOB_SERVICE_URL: str = Field(default="http://job-service:9082", env="JOB_SERVICE_URL")
     JOB_SERVICE_TIMEOUT: int = Field(default=30, env="JOB_SERVICE_TIMEOUT")
+
+    # Application Service & CV Service (for cv-refer initial sync)
+    APPLICATION_SERVICE_URL: str = Field(default="http://application-service:9084", env="APPLICATION_SERVICE_URL")
+    CV_SERVICE_URL: str = Field(default="http://cv-service:9083", env="CV_SERVICE_URL")
+    INTERNAL_SERVICE_TIMEOUT: int = Field(default=30, env="INTERNAL_SERVICE_TIMEOUT")
+    ENABLE_CV_REFER_INITIAL_SYNC: bool = Field(default=True, env="ENABLE_CV_REFER_INITIAL_SYNC")
+    CV_REFER_SYNC_BATCH_SIZE: int = Field(default=200, env="CV_REFER_SYNC_BATCH_SIZE")
     
     # Resume Processing
     MAX_RESUME_SIZE_MB: int = Field(default=5, env="MAX_RESUME_SIZE_MB")
