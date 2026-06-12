@@ -1,5 +1,6 @@
 package org.workfitai.jobservice.config.errors;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -129,6 +130,21 @@ public class GlobalException {
     public void handleClientDisconnect(AsyncRequestNotUsableException ex) {
         log.debug("Client disconnected during response write: {}", ex.getMessage());
         // No response body — socket is already closed
+    }
+
+    /* ===================== EXTERNAL SERVICE ===================== */
+
+    // Feign exceptions propagate from recommendation/CV service calls.
+    // Return 503 (not 500) so gateway retry filter does not retry — retrying a
+    // downstream-unavailable call immediately just amplifies circuit-breaker failures.
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<RestResponse<Object>> handleFeignException(FeignException ex) {
+        log.error("External service call failed: status={}, message={}", ex.status(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(RestResponse.error(
+                        HttpStatus.SERVICE_UNAVAILABLE.value(),
+                        "External service temporarily unavailable. Please try again later."
+                ));
     }
 
     /* ===================== FALLBACK ===================== */

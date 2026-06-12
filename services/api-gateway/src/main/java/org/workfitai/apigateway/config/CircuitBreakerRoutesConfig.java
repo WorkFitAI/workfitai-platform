@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR;
 
 /**
  * Circuit Breaker Routes Configuration
@@ -81,6 +82,21 @@ public class CircuitBreakerRoutesConfig {
                         .uri("lb://user"))
 
                 // ========== Job Service Routes ==========
+                // Dedicated route for recommendation endpoints with its own circuit breaker.
+                // Uses "job-recommendations" CB (not "job") so slow/failing AI calls do not
+                // trip the circuit breaker for regular job requests.
+                // Response timeout (120s) > CB timeLimiter (90s) > Feign readTimeout (60s).
+                // No retries: the AI call is expensive; one attempt is enough.
+                .route("job-recommendations-cb", r -> r
+                        .path("/job/public/recommendations/**")
+                        .filters(f -> f
+                                .stripPrefix(1)
+                                .circuitBreaker(c -> c
+                                        .setName("job-recommendations")
+                                        .setFallbackUri("forward:/fallback/job")))
+                        .metadata(RESPONSE_TIMEOUT_ATTR, Duration.ofSeconds(120))
+                        .uri("lb://job"))
+
                 .route("job-service-cb", r -> r
                         .path("/job/**")
                         .filters(f -> f
@@ -88,10 +104,12 @@ public class CircuitBreakerRoutesConfig {
                                 .circuitBreaker(c -> c
                                         .setName("job")
                                         .setFallbackUri("forward:/fallback/job"))
+                                // SERVICE_UNAVAILABLE removed: CB-open fallback returns 503 and must
+                                // never be retried — retrying amplifies failure counts and keeps CB open.
                                 .retry(retryConfig -> retryConfig
-                                        .setRetries(3)
+                                        .setRetries(2)
                                         .setStatuses(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.BAD_GATEWAY,
-                                                HttpStatus.SERVICE_UNAVAILABLE, HttpStatus.GATEWAY_TIMEOUT)
+                                                HttpStatus.GATEWAY_TIMEOUT)
                                         .setBackoff(Duration.ofMillis(100), Duration.ofMillis(500), 2, true)))
                         .uri("lb://job"))
 

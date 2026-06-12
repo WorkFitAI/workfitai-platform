@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
@@ -42,6 +43,7 @@ public class AdminApplicationService {
      * Use cases: data migration, manual data entry, support fixes
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse createApplication(AdminCreateApplicationRequest request) {
         log.warn("ADMIN: Manual application creation for user={}, job={}, reason={}",
                 request.username(), request.jobId(), request.reason());
@@ -94,6 +96,7 @@ public class AdminApplicationService {
      * Bypasses all validation and business rules
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse overrideApplication(String id, AdminOverrideRequest request) {
         log.warn("ADMIN: Override application id={}, reason={}", id, request.reason());
 
@@ -186,6 +189,7 @@ public class AdminApplicationService {
      * Soft-delete an application: sets deletedAt/deletedBy and changes status to WITHDRAWN.
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse softDeleteApplication(String id, String adminUsername, String reason) {
         log.warn("ADMIN: Soft-deleting application id={}, by={}, reason={}", id, adminUsername, reason);
 
@@ -222,6 +226,7 @@ public class AdminApplicationService {
      * and restores the status prior to the admin's WITHDRAWN change.
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse restoreApplication(String id) {
         log.warn("ADMIN: Restoring application id={}", id);
 
@@ -269,6 +274,7 @@ public class AdminApplicationService {
      * Should only be used after retention period or for GDPR compliance
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public void permanentlyDeleteApplication(String id, String reason) {
         log.warn("ADMIN: Permanent deletion requested id={}, reason={}", id, reason);
 

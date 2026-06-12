@@ -49,6 +49,12 @@ public class JobPlatformStatsService {
                         row -> (Long) row[1]
                 ));
 
+        Map<String, Long> byJobCategory = jobRepository.countPublishedByJobCategory().stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
+
         Map<String, Long> byExperienceLevel = jobRepository.countPublishedByExperienceLevel().stream()
                 .collect(Collectors.toMap(
                         row -> ((ExperienceLevel) row[0]).name(),
@@ -65,7 +71,7 @@ public class JobPlatformStatsService {
                 .toList();
 
         return new JobPlatformStatsResponse(byStatus, totalCompanies, expiringSoon, totalViews,
-                pendingReports, byEmploymentType, byExperienceLevel, topJobsByViews);
+                pendingReports, byEmploymentType, byJobCategory, byExperienceLevel, topJobsByViews);
     }
 
     public HrmJobStatsResponse getCompanyStats(String companyId) {
@@ -81,6 +87,12 @@ public class JobPlatformStatsService {
         Map<String, Long> byEmploymentType = jobRepository.countPublishedByEmploymentTypeForCompany(companyId).stream()
                 .collect(Collectors.toMap(
                         row -> ((EmploymentType) row[0]).name(),
+                        row -> (Long) row[1]
+                ));
+
+        Map<String, Long> byJobCategory = jobRepository.countPublishedByJobCategoryForCompany(companyId).stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
                         row -> (Long) row[1]
                 ));
 
@@ -100,6 +112,6 @@ public class JobPlatformStatsService {
                 .toList();
 
         return new HrmJobStatsResponse(published, draft, closed, expiring, reports,
-                byEmploymentType, byExperienceLevel, topJobsByViews);
+                byEmploymentType, byJobCategory, byExperienceLevel, topJobsByViews);
     }
 }

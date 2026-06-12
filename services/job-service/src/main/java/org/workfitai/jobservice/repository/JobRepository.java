@@ -91,10 +91,16 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
   @Query("SELECT j FROM Job j LEFT JOIN FETCH j.company WHERE j.status = 'PUBLISHED' AND j.isDeleted = false ORDER BY j.views DESC LIMIT 10")
   List<Job> findTop10PublishedByViewsDesc();
 
+  @Query("SELECT j.jobCategory.name, COUNT(j) FROM Job j WHERE j.isDeleted = false AND j.status = 'PUBLISHED' AND j.jobCategory IS NOT NULL GROUP BY j.jobCategory.name")
+  List<Object[]> countPublishedByJobCategory();
+
   // --- Company-scoped stats queries (HRM) ---
 
   @Query("SELECT j.employmentType, COUNT(j) FROM Job j WHERE j.company.companyNo = :companyId AND j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.employmentType")
   List<Object[]> countPublishedByEmploymentTypeForCompany(@Param("companyId") String companyId);
+
+  @Query("SELECT j.jobCategory.name, COUNT(j) FROM Job j WHERE j.company.companyNo = :companyId AND j.isDeleted = false AND j.status = 'PUBLISHED' AND j.jobCategory IS NOT NULL GROUP BY j.jobCategory.name")
+  List<Object[]> countPublishedByJobCategoryForCompany(@Param("companyId") String companyId);
 
   @Query("SELECT j.experienceLevel, COUNT(j) FROM Job j WHERE j.company.companyNo = :companyId AND j.isDeleted = false AND j.status = 'PUBLISHED' GROUP BY j.experienceLevel")
   List<Object[]> countPublishedByExperienceLevelForCompany(@Param("companyId") String companyId);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.workfitai.applicationservice.client.UserServiceClient;
 import org.workfitai.applicationservice.dto.FileUploadResult;
@@ -72,6 +73,7 @@ public class ApplicationSagaOrchestrator {
      * @return ApplicationResponse on success
      * @throws RuntimeException on any saga step failure
      */
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse createApplication(CreateApplicationRequest request, String username) {
         log.info("Starting application creation saga for user: {}, job: {}", username, request.getJobId());
 
