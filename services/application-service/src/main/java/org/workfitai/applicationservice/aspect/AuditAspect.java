@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.workfitai.applicationservice.dto.request.CreateApplicationRequest;
 import org.workfitai.applicationservice.dto.response.ApplicationResponse;
 import org.workfitai.applicationservice.dto.response.BulkUpdateResult;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
@@ -84,6 +85,12 @@ public class AuditAspect {
 
     @Pointcut("execution(* org.workfitai.applicationservice.service.AdminApplicationService.permanentlyDeleteApplication(..))")
     public void adminDeletePointcut() {}
+
+    @Pointcut("execution(* org.workfitai.applicationservice.service.AdminApplicationService.softDeleteApplication(..))")
+    public void adminSoftDeletePointcut() {}
+
+    @Pointcut("execution(* org.workfitai.applicationservice.controller.HRApplicationController.downloadCv(..))")
+    public void downloadCvPointcut() {}
 
     // ─── Capture previous state ───────────────────────────────────────────────
 
@@ -582,6 +589,70 @@ public class AuditAspect {
         }
     }
 
+    // ─── APPLICATION_ADMIN_SOFT_DELETED ──────────────────────────────────────
+
+    @AfterReturning(pointcut = "adminSoftDeletePointcut()", returning = "result")
+    public void logAdminSoftDeleted(JoinPoint joinPoint, Object result) {
+        try {
+            String applicationId = (String) joinPoint.getArgs()[0];
+            auditLogService.logAction(
+                    "APPLICATION", applicationId,
+                    "APPLICATION_ADMIN_SOFT_DELETED",
+                    getCurrentUsername(),
+                    null, Map.of("deleted", true, "deletedAt", System.currentTimeMillis()),
+                    buildMetadata("Admin soft-deleted application"));
+        } catch (Exception e) {
+            log.error("Error logging APPLICATION_ADMIN_SOFT_DELETED", e);
+        }
+    }
+
+    @AfterThrowing(pointcut = "adminSoftDeletePointcut()", throwing = "ex")
+    public void logAdminSoftDeleteFailed(JoinPoint joinPoint, Throwable ex) {
+        try {
+            String applicationId = (String) joinPoint.getArgs()[0];
+            auditLogService.logFailure(
+                    "APPLICATION", applicationId,
+                    "APPLICATION_ADMIN_SOFT_DELETED",
+                    getCurrentUsername(),
+                    ex.getMessage(),
+                    buildMetadata("Admin soft-delete failed"));
+        } catch (Exception e) {
+            log.error("Error logging APPLICATION_ADMIN_SOFT_DELETED failure", e);
+        }
+    }
+
+    // ─── APPLICATION_CV_DOWNLOADED ────────────────────────────────────────────
+
+    @AfterReturning(pointcut = "downloadCvPointcut()")
+    public void logCvDownloaded(JoinPoint joinPoint) {
+        try {
+            String applicationId = (String) joinPoint.getArgs()[0];
+            auditLogService.logAction(
+                    "APPLICATION", applicationId,
+                    "APPLICATION_CV_DOWNLOADED",
+                    getCurrentUsername(),
+                    null, Map.of("downloadedAt", System.currentTimeMillis()),
+                    buildMetadata("CV file downloaded for application"));
+        } catch (Exception e) {
+            log.error("Error logging APPLICATION_CV_DOWNLOADED", e);
+        }
+    }
+
+    @AfterThrowing(pointcut = "downloadCvPointcut()", throwing = "ex")
+    public void logCvDownloadFailed(JoinPoint joinPoint, Throwable ex) {
+        try {
+            String applicationId = (String) joinPoint.getArgs()[0];
+            auditLogService.logFailure(
+                    "APPLICATION", applicationId,
+                    "APPLICATION_CV_DOWNLOADED",
+                    getCurrentUsername(),
+                    ex.getMessage(),
+                    buildMetadata("CV download failed"));
+        } catch (Exception e) {
+            log.error("Error logging APPLICATION_CV_DOWNLOADED failure", e);
+        }
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private String getCurrentUsername() {
@@ -601,7 +672,7 @@ public class AuditAspect {
 
     private String extractJobIdFromArgs(Object[] args) {
         for (Object arg : args) {
-            if (arg instanceof org.workfitai.applicationservice.dto.request.CreateApplicationRequest req) {
+            if (arg instanceof CreateApplicationRequest req) {
                 return req.getJobId();
             }
         }

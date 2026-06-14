@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 3
+  },
+  "jobTitle": "Mobile Developer - React Native",
+  "resume_index": 10,
+  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with React Native, FastAPI, and Firebase. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Mobile Engineer @ AIA Vietnam (Aug 2022–Dec 2023) · Reduced end-to-end API latency by 64% by introducing ONNX caching and query optimisation. | Senior Mobile Engineer @ AEON Vietnam (May 2022–Nov 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | iOS/Android Engineer @ Oracle Vietnam (May 2024–Jul 2025) | Mobile Developer @ McKinsey & Company Vietnam (Dec 2022–Oct 2025) | Mobile Developer @ MoMo (M-Service) (Mar 2025–Present)",
+  "resume_skills": "TypeScript, React Native, Redux, Firebase, Flutter, FastAPI, C#, Scala, Microservices, CI/CD, Ownership & Accountability, Negotiation, Project Planning, Empathy & Active Listening",
+  "resume_education": "Bachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with React Native, FastAPI, and Firebase. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Mobile Engineer @ AIA Vietnam (Aug 2022–Dec 2023) · Reduced end-to-end API latency by 64% by introducing ONNX caching and query optimisation. | Senior Mobile Engineer @ AEON Vietnam (May 2022–Nov 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | iOS/Android Engineer @ Oracle Vietnam (May 2024–Jul 2025) | Mobile Developer @ McKinsey & Company Vietnam (Dec 2022–Oct 2025) | Mobile Developer @ MoMo (M-Service) (Mar 2025–Present)\n\nSKILLS\nTypeScript, React Native, Redux, Firebase, Flutter, FastAPI, C#, Scala, Microservices, CI/CD, Ownership & Accountability, Negotiation, Project Planning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900",
+  "pdf_file": "candidate4_10.pdf"
+}

@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -125,9 +127,35 @@ public class SecurityConfig {
          */
         @Bean
         public ReactiveJwtDecoder jwtDecoder() {
-                RSAPublicKey key = publicKeyProvider.getPublicKey();
-                log.info("🔐 [Gateway] Building JWT decoder with RSA public key");
-                return NimbusReactiveJwtDecoder.withPublicKey(key).build();
+                return new ReactiveJwtDecoder() {
+                        private volatile NimbusReactiveJwtDecoder delegate;
+
+                        private NimbusReactiveJwtDecoder build() {
+                                RSAPublicKey key = publicKeyProvider.getPublicKey();
+                                log.info("🔐 [Gateway] Building JWT decoder with RSA public key");
+                                return NimbusReactiveJwtDecoder.withPublicKey(key).build();
+                        }
+
+                        @Override
+                        public Mono<Jwt> decode(String token) throws JwtException {
+                                if (delegate == null) {
+                                        synchronized (this) {
+                                                if (delegate == null) {
+                                                        delegate = build();
+                                                }
+                                        }
+                                }
+                                return delegate.decode(token)
+                                        .onErrorResume(JwtException.class, e -> {
+                                                // Stale key after auth-service restart — refresh once and retry
+                                                synchronized (this) {
+                                                        publicKeyProvider.invalidateKey();
+                                                        delegate = build();
+                                                }
+                                                return delegate.decode(token);
+                                        });
+                        }
+                };
         }
 
         /*

@@ -1,0 +1,15 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 3
+  },
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "resume_index": 5,
+  "resume_summary": "Versatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in TypeScript and Go. Mentored 11 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Lead Security Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Senior Security Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Security Engineer @ VPBank (Aug 2022–Jun 2025) | Security Analyst @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
+  "resume_skills": "Python, SIEM, TypeScript, Go, Neo4j, Redis, BigQuery, Jenkins, AWS, Azure, Event-Driven Architecture, CI/CD, Data-Driven Decision Making, Empathy & Active Listening, Continuous Learning",
+  "resume_education": "Bachelor of Science in Cybersecurity – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in TypeScript and Go. Mentored 11 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nLead Security Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Senior Security Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Security Engineer @ VPBank (Aug 2022–Jun 2025) | Security Analyst @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nPython, SIEM, TypeScript, Go, Neo4j, Redis, BigQuery, Jenkins, AWS, Azure, Event-Driven Architecture, CI/CD, Data-Driven Decision Making, Empathy & Active Listening, Continuous Learning\n\nEDUCATION\nBachelor of Science in Cybersecurity – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "pdf_file": "candidate9_5.pdf"
+}

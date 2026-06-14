@@ -31,7 +31,6 @@ import org.workfitai.applicationservice.dto.response.HRUserResponse;
 import org.workfitai.applicationservice.dto.response.ManagerStatsResponse;
 import org.workfitai.applicationservice.dto.response.RestResponse;
 import org.workfitai.applicationservice.dto.response.ResultPaginationDTO;
-import org.workfitai.applicationservice.exception.ForbiddenException;
 import org.workfitai.applicationservice.model.enums.ApplicationStatus;
 import org.workfitai.applicationservice.security.ApplicationSecurity;
 import org.workfitai.applicationservice.service.AssignmentService;
@@ -78,17 +77,18 @@ public class ManagerApplicationController {
             @RequestParam(required = false) ApplicationStatus status,
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) @Parameter(description = "Filter by job title (case-insensitive partial match)") String jobTitle,
+            @RequestParam(required = false) @Parameter(description = "Keyword search across username, email and job title (case-insensitive partial match)") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        log.info("Fetching company applications: companyId={}, status={}, assignedTo={}, jobTitle={}",
-                companyId, status, assignedTo, jobTitle);
+        log.info("Fetching company applications: companyId={}, status={}, assignedTo={}, jobTitle={}, keyword={}",
+                companyId, status, assignedTo, jobTitle, keyword);
         size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         ResultPaginationDTO<ApplicationResponse> result = companyApplicationService
-                .getCompanyApplicationsWithFilters(companyId, status, assignedTo, jobTitle, pageable);
+                .getCompanyApplicationsWithFilters(companyId, status, assignedTo, jobTitle, keyword, pageable);
         return ResponseEntity.ok(RestResponse.success(result));
     }
 
@@ -118,15 +118,12 @@ public class ManagerApplicationController {
     }
 
     @GetMapping("/manager/stats")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<ManagerStatsResponse>> getManagerStats(
             @RequestParam @Parameter(description = "Company ID", required = true) String companyId,
             Authentication authentication) {
 
         log.info("Fetching manager stats for company: {}", companyId);
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("You don't have access to this company's statistics");
-        }
         ManagerStatsResponse response = managerStatsService.getManagerStats(companyId);
         return ResponseEntity.ok(RestResponse.success(response));
     }
@@ -144,21 +141,18 @@ public class ManagerApplicationController {
     }
 
     @GetMapping("/company/{companyId}/hr-users")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<List<HRUserResponse>>> getCompanyHRUsers(
             @PathVariable @Parameter(description = "Company ID") String companyId,
             Authentication authentication) {
 
         log.info("Fetching HR users for company: {}", companyId);
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("Access denied. You are not authorized to view HR users for this company.");
-        }
         List<HRUserResponse> hrUsers = companyHRService.getCompanyHRUsers(companyId);
         return ResponseEntity.ok(RestResponse.success(hrUsers));
     }
 
     @GetMapping("/company/{companyId}/hr-activities")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<ResultPaginationDTO<HRAuditActivityResponse>>> getCompanyHRAuditActivities(
             @PathVariable @Parameter(description = "Company ID") String companyId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
@@ -168,10 +162,6 @@ public class ManagerApplicationController {
             Authentication authentication) {
 
         log.info("Fetching HR audit activities: companyId={}, fromDate={}, toDate={}", companyId, fromDate, toDate);
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("Access denied. You are not authorized to view audit activities for this company.");
-        }
-
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "performedAt"));
         Page<HRAuditActivityResponse> activities = companyHRService.getCompanyHRAuditActivities(
                 companyId, fromDate, toDate, pageable);
@@ -193,7 +183,7 @@ public class ManagerApplicationController {
     }
 
     @GetMapping("/company/{companyId}/candidates")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<ResultPaginationDTO<CandidateSummaryResponse>>> getCompanyCandidates(
             @PathVariable @Parameter(description = "Company ID") String companyId,
             @RequestParam(required = false) @Parameter(description = "Search by username or email") String search,
@@ -202,9 +192,6 @@ public class ManagerApplicationController {
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("Access denied to this company's candidates");
-        }
         log.info("Fetching candidate list: companyId={}, search={}, status={}", companyId, search, status);
         size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -213,22 +200,19 @@ public class ManagerApplicationController {
     }
 
     @GetMapping("/company/{companyId}/candidates/{username}")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<CandidateProfileResponse>> getCandidateProfile(
             @PathVariable @Parameter(description = "Company ID") String companyId,
             @PathVariable @Parameter(description = "Candidate username") String username,
             Authentication authentication) {
 
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("Access denied to this company's candidates");
-        }
         log.info("Fetching candidate profile: companyId={}, username={}", companyId, username);
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getCandidateProfile(companyId, username)));
     }
 
     @GetMapping("/company/{companyId}/jobs")
-    @PreAuthorize("hasAuthority('application:manage')")
+    @PreAuthorize("hasAuthority('application:manage') && @applicationSecurity.isSameCompany(#companyId, authentication)")
     public ResponseEntity<RestResponse<ResultPaginationDTO<CompanyJobSummaryResponse>>> getCompanyJobs(
             @PathVariable @Parameter(description = "Company ID") String companyId,
             @RequestParam(required = false) @Parameter(description = "Filter by job title") String jobTitle,
@@ -236,9 +220,6 @@ public class ManagerApplicationController {
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        if (!applicationSecurity.isSameCompany(companyId, authentication)) {
-            throw new ForbiddenException("Access denied to this company's jobs");
-        }
         log.info("Fetching company jobs with stats: companyId={}, jobTitle={}", companyId, jobTitle);
         size = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, size);

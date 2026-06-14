@@ -209,20 +209,12 @@ public class HRApplicationController {
     }
 
     @GetMapping("/hr/dashboard")
-    @PreAuthorize("hasAuthority('application:review')")
+    @PreAuthorize("hasAuthority('application:review') && (#hrUsername == null || #hrUsername == authentication.name || @applicationSecurity.isAdmin(authentication))")
     public ResponseEntity<RestResponse<DashboardStatsResponse>> getDashboardStats(
             @RequestParam(required = false) String hrUsername,
             Authentication authentication) {
 
-        String currentUser = applicationSecurity.getCurrentUsername(authentication);
-        boolean isAdmin = applicationSecurity.isAdmin(authentication);
-
-        // Only admins may query another user's stats
-        if (hrUsername != null && !hrUsername.equals(currentUser) && !isAdmin) {
-            throw new ForbiddenException("You can only view your own dashboard stats");
-        }
-
-        String username = hrUsername != null ? hrUsername : currentUser;
+        String username = hrUsername != null ? hrUsername : applicationSecurity.getCurrentUsername(authentication);
         DashboardStatsResponse response = applicationStatsService.getDashboardStats(username);
         return ResponseEntity.ok(RestResponse.success(response));
     }

@@ -225,6 +225,8 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
+    volumes:
+      - auth-keys:/tmp/auth-keys
     depends_on:
       consul:
         condition: service_started
@@ -933,11 +935,12 @@ services:
       - KAFKA_TOPIC_APPLICATION_EVENTS=application-events
       - KAFKA_TOPIC_APPLICATION_STATUS=application-status
       - KAFKA_CV_REFER_GROUP=recommendation-engine-cv-refer
-    command: ["bash", "/app/run-docker.sh"]
+    command: ["bash", "-c", "/app/download-models.sh && /app/run-docker.sh"]
     volumes:
+      - ./services/recommendation-engine/download-models.sh:/app/download-models.sh:ro
       - ./services/recommendation-engine/run-docker.sh:/app/run-docker.sh:ro
-      # Mount pre-trained models (read-only)
-      - ./services/recommendation-engine/models:/app/models:ro
+      # Models dir is writable so download-models.sh can populate it on first start
+      - ./services/recommendation-engine/models:/app/models
       # Mount cv_ranking_config.yaml
       - ./services/recommendation-engine/config:/app/config:ro
       # Persist data dir (FAISS files are cleaned on startup; volume holds .model_dimension and other data)
@@ -1043,6 +1046,7 @@ volumes:
   elasticsearch-data:
   recommendation-data:
   nginx-cache:
+  auth-keys:
 
 networks:
   workfitai-net:

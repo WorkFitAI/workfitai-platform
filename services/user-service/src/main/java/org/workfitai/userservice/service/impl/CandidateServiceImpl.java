@@ -197,8 +197,12 @@ public class CandidateServiceImpl implements CandidateService {
         existingCandidate.setEmail(userData.getEmail());
         existingCandidate.setUsername(userData.getUsername());
         existingCandidate.setFullName(userData.getFullName());
-        existingCandidate.setPhoneNumber(userData.getPhoneNumber());
-        existingCandidate.setPasswordHash(userData.getPasswordHash());
+        if (StringUtils.hasText(userData.getPhoneNumber())) {
+          existingCandidate.setPhoneNumber(userData.getPhoneNumber());
+        }
+        if (StringUtils.hasText(userData.getPasswordHash())) {
+          existingCandidate.setPasswordHash(userData.getPasswordHash());
+        }
         existingCandidate.setUserStatus(status);
 
         CandidateEntity updatedCandidate = candidateRepository.save(existingCandidate);
@@ -207,18 +211,17 @@ public class CandidateServiceImpl implements CandidateService {
         return;
       }
 
-      // Check for constraint violations before creating new candidate
-      if (candidateRepository.existsByPhoneNumber(userData.getPhoneNumber())) {
+      // Detect registration type: OAuth users have no password hash
+      boolean isOAuthRegistration = !StringUtils.hasText(userData.getPasswordHash());
+
+      // Check for phone number conflict only for non-OAuth users with a provided phone
+      if (!isOAuthRegistration && StringUtils.hasText(userData.getPhoneNumber())
+          && candidateRepository.existsByPhoneNumber(userData.getPhoneNumber())) {
         log.warn(
             "Phone number {} already exists in database but belongs to different user. Skipping creation to prevent constraint violation.",
             userData.getPhoneNumber());
-        // Acknowledge message without throwing - this is a business logic issue, not a
-        // technical error
         return;
       }
-
-      // Detect registration type: OAuth users have no password
-      boolean isOAuthRegistration = userData.getPasswordHash() == null || userData.getPasswordHash().isBlank();
 
       // Validate required fields based on registration type
       if (!isOAuthRegistration) {

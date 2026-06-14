@@ -14,6 +14,7 @@ import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.LoginRequest;
 import org.workfitai.authservice.dto.request.RegisterRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
+import org.workfitai.authservice.dto.response.IssuedTokens;
 import org.workfitai.authservice.enums.Provider;
 import org.workfitai.authservice.service.AuthAuditService;
 
@@ -87,6 +88,9 @@ public class AuthAuditAspect {
 
     @Pointcut("execution(* org.workfitai.authservice.service.SessionService.deleteAllSessionsExceptCurrent(..))")
     public void deleteAllSessionsPointcut() {}
+
+    @Pointcut("execution(* org.workfitai.authservice.service.impl.AuthServiceImpl.refresh(..))")
+    public void refreshPointcut() {}
 
     // ─── Login ────────────────────────────────────────────────────────────────
 
@@ -445,6 +449,28 @@ public class AuthAuditAspect {
             authAuditService.logAllSessionsDeleted(userId);
         } catch (Exception e) {
             log.error("Audit error on deleteAllSessionsPointcut", e);
+        }
+    }
+
+    // ─── Token Refresh ────────────────────────────────────────────────────────
+
+    @AfterReturning(pointcut = "refreshPointcut()", returning = "result")
+    public void logTokenRefreshed(Object result) {
+        try {
+            String username = (result instanceof IssuedTokens tokens && tokens.getUsername() != null)
+                    ? tokens.getUsername() : "unknown";
+            authAuditService.logTokenRefreshed(username);
+        } catch (Exception e) {
+            log.error("Audit error on refreshPointcut success", e);
+        }
+    }
+
+    @AfterThrowing(pointcut = "refreshPointcut()", throwing = "ex")
+    public void logTokenRefreshFailed(Throwable ex) {
+        try {
+            authAuditService.logTokenRefreshFailed(ex.getMessage());
+        } catch (Exception e) {
+            log.error("Audit error on refreshPointcut failure", e);
         }
     }
 

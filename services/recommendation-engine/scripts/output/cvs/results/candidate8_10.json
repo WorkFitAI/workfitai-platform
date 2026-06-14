@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 2
+  },
+  "jobTitle": "Data Scientist - Machine Learning",
+  "resume_index": 10,
+  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with R, Tableau, and Python. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Data Scientist @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Data Scientist @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Data Scientist @ Oracle Vietnam (Jan 2023–Jun 2025) | Data Analyst @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Data Analyst @ MoMo (M-Service) (Dec 2024–Present)",
+  "resume_skills": "TensorFlow, scikit-learn, SQL, Python, MongoDB, BigQuery, Tableau, Metabase, Power BI, Mixpanel, R, Dart, Kotlin, Bash, Spark, Problem Decomposition, Empathy & Active Listening, Continuous Learning, Negotiation",
+  "resume_education": "Bachelor of Science in Data Science – VNU-HN, 2017 | TOEIC 900",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with R, Tableau, and Python. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Data Scientist @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Data Scientist @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Data Scientist @ Oracle Vietnam (Jan 2023–Jun 2025) | Data Analyst @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Data Analyst @ MoMo (M-Service) (Dec 2024–Present)\n\nSKILLS\nTensorFlow, scikit-learn, SQL, Python, MongoDB, BigQuery, Tableau, Metabase, Power BI, Mixpanel, R, Dart, Kotlin, Bash, Spark, Problem Decomposition, Empathy & Active Listening, Continuous Learning, Negotiation\n\nEDUCATION\nBachelor of Science in Data Science – VNU-HN, 2017 | TOEIC 900",
+  "pdf_file": "candidate8_10.pdf"
+}

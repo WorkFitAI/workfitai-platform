@@ -1,0 +1,15 @@
+{
+  "candidateNum": 8,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 1
+  },
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "resume_index": 8,
+  "resume_summary": "Results-driven senior DevOps / Platform Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in WebSocket, Jenkins, and gRPC. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Lead Platform Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Platform Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "ReactJS, Azure, AWS, Jenkins, gRPC, WebSocket, Scala, Python, Data-Driven Decision Making, Conflict Resolution, Empathy & Active Listening, Continuous Learning",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior DevOps / Platform Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in WebSocket, Jenkins, and gRPC. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Platform Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Platform Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nReactJS, Azure, AWS, Jenkins, gRPC, WebSocket, Scala, Python, Data-Driven Decision Making, Conflict Resolution, Empathy & Active Listening, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate2_8.pdf"
+}

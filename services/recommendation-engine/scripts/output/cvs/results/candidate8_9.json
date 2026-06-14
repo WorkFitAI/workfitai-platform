@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 2
+  },
+  "jobTitle": "Data Scientist - Machine Learning",
+  "resume_index": 9,
+  "resume_summary": "Open-source contributor and mid-level Data Scientist with 4 years of hands-on experience. Strong foundation in MongoDB and Neo4j. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.",
+  "resume_experience": "Lead Data Scientist @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Senior Data Scientist @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Data Scientist @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Data Analyst @ PwC Vietnam (Aug 2025–Present)",
+  "resume_skills": "TensorFlow, Neo4j, ClickHouse, PostgreSQL, MongoDB, HuggingFace Transformers, FAISS, PyTorch, Amplitude, Excel (Advanced), R, Go, JavaScript, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management",
+  "resume_education": "Bachelor of Science in Data Science – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nOpen-source contributor and mid-level Data Scientist with 4 years of hands-on experience. Strong foundation in MongoDB and Neo4j. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.\n\nEXPERIENCE\nLead Data Scientist @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Senior Data Scientist @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Data Scientist @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Data Analyst @ PwC Vietnam (Aug 2025–Present)\n\nSKILLS\nTensorFlow, Neo4j, ClickHouse, PostgreSQL, MongoDB, HuggingFace Transformers, FAISS, PyTorch, Amplitude, Excel (Advanced), R, Go, JavaScript, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management\n\nEDUCATION\nBachelor of Science in Data Science – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate8_9.pdf"
+}

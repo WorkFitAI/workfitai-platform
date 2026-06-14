@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 0
+  },
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "resume_index": 9,
+  "resume_summary": "4+ years as a Cloud Solutions Architect specialising in CQRS and PostgreSQL. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal Architect @ ACB Bank (May 2022–Jan 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 84%. | Senior Solutions Architect @ AIA Vietnam (Aug 2022–Sep 2024) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Solutions Architect @ McKinsey & Company Vietnam (Oct 2023–Jun 2025) | Cloud Engineer @ PwC Vietnam (Apr 2025–Present)",
+  "resume_skills": "Terraform, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, Redis, Neo4j, PostgreSQL, JavaScript, Rust, GCP, AWS, Jenkins, Conflict Resolution, Leadership & Mentoring, Stakeholder Management, Project Planning",
+  "resume_education": "Bachelor of Science in Information Technology – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\n4+ years as a Cloud Solutions Architect specialising in CQRS and PostgreSQL. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Architect @ ACB Bank (May 2022–Jan 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 84%. | Senior Solutions Architect @ AIA Vietnam (Aug 2022–Sep 2024) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Solutions Architect @ McKinsey & Company Vietnam (Oct 2023–Jun 2025) | Cloud Engineer @ PwC Vietnam (Apr 2025–Present)\n\nSKILLS\nTerraform, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, Redis, Neo4j, PostgreSQL, JavaScript, Rust, GCP, AWS, Jenkins, Conflict Resolution, Leadership & Mentoring, Stakeholder Management, Project Planning\n\nEDUCATION\nBachelor of Science in Information Technology – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate6_9.pdf"
+}

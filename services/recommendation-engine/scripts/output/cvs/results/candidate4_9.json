@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 3
+  },
+  "jobTitle": "Mobile Developer - React Native",
+  "resume_index": 9,
+  "resume_summary": "Pragmatic Mobile Engineer (Android & iOS) with 4 years across edtech and enterprise software. Skilled in Agile / Scrum, Bash, and CI/CD. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
+  "resume_experience": "Lead Mobile Engineer @ ACB Bank (Sep 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 20h to under 10min. | Senior Mobile Engineer @ AIA Vietnam (May 2023–Apr 2025) · Led 4-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ McKinsey & Company Vietnam (Apr 2024–Sep 2025) | Mobile Developer @ PwC Vietnam (Sep 2025–Present)",
+  "resume_skills": "Redux, Angular, Flutter, React, Microservices, CI/CD, Agile / Scrum, Bash, Dart, Empathy & Active Listening, Leadership & Mentoring, Project Planning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nPragmatic Mobile Engineer (Android & iOS) with 4 years across edtech and enterprise software. Skilled in Agile / Scrum, Bash, and CI/CD. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nLead Mobile Engineer @ ACB Bank (Sep 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 20h to under 10min. | Senior Mobile Engineer @ AIA Vietnam (May 2023–Apr 2025) · Led 4-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ McKinsey & Company Vietnam (Apr 2024–Sep 2025) | Mobile Developer @ PwC Vietnam (Sep 2025–Present)\n\nSKILLS\nRedux, Angular, Flutter, React, Microservices, CI/CD, Agile / Scrum, Bash, Dart, Empathy & Active Listening, Leadership & Mentoring, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750",
+  "pdf_file": "candidate4_9.pdf"
+}

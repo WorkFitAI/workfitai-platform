@@ -226,7 +226,7 @@ async def rank_by_job(
 
 async def _fetch_job_data(job_service_url: str, job_id: str, timeout: int) -> Optional[dict]:
     """Fetch job details from job-service. Returns None on failure."""
-    url = f"{job_service_url}/api/v1/public/jobs/{job_id}"
+    url = f"{job_service_url}/public/jobs/{job_id}"
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.get(url)

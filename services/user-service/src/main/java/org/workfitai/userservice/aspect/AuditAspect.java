@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.workfitai.userservice.dto.kafka.AuditEvent;
+import org.workfitai.userservice.dto.response.AdminResponse;
+import org.workfitai.userservice.dto.response.CandidateResponse;
 import org.workfitai.userservice.dto.response.HRResponse;
 import org.workfitai.userservice.messaging.AuditEventPublisher;
 
@@ -115,6 +117,104 @@ public class AuditAspect {
     )
     public void logRejectByUsername(Object result) {
         logReject(result);
+    }
+
+    // ─── Admin CRUD ───────────────────────────────────────────────────────────
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.AdminServiceImpl.create(..))",
+        returning = "result"
+    )
+    public void logAdminCreated(Object result) {
+        if (!(result instanceof AdminResponse resp)) return;
+        publish("USER", resp.getUsername(), "ADMIN_CREATED", null, null);
+    }
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.AdminServiceImpl.update(..))",
+        returning = "result"
+    )
+    public void logAdminUpdated(Object result) {
+        if (!(result instanceof AdminResponse resp)) return;
+        publish("USER", resp.getUsername(), "ADMIN_UPDATED", null, null);
+    }
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.impl.AdminServiceImpl.delete(..))")
+    public void logAdminDeleted(JoinPoint jp) {
+        UUID id = (UUID) jp.getArgs()[0];
+        publish("USER", id.toString(), "ADMIN_DELETED", null, null);
+    }
+
+    // ─── Account Lifecycle ────────────────────────────────────────────────────
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.AccountManagementService.deactivateAccount(..))")
+    public void logAccountDeactivated(JoinPoint jp) {
+        String username = (String) jp.getArgs()[0];
+        publish("USER", username, "ACCOUNT_DEACTIVATED", null, null);
+    }
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.AccountManagementService.requestAccountDeletion(..))")
+    public void logAccountDeletionRequested(JoinPoint jp) {
+        String username = (String) jp.getArgs()[0];
+        publish("USER", username, "ACCOUNT_DELETION_REQUESTED", null, null);
+    }
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.AccountManagementService.cancelAccountDeletion(..))")
+    public void logAccountDeletionCancelled(JoinPoint jp) {
+        String username = (String) jp.getArgs()[0];
+        publish("USER", username, "ACCOUNT_DELETION_CANCELLED", null, null);
+    }
+
+    // ─── Candidate Profile ────────────────────────────────────────────────────
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.CandidateServiceImpl.create(..))",
+        returning = "result"
+    )
+    public void logCandidateCreated(Object result) {
+        if (!(result instanceof CandidateResponse resp)) return;
+        publish("USER", resp.getUsername(), "CANDIDATE_PROFILE_CREATED", null, null);
+    }
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.CandidateServiceImpl.update(..))",
+        returning = "result"
+    )
+    public void logCandidateUpdated(Object result) {
+        if (!(result instanceof CandidateResponse resp)) return;
+        publish("USER", resp.getUsername(), "CANDIDATE_PROFILE_UPDATED", null, null);
+    }
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.impl.CandidateServiceImpl.delete(..))")
+    public void logCandidateDeleted(JoinPoint jp) {
+        UUID id = (UUID) jp.getArgs()[0];
+        publish("USER", id.toString(), "CANDIDATE_PROFILE_DELETED", null, null);
+    }
+
+    // ─── HR Profile CRUD ─────────────────────────────────────────────────────
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.HRServiceImpl.create(..))",
+        returning = "result"
+    )
+    public void logHRCreated(Object result) {
+        if (!(result instanceof HRResponse hr)) return;
+        publish("USER", hr.getUsername(), "HR_PROFILE_CREATED", null, null);
+    }
+
+    @AfterReturning(
+        pointcut = "execution(* org.workfitai.userservice.service.impl.HRServiceImpl.update(..))",
+        returning = "result"
+    )
+    public void logHRUpdated(Object result) {
+        if (!(result instanceof HRResponse hr)) return;
+        publish("USER", hr.getUsername(), "HR_PROFILE_UPDATED", null, null);
+    }
+
+    @AfterReturning("execution(* org.workfitai.userservice.service.impl.HRServiceImpl.delete(..))")
+    public void logHRDeleted(JoinPoint jp) {
+        UUID id = (UUID) jp.getArgs()[0];
+        publish("USER", id.toString(), "HR_PROFILE_DELETED", null, null);
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────

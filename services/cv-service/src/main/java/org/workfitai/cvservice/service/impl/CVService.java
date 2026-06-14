@@ -330,14 +330,16 @@ public class CVService implements iCVService {
         }
     }
 
-    // ---------------- BATCH SNAPSHOT BY APPLICATION IDS ----------------
+    // ---------------- BATCH SNAPSHOT BY SNAPSHOT IDS ----------------
+    // Callers pass CV document IDs (cvSnapshotId from Application), so we query by _id, not applicationId.
     @Override
-    public List<CvSnapshotResponse> getCvSnapshotsByApplicationIds(List<String> applicationIds) {
-        if (applicationIds == null || applicationIds.isEmpty()) {
+    public List<CvSnapshotResponse> getCvSnapshotsByApplicationIds(List<String> snapshotIds) {
+        if (snapshotIds == null || snapshotIds.isEmpty()) {
             return List.of();
         }
-        return repository.findByApplicationIdIn(applicationIds)
-                .stream()
+        List<CV> found = new java.util.ArrayList<>();
+        repository.findAllById(snapshotIds).forEach(found::add);
+        return found.stream()
                 .map(cv -> CvSnapshotResponse.builder()
                         .cvId(cv.getCvId())
                         .summary(cv.getSummary() != null ? cv.getSummary() : "")

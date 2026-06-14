@@ -9,7 +9,7 @@ top_n: 20            # Final candidates returned after cross-encoder
 cross_encoder_model: cross-encoder
 
 # Stage 3: T5 Explanation
-t5_model: t5-explanation
+t5_model: explanation-t5
 
 # Score thresholds
 min_score: 20.0          # CVs below this are excluded from results entirely

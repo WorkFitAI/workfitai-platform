@@ -18,7 +18,7 @@ import java.util.Map;
 public class PublicKeyProvider {
 
   private final AuthFeignClient authFeignClient;
-  private RSAPublicKey cachedKey;
+  private volatile RSAPublicKey cachedKey;
 
   @PostConstruct
   public void init() {
@@ -32,9 +32,17 @@ public class PublicKeyProvider {
 
   public RSAPublicKey getPublicKey() throws Exception {
     if (cachedKey == null) {
-      cachedKey = fetchPublicKey();
+      synchronized (this) {
+        if (cachedKey == null) {
+          cachedKey = fetchPublicKey();
+        }
+      }
     }
     return cachedKey;
+  }
+
+  public void invalidateKey() {
+    this.cachedKey = null;
   }
 
   private RSAPublicKey fetchPublicKey() throws Exception {

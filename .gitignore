@@ -74,5 +74,3 @@ api-docs/.json.backup
 /services/recommendation-engine/**/*.pyc
 /services/recommendation-engine/app/__pycache__/
 /services/recommendation-engine/app/**/__pycache__/
-
-services/recommendation-engine/app/models/

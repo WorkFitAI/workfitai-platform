@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -52,7 +51,7 @@ public class AdminController {
      * Includes withdrawn and soft-deleted applications by default.
      * GET /admin/applications?page=0&size=50&status=APPLIED&companyId=xxx&username=xxx&includeDeleted=true
      */
-    @GetMapping("/applications")
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<Page<ApplicationResponse>>> getApplications(
             @RequestParam(defaultValue = "0") int page,
@@ -80,10 +79,10 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<ApplicationResponse>> deleteApplication(
             @PathVariable String id,
-            @RequestParam(required = false, defaultValue = "Admin deleted") String reason
+            @RequestParam(required = false, defaultValue = "Admin deleted") String reason,
+            Authentication authentication
     ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String adminUsername = auth != null ? auth.getName() : "ADMIN";
+        String adminUsername = authentication != null ? authentication.getName() : "ADMIN";
 
         log.warn("ADMIN: Soft-deleting application id={}, by={}, reason={}", id, adminUsername, reason);
 

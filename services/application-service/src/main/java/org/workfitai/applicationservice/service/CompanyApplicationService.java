@@ -70,16 +70,17 @@ public class CompanyApplicationService {
         return toResultPaginationDTO(new PageImpl<>(responses, pageable, total));
     }
 
-    /** Dynamic filter: any combination of status, assignedTo, and jobTitle (case-insensitive partial match). */
+    /** Dynamic filter: any combination of status, assignedTo, jobTitle, and keyword (case-insensitive partial match). */
     public ResultPaginationDTO<ApplicationResponse> getCompanyApplicationsWithFilters(
             String companyId,
             ApplicationStatus status,
             String assignedTo,
             String jobTitle,
+            String keyword,
             Pageable pageable) {
 
-        log.info("Fetching company apps with filters: companyId={}, status={}, assignedTo={}, jobTitle={}",
-                companyId, status, assignedTo, jobTitle);
+        log.info("Fetching company apps with filters: companyId={}, status={}, assignedTo={}, jobTitle={}, keyword={}",
+                companyId, status, assignedTo, jobTitle, keyword);
 
         Criteria criteria = Criteria.where("companyId").is(companyId).and("deletedAt").isNull();
 
@@ -91,6 +92,13 @@ public class CompanyApplicationService {
         }
         if (jobTitle != null && !jobTitle.isBlank()) {
             criteria.and("jobSnapshot.title").regex(jobTitle.trim(), "i");
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            String pattern = keyword.trim();
+            criteria.andOperator(new Criteria().orOperator(
+                    Criteria.where("username").regex(pattern, "i"),
+                    Criteria.where("email").regex(pattern, "i"),
+                    Criteria.where("jobSnapshot.title").regex(pattern, "i")));
         }
 
         long total = mongoTemplate.count(Query.query(criteria), Application.class);

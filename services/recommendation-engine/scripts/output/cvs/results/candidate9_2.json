@@ -1,0 +1,15 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 3
+  },
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "resume_index": 2,
+  "resume_summary": "Pragmatic Security Engineer with 15 years across insurtech and enterprise software. Skilled in CI/CD, CQRS, and Python. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
+  "resume_experience": "Lead Security Engineer @ Deloitte Vietnam (Dec 2022–Jun 2025) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Senior Security Engineer @ Amazon Web Services Vietnam (Nov 2024–Present) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks.",
+  "resume_skills": "AWS, Python, SIEM, Burp Suite, Neo4j, MySQL, Terraform, Jenkins, CI/CD, CQRS, DDD, Kotlin, Rust, Java, Project Planning, Time Management, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Science in Cybersecurity – OU, 2011 | GPA: 8.25/10 | TOEIC 900 | Cert: Oracle Certified Professional: Java SE 17",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nPragmatic Security Engineer with 15 years across insurtech and enterprise software. Skilled in CI/CD, CQRS, and Python. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nLead Security Engineer @ Deloitte Vietnam (Dec 2022–Jun 2025) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Senior Security Engineer @ Amazon Web Services Vietnam (Nov 2024–Present) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks.\n\nSKILLS\nAWS, Python, SIEM, Burp Suite, Neo4j, MySQL, Terraform, Jenkins, CI/CD, CQRS, DDD, Kotlin, Rust, Java, Project Planning, Time Management, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Science in Cybersecurity – OU, 2011 | GPA: 8.25/10 | TOEIC 900 | Cert: Oracle Certified Professional: Java SE 17",
+  "pdf_file": "candidate9_2.pdf"
+}

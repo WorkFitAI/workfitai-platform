@@ -1,0 +1,15 @@
+{
+  "candidateNum": 6,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "resume_index": 6,
+  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
+  "resume_skills": "Apache Spark, Kafka, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nApache Spark, Kafka, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "pdf_file": "candidate7_6.pdf"
+}
