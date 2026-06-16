@@ -1,32 +1,35 @@
 """
-Kafka consumer for job events (created/updated/deleted)
+Kafka consumer for job events (created/updated/deleted).
+
+Each FAISS mutation also bumps the recommendation cache index_version (Phase 2)
+so stale recommendation entries are served-then-refreshed on next request.
 """
 
-import logging
 import json
+import logging
+import threading
 from typing import Dict
+
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
-import threading
 
 logger = logging.getLogger(__name__)
 
 
 class JobEventConsumer:
     """
-    Consume job events from Kafka and update FAISS index
+    Consume job events from Kafka and update FAISS index.
+    On each successful mutation, bumps recommendation cache index_version.
     """
-    
+
     def __init__(self, kafka_config: Dict, faiss_manager, job_formatter, embedding_generator):
-        """Initialize Kafka consumer"""
         self.faiss_manager = faiss_manager
         self.job_formatter = job_formatter
         self.embedding_generator = embedding_generator
         self.running = False
         self.consumer = None
         self.consumer_thread = None
-        
-        # Kafka configuration
+
         self.bootstrap_servers = kafka_config.get("bootstrap_servers", "localhost:9092")
         self.group_id = kafka_config.get("group_id", "recommendation-engine")
         self.topics = [
@@ -34,11 +37,10 @@ class JobEventConsumer:
             kafka_config.get("topic_job_updated", "job.updated"),
             kafka_config.get("topic_job_deleted", "job.deleted")
         ]
-        
-        logger.info(f"JobEventConsumer initialized for topics: {self.topics}")
-    
-    def connect(self):
-        """Connect to Kafka"""
+
+        logger.info("JobEventConsumer initialized for topics: %s", self.topics)
+
+    def connect(self) -> bool:
         try:
             self.consumer = KafkaConsumer(
                 *self.topics,
@@ -50,56 +52,47 @@ class JobEventConsumer:
                 session_timeout_ms=30000,
                 heartbeat_interval_ms=10000
             )
-            logger.info(f"✓ Connected to Kafka at {self.bootstrap_servers}")
-            logger.info(f"✓ Subscribed to topics: {self.topics}")
+            logger.info("✓ Connected to Kafka at %s", self.bootstrap_servers)
+            logger.info("✓ Subscribed to topics: %s", self.topics)
             return True
-        except KafkaError as e:
-            logger.error(f"Failed to connect to Kafka: {e}")
+        except KafkaError as exc:
+            logger.error("Failed to connect to Kafka: %s", exc)
             return False
-    
-    def start_consuming(self):
-        """Start consuming messages from Kafka in background thread"""
+
+    def start_consuming(self) -> None:
         if self.running:
             logger.warning("Consumer already running")
             return
-        
-        if not self.consumer:
-            if not self.connect():
-                logger.error("Cannot start consumer - connection failed")
-                return
-        
+        if not self.consumer and not self.connect():
+            logger.error("Cannot start consumer — connection failed")
+            return
         self.running = True
         self.consumer_thread = threading.Thread(target=self._consume_loop, daemon=True)
         self.consumer_thread.start()
         logger.info("✓ Kafka consumer started in background thread")
-    
-    def _consume_loop(self):
-        """Internal consumption loop"""
+
+    def _consume_loop(self) -> None:
         logger.info("Starting Kafka consumption loop...")
-        
         try:
             while self.running:
-                # Poll for messages with timeout
                 messages = self.consumer.poll(timeout_ms=1000)
-                
                 for topic_partition, records in messages.items():
                     for record in records:
                         try:
                             self._handle_message(record.topic, record.value)
-                        except Exception as e:
-                            logger.error(f"Error processing message from {record.topic}: {e}", exc_info=True)
-        
-        except Exception as e:
-            logger.error(f"Fatal error in consume loop: {e}", exc_info=True)
+                        except Exception as exc:
+                            logger.error(
+                                "Error processing message from %s: %s", record.topic, exc, exc_info=True
+                            )
+        except Exception as exc:
+            logger.error("Fatal error in consume loop: %s", exc, exc_info=True)
         finally:
             logger.info("Kafka consume loop stopped")
-    
-    def _handle_message(self, topic: str, event: Dict):
-        """Route message to appropriate handler"""
+
+    def _handle_message(self, topic: str, event: Dict) -> None:
         event_type = event.get("eventType")
-        
-        logger.info(f"Received event: {event_type} from topic: {topic}")
-        
+        logger.info("Received event: %s from topic: %s", event_type, topic)
+
         if "created" in topic or event_type == "JOB_CREATED":
             self.handle_job_created(event)
         elif "updated" in topic or event_type == "JOB_UPDATED":
@@ -107,95 +100,82 @@ class JobEventConsumer:
         elif "deleted" in topic or event_type == "JOB_DELETED":
             self.handle_job_deleted(event)
         else:
-            logger.warning(f"Unknown event type: {event_type}")
-    
-    def handle_job_created(self, event: Dict):
-        """Handle job creation event"""
+            logger.warning("Unknown event type: %s", event_type)
+
+    # ------------------------------------------------------------------ #
+    # Event handlers                                                       #
+    # ------------------------------------------------------------------ #
+
+    def handle_job_created(self, event: Dict) -> None:
         try:
             job_id = event.get("jobId")
             job_data = event.get("data", {})
-            
-            logger.info(f"Processing JOB_CREATED for jobId: {job_id}")
-            
-            # Format job data to text
+            logger.info("Processing JOB_CREATED for jobId: %s", job_id)
+
             job_text = self.job_formatter.format_job_as_text(job_data)
-            logger.info(f"Formatted job text length: {len(job_text)}")
-            
-            # Generate embedding
             embedding = self.embedding_generator.encode_job(job_text)
-            logger.info(f"Generated embedding shape: {embedding.shape}")
-            
-            # Add to FAISS index
             self.faiss_manager.add_job_with_embedding(job_id, embedding, job_data)
-            
-            logger.info(f"✓ Added job {job_id} to FAISS index")
-            
-        except Exception as e:
-            logger.error(f"Error handling job created event: {e}", exc_info=True)
-    
-    def handle_job_updated(self, event: Dict):
-        """Handle job update event"""
+
+            logger.info("✓ Added job %s to FAISS index", job_id)
+            self._bump_recommendation_cache()
+        except Exception as exc:
+            logger.error("Error handling job created event: %s", exc, exc_info=True)
+
+    def handle_job_updated(self, event: Dict) -> None:
         try:
             job_id = event.get("jobId")
             job_data = event.get("data", {})
-            
-            logger.info(f"Processing JOB_UPDATED for jobId: {job_id}")
-            
-            # Format job data to text
+            logger.info("Processing JOB_UPDATED for jobId: %s", job_id)
+
             job_text = self.job_formatter.format_job_as_text(job_data)
-            
-            # Generate embedding
             embedding = self.embedding_generator.encode_job(job_text)
-            
-            # Update in FAISS index (remove old + add new)
             self.faiss_manager.update_job_with_embedding(job_id, embedding, job_data)
-            
-            logger.info(f"✓ Updated job {job_id} in FAISS index")
-            
-        except Exception as e:
-            logger.error(f"Error handling job updated event: {e}", exc_info=True)
-    
-    def handle_job_deleted(self, event: Dict):
-        """Handle job deletion event"""
+
+            logger.info("✓ Updated job %s in FAISS index", job_id)
+            self._bump_recommendation_cache()
+        except Exception as exc:
+            logger.error("Error handling job updated event: %s", exc, exc_info=True)
+
+    def handle_job_deleted(self, event: Dict) -> None:
         try:
             job_id = event.get("jobId")
             reason = event.get("reason", "Unknown")
-            
-            logger.info(f"Processing JOB_DELETED for jobId: {job_id}, reason: {reason}")
-            
-            # Remove from FAISS index
+            logger.info("Processing JOB_DELETED for jobId: %s, reason: %s", job_id, reason)
+
             self.faiss_manager.remove_job(job_id)
-            
-            logger.info(f"✓ Removed job {job_id} from FAISS index")
-            
-        except Exception as e:
-            logger.error(f"Error handling job deleted event: {e}", exc_info=True)
-    
-    def stop(self):
-        """Stop consuming"""
+
+            logger.info("✓ Removed job %s from FAISS index", job_id)
+            self._bump_recommendation_cache()
+        except Exception as exc:
+            logger.error("Error handling job deleted event: %s", exc, exc_info=True)
+
+    def _bump_recommendation_cache(self) -> None:
+        """Invalidate all cached recommendation results after a FAISS mutation."""
+        try:
+            from app.config import get_settings
+            if not get_settings().RECOMMENDATION_CACHE_ENABLED:
+                return
+            from app.services.recommendation_cache import get_recommendation_cache
+            get_recommendation_cache().bump_version()
+        except Exception as exc:
+            logger.warning("Failed to bump recommendation cache version: %s", exc)
+
+    # ------------------------------------------------------------------ #
+    # Lifecycle                                                            #
+    # ------------------------------------------------------------------ #
+
+    def stop(self) -> None:
         logger.info("Stopping Kafka consumer...")
         self.running = False
-        
         if self.consumer_thread:
             self.consumer_thread.join(timeout=5)
-        
         if self.consumer:
             self.consumer.close()
-        
         logger.info("✓ Kafka consumer stopped")
-    
+
     def get_stats(self) -> Dict:
-        """Get consumer statistics"""
         return {
             "running": self.running,
             "topics": self.topics,
             "group_id": self.group_id
         }
-        """Handle job update event"""
-        # TODO: Implement
-        logger.debug("TODO: Handle job updated event")
-    
-    def handle_job_deleted(self, event: Dict):
-        """Handle job deletion event"""
-        # TODO: Implement
-        logger.debug("TODO: Handle job deleted event")
