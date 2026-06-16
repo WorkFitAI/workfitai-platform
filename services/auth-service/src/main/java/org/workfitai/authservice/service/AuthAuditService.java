@@ -187,6 +187,93 @@ public class AuthAuditService {
                 null, Map.of("deletedAt", Instant.now().toString()), true, null);
     }
 
+    // ─── Token refresh events ─────────────────────────────────────────────────────
+
+    public void logTokenRefreshed(String username) {
+        publish("USER", username, "AUTH_TOKEN_REFRESHED", username,
+                null, Map.of("refreshedAt", Instant.now().toString()), true, null);
+    }
+
+    public void logTokenRefreshFailed(String errorMessage) {
+        publish("USER", "unknown", "AUTH_TOKEN_REFRESH_FAILED", "unknown", null, null, false, errorMessage);
+    }
+
+    // ─── Permission events ────────────────────────────────────────────────────────
+
+    public void logPermissionCreated(String name) {
+        String actor = extractCurrentUsername();
+        publish("PERMISSION", name, "PERMISSION_CREATED", actor, null, Map.of("name", name), true, null);
+    }
+
+    public void logPermissionBatchCreated(int count) {
+        String actor = extractCurrentUsername();
+        publish("PERMISSION", "batch", "PERMISSION_BATCH_CREATED", actor,
+                null, Map.of("count", count), true, null);
+    }
+
+    public void logPermissionUpdated(String name) {
+        String actor = extractCurrentUsername();
+        publish("PERMISSION", name, "PERMISSION_UPDATED", actor, null, null, true, null);
+    }
+
+    public void logPermissionDeleted(String name) {
+        String actor = extractCurrentUsername();
+        publish("PERMISSION", name, "PERMISSION_DELETED", actor, null, null, true, null);
+    }
+
+    // ─── Role events ──────────────────────────────────────────────────────────────
+
+    public void logRoleCreated(String name) {
+        String actor = extractCurrentUsername();
+        publish("ROLE", name, "ROLE_CREATED", actor, null, Map.of("name", name), true, null);
+    }
+
+    public void logRoleBatchCreated(int count) {
+        String actor = extractCurrentUsername();
+        publish("ROLE", "batch", "ROLE_BATCH_CREATED", actor,
+                null, Map.of("count", count), true, null);
+    }
+
+    public void logRoleUpdated(String name) {
+        String actor = extractCurrentUsername();
+        publish("ROLE", name, "ROLE_UPDATED", actor, null, null, true, null);
+    }
+
+    public void logRoleDeleted(String name) {
+        String actor = extractCurrentUsername();
+        publish("ROLE", name, "ROLE_DELETED", actor, null, null, true, null);
+    }
+
+    public void logRoleCloned(String sourceName, String newName) {
+        String actor = extractCurrentUsername();
+        publish("ROLE", newName, "ROLE_CLONED", actor,
+                Map.of("clonedFrom", sourceName), Map.of("createdAs", newName), true, null);
+    }
+
+    public void logRolePermissionAdded(String roleName, String permName) {
+        String actor = extractCurrentUsername();
+        publish("ROLE_PERMISSION", roleName + ":" + permName, "ROLE_PERMISSION_ADDED", actor,
+                null, Map.of("role", roleName, "permission", permName), true, null);
+    }
+
+    public void logRolePermissionRemoved(String roleName, String permName) {
+        String actor = extractCurrentUsername();
+        publish("ROLE_PERMISSION", roleName + ":" + permName, "ROLE_PERMISSION_REMOVED", actor,
+                Map.of("role", roleName, "permission", permName), null, true, null);
+    }
+
+    public void logRolePermissionsAdded(String roleName, int count) {
+        String actor = extractCurrentUsername();
+        publish("ROLE_PERMISSION", roleName, "ROLE_PERMISSIONS_ADDED", actor,
+                null, Map.of("role", roleName, "count", count), true, null);
+    }
+
+    public void logRolePermissionsRemoved(String roleName, int count) {
+        String actor = extractCurrentUsername();
+        publish("ROLE_PERMISSION", roleName, "ROLE_PERMISSIONS_REMOVED", actor,
+                Map.of("role", roleName, "count", count), null, true, null);
+    }
+
     // ─── Internal publish ─────────────────────────────────────────────────────────
 
     private void publish(
@@ -223,6 +310,17 @@ public class AuthAuditService {
         } catch (Exception ex) {
             log.error("[AUDIT] Failed to publish {} for {}: {}", action, entityId, ex.getMessage());
         }
+    }
+
+    private String extractCurrentUsername() {
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()
+                    && !"anonymousUser".equals(auth.getPrincipal())) {
+                return auth.getName();
+            }
+        } catch (Exception ignored) {}
+        return "system";
     }
 
     private String extractRole(Authentication auth) {

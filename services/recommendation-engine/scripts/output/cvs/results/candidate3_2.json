@@ -1,0 +1,15 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 2
+  },
+  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
+  "resume_index": 2,
+  "resume_summary": "Pragmatic Software Engineer (Full-Stack) with 5 years across insurtech and enterprise software. Skilled in ReactJS, Kotlin, and Kotlin. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
+  "resume_experience": "Principal Engineer @ Zalo Group (Apr 2023–Mar 2024) · Automated CI/CD workflows, saving the team approximately 21 engineering-hours per sprint. | Lead Software Engineer @ Haravan (Jun 2023–Aug 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 76%. | Senior Software Engineer @ Masan Group (Dec 2022–Jun 2025) | Software Engineer @ BCG Vietnam (Nov 2024–Present)",
+  "resume_skills": "Node.js, ReactJS, PostgreSQL, NextJS, Event-Driven Architecture, CQRS, Kubernetes, Terraform, Vue.js, Django, React, Angular, Swift, Kotlin, Rust, Time Management, Cross-functional Collaboration, Ownership & Accountability, Continuous Learning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2018 | GPA: 8.57/10 | TOEIC 750",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nPragmatic Software Engineer (Full-Stack) with 5 years across insurtech and enterprise software. Skilled in ReactJS, Kotlin, and Kotlin. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nPrincipal Engineer @ Zalo Group (Apr 2023–Mar 2024) · Automated CI/CD workflows, saving the team approximately 21 engineering-hours per sprint. | Lead Software Engineer @ Haravan (Jun 2023–Aug 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 76%. | Senior Software Engineer @ Masan Group (Dec 2022–Jun 2025) | Software Engineer @ BCG Vietnam (Nov 2024–Present)\n\nSKILLS\nNode.js, ReactJS, PostgreSQL, NextJS, Event-Driven Architecture, CQRS, Kubernetes, Terraform, Vue.js, Django, React, Angular, Swift, Kotlin, Rust, Time Management, Cross-functional Collaboration, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2018 | GPA: 8.57/10 | TOEIC 750",
+  "pdf_file": "candidate3_2.pdf"
+}

@@ -8,7 +8,6 @@ import org.workfitai.jobservice.client.CVFeignClient;
 import org.workfitai.jobservice.client.RecommendationFeignClient;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
-import org.workfitai.jobservice.model.dto.response.Recommendation.ResCvRankingDTO;
 import org.workfitai.jobservice.model.dto.response.Recommendation.ResJobRecommendationDTO;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.JobRepository;
@@ -358,60 +357,6 @@ public class RecommendationServiceImpl implements iRecommendationService {
             return text.toString().replaceAll(", $", "");
         }
         return sectionData.toString();
-    }
-
-    @Override
-    public ResCvRankingDTO rankCvsByJob(UUID jobId) {
-        log.info("Ranking CVs for jobId: {}", jobId);
-        try {
-            Map<String, Object> raw = recommendationFeignClient.rankCvsByJob(jobId.toString());
-
-            double processingTime = raw.get("processing_time_ms") instanceof Number n
-                    ? n.doubleValue() : 0.0;
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> rawApplicants =
-                    (List<Map<String, Object>>) raw.getOrDefault("ranked_applicants", Collections.emptyList());
-
-            List<ResCvRankingDTO.RankedApplicant> applicants = rawApplicants.stream()
-                    .map(r -> ResCvRankingDTO.RankedApplicant.builder()
-                            .username(String.valueOf(r.getOrDefault("username", "")))
-                            .score(toDouble(r.get("score")))
-                            .similarityScore(toDouble(r.get("similarity_score")))
-                            .crossScore(toDouble(r.get("cross_score")))
-                            .label(String.valueOf(r.getOrDefault("label", "")))
-                            .explanation(String.valueOf(r.getOrDefault("explanation", "")))
-                            .build())
-                    .toList();
-
-            return ResCvRankingDTO.builder()
-                    .jobId(String.valueOf(raw.getOrDefault("job_id", jobId.toString())))
-                    .jobOverview(String.valueOf(raw.getOrDefault("job_overview", "")))
-                    .totalCandidates(toInt(raw.get("total_candidates")))
-                    .rankedCount(toInt(raw.get("ranked_count")))
-                    .processingTimeMs(processingTime)
-                    .rankedApplicants(applicants)
-                    .build();
-
-        } catch (Exception e) {
-            log.warn("CV ranking engine unavailable for job {}: {}", jobId, e.getMessage());
-            return ResCvRankingDTO.builder()
-                    .jobId(jobId.toString())
-                    .jobOverview("")
-                    .totalCandidates(0)
-                    .rankedCount(0)
-                    .processingTimeMs(0)
-                    .rankedApplicants(Collections.emptyList())
-                    .build();
-        }
-    }
-
-    private static double toDouble(Object v) {
-        return v instanceof Number n ? n.doubleValue() : 0.0;
-    }
-
-    private static int toInt(Object v) {
-        return v instanceof Number n ? n.intValue() : 0;
     }
 
     private ResJobRecommendationDTO buildEmptyResponse() {

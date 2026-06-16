@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "resume_index": 10,
+  "resume_summary": "7+ years as a Data Engineer specialising in MySQL and Kafka. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal Data Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Data Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Data Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Data Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Data Engineer I @ MoMo (M-Service) (Aug 2023–Present)",
+  "resume_skills": "Kafka, SQL, Python, Apache Spark, Kubernetes, Ansible, Jenkins, Docker, scikit-learn, Spark, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making",
+  "resume_education": "Bachelor of Science in Computer Science – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Data Engineer specialising in MySQL and Kafka. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Data Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Data Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Data Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Data Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Data Engineer I @ MoMo (M-Service) (Aug 2023–Present)\n\nSKILLS\nKafka, SQL, Python, Apache Spark, Kubernetes, Ansible, Jenkins, Docker, scikit-learn, Spark, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Science in Computer Science – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "pdf_file": "candidate7_10.pdf"
+}

@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 2
+  },
+  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
+  "resume_index": 10,
+  "resume_summary": "7+ years as a Software Engineer (Backend) specialising in MySQL and NextJS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)",
+  "resume_skills": "NextJS, PostgreSQL, ReactJS, Node.js, Kubernetes, Ansible, Jenkins, Docker, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making",
+  "resume_education": "Bachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Software Engineer (Backend) specialising in MySQL and NextJS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)\n\nSKILLS\nNextJS, PostgreSQL, ReactJS, Node.js, Kubernetes, Ansible, Jenkins, Docker, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "pdf_file": "candidate3_10.pdf"
+}

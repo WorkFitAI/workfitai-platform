@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 2
+  },
+  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
+  "resume_index": 9,
+  "resume_summary": "Open-source contributor and mid-level Software Engineer with 4 years of hands-on experience. Strong foundation in Docker and Ansible. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.",
+  "resume_experience": "Principal Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead Software Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior Software Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Software Engineer @ PwC Vietnam (Aug 2025–Present)",
+  "resume_skills": "TypeScript, Ansible, Azure, GitHub Actions, Docker, ClickHouse, Redis, Express.js, React, Spring Boot, Next.js, CQRS, Agile / Scrum, REST API Design, Conflict Resolution, Stakeholder Management, Time Management, Leadership & Mentoring, Empathy & Active Listening",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nOpen-source contributor and mid-level Software Engineer with 4 years of hands-on experience. Strong foundation in Docker and Ansible. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.\n\nEXPERIENCE\nPrincipal Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead Software Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior Software Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Software Engineer @ PwC Vietnam (Aug 2025–Present)\n\nSKILLS\nTypeScript, Ansible, Azure, GitHub Actions, Docker, ClickHouse, Redis, Express.js, React, Spring Boot, Next.js, CQRS, Agile / Scrum, REST API Design, Conflict Resolution, Stakeholder Management, Time Management, Leadership & Mentoring, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate3_9.pdf"
+}

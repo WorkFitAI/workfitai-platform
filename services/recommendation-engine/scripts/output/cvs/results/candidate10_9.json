@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 4
+  },
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "resume_index": 9,
+  "resume_summary": "Open-source contributor and mid-level Machine Learning Engineer with 4 years of hands-on experience. Strong foundation in HuggingFace Transformers and Neo4j. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.",
+  "resume_experience": "Principal ML Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead ML Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior ML Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | ML Engineer @ PwC Vietnam (Aug 2025–Present)",
+  "resume_skills": "PostgreSQL, Neo4j, ClickHouse, MongoDB, HuggingFace Transformers, FAISS, PyTorch, AWS, Azure, R, Go, JavaScript, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nOpen-source contributor and mid-level Machine Learning Engineer with 4 years of hands-on experience. Strong foundation in HuggingFace Transformers and Neo4j. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.\n\nEXPERIENCE\nPrincipal ML Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead ML Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior ML Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | ML Engineer @ PwC Vietnam (Aug 2025–Present)\n\nSKILLS\nPostgreSQL, Neo4j, ClickHouse, MongoDB, HuggingFace Transformers, FAISS, PyTorch, AWS, Azure, R, Go, JavaScript, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate10_9.pdf"
+}

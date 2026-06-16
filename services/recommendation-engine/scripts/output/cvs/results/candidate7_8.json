@@ -1,0 +1,15 @@
+{
+  "candidateNum": 8,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "resume_index": 8,
+  "resume_summary": "Detail-oriented senior Data Engineer (6 yrs) with end-to-end SDLC ownership. Proficient in Dart and Kubernetes. Active technical mentor — helped grow the team from 4 to 10 engineers.",
+  "resume_experience": "Principal Data Engineer @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Data Engineer @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "Airflow, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
+  "resume_education": "Bachelor of Science in Computer Science – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nDetail-oriented senior Data Engineer (6 yrs) with end-to-end SDLC ownership. Proficient in Dart and Kubernetes. Active technical mentor — helped grow the team from 4 to 10 engineers.\n\nEXPERIENCE\nPrincipal Data Engineer @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Data Engineer @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nAirflow, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Science in Computer Science – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate7_8.pdf"
+}

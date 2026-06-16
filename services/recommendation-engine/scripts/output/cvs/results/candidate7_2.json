@@ -1,0 +1,15 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "resume_index": 2,
+  "resume_summary": "Hands-on Data Engineer with 15 years building resilient, observable microservices in e-commerce. Expertise in Azure and Azure. Drove adoption of Redis-based tooling, improving MTTR by 53%.",
+  "resume_experience": "Principal Data Engineer @ Deloitte Vietnam (Mar 2025–Feb 2026) · Grew mid-market segment revenue by 36% YoY through 10 data-driven go-to-market initiatives. | Lead Data Engineer @ Amazon Web Services Vietnam (Dec 2023–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.",
+  "resume_skills": "Python, Kafka, Airflow, SQL, Azure, Terraform, scikit-learn, Spark, Kotlin, Scala, Rust, DynamoDB, Elasticsearch, MySQL, Redis, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
+  "resume_education": "Bachelor of Science in Computer Science – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nHands-on Data Engineer with 15 years building resilient, observable microservices in e-commerce. Expertise in Azure and Azure. Drove adoption of Redis-based tooling, improving MTTR by 53%.\n\nEXPERIENCE\nPrincipal Data Engineer @ Deloitte Vietnam (Mar 2025–Feb 2026) · Grew mid-market segment revenue by 36% YoY through 10 data-driven go-to-market initiatives. | Lead Data Engineer @ Amazon Web Services Vietnam (Dec 2023–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.\n\nSKILLS\nPython, Kafka, Airflow, SQL, Azure, Terraform, scikit-learn, Spark, Kotlin, Scala, Rust, DynamoDB, Elasticsearch, MySQL, Redis, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Computer Science – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "pdf_file": "candidate7_2.pdf"
+}

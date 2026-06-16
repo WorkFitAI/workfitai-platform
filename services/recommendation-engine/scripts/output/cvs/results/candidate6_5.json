@@ -1,0 +1,15 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 0
+  },
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "resume_index": 5,
+  "resume_summary": "Systems thinker with 6 years in Cloud Solutions Architect roles at high-growth companies. Deep expertise in Bash; solid grounding in Redis and Cassandra. Recognised for bridging engineering velocity with product quality.",
+  "resume_experience": "Principal Architect @ VinAI Research (Dec 2021–Apr 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Senior Solutions Architect @ TopCV Vietnam (Nov 2021–Aug 2024) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Solutions Architect @ VPBank (Aug 2024–Aug 2025) | Cloud Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Present)",
+  "resume_skills": "AWS, GCP, Redis, Cassandra, CQRS, TDD, Code Review, Jenkins, Azure, Bash, Dart, Continuous Learning, Stakeholder Management, Technical Communication",
+  "resume_education": "Bachelor of Science in Information Technology – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nSystems thinker with 6 years in Cloud Solutions Architect roles at high-growth companies. Deep expertise in Bash; solid grounding in Redis and Cassandra. Recognised for bridging engineering velocity with product quality.\n\nEXPERIENCE\nPrincipal Architect @ VinAI Research (Dec 2021–Apr 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Senior Solutions Architect @ TopCV Vietnam (Nov 2021–Aug 2024) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Solutions Architect @ VPBank (Aug 2024–Aug 2025) | Cloud Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Present)\n\nSKILLS\nAWS, GCP, Redis, Cassandra, CQRS, TDD, Code Review, Jenkins, Azure, Bash, Dart, Continuous Learning, Stakeholder Management, Technical Communication\n\nEDUCATION\nBachelor of Science in Information Technology – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "pdf_file": "candidate6_5.pdf"
+}

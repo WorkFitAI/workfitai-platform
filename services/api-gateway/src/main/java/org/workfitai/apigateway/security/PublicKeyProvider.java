@@ -39,6 +39,10 @@ public class PublicKeyProvider {
     return cachedKey;
   }
 
+  public void invalidateKey() {
+    this.cachedKey = null;
+  }
+
   private RSAPublicKey fetchPublicKey() throws Exception {
     Map<String, String> response = authWebClient.getPublicKey();
     if (response == null || !response.containsKey("publicKey")) {

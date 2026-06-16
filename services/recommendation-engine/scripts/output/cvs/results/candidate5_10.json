@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 4
+  },
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "resume_index": 10,
+  "resume_summary": "7+ years as a DevOps / Platform Engineer specialising in NATS and NATS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Platform Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Platform Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior DevOps Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | DevOps Engineer @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | DevOps Engineer @ MoMo (M-Service) (May 2025–Present)",
+  "resume_skills": "Docker, AWS, Kubernetes, Terraform, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a DevOps / Platform Engineer specialising in NATS and NATS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Platform Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior DevOps Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | DevOps Engineer @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | DevOps Engineer @ MoMo (M-Service) (May 2025–Present)\n\nSKILLS\nDocker, AWS, Kubernetes, Terraform, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "pdf_file": "candidate5_10.pdf"
+}

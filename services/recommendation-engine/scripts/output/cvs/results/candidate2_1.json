@@ -1,0 +1,15 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 1
+  },
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "resume_index": 1,
+  "resume_summary": "Results-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Redux and TypeScript; comfortable presenting findings directly to C-suite stakeholders.",
+  "resume_experience": "Head of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)",
+  "resume_skills": "TailwindCSS, Redux, ReactJS, TypeScript, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning",
+  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nResults-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Redux and TypeScript; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nHead of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)\n\nSKILLS\nTailwindCSS, Redux, ReactJS, TypeScript, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate2_1.pdf"
+}

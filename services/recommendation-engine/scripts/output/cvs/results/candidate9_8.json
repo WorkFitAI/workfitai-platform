@@ -1,0 +1,15 @@
+{
+  "candidateNum": 8,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 3
+  },
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "resume_index": 8,
+  "resume_summary": "6+ years as a Security Engineer specialising in AWS and CQRS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Security Engineer @ NashTech Vietnam (Aug 2024–Jun 2025) · Led migration of 4 monolithic services to microservices, cutting deployment time by 58%. | Senior Security Engineer @ ThoughtWorks Vietnam (Jul 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "Python, Azure, AWS, Jenkins, CQRS, Agile / Scrum, Scala, Data-Driven Decision Making, Conflict Resolution, Empathy & Active Listening, Continuous Learning",
+  "resume_education": "Bachelor of Science in Cybersecurity – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\n6+ years as a Security Engineer specialising in AWS and CQRS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Security Engineer @ NashTech Vietnam (Aug 2024–Jun 2025) · Led migration of 4 monolithic services to microservices, cutting deployment time by 58%. | Senior Security Engineer @ ThoughtWorks Vietnam (Jul 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nPython, Azure, AWS, Jenkins, CQRS, Agile / Scrum, Scala, Data-Driven Decision Making, Conflict Resolution, Empathy & Active Listening, Continuous Learning\n\nEDUCATION\nBachelor of Science in Cybersecurity – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate9_8.pdf"
+}

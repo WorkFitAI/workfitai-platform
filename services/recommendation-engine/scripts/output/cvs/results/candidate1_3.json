@@ -1,0 +1,15 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 0
+  },
+  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of Redis-based tooling, improving MTTR by 37%.",
+  "resume_experience": "Principal ML Engineer @ VPBank (Oct 2022–Feb 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Nov 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Feb 2025) | ML Engineer @ BCG Vietnam (Nov 2023–Feb 2026) | ML Engineer @ Oracle Vietnam (Sep 2023–Present)",
+  "resume_skills": "PostgreSQL, Docker, TypeScript, Redis, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Azure, Project Planning, Empathy & Active Listening, Time Management",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of Redis-based tooling, improving MTTR by 37%.\n\nEXPERIENCE\nPrincipal ML Engineer @ VPBank (Oct 2022–Feb 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Nov 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Feb 2025) | ML Engineer @ BCG Vietnam (Nov 2023–Feb 2026) | ML Engineer @ Oracle Vietnam (Sep 2023–Present)\n\nSKILLS\nPostgreSQL, Docker, TypeScript, Redis, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Azure, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "pdf_file": "candidate1_3.pdf"
+}

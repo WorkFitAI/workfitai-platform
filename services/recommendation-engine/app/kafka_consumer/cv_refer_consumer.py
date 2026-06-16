@@ -157,6 +157,9 @@ class CvReferConsumer:
                 job_id, username,
             )
 
+        # Applicant pool changed — cached ranking for this job is now stale
+        self._mark_ranking_dirty(job_id)
+
     def _on_application_withdrawn(self, event: Dict) -> None:
         data = event.get("data", {})
         job_id = data.get("jobId")
@@ -164,6 +167,7 @@ class CvReferConsumer:
         if job_id and username:
             self._store.remove_applicant(job_id, username)
             logger.info("cv-refer: application withdrawn — jobId=%s username=%s", job_id, username)
+            self._mark_ranking_dirty(job_id)
 
     def _on_status_changed(self, event: Dict) -> None:
         data = event.get("data", {})
@@ -173,3 +177,15 @@ class CvReferConsumer:
         if job_id and username:
             self._store.on_status_changed(job_id, username, new_status)
             logger.info("cv-refer: status changed — jobId=%s username=%s newStatus=%s", job_id, username, new_status)
+            self._mark_ranking_dirty(job_id)
+
+    def _mark_ranking_dirty(self, job_id: str) -> None:
+        """Mark cached ranking for job_id as dirty (application pool changed)."""
+        try:
+            from app.config import get_settings
+            if not get_settings().CV_RANKING_CACHE_ENABLED:
+                return
+            from app.services.cv_ranking_cache import get_cv_ranking_cache
+            get_cv_ranking_cache().mark_dirty(job_id)
+        except Exception as exc:
+            logger.warning("Failed to mark ranking cache dirty for job %s: %s", job_id, exc)

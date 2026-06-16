@@ -1,0 +1,15 @@
+{
+  "candidateNum": 8,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 2
+  },
+  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
+  "resume_index": 8,
+  "resume_summary": "Results-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "TypeScript, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nTypeScript, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate3_8.pdf"
+}

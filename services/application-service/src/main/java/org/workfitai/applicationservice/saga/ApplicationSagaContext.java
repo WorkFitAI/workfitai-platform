@@ -26,6 +26,13 @@ public class ApplicationSagaContext {
     private String jobId;
     private String coverLetter;
 
+    /**
+     * Pre-generated application ID passed to cv-service during SNAPSHOT_CV so that
+     * CV.applicationId matches the saved Application._id once the document is persisted.
+     * Must be set before the SNAPSHOT_CV step and reused in SAVE_APPLICATION.
+     */
+    private String applicationId;
+
     // Saga step results (accumulated as saga progresses)
     private JobInfo jobInfo;
     private FileUploadResult fileUploadResult;

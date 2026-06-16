@@ -6,18 +6,20 @@ POST /api/v1/cv-ranking/rank-by-job/{job_id} — HR button: uses Kafka-synced st
 """
 
 import logging
+import time
 from typing import Optional
 
-import httpx
+import anyio
 from fastapi import APIRouter, Body, HTTPException, Request, status
 
-from app.models.cv_rank_requests import CvRankRequest, JobRequest, OptionsRequest, ResumeRequest
+from app.models.cv_rank_requests import CvRankRequest, OptionsRequest
 from app.models.cv_rank_responses import (
     CvRankByJobResponse,
     CvRankResponse,
     RankedApplicantResponse,
     RankedResumeResponse,
 )
+from app.services.cv_rank_assembly import build_cv_rank_request, fetch_job_data
 from app.services.cv_ranking_service import rank_resumes
 
 logger = logging.getLogger(__name__)
@@ -63,7 +65,7 @@ async def rank_cvs(request: CvRankRequest, req: Request):
     )
 
     try:
-        result = rank_resumes(pipeline, request)
+        result = await anyio.to_thread.run_sync(lambda: rank_resumes(pipeline, request))
     except RuntimeError as e:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
     except Exception as e:
@@ -102,15 +104,18 @@ async def rank_by_job(
     """
     Rank all active applicants for a job using pre-synced Kafka data.
 
-    - Applicant list is maintained by CvReferConsumer (application-events)
-    - CV data is maintained by CvReferConsumer (cv.updated)
-    - Job data is fetched once from job-service
+    - Applicant list maintained by CvReferConsumer (application-events)
+    - CV data maintained by CvReferConsumer (cv.updated)
+    - Job data fetched once from job-service
 
-    Returns 404 when job has no applicants in the ranking pool (APPLIED / REVIEWING / INTERVIEW).
+    Returns 404 when job has no applicants in the ranking pool.
     Returns 503 when pipeline is not ready or CV data is missing for applicants.
     """
     from app.config import get_settings
+    from app.services.cv_ranking_cache import get_cv_ranking_cache
 
+    start_time = time.time()
+    settings = get_settings()
     pipeline = req.app.state.cv_ranking_pipeline()
     store = req.app.state.cv_refer_store()
 
@@ -120,7 +125,7 @@ async def rank_by_job(
             detail="CV ranking pipeline is not ready. Model weights are missing.",
         )
 
-    # 1. Get applicant usernames from store
+    # 404 guard — always check first (pool state is in-memory, O(1))
     usernames = store.get_applicant_usernames(job_id)
     if not usernames:
         raise HTTPException(
@@ -128,112 +133,103 @@ async def rank_by_job(
             detail=f"No active applicants in ranking pool for job {job_id}.",
         )
 
-    # 2. Build ResumeRequest list from per-application CV snapshots
-    resumes = []
-    missing_cv = []
-    idx_to_username: dict[int, str] = {}   # maps resume_index → username for result enrichment
-    for idx, username in enumerate(usernames):
-        cv = store.get_cv_data(job_id, username)
-        if cv is None:
-            missing_cv.append(username)
-            continue
-        idx_to_username[idx] = username
-        # cv_data stores structured fields extracted by cv-service: summary, experience, skills, education
-        resumes.append(ResumeRequest(
-            resume_index=idx,
-            resume_summary=cv.get("summary", ""),
-            resume_experience=cv.get("experience", ""),
-            resume_skills=cv.get("skills", ""),
-            resume_education=cv.get("education", ""),
-        ))
+    # -------------------------------------------------------------------
+    # Cache fast-path: check BEFORE any I/O.
+    # Fresh or stale-while-revalidate entries are returned immediately —
+    # no HTTP call to job-service, no store rebuild.
+    # -------------------------------------------------------------------
+    cache = None
+    cooldown = 0.0
+    if settings.CV_RANKING_CACHE_ENABLED:
+        cache = get_cv_ranking_cache()
+        cooldown = float(settings.CV_RANKING_CACHE_COOLDOWN_SECONDS)
+        cached_payload, cache_hit = cache.try_hit(job_id, cooldown)
+        if cache_hit:
+            logger.info(
+                "rank-by-job %s: cache=hit ranked=%d time=%.1fms",
+                job_id, len(cached_payload["ranked_applicants"]),
+                (time.time() - start_time) * 1000,
+            )
+            return CvRankByJobResponse(
+                job_id=job_id,
+                job_overview=cached_payload["job_overview"],
+                total_candidates=cached_payload["total_candidates"],
+                ranked_count=len(cached_payload["ranked_applicants"]),
+                processing_time_ms=(time.time() - start_time) * 1000,
+                ranked_applicants=cached_payload["ranked_applicants"],
+            )
 
-    if missing_cv:
-        logger.warning(
-            "rank-by-job %s: CV data not yet synced for %d/%d applicants: %s",
-            job_id, len(missing_cv), len(usernames), missing_cv[:5],
-        )
-
-    if not resumes:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="CV data has not been synced yet for this job's applicants. Retry shortly.",
-        )
-
-    # 3. Fetch job data from job-service (one call per ranking request — acceptable)
-    settings = get_settings()
-    job_data = await _fetch_job_data(settings.JOB_SERVICE_URL, job_id, settings.JOB_SERVICE_TIMEOUT)
+    # Cache miss (or disabled): fetch job data and run full pipeline
+    job_data = await fetch_job_data(settings.JOB_SERVICE_URL, job_id, settings.JOB_SERVICE_TIMEOUT)
     if job_data is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Failed to fetch job details for job {job_id} from job-service.",
         )
 
-    job_request = JobRequest(
-        job_index=0,
-        jd_overview=job_data.get("shortDescription") or job_data.get("title", ""),
-        jd_requirements=job_data.get("requirements", ""),
-        jd_responsibilities=job_data.get("responsibilities", ""),
-        jd_preferred=job_data.get("benefits", ""),
-        job_description_text=job_data.get("description", ""),
-    )
-
-    # 4. Run pipeline
-    cv_rank_request = CvRankRequest(
-        job=job_request,
-        resumes=resumes,
-        options=options or OptionsRequest(),
-    )
+    cv_rank_request, idx_to_username, reason = build_cv_rank_request(job_id, store, job_data, options)
+    if cv_rank_request is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=reason)
 
     logger.info(
-        "rank-by-job %s: ranking %d/%d applicants (missing CV: %d)",
-        job_id, len(resumes), len(usernames), len(missing_cv),
+        "rank-by-job %s: %d applicants in pool, %d with CV data",
+        job_id, len(usernames), len(idx_to_username),
     )
 
-    try:
+    # Payload stored: dict with job_overview, total_candidates, ranked_applicants
+    # ranked_applicants has usernames already resolved — avoids idx staleness risk.
+    def _compute() -> dict:
         result = rank_resumes(pipeline, cv_rank_request)
-    except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
-    except Exception as e:
-        logger.error("rank-by-job %s failed: %s", job_id, e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        applicants = [
+            RankedApplicantResponse(
+                username=idx_to_username.get(r["resume_index"], "unknown"),
+                score=r["score"],
+                similarity_score=r["similarity_score"],
+                cross_score=r["cross_score"],
+                label=r["label"],
+                explanation=r["explanation"],
+            )
+            for r in result["ranked_resumes"]
+        ]
+        return {
+            "job_overview": result["job_overview"],
+            "total_candidates": result["total_candidates"],
+            "ranked_applicants": applicants,
+        }
 
-    ranked_applicants = [
-        RankedApplicantResponse(
-            username=idx_to_username.get(r["resume_index"], "unknown"),
-            score=r["score"],
-            similarity_score=r["similarity_score"],
-            cross_score=r["cross_score"],
-            label=r["label"],
-            explanation=r["explanation"],
+    if cache is not None:
+        try:
+            payload, _ = await anyio.to_thread.run_sync(
+                lambda: cache.get_or_compute(job_id, _compute, cooldown)
+            )
+        except RuntimeError as exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+        except Exception as exc:
+            logger.error("rank-by-job %s cache/compute failed: %s", job_id, exc, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+        logger.info(
+            "rank-by-job %s: cache=miss ranked=%d time=%.1fms",
+            job_id, len(payload["ranked_applicants"]),
+            (time.time() - start_time) * 1000,
         )
-        for r in result["ranked_resumes"]
-    ]
-
-    logger.info(
-        "rank-by-job %s complete: ranked=%d/%d time=%.1fms",
-        job_id, len(ranked_applicants), result["total_candidates"], result["processing_time_ms"],
-    )
+    else:
+        try:
+            payload = await anyio.to_thread.run_sync(_compute)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+        except Exception as exc:
+            logger.error("rank-by-job %s failed: %s", job_id, exc, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+        logger.info(
+            "rank-by-job %s: cache=disabled ranked=%d time=%.1fms",
+            job_id, len(payload["ranked_applicants"]), (time.time() - start_time) * 1000,
+        )
 
     return CvRankByJobResponse(
         job_id=job_id,
-        job_overview=result["job_overview"],
-        total_candidates=result["total_candidates"],
-        ranked_count=len(ranked_applicants),
-        processing_time_ms=result["processing_time_ms"],
-        ranked_applicants=ranked_applicants,
+        job_overview=payload["job_overview"],
+        total_candidates=payload["total_candidates"],
+        ranked_count=len(payload["ranked_applicants"]),
+        processing_time_ms=(time.time() - start_time) * 1000,
+        ranked_applicants=payload["ranked_applicants"],
     )
-
-
-async def _fetch_job_data(job_service_url: str, job_id: str, timeout: int) -> Optional[dict]:
-    """Fetch job details from job-service. Returns None on failure."""
-    url = f"{job_service_url}/api/v1/public/jobs/{job_id}"
-    try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            body = resp.json()
-            # job-service wraps response in { data: {...} } or returns directly
-            return body.get("data", body)
-    except Exception as e:
-        logger.error("Failed to fetch job %s from %s: %s", job_id, url, e)
-        return None

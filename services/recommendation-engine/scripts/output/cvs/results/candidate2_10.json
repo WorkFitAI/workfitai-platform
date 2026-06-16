@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 1
+  },
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "resume_index": 10,
+  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with GCP, Apache Kafka, and TypeScript. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Platform Engineer @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Platform Engineer @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Senior DevOps Engineer @ Oracle Vietnam (Jan 2023–Jun 2025) | DevOps Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | DevOps Engineer @ MoMo (M-Service) (Dec 2024–Present)",
+  "resume_skills": "TailwindCSS, Redux, ReactJS, TypeScript, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Empathy & Active Listening, Continuous Learning, Negotiation",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with GCP, Apache Kafka, and TypeScript. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Platform Engineer @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Platform Engineer @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Senior DevOps Engineer @ Oracle Vietnam (Jan 2023–Jun 2025) | DevOps Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | DevOps Engineer @ MoMo (M-Service) (Dec 2024–Present)\n\nSKILLS\nTailwindCSS, Redux, ReactJS, TypeScript, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Empathy & Active Listening, Continuous Learning, Negotiation\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900",
+  "pdf_file": "candidate2_10.pdf"
+}

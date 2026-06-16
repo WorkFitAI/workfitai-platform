@@ -21,6 +21,13 @@ spring:
         enabled: false
         import-check:
           enabled: false
+    openfeign:
+      client:
+        config:
+          # recommendation-engine AI processing can take 10-30s; raise read timeout accordingly
+          recommendation-engine:
+            connect-timeout: 5000
+            read-timeout: 60000
   # MongoDB configuration (Vault provides uri via mongodb.uri)
   data:
     mongodb:
@@ -73,6 +80,10 @@ app:
 # =============================================================================
 cv-service:
   internal-url: ${CV_SERVICE_INTERNAL_URL:http://cv-service:8080}
+
+service:
+  recommendation:
+    url: ${RECOMMENDATION_ENGINE_URL:http://localhost:8001}
 
 server:
   port: ${SERVER_PORT:9084}

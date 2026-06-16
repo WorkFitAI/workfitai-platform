@@ -1,0 +1,15 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 0
+  },
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "resume_index": 2,
+  "resume_summary": "Results-driven principal-level Cloud Solutions Architect with 15 years building high-throughput proptech platforms. Deep expertise in CQRS, CQRS, and Python. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal Architect @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Senior Solutions Architect @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.",
+  "resume_skills": "AWS, Python, Terraform, Kubernetes, CQRS, CI/CD, Jenkins, Kotlin, Scala, Rust, DynamoDB, Elasticsearch, MySQL, Redis, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
+  "resume_education": "Bachelor of Science in Information Technology – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nResults-driven principal-level Cloud Solutions Architect with 15 years building high-throughput proptech platforms. Deep expertise in CQRS, CQRS, and Python. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Architect @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Senior Solutions Architect @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.\n\nSKILLS\nAWS, Python, Terraform, Kubernetes, CQRS, CI/CD, Jenkins, Kotlin, Scala, Rust, DynamoDB, Elasticsearch, MySQL, Redis, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Information Technology – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "pdf_file": "candidate6_2.pdf"
+}
