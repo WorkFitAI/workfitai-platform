@@ -8,13 +8,13 @@ import logging
 from typing import List, Dict
 from fastapi import APIRouter, HTTPException, Request, status
 
-from app.models.requests import (
+from app.models.job_recommend_requests import (
     RecommendByResumeRequest,
     RecommendByProfileRequest,
     SimilarJobsRequest,
     SemanticSearchRequest
 )
-from app.models.responses import (
+from app.models.job_recommend_responses import (
     RecommendationResponse,
     RecommendationData,
     JobRecommendation
@@ -245,7 +245,7 @@ async def recommend_by_profile(request: RecommendByProfileRequest, req: Request)
                 )
                 
                 # Convert back to JobRecommendation objects
-                from app.models.responses import JobRecommendation
+                from app.models.job_recommend_responses import JobRecommendation
                 recommendations = [JobRecommendation(**r) for r in reranked]
                 
                 rerank_time = int((time.time() - rerank_start) * 1000)

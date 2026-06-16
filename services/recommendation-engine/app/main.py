@@ -15,7 +15,7 @@ from fastapi.exceptions import RequestValidationError
 import uvicorn
 
 from app.config import get_settings
-from app.api.routes import router
+from app.api.job_recommend_routes import router
 from app.api.cv_rank_routes import router as cv_rank_router
 
 # Configure logging
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize model (blocking but safer than threading)
         logger.info("Loading Sentence Transformer model...")
-        from app.services.embedding_service import EmbeddingGenerator
+        from app.services.job_embedding_service import EmbeddingGenerator
         app_state["model"] = EmbeddingGenerator(settings.MODEL_PATH)
         logger.info(f"✓ Model loaded: {settings.MODEL_PATH}")
         
@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
         if settings.ENABLE_RERANKING:
             logger.info("Initializing Cross-Encoder Reranker...")
             try:
-                from app.services.reranker import JobReranker
+                from app.services.job_reranker import JobReranker
                 app_state["reranker"] = JobReranker(settings.CROSS_ENCODER_PATH)
                 logger.info(f"✓ Reranker initialized: {settings.CROSS_ENCODER_PATH}")
             except Exception as e:
