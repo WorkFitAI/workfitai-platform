@@ -1,0 +1,15 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 1
+  },
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "resume_index": 9,
+  "resume_summary": "4+ years as a DevOps / Platform Engineer specialising in CQRS and R. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Platform Engineer @ ACB Bank (May 2022–Jan 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 84%. | Platform Engineer @ AIA Vietnam (Aug 2022–Sep 2024) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior DevOps Engineer @ McKinsey & Company Vietnam (Oct 2023–Jun 2025) | DevOps Engineer @ PwC Vietnam (Apr 2025–Present)",
+  "resume_skills": "TailwindCSS, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, TypeScript, Dart, R, Apache Kafka, WebSocket, RabbitMQ, GitHub Actions, GCP, AWS, Conflict Resolution, Leadership & Mentoring, Stakeholder Management, Project Planning",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\n4+ years as a DevOps / Platform Engineer specialising in CQRS and R. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ ACB Bank (May 2022–Jan 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 38% to 84%. | Platform Engineer @ AIA Vietnam (Aug 2022–Sep 2024) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior DevOps Engineer @ McKinsey & Company Vietnam (Oct 2023–Jun 2025) | DevOps Engineer @ PwC Vietnam (Apr 2025–Present)\n\nSKILLS\nTailwindCSS, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, TypeScript, Dart, R, Apache Kafka, WebSocket, RabbitMQ, GitHub Actions, GCP, AWS, Conflict Resolution, Leadership & Mentoring, Stakeholder Management, Project Planning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate2_9.pdf"
+}

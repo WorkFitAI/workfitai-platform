@@ -140,6 +140,7 @@ public class ApplicationServiceImpl implements IApplicationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public void withdrawApplication(String id, String username) {
         log.info(Messages.Log.WITHDRAWING_APPLICATION, username, id);
 

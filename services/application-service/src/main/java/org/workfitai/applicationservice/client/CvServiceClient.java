@@ -20,11 +20,7 @@ import org.workfitai.applicationservice.dto.CvSnapshotResponse;
  *
  * Note: Uses InternalFeignConfig to avoid forwarding JWT (internal endpoint is permitAll).
  */
-@FeignClient(
-        name = "cv-service",
-        url = "${cv-service.internal-url:http://cv-service:8080}",
-        configuration = InternalFeignConfig.class
-)
+@FeignClient(name = "cv")
 public interface CvServiceClient {
 
     /**

@@ -123,9 +123,20 @@ class Settings(BaseSettings):
     MIN_SIMILARITY_SCORE: float = Field(default=0.0, env="MIN_SIMILARITY_SCORE")
     
     # Performance
-    ENABLE_CACHING: bool = Field(default=True, env="ENABLE_CACHING")
-    CACHE_TTL_SECONDS: int = Field(default=3600, env="CACHE_TTL_SECONDS")
     MAX_WORKERS: int = Field(default=4, env="MAX_WORKERS")
+
+    # CV Ranking Cache (rank-by-job) — ships dark; enable after load test
+    CV_RANKING_CACHE_ENABLED: bool = Field(default=False, env="CV_RANKING_CACHE_ENABLED")
+    CV_RANKING_CACHE_COOLDOWN_SECONDS: int = Field(default=300, env="CV_RANKING_CACHE_COOLDOWN_SECONDS")
+
+    # Recommendation Cache — ships dark; enable after load test
+    RECOMMENDATION_CACHE_ENABLED: bool = Field(default=False, env="RECOMMENDATION_CACHE_ENABLED")
+    RECOMMENDATION_CACHE_COOLDOWN_SECONDS: int = Field(default=60, env="RECOMMENDATION_CACHE_COOLDOWN_SECONDS")
+    RECOMMENDATION_CACHE_MAX_ENTRIES: int = Field(default=1000, env="RECOMMENDATION_CACHE_MAX_ENTRIES")
+    RECOMMENDATION_CACHE_TTL_SECONDS: int = Field(default=600, env="RECOMMENDATION_CACHE_TTL_SECONDS")
+
+    # CV Ranking background refresher interval (Phase 3) — added here for completeness
+    CV_RANKING_REFRESH_INTERVAL_SECONDS: int = Field(default=60, env="CV_RANKING_REFRESH_INTERVAL_SECONDS")
     
     # Monitoring
     ENABLE_METRICS: bool = Field(default=True, env="ENABLE_METRICS")

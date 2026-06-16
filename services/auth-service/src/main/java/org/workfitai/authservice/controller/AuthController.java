@@ -1,7 +1,6 @@
 package org.workfitai.authservice.controller;
 
 import java.security.Principal;
-import java.time.Duration;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,6 +27,7 @@ import org.workfitai.authservice.dto.response.Partial2FALoginResponse;
 import org.workfitai.authservice.dto.response.ResponseData;
 import org.workfitai.authservice.dto.response.TokensResponse;
 import org.workfitai.authservice.security.JwtService;
+import org.workfitai.authservice.security.RefreshCookieFactory;
 import org.workfitai.authservice.service.iAuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +41,7 @@ public class AuthController {
 
         private final iAuthService authService;
         private final JwtService jwtService;
+        private final RefreshCookieFactory refreshCookieFactory;
 
         @GetMapping()
         public ResponseData<String> healthCheck() {
@@ -93,11 +94,7 @@ public class AuthController {
 
                 // Normal login - return tokens
                 IssuedTokens issued = (IssuedTokens) result;
-                var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
-                                .httpOnly(true)
-                                .path("/")
-                                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
-                                .build();
+                var cookie = refreshCookieFactory.build(issued.getRefreshToken(), jwtService.getRefreshExpMs());
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
@@ -115,11 +112,7 @@ public class AuthController {
                         @Valid @RequestBody Verify2FALoginRequest req,
                         HttpServletRequest request) {
                 var issued = authService.verify2FALogin(req, request);
-                var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())
-                                .httpOnly(true)
-                                .path("/")
-                                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
-                                .build();
+                var cookie = refreshCookieFactory.build(issued.getRefreshToken(), jwtService.getRefreshExpMs());
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(
@@ -142,11 +135,7 @@ public class AuthController {
                 authService.logout(deviceId, principal.getName());
 
                 // Xoá cookie refresh token (RT)
-                ResponseCookie deleteCookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, "")
-                                .httpOnly(true)
-                                .path("/")
-                                .maxAge(0) // hết hạn ngay
-                                .build();
+                ResponseCookie deleteCookie = refreshCookieFactory.delete();
 
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
@@ -158,11 +147,7 @@ public class AuthController {
                         @CookieValue(name = Messages.Misc.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
                         @RequestHeader(value = "X-Device-Id", required = false) String deviceId) {
                 var issued = authService.refresh(refreshToken, deviceId);
-                var cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, issued.getRefreshToken())// rotate
-                                .httpOnly(true).secure(true).sameSite("Strict")
-                                .path("/")
-                                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
-                                .build();
+                var cookie = refreshCookieFactory.build(issued.getRefreshToken(), jwtService.getRefreshExpMs()); // rotate
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                                 .body(ResponseData.success(

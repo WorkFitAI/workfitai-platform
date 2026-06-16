@@ -1,0 +1,15 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 1
+  },
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "resume_index": 2,
+  "resume_summary": "Mid-level UX / UI Designer with 5+ years leading product discovery, roadmapping, and go-to-market in SaaS. Proficient in Redux and TypeScript. Passionate about shipping user-centred products that move business KPIs.",
+  "resume_experience": "Lead UX Designer @ Zalo Group (May 2021–Nov 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Senior UX Designer @ Haravan (Apr 2023–Nov 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | UX Designer @ Masan Group (Sep 2022–Jul 2025) | UI Designer @ BCG Vietnam (Jan 2024–Present)",
+  "resume_skills": "Redux, ReactJS, TypeScript, TailwindCSS, Tableau, Power BI, Feature Prioritisation, OKRs, Sketch, Design Systems, Technical Communication, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Continuous Learning",
+  "resume_education": "Bachelor of Arts in Design / Human-Computer Interaction – NEU – Hanoi, 2018 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/smithanna\n\nOBJECTIVE\nMid-level UX / UI Designer with 5+ years leading product discovery, roadmapping, and go-to-market in SaaS. Proficient in Redux and TypeScript. Passionate about shipping user-centred products that move business KPIs.\n\nEXPERIENCE\nLead UX Designer @ Zalo Group (May 2021–Nov 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Senior UX Designer @ Haravan (Apr 2023–Nov 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | UX Designer @ Masan Group (Sep 2022–Jul 2025) | UI Designer @ BCG Vietnam (Jan 2024–Present)\n\nSKILLS\nRedux, ReactJS, TypeScript, TailwindCSS, Tableau, Power BI, Feature Prioritisation, OKRs, Sketch, Design Systems, Technical Communication, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Continuous Learning\n\nEDUCATION\nBachelor of Arts in Design / Human-Computer Interaction – NEU – Hanoi, 2018 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "pdf_file": "candidate2_2.pdf"
+}

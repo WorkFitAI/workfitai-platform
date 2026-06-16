@@ -1,0 +1,15 @@
+{
+  "candidateNum": 4,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 3
+  },
+  "jobTitle": "Mobile Developer - React Native",
+  "resume_index": 4,
+  "resume_summary": "11+ years as a Mobile Engineer (Android & iOS) specialising in Kotlin and C#. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Mobile Engineer @ CMC Global (Aug 2022–Oct 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior Mobile Engineer @ Techcombank (Jun 2023–May 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | iOS/Android Engineer @ Shopee Vietnam (Dec 2023–Apr 2025) | Mobile Developer @ Medici Health (May 2024–Oct 2025) | Mobile Developer @ ACB Bank (Aug 2024–Present)",
+  "resume_skills": "Redux, React Native, Angular, Node.js, C#, Kotlin, R, Go, CQRS, TDD, Analytical Thinking, Leadership & Mentoring, Ownership & Accountability, Presentation Skills, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\n11+ years as a Mobile Engineer (Android & iOS) specialising in Kotlin and C#. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Mobile Engineer @ CMC Global (Aug 2022–Oct 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior Mobile Engineer @ Techcombank (Jun 2023–May 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | iOS/Android Engineer @ Shopee Vietnam (Dec 2023–Apr 2025) | Mobile Developer @ Medici Health (May 2024–Oct 2025) | Mobile Developer @ ACB Bank (Aug 2024–Present)\n\nSKILLS\nRedux, React Native, Angular, Node.js, C#, Kotlin, R, Go, CQRS, TDD, Analytical Thinking, Leadership & Mentoring, Ownership & Accountability, Presentation Skills, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate4_4.pdf"
+}

@@ -5,7 +5,9 @@ API route handlers for recommendation endpoints
 import base64
 import time
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
+
+import anyio
 from fastapi import APIRouter, HTTPException, Request, status
 
 from app.models.job_recommend_requests import (
@@ -40,33 +42,24 @@ def _prepare_filters(request_filters) -> Dict:
     filters = {}
     if not request_filters:
         return filters
-    
-    # Location filter (use first location if multiple)
+
     if request_filters.locations and len(request_filters.locations) > 0:
         filters['location'] = request_filters.locations[0]
-    
-    # Salary filters
     if request_filters.minSalary:
         filters['minSalary'] = request_filters.minSalary
     if request_filters.maxSalary:
         filters['maxSalary'] = request_filters.maxSalary
-    
-    # Experience level (use first if multiple)
     if request_filters.experienceLevels and len(request_filters.experienceLevels) > 0:
         filters['experienceLevel'] = request_filters.experienceLevels[0]
-    
-    # Employment type (use first if multiple)
     if request_filters.employmentTypes and len(request_filters.employmentTypes) > 0:
         filters['jobType'] = request_filters.employmentTypes[0]
-    
+
     return filters
 
 
 def _create_job_recommendation(result: Dict, rank: int) -> JobRecommendation:
     """Create JobRecommendation from FAISS search result"""
-    # Clamp score to [0, 1] range to handle floating point precision
     score = min(1.0, max(0.0, float(result['score'])))
-    
     return JobRecommendation(
         jobId=result['jobId'],
         score=score,
@@ -81,390 +74,333 @@ def _create_job_recommendation(result: Dict, rank: int) -> JobRecommendation:
     )
 
 
+# ---------------------------------------------------------------------------
+# by-resume
+# ---------------------------------------------------------------------------
+
 @router.post("/by-resume", response_model=RecommendationResponse)
 async def recommend_by_resume(request: RecommendByResumeRequest, req: Request):
     """
-    Get job recommendations based on resume PDF
-    
+    Get job recommendations based on resume PDF.
+
     - **resumeFile**: Base64 encoded PDF file
     - **topK**: Number of recommendations (1-100)
     - **filters**: Optional filters for location, salary, etc.
+
+    Cache key: SHA-256 of (formatted resume text, filters, topK).
+    PDF parsing runs before cache check; embedding+FAISS is cached.
     """
+    from app.config import get_settings
+    from app.services.recommendation_cache import RecommendationCache, get_recommendation_cache
+
     start_time = time.time()
-    
+    settings = get_settings()
+
+    faiss_manager = req.app.state.faiss_manager()
+    embedding_generator = req.app.state.embedding_generator()
+    resume_parser = req.app.state.resume_parser()
+
+    if not faiss_manager or not embedding_generator or not resume_parser:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    logger.info("Recommend by resume (base64 length: %d, topK=%d)", len(request.resumeFile), request.topK)
+
     try:
-        # Get services from app state
-        faiss_manager = req.app.state.faiss_manager()
-        embedding_generator = req.app.state.embedding_generator()
-        resume_parser = req.app.state.resume_parser()
-        
-        if not faiss_manager or not embedding_generator or not resume_parser:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Service not ready"
-            )
-        
-        logger.info(f"Recommend by resume (base64 length: {len(request.resumeFile)}, topK={request.topK})")
-        
-        # Decode base64 PDF
-        try:
-            pdf_bytes = base64.b64decode(request.resumeFile)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid base64 encoding: {str(e)}"
-            )
-        
-        # Parse resume
-        try:
-            parsed_data = resume_parser.parse_resume(pdf_bytes)
-            if not parsed_data:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to parse resume"
-                )
-        except Exception as e:
-            logger.error(f"Resume parsing error: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Resume parsing failed: {str(e)}"
-            )
-        
-        # Format resume for embedding
-        formatted_text = resume_parser.format_resume_for_matching(parsed_data)
-        logger.info(f"Formatted resume text length: {len(formatted_text)}")
-        
-        # Generate embedding
-        query_embedding = embedding_generator.encode_resume(formatted_text)
-        
-        # Prepare filters
-        filters = _prepare_filters(request.filters)
-        
-        # Search FAISS
-        results = faiss_manager.search(
-            query_embedding=query_embedding,
-            top_k=request.topK,
-            filters=filters
-        )
-        
-        # Convert to response format
-        recommendations = [
-            _create_job_recommendation(result, idx + 1)
-            for idx, result in enumerate(results)
-        ]
-        
-        processing_time = f"{int((time.time() - start_time) * 1000)}ms"
-        
-        logger.info(f"✓ Found {len(recommendations)} matching jobs in {processing_time}")
-        
-        return RecommendationResponse(
-            success=True,
-            data=RecommendationData(
-                totalResults=len(recommendations),
-                recommendations=recommendations,
-                processingTime=processing_time
-            ),
-            message=f"Found {len(recommendations)} matching jobs"
-        )
-        
+        pdf_bytes = base64.b64decode(request.resumeFile)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid base64 encoding: {exc}")
+
+    try:
+        parsed_data = resume_parser.parse_resume(pdf_bytes)
+        if not parsed_data:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to parse resume")
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error in recommend_by_resume: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+    except Exception as exc:
+        logger.error("Resume parsing error: %s", exc, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Resume parsing failed: {exc}")
 
+    # Key computed after parse (cache saves embedding + FAISS, not PDF parse)
+    formatted_text = resume_parser.format_resume_for_matching(parsed_data)
+    filters = _prepare_filters(request.filters)
+
+    def _compute() -> List[JobRecommendation]:
+        query_embedding = embedding_generator.encode_resume(formatted_text)
+        results = faiss_manager.search(query_embedding=query_embedding, top_k=request.topK, filters=filters)
+        return [_create_job_recommendation(r, i + 1) for i, r in enumerate(results)]
+
+    if settings.RECOMMENDATION_CACHE_ENABLED:
+        cache = get_recommendation_cache()
+        key = RecommendationCache.key_for_resume(formatted_text, filters, request.topK)
+        cooldown = float(settings.RECOMMENDATION_CACHE_COOLDOWN_SECONDS)
+        recommendations, was_hit = await anyio.to_thread.run_sync(
+            lambda: cache.get_or_compute(key, _compute, cooldown)
+        )
+        cache.maybe_refresh(key, _compute, cooldown)
+        logger.info("by-resume: cache=%s results=%d", "hit" if was_hit else "miss", len(recommendations))
+    else:
+        recommendations = await anyio.to_thread.run_sync(_compute)
+
+    processing_time = f"{int((time.time() - start_time) * 1000)}ms"
+    logger.info("✓ Found %d matching jobs in %s", len(recommendations), processing_time)
+
+    return RecommendationResponse(
+        success=True,
+        data=RecommendationData(
+            totalResults=len(recommendations),
+            recommendations=recommendations,
+            processingTime=processing_time
+        ),
+        message=f"Found {len(recommendations)} matching jobs"
+    )
+
+
+# ---------------------------------------------------------------------------
+# by-profile
+# ---------------------------------------------------------------------------
 
 @router.post("/by-profile", response_model=RecommendationResponse)
 async def recommend_by_profile(request: RecommendByProfileRequest, req: Request):
     """
-    Get job recommendations based on text profile
-    
+    Get job recommendations based on text profile.
+
     Pipeline:
     1. Bi-encoder retrieves top-K candidates from FAISS (fast)
-    2. Cross-encoder reranks to top-N (accurate) - if enabled
-    
+    2. Cross-encoder reranks to top-N (accurate) — if enabled
+
     - **profileText**: User profile text (skills, experience)
     - **topK**: Number of final recommendations (default: 20)
     - **filters**: Optional filters
     """
+    from app.config import get_settings
+    from app.services.recommendation_cache import RecommendationCache, get_recommendation_cache
+
     start_time = time.time()
-    
-    try:
-        faiss_manager = req.app.state.faiss_manager()
-        embedding_generator = req.app.state.embedding_generator()
-        reranker = req.app.state.reranker()
-        
-        if not faiss_manager or not embedding_generator:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Service not ready"
-            )
-        
-        from app.config import get_settings
-        settings = get_settings()
-        
-        logger.info(f"Recommend by profile (text length: {len(request.profileText)}, topK={request.topK})")
-        
-        # Generate embedding from profile text (use encode_resume for query)
+    settings = get_settings()
+
+    faiss_manager = req.app.state.faiss_manager()
+    embedding_generator = req.app.state.embedding_generator()
+    reranker = req.app.state.reranker()
+
+    if not faiss_manager or not embedding_generator:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    logger.info("Recommend by profile (text length: %d, topK=%d)", len(request.profileText), request.topK)
+
+    filters = _prepare_filters(request.filters)
+    retrieve_k = settings.RERANK_TOP_K if reranker else request.topK
+
+    def _compute() -> List[JobRecommendation]:
         query_embedding = embedding_generator.encode_resume(request.profileText)
-        
-        # Prepare filters
-        filters = _prepare_filters(request.filters)
-        
-        # Step 1: Bi-encoder retrieval (fast, retrieve more candidates for reranking)
-        retrieve_k = settings.RERANK_TOP_K if reranker else request.topK
-        results = faiss_manager.search(
-            query_embedding=query_embedding,
-            top_k=retrieve_k,
-            filters=filters
-        )
-        
-        # Convert to dictionaries for reranking
-        candidates = [
-            _create_job_recommendation(result, idx + 1)
-            for idx, result in enumerate(results)
-        ]
-        
-        # Step 2: Cross-encoder reranking (if enabled and available)
-        if reranker and len(candidates) > 0:
-            logger.info(f"Reranking {len(candidates)} candidates with cross-encoder")
-            rerank_start = time.time()
-            
+        results = faiss_manager.search(query_embedding=query_embedding, top_k=retrieve_k, filters=filters)
+        candidates = [_create_job_recommendation(r, i + 1) for i, r in enumerate(results)]
+
+        if reranker and candidates:
             try:
-                # Convert JobRecommendation objects to dicts
                 candidates_dict = [c.model_dump() if hasattr(c, 'model_dump') else c for c in candidates]
-                
-                # Rerank with cross-encoder
                 reranked = reranker.rerank(
                     resume_text=request.profileText,
                     candidates=candidates_dict,
                     top_n=request.topK
                 )
-                
-                # Convert back to JobRecommendation objects
-                from app.models.job_recommend_responses import JobRecommendation
-                recommendations = [JobRecommendation(**r) for r in reranked]
-                
-                rerank_time = int((time.time() - rerank_start) * 1000)
-                logger.info(f"✓ Reranking completed in {rerank_time}ms")
-                
-            except Exception as e:
-                logger.error(f"Reranking failed, using bi-encoder results: {e}")
-                recommendations = candidates[:request.topK]
-        else:
-            recommendations = candidates[:request.topK]
-        
-        processing_time = f"{int((time.time() - start_time) * 1000)}ms"
-        
-        logger.info(f"✓ Found {len(recommendations)} matching jobs in {processing_time}")
-        
-        return RecommendationResponse(
-            success=True,
-            data=RecommendationData(
-                totalResults=len(recommendations),
-                recommendations=recommendations,
-                processingTime=processing_time
-            ),
-            message=f"Found {len(recommendations)} matching jobs"
-        )
-        
-    except Exception as e:
-        logger.error(f"Error in recommend_by_profile: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+                return [JobRecommendation(**r) for r in reranked]
+            except Exception as exc:
+                logger.error("Reranking failed, using bi-encoder results: %s", exc)
+                return candidates[:request.topK]
+        return candidates[:request.topK]
 
+    if settings.RECOMMENDATION_CACHE_ENABLED:
+        cache = get_recommendation_cache()
+        key = RecommendationCache.key_for_profile(request.profileText, filters, request.topK)
+        cooldown = float(settings.RECOMMENDATION_CACHE_COOLDOWN_SECONDS)
+        recommendations, was_hit = await anyio.to_thread.run_sync(
+            lambda: cache.get_or_compute(key, _compute, cooldown)
+        )
+        cache.maybe_refresh(key, _compute, cooldown)
+        logger.info("by-profile: cache=%s results=%d", "hit" if was_hit else "miss", len(recommendations))
+    else:
+        recommendations = await anyio.to_thread.run_sync(_compute)
+
+    processing_time = f"{int((time.time() - start_time) * 1000)}ms"
+    logger.info("✓ Found %d matching jobs in %s", len(recommendations), processing_time)
+
+    return RecommendationResponse(
+        success=True,
+        data=RecommendationData(
+            totalResults=len(recommendations),
+            recommendations=recommendations,
+            processingTime=processing_time
+        ),
+        message=f"Found {len(recommendations)} matching jobs"
+    )
+
+
+# ---------------------------------------------------------------------------
+# similar-jobs
+# ---------------------------------------------------------------------------
 
 @router.post("/similar-jobs", response_model=RecommendationResponse)
 async def find_similar_jobs(request: SimilarJobsRequest, req: Request):
     """
-    Find jobs similar to a reference job
-    
+    Find jobs similar to a reference job.
+
     - **jobId**: Reference job ID
     - **topK**: Number of similar jobs
     - **excludeSameCompany**: Exclude jobs from same company
     """
+    from app.config import get_settings
+    from app.services.recommendation_cache import RecommendationCache, get_recommendation_cache
+
     start_time = time.time()
-    
-    try:
-        faiss_manager = req.app.state.faiss_manager()
-        
-        if not faiss_manager:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Service not ready"
-            )
-        
-        logger.info(f"Finding similar jobs for {request.jobId} (topK={request.topK}, excludeSameCompany={request.excludeSameCompany})")
-        
-        # Get the reference job's embedding from FAISS
-        job_data = faiss_manager.get_job_by_id(request.jobId)
-        if not job_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Job {request.jobId} not found in index"
-            )
-        
-        query_embedding = job_data['embedding']
-        reference_company = _extract_company_name(job_data)
-        
-        # Search for similar jobs (request topK + 1 to exclude self)
+    settings = get_settings()
+
+    faiss_manager = req.app.state.faiss_manager()
+    if not faiss_manager:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    logger.info(
+        "Finding similar jobs for %s (topK=%d, excludeSameCompany=%s)",
+        request.jobId, request.topK, request.excludeSameCompany
+    )
+
+    # 404 guard before any cache check
+    job_data = faiss_manager.get_job_by_id(request.jobId)
+    if not job_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job {request.jobId} not found in index"
+        )
+
+    reference_company = _extract_company_name(job_data)
+    query_embedding = job_data['embedding']
+
+    def _compute() -> List[JobRecommendation]:
         results = faiss_manager.search(
             query_embedding=query_embedding,
             top_k=request.topK + 1,
             filters={}
         )
-        
-        # Filter results
-        recommendations = []
+        recommendations: List[JobRecommendation] = []
         for result in results:
-            # Skip the reference job itself
             if result['jobId'] == request.jobId:
                 continue
-            
-            # Extract company for comparison
-            result_company = _extract_company_name(result)
-                
-            # Skip same company if requested
-            if request.excludeSameCompany and result_company == reference_company:
+            if request.excludeSameCompany and _extract_company_name(result) == reference_company:
                 continue
-            
-            recommendations.append(
-                _create_job_recommendation(result, len(recommendations) + 1)
-            )
-            
-            # Stop when we have enough results
+            recommendations.append(_create_job_recommendation(result, len(recommendations) + 1))
             if len(recommendations) >= request.topK:
                 break
-        
-        processing_time = f"{int((time.time() - start_time) * 1000)}ms"
-        
-        logger.info(f"✓ Found {len(recommendations)} similar jobs in {processing_time}")
-        
-        return RecommendationResponse(
-            success=True,
-            data=RecommendationData(
-                totalResults=len(recommendations),
-                recommendations=recommendations,
-                processingTime=processing_time
-            ),
-            message=f"Found {len(recommendations)} similar jobs"
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in find_similar_jobs: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        return recommendations
 
+    if settings.RECOMMENDATION_CACHE_ENABLED:
+        cache = get_recommendation_cache()
+        key = RecommendationCache.key_for_similar(request.jobId, request.topK, request.excludeSameCompany)
+        cooldown = float(settings.RECOMMENDATION_CACHE_COOLDOWN_SECONDS)
+        recommendations, was_hit = await anyio.to_thread.run_sync(
+            lambda: cache.get_or_compute(key, _compute, cooldown)
+        )
+        cache.maybe_refresh(key, _compute, cooldown)
+        logger.info("similar-jobs: cache=%s results=%d", "hit" if was_hit else "miss", len(recommendations))
+    else:
+        recommendations = await anyio.to_thread.run_sync(_compute)
+
+    processing_time = f"{int((time.time() - start_time) * 1000)}ms"
+    logger.info("✓ Found %d similar jobs in %s", len(recommendations), processing_time)
+
+    return RecommendationResponse(
+        success=True,
+        data=RecommendationData(
+            totalResults=len(recommendations),
+            recommendations=recommendations,
+            processingTime=processing_time
+        ),
+        message=f"Found {len(recommendations)} similar jobs"
+    )
+
+
+# ---------------------------------------------------------------------------
+# search
+# ---------------------------------------------------------------------------
 
 @router.post("/search", response_model=RecommendationResponse)
 async def semantic_search(request: SemanticSearchRequest, req: Request):
     """
-    Semantic search for jobs using text query
-    
+    Semantic search for jobs using text query.
+
     - **query**: Search query text
     - **topK**: Number of results
     - **filters**: Optional filters
     """
-    start_time = time.time()
-    
-    try:
-        faiss_manager = req.app.state.faiss_manager()
-        embedding_generator = req.app.state.embedding_generator()
-        
-        if not faiss_manager or not embedding_generator:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Service not ready"
-            )
-        
-        logger.info(f"Semantic search: '{request.query[:50]}...' topK={request.topK}")
-        
-        # Generate query embedding (use encode_resume for query prefix)
-        query_embedding = embedding_generator.encode_resume(request.query)
-        
-        # Prepare filters
-        filters = _prepare_filters(request.filters)
-        
-        # Search FAISS
-        results = faiss_manager.search(
-            query_embedding=query_embedding,
-            top_k=request.topK,
-            filters=filters
-        )
-        
-        # Convert to response format
-        recommendations = [
-            _create_job_recommendation(result, idx + 1)
-            for idx, result in enumerate(results)
-        ]
-        
-        processing_time = f"{int((time.time() - start_time) * 1000)}ms"
-        
-        logger.info(f"✓ Found {len(recommendations)} matching jobs in {processing_time}")
-        
-        return RecommendationResponse(
-            success=True,
-            data=RecommendationData(
-                totalResults=len(recommendations),
-                recommendations=recommendations,
-                processingTime=processing_time
-            ),
-            message=f"Found {len(recommendations)} matching jobs"
-        )
-        
-    except Exception as e:
-        logger.error(f"Error in semantic_search: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+    from app.config import get_settings
+    from app.services.recommendation_cache import RecommendationCache, get_recommendation_cache
 
+    start_time = time.time()
+    settings = get_settings()
+
+    faiss_manager = req.app.state.faiss_manager()
+    embedding_generator = req.app.state.embedding_generator()
+
+    if not faiss_manager or not embedding_generator:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    logger.info("Semantic search: '%.50s...' topK=%d", request.query, request.topK)
+
+    filters = _prepare_filters(request.filters)
+
+    def _compute() -> List[JobRecommendation]:
+        query_embedding = embedding_generator.encode_resume(request.query)
+        results = faiss_manager.search(query_embedding=query_embedding, top_k=request.topK, filters=filters)
+        return [_create_job_recommendation(r, i + 1) for i, r in enumerate(results)]
+
+    if settings.RECOMMENDATION_CACHE_ENABLED:
+        cache = get_recommendation_cache()
+        key = RecommendationCache.key_for_search(request.query, filters, request.topK)
+        cooldown = float(settings.RECOMMENDATION_CACHE_COOLDOWN_SECONDS)
+        recommendations, was_hit = await anyio.to_thread.run_sync(
+            lambda: cache.get_or_compute(key, _compute, cooldown)
+        )
+        cache.maybe_refresh(key, _compute, cooldown)
+        logger.info("search: cache=%s results=%d", "hit" if was_hit else "miss", len(recommendations))
+    else:
+        recommendations = await anyio.to_thread.run_sync(_compute)
+
+    processing_time = f"{int((time.time() - start_time) * 1000)}ms"
+    logger.info("✓ Found %d matching jobs in %s", len(recommendations), processing_time)
+
+    return RecommendationResponse(
+        success=True,
+        data=RecommendationData(
+            totalResults=len(recommendations),
+            recommendations=recommendations,
+            processingTime=processing_time
+        ),
+        message=f"Found {len(recommendations)} matching jobs"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Admin
+# ---------------------------------------------------------------------------
 
 @router.post("/admin/sync", tags=["Admin"])
 async def trigger_sync(req: Request):
-    """
-    Trigger manual sync from Job Service (Admin endpoint)
-    """
+    """Trigger manual sync from Job Service (Admin endpoint)"""
     start_time = time.time()
-    
-    try:
-        faiss_manager = req.app.state.faiss_manager()
-        embedding_generator = req.app.state.embedding_generator()
-        
-        if not faiss_manager or not embedding_generator:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Service not ready"
-            )
-        
-        logger.info("Manual sync triggered by admin")
-        
-        # Import here to avoid circular dependency
-        from app.services.job_sync import sync_jobs_from_service
-        
-        synced_count = await sync_jobs_from_service(faiss_manager, embedding_generator)
-        
-        processing_time = f"{int((time.time() - start_time) * 1000)}ms"
-        
-        return {
-            "success": True,
-            "message": f"Successfully synced {synced_count} jobs",
-            "jobsSynced": synced_count,
-            "processingTime": processing_time
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in manual sync: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+
+    faiss_manager = req.app.state.faiss_manager()
+    embedding_generator = req.app.state.embedding_generator()
+
+    if not faiss_manager or not embedding_generator:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    logger.info("Manual sync triggered by admin")
+
+    from app.services.job_sync import sync_jobs_from_service
+    synced_count = await sync_jobs_from_service(faiss_manager, embedding_generator)
+
+    processing_time = f"{int((time.time() - start_time) * 1000)}ms"
+    return {
+        "success": True,
+        "message": f"Successfully synced {synced_count} jobs",
+        "jobsSynced": synced_count,
+        "processingTime": processing_time
+    }

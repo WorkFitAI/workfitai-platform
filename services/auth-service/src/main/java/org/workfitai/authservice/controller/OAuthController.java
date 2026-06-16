@@ -32,11 +32,11 @@ import org.workfitai.authservice.enums.Provider;
 import org.workfitai.authservice.model.User;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.security.JwtService;
+import org.workfitai.authservice.security.RefreshCookieFactory;
 import org.workfitai.authservice.service.oauth.OAuthService;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -56,15 +56,13 @@ public class OAuthController {
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RefreshCookieFactory refreshCookieFactory;
 
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
     @Value("${app.backend.base-url:http://localhost:9085}")
     private String backendBaseUrl;
-
-    @Value("${app.cookie.secure:false}")
-    private boolean cookieSecure;
 
     private static final String OAUTH_SESSION_PREFIX = "oauth:session:";
 
@@ -244,12 +242,9 @@ public class OAuthController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process OAuth session");
         }
 
-        // Set refresh token as HttpOnly cookie
-        ResponseCookie cookie = ResponseCookie.from(Messages.Misc.REFRESH_TOKEN_COOKIE_NAME, oauthSession.getRefreshToken())
-                .httpOnly(true)
-                .path("/")
-                .maxAge(Duration.ofMillis(jwtService.getRefreshExpMs()))
-                .build();
+        // Set refresh token as HttpOnly cookie (attributes centralized in factory)
+        ResponseCookie cookie = refreshCookieFactory.build(
+                oauthSession.getRefreshToken(), jwtService.getRefreshExpMs());
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 

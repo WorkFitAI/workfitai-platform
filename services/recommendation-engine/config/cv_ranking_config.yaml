@@ -8,8 +8,8 @@ bi_encoder_model: bi-encoder     # subdir under model_dir (symlink or copy of jo
 top_n: 20
 cross_encoder_model: cross-encoder  # subdir under model_dir (symlink or copy of job-recommend/cross-encoder)
 
-# Stage 3: T5 Explanation (optional — template fallback used when absent)
-t5_model: t5-explanation
+# Stage 3: T5 Explanation (optional — rule-based fallback used when absent)
+t5_model: explanation-t5
 
 # Score thresholds
 # NOTE: evaluation auto-calibrated threshold to 27.1 (F1-optimal on 1630 test pairs).

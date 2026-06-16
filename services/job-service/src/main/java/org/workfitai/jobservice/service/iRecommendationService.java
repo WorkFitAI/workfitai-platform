@@ -1,7 +1,6 @@
 package org.workfitai.jobservice.service;
 
 import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
-import org.workfitai.jobservice.model.dto.response.Recommendation.ResCvRankingDTO;
 import org.workfitai.jobservice.model.dto.response.Recommendation.ResJobRecommendationDTO;
 
 import java.util.UUID;
@@ -36,12 +35,4 @@ public interface iRecommendationService {
      */
     ResJobRecommendationDTO getSimilarJobs(UUID jobId, Integer topK, Boolean excludeSameCompany);
 
-    /**
-     * Rank CVs of applicants for a specific job using the cv-refer pipeline.
-     * Requires applicant + CV data to be pre-synced in recommendation-engine via Kafka.
-     *
-     * @param jobId Job UUID
-     * @return Ranked applicants with scores and AI explanations
-     */
-    ResCvRankingDTO rankCvsByJob(UUID jobId);
 }

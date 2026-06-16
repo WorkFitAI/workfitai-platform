@@ -1,0 +1,15 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 4
+  },
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "resume_index": 5,
+  "resume_summary": "Versatile DevOps / Platform Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in TypeScript and Go. Mentored 11 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Lead Platform Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Platform Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior DevOps Engineer @ VPBank (Aug 2022–Jun 2025) | DevOps Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
+  "resume_skills": "AWS, Terraform, TypeScript, Go, CQRS, TDD, Code Review, Jenkins, Azure, Apache Kafka, RabbitMQ, Data-Driven Decision Making, Empathy & Active Listening, Continuous Learning",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile DevOps / Platform Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in TypeScript and Go. Mentored 11 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nLead Platform Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Platform Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior DevOps Engineer @ VPBank (Aug 2022–Jun 2025) | DevOps Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nAWS, Terraform, TypeScript, Go, CQRS, TDD, Code Review, Jenkins, Azure, Apache Kafka, RabbitMQ, Data-Driven Decision Making, Empathy & Active Listening, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "pdf_file": "candidate5_5.pdf"
+}

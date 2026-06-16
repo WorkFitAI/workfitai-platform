@@ -24,15 +24,23 @@ public class OtpService {
     private static final String OTP_PREFIX = "auth:otp:";
     private static final String PENDING_PREFIX = "auth:pending:";
 
+    private final boolean devFixedOtp;
+
     public OtpService(StringRedisTemplate redis,
             ObjectMapper objectMapper,
-            @Value("${auth.otp.ttl-seconds:86400}") long ttlSeconds) {
+            @Value("${auth.otp.ttl-seconds:86400}") long ttlSeconds,
+            @Value("${auth.otp.dev-fixed:false}") boolean devFixedOtp) {
         this.redis = redis;
         this.objectMapper = objectMapper;
         this.ttl = Duration.ofSeconds(ttlSeconds);
+        this.devFixedOtp = devFixedOtp;
+        if (devFixedOtp) {
+            log.warn("DEV MODE: OTP is fixed to 000000 — do not use in production");
+        }
     }
 
     public String generateOtp() {
+        if (devFixedOtp) return "000000";
         return String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
     }
 

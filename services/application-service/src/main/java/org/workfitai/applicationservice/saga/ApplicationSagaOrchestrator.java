@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.workfitai.applicationservice.client.CvServiceClient;
 import org.workfitai.applicationservice.client.UserServiceClient;
@@ -75,15 +76,17 @@ public class ApplicationSagaOrchestrator {
      * @return ApplicationResponse on success
      * @throws RuntimeException on any saga step failure
      */
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse createApplication(CreateApplicationRequest request, String username) {
         log.info("Starting application creation saga for user: {}, job: {}", username, request.getJobId());
 
-        // Initialize saga context
+        // Initialize saga context — pre-generate applicationId so cv-service snapshot links back correctly
         ApplicationSagaContext context = ApplicationSagaContext.builder()
                 .username(username)
                 .email(request.getEmail())
                 .jobId(request.getJobId())
                 .coverLetter(request.getCoverLetter())
+                .applicationId(UUID.randomUUID().toString())
                 .build();
 
         try {
@@ -162,21 +165,15 @@ public class ApplicationSagaOrchestrator {
         context.setCurrentStep(SagaStep.SNAPSHOT_CV);
         log.debug("Saga Step 4: SNAPSHOT_CV");
 
-        // Use a temp UUID as applicationId — will match after save because we pass the same UUID to cv-service
-        // NOTE: the real applicationId is assigned by MongoDB on save; we use a pre-generated UUID
-        // stored in context so cv-service and application-service both refer to the same ID.
-        // We reuse the fileUploadResult UUID pattern; here we generate a fresh one as temp app ID.
-        String tempApplicationId = UUID.randomUUID().toString();
-
         try {
             CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
                     context.getUsername(),
-                    tempApplicationId,
+                    context.getApplicationId(),
                     request.getCvPdfFile()
             );
             context.setCvSnapshot(snapshot);
             log.info("Saga SNAPSHOT_CV: snapshot created — cvId={} applicationId={}",
-                    snapshot.getCvId(), tempApplicationId);
+                    snapshot.getCvId(), context.getApplicationId());
         } catch (Exception e) {
             // Best-effort: swallow error, ranking will work with empty CV data
             log.warn("Saga SNAPSHOT_CV: failed to create CV snapshot (non-critical, saga continues): {}",
@@ -243,6 +240,7 @@ public class ApplicationSagaOrchestrator {
                 .build();
 
         Application application = Application.builder()
+                .id(context.getApplicationId())
                 .username(context.getUsername())
                 .email(context.getEmail())
                 .jobId(context.getJobId())

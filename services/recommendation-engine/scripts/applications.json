@@ -1,0 +1,604 @@
+{
+  "applications": [
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate1_1.pdf",
+      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate1_2.pdf",
+      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate1_3.pdf",
+      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate1_4.pdf",
+      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate1_5.pdf",
+      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate1_6.pdf",
+      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate1_7.pdf",
+      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate1_8.pdf",
+      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate1_9.pdf",
+      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate1_10.pdf",
+      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate2_1.pdf",
+      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate2_2.pdf",
+      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate2_3.pdf",
+      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate2_4.pdf",
+      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate2_5.pdf",
+      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate2_6.pdf",
+      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate2_7.pdf",
+      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate2_8.pdf",
+      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate2_9.pdf",
+      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate2_10.pdf",
+      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate3_1.pdf",
+      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate3_2.pdf",
+      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate3_3.pdf",
+      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate3_4.pdf",
+      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate3_5.pdf",
+      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate3_6.pdf",
+      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate3_7.pdf",
+      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate3_8.pdf",
+      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate3_9.pdf",
+      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate3_10.pdf",
+      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate4_1.pdf",
+      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate4_2.pdf",
+      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate4_3.pdf",
+      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate4_4.pdf",
+      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate4_5.pdf",
+      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate4_6.pdf",
+      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate4_7.pdf",
+      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate4_8.pdf",
+      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate4_9.pdf",
+      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate4_10.pdf",
+      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate5_1.pdf",
+      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate5_2.pdf",
+      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate5_3.pdf",
+      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate5_4.pdf",
+      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate5_5.pdf",
+      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate5_6.pdf",
+      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate5_7.pdf",
+      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate5_8.pdf",
+      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate5_9.pdf",
+      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate5_10.pdf",
+      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate6_1.pdf",
+      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate6_2.pdf",
+      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate6_3.pdf",
+      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate6_4.pdf",
+      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate6_5.pdf",
+      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate6_6.pdf",
+      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate6_7.pdf",
+      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate6_8.pdf",
+      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate6_9.pdf",
+      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate6_10.pdf",
+      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate7_1.pdf",
+      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate7_2.pdf",
+      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate7_3.pdf",
+      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate7_4.pdf",
+      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate7_5.pdf",
+      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate7_6.pdf",
+      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate7_7.pdf",
+      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate7_8.pdf",
+      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate7_9.pdf",
+      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate7_10.pdf",
+      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate8_1.pdf",
+      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate8_2.pdf",
+      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate8_3.pdf",
+      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate8_4.pdf",
+      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate8_5.pdf",
+      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate8_6.pdf",
+      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate8_7.pdf",
+      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate8_8.pdf",
+      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate8_9.pdf",
+      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate8_10.pdf",
+      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate9_1.pdf",
+      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate9_2.pdf",
+      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate9_3.pdf",
+      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate9_4.pdf",
+      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate9_5.pdf",
+      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate9_6.pdf",
+      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate9_7.pdf",
+      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate9_8.pdf",
+      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate9_9.pdf",
+      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate9_10.pdf",
+      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "cvFile": "candidate10_1.pdf",
+      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "cvFile": "candidate10_2.pdf",
+      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "cvFile": "candidate10_3.pdf",
+      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "cvFile": "candidate10_4.pdf",
+      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "cvFile": "candidate10_5.pdf",
+      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "cvFile": "candidate10_6.pdf",
+      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "cvFile": "candidate10_7.pdf",
+      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "cvFile": "candidate10_8.pdf",
+      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "cvFile": "candidate10_9.pdf",
+      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "cvFile": "candidate10_10.pdf",
+      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+    }
+  ]
+}

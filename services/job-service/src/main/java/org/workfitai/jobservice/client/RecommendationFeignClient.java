@@ -16,7 +16,4 @@ public interface RecommendationFeignClient {
 
     @PostMapping("/api/v1/recommendations/similar-jobs")
     Map<String, Object> getSimilarJobs(@RequestBody Map<String, Object> request);
-
-    @PostMapping("/api/v1/cv-ranking/rank-by-job/{jobId}")
-    Map<String, Object> rankCvsByJob(@PathVariable("jobId") String jobId);
 }

@@ -1,0 +1,15 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm1",
+    "index": 2
+  },
+  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
+  "resume_index": 5,
+  "resume_summary": "Versatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
+  "resume_skills": "Node.js, ReactJS, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nNode.js, ReactJS, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "pdf_file": "candidate3_5.pdf"
+}

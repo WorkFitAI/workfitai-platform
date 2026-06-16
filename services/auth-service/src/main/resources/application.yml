@@ -29,12 +29,18 @@ server:
 
 # Application frontend URL for email links
 app:
+  # Deployment mode switch (dev | prod) sourced from .env.local.
+  # Drives cookie Secure default + (at the gateway) CORS origin validation.
+  env: ${APP_ENV:dev}
   frontend:
     base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   backend:
     base-url: ${APP_BACKEND_BASE_URL:http://localhost:9085}
   cookie:
-    secure: ${APP_COOKIE_SECURE:false}  # Set to true in production (HTTPS)
+    # Blank -> derived from app.env (prod -> Secure). Set explicitly to override.
+    secure: ${APP_COOKIE_SECURE:}
+    same-site: ${APP_COOKIE_SAMESITE:Lax}
+    path: ${APP_COOKIE_PATH:/auth}
   kafka:
     topics:
       user-registration: ${KAFKA_TOPIC_USER_REGISTRATION:user-registration}

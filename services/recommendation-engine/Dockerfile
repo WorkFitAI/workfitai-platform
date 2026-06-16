@@ -15,12 +15,19 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# Upgrade pip in a dedicated layer — cached separately from requirements
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements before app code so this layer is only invalidated when
+# requirements.txt changes, not on every code edit.
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# BuildKit cache mount: downloaded wheels are stored in the BuildKit cache
+# (not in the final image).  When this layer reruns for any reason — base image
+# update, pruned layer cache — pip reads wheels from the cache instead of
+# re-downloading everything from PyPI.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/

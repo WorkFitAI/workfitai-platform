@@ -85,7 +85,10 @@ feign:
     config:
       recommendation-engine:
         connectTimeout: 5000
-        readTimeout: 30000
+        readTimeout: 60000  # AI inference (bi-encoder + cross-encoder rerank) can take 15-30s on CPU
+      cv-service:
+        connectTimeout: 3000
+        readTimeout: 10000  # CV list fetch; 10s is sufficient
 
 server:
   port: ${SERVER_PORT:9005}
@@ -171,7 +174,10 @@ feign:
     config:
       recommendation-engine:
         connectTimeout: 5000
-        readTimeout: 30000
+        readTimeout: 60000  # AI inference (bi-encoder + cross-encoder rerank) can take 15-30s on CPU
+      cv-service:
+        connectTimeout: 3000
+        readTimeout: 10000  # CV list fetch; 10s is sufficient
 
 ---
 # =============================================================================

@@ -10,7 +10,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -52,17 +55,41 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        try {
-            RSAPublicKey publicKey = publicKeyProvider.getPublicKey();
-            NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+        return new JwtDecoder() {
+            private volatile NimbusJwtDecoder delegate;
 
-            // ✅ Only validate signature and expiry, skip issuer validation
-            decoder.setJwtValidator(jwt -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
+            private NimbusJwtDecoder build() {
+                try {
+                    RSAPublicKey key = publicKeyProvider.getPublicKey();
+                    NimbusJwtDecoder d = NimbusJwtDecoder.withPublicKey(key).build();
+                    d.setJwtValidator(jwt -> OAuth2TokenValidatorResult.success());
+                    return d;
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to build JWT decoder", e);
+                }
+            }
 
-            return decoder;
-        } catch (Exception e) {
-            throw new IllegalStateException("❌ Failed to load public key from auth-service", e);
-        }
+            @Override
+            public Jwt decode(String token) throws JwtException {
+                if (delegate == null) {
+                    synchronized (this) {
+                        if (delegate == null) {
+                            delegate = build();
+                        }
+                    }
+                }
+                try {
+                    return delegate.decode(token);
+                } catch (JwtException e) {
+                    // Stale key after auth-service restart — refresh once and retry
+                    synchronized (this) {
+                        publicKeyProvider.invalidateKey();
+                        delegate = build();
+                    }
+                    return delegate.decode(token);
+                }
+            }
+        };
     }
 
     @Bean

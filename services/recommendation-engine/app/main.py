@@ -35,6 +35,7 @@ app_state = {
     "reranker": None,
     "cv_ranking_pipeline": None,
     "cv_refer_store": None,
+    "cv_ranking_refresher": None,
 }
 
 
@@ -187,7 +188,24 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to start CvReferConsumer: {e}", exc_info=True)
                 logger.warning("CV ranking by job will not have synced applicant data")
-        
+
+        # Start background rank-by-job refresher (Phase 3) — only when cache is enabled
+        if settings.CV_RANKING_CACHE_ENABLED:
+            try:
+                from app.services.cv_ranking_refresher import CvRankingRefresher
+                from app.services.cv_ranking_cache import get_cv_ranking_cache
+                app_state["cv_ranking_refresher"] = CvRankingRefresher(
+                    cache=get_cv_ranking_cache(),
+                    store=app_state["cv_refer_store"],
+                    pipeline_getter=lambda: app_state["cv_ranking_pipeline"],
+                    settings=settings,
+                )
+                app_state["cv_ranking_refresher"].start()
+                logger.info("✓ CvRankingRefresher started")
+            except Exception as e:
+                logger.error(f"Failed to start CvRankingRefresher: {e}", exc_info=True)
+                logger.warning("Proactive rank-by-job cache refresh will be unavailable")
+
         logger.info("=" * 60)
         logger.info(f"🚀 {settings.SERVICE_NAME} is ready!")
         logger.info(f"📍 Listening on http://{settings.HOST}:{settings.PORT}")
@@ -226,7 +244,14 @@ async def lifespan(app: FastAPI):
                 logger.info("✓ CvReferConsumer stopped")
             except Exception as e:
                 logger.error(f"Failed to stop CvReferConsumer: {e}")
-        
+
+        if app_state["cv_ranking_refresher"]:
+            try:
+                await app_state["cv_ranking_refresher"].stop()
+                logger.info("✓ CvRankingRefresher stopped")
+            except Exception as e:
+                logger.error(f"Failed to stop CvRankingRefresher: {e}")
+
         logger.info("Shutdown complete")
 
 

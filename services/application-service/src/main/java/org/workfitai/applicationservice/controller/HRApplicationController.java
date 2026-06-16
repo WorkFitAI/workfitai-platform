@@ -33,6 +33,7 @@ import org.workfitai.applicationservice.dto.response.BulkUpdateResult;
 import org.workfitai.applicationservice.dto.response.CandidateProfileResponse;
 import org.workfitai.applicationservice.dto.response.CandidateSummaryResponse;
 import org.workfitai.applicationservice.dto.response.CompanyJobSummaryResponse;
+import org.workfitai.applicationservice.dto.response.CvRankingResultResponse;
 import org.workfitai.applicationservice.dto.response.DashboardStatsResponse;
 import org.workfitai.applicationservice.dto.response.JobStatsResponse;
 import org.workfitai.applicationservice.dto.response.NoteResponse;
@@ -49,6 +50,7 @@ import org.workfitai.applicationservice.service.ApplicationStatsService;
 import org.workfitai.applicationservice.service.BulkOperationService;
 import org.workfitai.applicationservice.service.CompanyApplicationService;
 import org.workfitai.applicationservice.service.CompanyCandidateService;
+import org.workfitai.applicationservice.service.CvRankingService;
 import org.workfitai.applicationservice.service.IApplicationService;
 import org.workfitai.applicationservice.service.JobStatsService;
 import org.workfitai.applicationservice.service.MinioPreSignedUrlService;
@@ -84,6 +86,7 @@ public class HRApplicationController {
     private final JobStatsService jobStatsService;
     private final CompanyApplicationService companyApplicationService;
     private final CompanyCandidateService companyCandidateService;
+    private final CvRankingService cvRankingService;
 
     @GetMapping("/job/{jobId}")
     @PreAuthorize("hasAuthority('application:review')")
@@ -209,20 +212,12 @@ public class HRApplicationController {
     }
 
     @GetMapping("/hr/dashboard")
-    @PreAuthorize("hasAuthority('application:review')")
+    @PreAuthorize("hasAuthority('application:review') && (#hrUsername == null || #hrUsername == authentication.name || @applicationSecurity.isAdmin(authentication))")
     public ResponseEntity<RestResponse<DashboardStatsResponse>> getDashboardStats(
             @RequestParam(required = false) String hrUsername,
             Authentication authentication) {
 
-        String currentUser = applicationSecurity.getCurrentUsername(authentication);
-        boolean isAdmin = applicationSecurity.isAdmin(authentication);
-
-        // Only admins may query another user's stats
-        if (hrUsername != null && !hrUsername.equals(currentUser) && !isAdmin) {
-            throw new ForbiddenException("You can only view your own dashboard stats");
-        }
-
-        String username = hrUsername != null ? hrUsername : currentUser;
+        String username = hrUsername != null ? hrUsername : applicationSecurity.getCurrentUsername(authentication);
         DashboardStatsResponse response = applicationStatsService.getDashboardStats(username);
         return ResponseEntity.ok(RestResponse.success(response));
     }
@@ -360,5 +355,17 @@ public class HRApplicationController {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(RestResponse.success(
                 companyCandidateService.getJobsWithStats(companyId, jobTitle, pageable)));
+    }
+
+    @GetMapping("/job/{jobId}/cv-ranking")
+    @PreAuthorize("hasAuthority('application:review')")
+    public ResponseEntity<RestResponse<CvRankingResultResponse>> rankCvsByJob(
+            @PathVariable String jobId,
+            Authentication authentication) {
+
+        String performedBy = applicationSecurity.getCurrentUsername(authentication);
+        log.info("CV ranking requested: jobId={}, by={}", jobId, performedBy);
+        CvRankingResultResponse result = cvRankingService.rankCvsByJob(jobId, performedBy);
+        return ResponseEntity.ok(RestResponse.success(result));
     }
 }

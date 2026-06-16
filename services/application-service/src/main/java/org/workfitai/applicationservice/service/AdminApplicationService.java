@@ -8,7 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.applicationservice.dto.request.AdminCreateApplicationRequest;
 import org.workfitai.applicationservice.dto.request.AdminOverrideRequest;
@@ -42,6 +44,7 @@ public class AdminApplicationService {
      * Use cases: data migration, manual data entry, support fixes
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse createApplication(AdminCreateApplicationRequest request) {
         log.warn("ADMIN: Manual application creation for user={}, job={}, reason={}",
                 request.username(), request.jobId(), request.reason());
@@ -94,6 +97,7 @@ public class AdminApplicationService {
      * Bypasses all validation and business rules
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse overrideApplication(String id, AdminOverrideRequest request) {
         log.warn("ADMIN: Override application id={}, reason={}", id, request.reason());
 
@@ -148,11 +152,15 @@ public class AdminApplicationService {
     /**
      * Get all applications with optional filters.
      * Admin sees everything including soft-deleted by default (includeDeleted=true).
+     * jobTitle: case-insensitive partial match on jobSnapshot.title
+     * keyword: case-insensitive OR match across username, email, jobSnapshot.title
      */
     public Page<ApplicationResponse> getApplications(
             ApplicationStatus status,
             String companyId,
             String username,
+            String jobTitle,
+            String keyword,
             boolean includeDeleted,
             Pageable pageable
     ) {
@@ -166,6 +174,18 @@ public class AdminApplicationService {
         }
         if (username != null && !username.isBlank()) {
             query.addCriteria(Criteria.where("username").is(username));
+        }
+        if (jobTitle != null && !jobTitle.isBlank()) {
+            Pattern jobTitlePattern = Pattern.compile(Pattern.quote(jobTitle.trim()), Pattern.CASE_INSENSITIVE);
+            query.addCriteria(Criteria.where("jobSnapshot.title").regex(jobTitlePattern));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            Pattern keywordPattern = Pattern.compile(Pattern.quote(keyword.trim()), Pattern.CASE_INSENSITIVE);
+            query.addCriteria(new Criteria().orOperator(
+                    Criteria.where("username").regex(keywordPattern),
+                    Criteria.where("email").regex(keywordPattern),
+                    Criteria.where("jobSnapshot.title").regex(keywordPattern)
+            ));
         }
         if (!includeDeleted) {
             query.addCriteria(Criteria.where("deletedAt").isNull());
@@ -186,6 +206,7 @@ public class AdminApplicationService {
      * Soft-delete an application: sets deletedAt/deletedBy and changes status to WITHDRAWN.
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse softDeleteApplication(String id, String adminUsername, String reason) {
         log.warn("ADMIN: Soft-deleting application id={}, by={}, reason={}", id, adminUsername, reason);
 
@@ -194,6 +215,10 @@ public class AdminApplicationService {
 
         if (application.getDeletedAt() != null) {
             throw new IllegalStateException("Application is already deleted: " + id);
+        }
+        if (application.getStatus() != ApplicationStatus.APPLIED) {
+            throw new IllegalStateException(
+                    "Only APPLIED applications can be deleted. Current status: " + application.getStatus());
         }
 
         ApplicationStatus previousStatus = application.getStatus();
@@ -208,7 +233,7 @@ public class AdminApplicationService {
                 .newStatus(ApplicationStatus.WITHDRAWN)
                 .changedBy(adminUsername)
                 .changedAt(Instant.now())
-                .reason(reason)
+                .reason("Admin deleted" + reason)
                 .build();
         application.getStatusHistory().add(statusChange);
 
@@ -222,6 +247,7 @@ public class AdminApplicationService {
      * and restores the status prior to the admin's WITHDRAWN change.
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public ApplicationResponse restoreApplication(String id) {
         log.warn("ADMIN: Restoring application id={}", id);
 
@@ -269,6 +295,7 @@ public class AdminApplicationService {
      * Should only be used after retention period or for GDPR compliance
      */
     @Transactional
+    @CacheEvict(value = "systemStats", allEntries = true)
     public void permanentlyDeleteApplication(String id, String reason) {
         log.warn("ADMIN: Permanent deletion requested id={}, reason={}", id, reason);
 

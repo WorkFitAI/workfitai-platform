@@ -1,0 +1,15 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 0
+  },
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "resume_index": 10,
+  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with Ansible, Bash, and GCP. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Architect @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Solutions Architect @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Solutions Architect @ Oracle Vietnam (Jan 2023–Jun 2025) | Cloud Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Cloud Engineer @ MoMo (M-Service) (Dec 2024–Present)",
+  "resume_skills": "AWS, Kubernetes, Terraform, GCP, Event-Driven Architecture, Code Review, Bash, Scala, Python, R, Ansible, Jenkins, MySQL, BigQuery, Cassandra, Cross-functional Collaboration, Conflict Resolution, Problem Decomposition, Continuous Learning, Negotiation",
+  "resume_education": "Bachelor of Science in Information Technology – VNU-HN, 2017 | TOEIC 900",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with Ansible, Bash, and GCP. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Architect @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Solutions Architect @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Solutions Architect @ Oracle Vietnam (Jan 2023–Jun 2025) | Cloud Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Cloud Engineer @ MoMo (M-Service) (Dec 2024–Present)\n\nSKILLS\nAWS, Kubernetes, Terraform, GCP, Event-Driven Architecture, Code Review, Bash, Scala, Python, R, Ansible, Jenkins, MySQL, BigQuery, Cassandra, Cross-functional Collaboration, Conflict Resolution, Problem Decomposition, Continuous Learning, Negotiation\n\nEDUCATION\nBachelor of Science in Information Technology – VNU-HN, 2017 | TOEIC 900",
+  "pdf_file": "candidate6_10.pdf"
+}
