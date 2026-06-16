@@ -47,9 +47,9 @@ public class AdminController {
     }
 
     /**
-     * Get all applications with optional filters (status, company, username).
+     * Get all applications with optional filters (status, company, username, jobTitle, keyword).
      * Includes withdrawn and soft-deleted applications by default.
-     * GET /admin/applications?page=0&size=50&status=APPLIED&companyId=xxx&username=xxx&includeDeleted=true
+     * GET /admin/all?page=0&size=50&status=APPLIED&companyId=xxx&username=xxx&jobTitle=xxx&keyword=xxx&includeDeleted=true
      */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -59,23 +59,25 @@ public class AdminController {
             @RequestParam(required = false) ApplicationStatus status,
             @RequestParam(required = false) String companyId,
             @RequestParam(required = false) String username,
+            @RequestParam(required = false) String jobTitle,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "true") boolean includeDeleted
     ) {
-        log.info("ADMIN: Fetching applications, page={}, size={}, status={}, companyId={}, username={}, includeDeleted={}",
-                page, size, status, companyId, username, includeDeleted);
+        log.info("ADMIN: Fetching applications, page={}, size={}, status={}, companyId={}, username={}, jobTitle={}, keyword={}, includeDeleted={}",
+                page, size, status, companyId, username, jobTitle, keyword, includeDeleted);
 
         Pageable pageable = PageRequest.of(page, size);
         Page<ApplicationResponse> applications = adminApplicationService.getApplications(
-                status, companyId, username, includeDeleted, pageable);
+                status, companyId, username, jobTitle, keyword, includeDeleted, pageable);
 
         return ResponseEntity.ok(new RestResponse<>(200, "Applications fetched successfully", applications));
     }
 
     /**
      * Soft-delete an application: sets deletedAt, deletedBy, and changes status to WITHDRAWN.
-     * DELETE /admin/applications/{id}?reason=xxx
+     * DELETE /admin/application/{id}?reason=xxx
      */
-    @DeleteMapping("/applications/{id}")
+    @DeleteMapping("/application/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<ApplicationResponse>> deleteApplication(
             @PathVariable String id,
@@ -94,7 +96,7 @@ public class AdminController {
      * Restore an admin-deleted application: clears soft-delete markers and restores previous status.
      * PUT /admin/applications/{id}/restore
      */
-    @PutMapping("/applications/{id}/restore")
+    @PutMapping("/application/{id}/restore")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestResponse<ApplicationResponse>> restoreApplication(
             @PathVariable String id

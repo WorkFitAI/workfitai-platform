@@ -451,9 +451,11 @@ services:
       - CONSUL_PORT=8500
       - SPRING_CLOUD_CONFIG_ENABLED=false
       - JAVA_TOOL_OPTIONS=-Dserver.address=0.0.0.0
-      # CORS Configuration (Phase 1)
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
-      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
+      # Deployment mode (dev | prod) drives CORS origin validation
+      - APP_ENV=${APP_ENV:-dev}
+      # CORS Configuration - single env-driven origin list from .env.local
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
       # Rate Limiting Configuration (Phase 1)
       - RATE_LIMIT_GLOBAL_ENABLED=${RATE_LIMIT_GLOBAL_ENABLED:-true}
       - RATE_LIMIT_GLOBAL_RPS=${RATE_LIMIT_GLOBAL_RPS:-100}
@@ -635,16 +637,14 @@ services:
     environment:
       - VAULT_ADDR=http://vault:8200
       - VAULT_ROOT_TOKEN=${VAULT_TOKEN:-dev-token}
+      # Deployment mode (dev | prod)
+      - APP_ENV=${APP_ENV:-dev}
       # Base URLs for services
       - APP_FRONTEND_BASE_URL=${APP_FRONTEND_BASE_URL:-http://localhost:3000}
       - APP_BACKEND_BASE_URL=${APP_BACKEND_BASE_URL:-http://localhost:9085}
-      # CORS Configuration
-      - ALLOWED_ORIGINS_LOCAL=${ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}
-      - ALLOWED_ORIGINS_DOCKER=${ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
-      - WS_ALLOWED_ORIGINS_LOCAL=${WS_ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}
-      - WS_ALLOWED_ORIGINS_DOCKER=${WS_ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}
-      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS:-}
+      # CORS Configuration - single env-driven origin list
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
       # Rate Limiting
       - RATE_LIMIT_GLOBAL_ENABLED=${RATE_LIMIT_GLOBAL_ENABLED:-true}
       - RATE_LIMIT_GLOBAL_RPS=${RATE_LIMIT_GLOBAL_RPS:-100}

@@ -49,21 +49,18 @@ spring:
 # APPLICATION CONFIGURATION
 # =============================================================================
 app:
+  # Deployment mode switch (dev | prod) sourced from .env.local.
+  # In prod, CORS origins must be explicit (no localhost fallback, no '*').
+  env: ${APP_ENV:dev}
   frontend:
     base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   backend:
     base-url: ${APP_BACKEND_BASE_URL:http://localhost:9005}
   cors:
-    # Profile-specific origin lists (docker profile now uses env vars for flexibility)
-    allowed-origins:
-      local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
-      docker: "${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}"
-      production: "${ALLOWED_ORIGINS:}"
-    # WebSocket origins (for SockJS compatibility)
-    websocket-origins:
-      local: "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000"
-      docker: "${WS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}"
-      production: "${WS_ALLOWED_ORIGINS:}"
+    # Single env-driven origin lists. Set ALLOWED_ORIGINS / WS_ALLOWED_ORIGINS
+    # in .env.local (dev: localhost; prod: https://workfitai.uk).
+    allowed-origins: "${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000}"
+    websocket-origins: "${WS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000}"
     max-age: 3600
     allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
     allowed-headers: "*"

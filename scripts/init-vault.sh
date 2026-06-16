@@ -141,12 +141,9 @@ create_service_secrets "application-service" '{
 # Create secrets for api-gateway
 create_service_secrets "api-gateway" '{
   "data": {
-    "app.cors.allowed-origins.local": "'"${ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}"'",
-    "app.cors.allowed-origins.docker": "'"${ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}"'",
-    "app.cors.allowed-origins.production": "'"${ALLOWED_ORIGINS:-}"'",
-    "app.cors.websocket-origins.local": "'"${WS_ALLOWED_ORIGINS_LOCAL:-http://localhost:3000,http://localhost:3001}"'",
-    "app.cors.websocket-origins.docker": "'"${WS_ALLOWED_ORIGINS_DOCKER:-http://localhost:3000,http://localhost:3001}"'",
-    "app.cors.websocket-origins.production": "'"${WS_ALLOWED_ORIGINS:-}"'",
+    "app.env": "'"${APP_ENV:-dev}"'",
+    "app.cors.allowed-origins": "'"${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}"'",
+    "app.cors.websocket-origins": "'"${WS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}"'",
     "app.rate-limit.global.enabled": "'"${RATE_LIMIT_GLOBAL_ENABLED:-true}"'",
     "app.rate-limit.global.requests-per-second": "'"${RATE_LIMIT_GLOBAL_RPS:-100}"'",
     "app.rate-limit.global.burst-capacity": "'"${RATE_LIMIT_GLOBAL_BURST:-200}"'",

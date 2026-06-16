@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,11 +152,15 @@ public class AdminApplicationService {
     /**
      * Get all applications with optional filters.
      * Admin sees everything including soft-deleted by default (includeDeleted=true).
+     * jobTitle: case-insensitive partial match on jobSnapshot.title
+     * keyword: case-insensitive OR match across username, email, jobSnapshot.title
      */
     public Page<ApplicationResponse> getApplications(
             ApplicationStatus status,
             String companyId,
             String username,
+            String jobTitle,
+            String keyword,
             boolean includeDeleted,
             Pageable pageable
     ) {
@@ -169,6 +174,18 @@ public class AdminApplicationService {
         }
         if (username != null && !username.isBlank()) {
             query.addCriteria(Criteria.where("username").is(username));
+        }
+        if (jobTitle != null && !jobTitle.isBlank()) {
+            Pattern jobTitlePattern = Pattern.compile(Pattern.quote(jobTitle.trim()), Pattern.CASE_INSENSITIVE);
+            query.addCriteria(Criteria.where("jobSnapshot.title").regex(jobTitlePattern));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            Pattern keywordPattern = Pattern.compile(Pattern.quote(keyword.trim()), Pattern.CASE_INSENSITIVE);
+            query.addCriteria(new Criteria().orOperator(
+                    Criteria.where("username").regex(keywordPattern),
+                    Criteria.where("email").regex(keywordPattern),
+                    Criteria.where("jobSnapshot.title").regex(keywordPattern)
+            ));
         }
         if (!includeDeleted) {
             query.addCriteria(Criteria.where("deletedAt").isNull());
@@ -199,6 +216,10 @@ public class AdminApplicationService {
         if (application.getDeletedAt() != null) {
             throw new IllegalStateException("Application is already deleted: " + id);
         }
+        if (application.getStatus() != ApplicationStatus.APPLIED) {
+            throw new IllegalStateException(
+                    "Only APPLIED applications can be deleted. Current status: " + application.getStatus());
+        }
 
         ApplicationStatus previousStatus = application.getStatus();
 
@@ -212,7 +233,7 @@ public class AdminApplicationService {
                 .newStatus(ApplicationStatus.WITHDRAWN)
                 .changedBy(adminUsername)
                 .changedAt(Instant.now())
-                .reason(reason)
+                .reason("Admin deleted" + reason)
                 .build();
         application.getStatusHistory().add(statusChange);
 

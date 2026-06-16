@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -15,36 +14,25 @@ import java.util.List;
 
 /**
  * CORS Configuration for API Gateway
- * 
+ *
  * Features:
- * - Profile-based origin whitelisting (local, docker, production)
+ * - Env-driven origin whitelisting via APP_ENV (dev | prod) + ALLOWED_ORIGINS
  * - Separate WebSocket CORS configuration for SockJS compatibility
- * - Production validation (MUST set ALLOWED_ORIGINS env var)
+ * - Production validation (prod MUST set explicit, non-wildcard ALLOWED_ORIGINS)
  * - Prevents 403 Invalid CORS errors for WebSocket connections
  */
 @Configuration
 @Slf4j
 public class CorsGlobalConfig {
 
-    private final Environment environment;
+    @Value("${app.env:dev}")
+    private String appEnv;
 
-    @Value("${app.cors.allowed-origins.local:http://localhost:3000}")
-    private String localOrigins;
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String apiOrigins;
 
-    @Value("${app.cors.allowed-origins.docker:http://localhost:3000}")
-    private String dockerOrigins;
-
-    @Value("${app.cors.allowed-origins.production:}")
-    private String prodOrigins;
-
-    @Value("${app.cors.websocket-origins.local:http://localhost:3000}")
-    private String localWsOrigins;
-
-    @Value("${app.cors.websocket-origins.docker:http://localhost:3000}")
-    private String dockerWsOrigins;
-
-    @Value("${app.cors.websocket-origins.production:}")
-    private String prodWsOrigins;
+    @Value("${app.cors.websocket-origins:http://localhost:3000}")
+    private String wsOrigins;
 
     @Value("${app.cors.max-age:3600}")
     private long maxAge;
@@ -55,36 +43,16 @@ public class CorsGlobalConfig {
     @Value("${app.cors.exposed-headers:X-Total-Count,X-Page-Number,X-Page-Size}")
     private String exposedHeaders;
 
-    public CorsGlobalConfig(Environment environment) {
-        this.environment = environment;
-    }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        String activeProfile = Arrays.stream(environment.getActiveProfiles())
-                .findFirst()
-                .orElse("docker");
+        boolean prod = "prod".equalsIgnoreCase(appEnv) || "production".equalsIgnoreCase(appEnv);
 
-        log.info("🌐 Configuring CORS for profile: {}", activeProfile);
+        log.info("🌐 Configuring CORS for app.env: {}", appEnv);
 
-        // Select origins based on active profile
-        String apiOrigins = switch (activeProfile) {
-            case "local" -> localOrigins;
-            case "production", "prod" -> prodOrigins;
-            default -> dockerOrigins;
-        };
-
-        String wsOrigins = switch (activeProfile) {
-            case "local" -> localWsOrigins;
-            case "production", "prod" -> prodWsOrigins;
-            default -> dockerWsOrigins;
-        };
-
-        // Validate production origins
-        if (("production".equals(activeProfile) || "prod".equals(activeProfile))
-                && (apiOrigins.isEmpty() || apiOrigins.contains("*"))) {
+        // Fail fast in prod on empty/wildcard origins (credentials are enabled).
+        if (prod && (apiOrigins.isBlank() || apiOrigins.contains("*"))) {
             throw new IllegalStateException(
-                    "⛔ PRODUCTION PROFILE REQUIRES EXPLICIT ALLOWED_ORIGINS! " +
+                    "⛔ PRODUCTION REQUIRES EXPLICIT ALLOWED_ORIGINS! " +
                             "Set environment variable: ALLOWED_ORIGINS=https://yourdomain.com");
         }
 

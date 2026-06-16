@@ -1,19 +1,18 @@
-package org.workfitai.jobservice.model.dto.response.Recommendation;
-
-import java.util.List;
+package org.workfitai.applicationservice.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResCvRankingDTO {
+public class CvRankingResponse {
 
     @JsonProperty("job_id")
     private String jobId;

@@ -8,7 +8,6 @@ import org.workfitai.jobservice.client.CVFeignClient;
 import org.workfitai.jobservice.client.RecommendationFeignClient;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
-import org.workfitai.jobservice.model.dto.response.Recommendation.ResCvRankingDTO;
 import org.workfitai.jobservice.model.dto.response.Recommendation.ResJobRecommendationDTO;
 import org.workfitai.jobservice.model.mapper.JobMapper;
 import org.workfitai.jobservice.repository.JobRepository;
@@ -358,24 +357,6 @@ public class RecommendationServiceImpl implements iRecommendationService {
             return text.toString().replaceAll(", $", "");
         }
         return sectionData.toString();
-    }
-
-    @Override
-    public ResCvRankingDTO rankCvsByJob(UUID jobId) {
-        log.info("Ranking CVs for jobId: {}", jobId);
-        try {
-            return recommendationFeignClient.rankCvsByJob(jobId.toString());
-        } catch (Exception e) {
-            log.warn("CV ranking engine unavailable for job {}: {}", jobId, e.getMessage());
-            return ResCvRankingDTO.builder()
-                    .jobId(jobId.toString())
-                    .jobOverview("")
-                    .totalCandidates(0)
-                    .rankedCount(0)
-                    .processingTimeMs(0)
-                    .rankedApplicants(Collections.emptyList())
-                    .build();
-        }
     }
 
     private ResJobRecommendationDTO buildEmptyResponse() {

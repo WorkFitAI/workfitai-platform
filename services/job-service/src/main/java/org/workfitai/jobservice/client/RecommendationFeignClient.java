@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.workfitai.jobservice.model.dto.request.Recommendation.ReqJobRecommendationDTO;
-import org.workfitai.jobservice.model.dto.response.Recommendation.ResCvRankingDTO;
 
 import java.util.Map;
 
@@ -17,7 +16,4 @@ public interface RecommendationFeignClient {
 
     @PostMapping("/api/v1/recommendations/similar-jobs")
     Map<String, Object> getSimilarJobs(@RequestBody Map<String, Object> request);
-
-    @PostMapping("/api/v1/cv-ranking/rank-by-job/{jobId}")
-    ResCvRankingDTO rankCvsByJob(@PathVariable("jobId") String jobId);
 }
