@@ -51,12 +51,43 @@ class CvRankingRefresher:
         self._pipeline_getter = pipeline_getter
         self._settings = settings
         self._task: Optional[asyncio.Task] = None
+        self._event_loop: Optional[asyncio.AbstractEventLoop] = None
 
     def start(self) -> None:
         if self._task is not None:
             return
+        self._event_loop = asyncio.get_running_loop()
         self._task = asyncio.create_task(self._loop(), name="cv-ranking-refresher")
         logger.info("CvRankingRefresher started (interval=%ds)", self._settings.CV_RANKING_REFRESH_INTERVAL_SECONDS)
+
+    def trigger_immediate(self, job_id: str) -> None:
+        """
+        Ask for an immediate refresh of job_id, skipping the wait for the next
+        poll tick (up to CV_RANKING_REFRESH_INTERVAL_SECONDS away).
+
+        Safe to call from any thread (e.g. the Kafka consumer thread right after
+        mark_dirty()) — schedules the coroutine onto the refresher's event loop.
+        Still respects the cooldown: a no-op when the job was refreshed recently,
+        so this cannot be used to bypass the "protect server health" cooldown gate.
+        """
+        if self._event_loop is None:
+            return
+        cooldown = float(self._settings.CV_RANKING_CACHE_COOLDOWN_SECONDS)
+        if not self._cache.is_due_for_refresh(job_id, cooldown):
+            return
+        asyncio.run_coroutine_threadsafe(self._trigger_refresh_one(job_id, cooldown), self._event_loop)
+
+    async def _trigger_refresh_one(self, job_id: str, cooldown: float) -> None:
+        pipeline = self._pipeline_getter()
+        if pipeline is None or not pipeline.is_ready:
+            logger.debug("CvRankingRefresher: immediate trigger skipped, pipeline not ready job_id=%s", job_id)
+            return
+        try:
+            await self._refresh_one(job_id, pipeline, cooldown)
+        except Exception as exc:
+            logger.error(
+                "CvRankingRefresher: immediate refresh failed job_id=%s: %s", job_id, exc, exc_info=True
+            )
 
     async def stop(self) -> None:
         if self._task is None:

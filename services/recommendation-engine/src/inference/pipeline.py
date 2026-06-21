@@ -328,6 +328,16 @@ class CVRankingPipeline:
                 continue
             label = "Good Fit" if score >= good_fit_threshold else "No Fit"
             explanation = self._explain(c, label)
+            if "failed" in explanation.lower():
+                # Degenerate explanation — usually means the candidate's CV was missing
+                # sections the model needs (sparse/empty resume text). Treat as not
+                # ranked rather than surfacing a broken explanation as a real result.
+                logger.warning(
+                    "Stage 3: explanation flagged as failed for resume_index=%s (score=%.2f) "
+                    "— excluding from ranked results.",
+                    c["resume_index"], score,
+                )
+                continue
             results.append(RankedResume(
                 resume_index=c["resume_index"],
                 score=round(score, 2),

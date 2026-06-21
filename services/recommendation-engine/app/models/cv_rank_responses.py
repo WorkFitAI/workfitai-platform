@@ -2,7 +2,7 @@
 Pydantic response models for CV ranking endpoint (api_contract.md)
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -45,3 +45,6 @@ class CvRankByJobResponse(BaseModel):
     ranked_applicants: List[RankedApplicantResponse] = Field(
         ..., description="Ranked applicants with score >= min_score, sorted by score descending"
     )
+    # Present only on a 202 cache-miss response (see _background_rank_by_job in cv_rank_routes.py)
+    status: Optional[str] = Field(default=None, description='"computing" when returned with HTTP 202')
+    retry_after_seconds: Optional[int] = Field(default=None, description="Suggested retry delay when status=computing")

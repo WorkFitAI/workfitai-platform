@@ -182,6 +182,9 @@ async def lifespan(app: FastAPI):
                 app_state["cv_refer_consumer"] = CvReferConsumer(
                     kafka_config=cv_refer_kafka_config,
                     store=app_state["cv_refer_store"],
+                    # Refresher is started later in this same lifespan block; resolved
+                    # lazily on each dirty event so construction order doesn't matter.
+                    refresher_getter=lambda: app_state["cv_ranking_refresher"],
                 )
                 app_state["cv_refer_consumer"].start()
                 logger.info("✓ CvReferConsumer started")

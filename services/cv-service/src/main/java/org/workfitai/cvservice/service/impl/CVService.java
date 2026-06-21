@@ -281,9 +281,15 @@ public class CVService implements iCVService {
     public CvSnapshotResponse createApplicationSnapshot(
             String username,
             String applicationId,
+            String jobName,
             org.springframework.web.multipart.MultipartFile file) {
 
         try {
+            // Persist the PDF to MinIO so it can be downloaded later — named after the job
+            // applied to instead of the candidate's original filename.
+            String objectName = fileService.uploadCV(file, jobName);
+            String fileUrl = fileService.generateFileUrl(objectName);
+
             // Reuse existing PDF → sections logic from UploadCvStrategy
             var parsed = uploadCvStrategy.parsePdfFile(file);
 
@@ -305,6 +311,8 @@ public class CVService implements iCVService {
             snapshot.setBelongTo(username);
             snapshot.setApplicationId(applicationId);
             snapshot.setTemplateType(TemplateType.UPLOAD);   // reuse existing enum value
+            snapshot.setObjectName(objectName);
+            snapshot.setPdfUrl(fileUrl);
             snapshot.setSections(sections);
             snapshot.setSummary(summary);
             snapshot.setHeadline(parsed.getHeadline());

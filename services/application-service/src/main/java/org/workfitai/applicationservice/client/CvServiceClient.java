@@ -28,6 +28,7 @@ public interface CvServiceClient {
      *
      * @param username      candidate's username
      * @param applicationId temporary application UUID (assigned before DB save)
+     * @param jobName       title of the job applied to — cv-service uses it to name the stored PDF object
      * @param cvPdfFile     the CV PDF file
      * @return structured CV fields extracted by cv-service
      */
@@ -38,6 +39,7 @@ public interface CvServiceClient {
     CvSnapshotResponse createApplicationSnapshot(
             @RequestPart("username") String username,
             @RequestPart("applicationId") String applicationId,
+            @RequestPart("jobName") String jobName,
             @RequestPart("cvPdfFile") MultipartFile cvPdfFile
     );
 }

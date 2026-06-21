@@ -939,6 +939,10 @@ services:
       - CV_RANKING_CACHE_ENABLED=${CV_RANKING_CACHE_ENABLED:-true}
       - CV_RANKING_CACHE_COOLDOWN_SECONDS=${CV_RANKING_CACHE_COOLDOWN_SECONDS:-300}
       - CV_RANKING_REFRESH_INTERVAL_SECONDS=${CV_RANKING_REFRESH_INTERVAL_SECONDS:-60}
+      - CV_RANKING_MISS_RETRY_AFTER_SECONDS=${CV_RANKING_MISS_RETRY_AFTER_SECONDS:-10}
+      # ── recommendation cache ─────────────────────────────────────────
+      - RECOMMENDATION_CACHE_ENABLED=${RECOMMENDATION_CACHE_ENABLED:-true}
+      - RECOMMENDATION_CACHE_COOLDOWN_SECONDS=${RECOMMENDATION_CACHE_COOLDOWN_SECONDS:-300}
     command: ["bash", "-c", "/app/download-models.sh && /app/run-docker.sh"]
     volumes:
       - ./services/recommendation-engine/download-models.sh:/app/download-models.sh:ro

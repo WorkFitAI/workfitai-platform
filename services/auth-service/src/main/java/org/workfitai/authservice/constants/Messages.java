@@ -38,6 +38,7 @@ public final class Messages {
         public static final String PERMISSION_ALREADY_EXISTS = "Permission already exists: %s";
         public static final String PERMISSION_ALREADY_ASSIGNED = "Permission already assigned to role";
         public static final String PERMISSION_IN_USE = "Permission is referenced by one or more roles";
+        public static final String ROLE_IN_USE = "Role is assigned to one or more users";
         public static final String UNKNOWN_PERMISSION = "Unknown permission: %s";
         public static final String ROLE_NOT_FOUND = "Role not found";
         public static final String PERMISSION_NOT_FOUND = "Permission not found";

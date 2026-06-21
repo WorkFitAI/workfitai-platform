@@ -125,13 +125,15 @@ class Settings(BaseSettings):
     # Performance
     MAX_WORKERS: int = Field(default=4, env="MAX_WORKERS")
 
-    # CV Ranking Cache (rank-by-job) — ships dark; enable after load test
-    CV_RANKING_CACHE_ENABLED: bool = Field(default=False, env="CV_RANKING_CACHE_ENABLED")
+    # CV Ranking Cache (rank-by-job)
+    CV_RANKING_CACHE_ENABLED: bool = Field(default=True, env="CV_RANKING_CACHE_ENABLED")
     CV_RANKING_CACHE_COOLDOWN_SECONDS: int = Field(default=300, env="CV_RANKING_CACHE_COOLDOWN_SECONDS")
+    # Retry-After (seconds) returned on a cache miss while the background compute runs
+    CV_RANKING_MISS_RETRY_AFTER_SECONDS: int = Field(default=10, env="CV_RANKING_MISS_RETRY_AFTER_SECONDS")
 
-    # Recommendation Cache — ships dark; enable after load test
-    RECOMMENDATION_CACHE_ENABLED: bool = Field(default=False, env="RECOMMENDATION_CACHE_ENABLED")
-    RECOMMENDATION_CACHE_COOLDOWN_SECONDS: int = Field(default=60, env="RECOMMENDATION_CACHE_COOLDOWN_SECONDS")
+    # Recommendation Cache
+    RECOMMENDATION_CACHE_ENABLED: bool = Field(default=True, env="RECOMMENDATION_CACHE_ENABLED")
+    RECOMMENDATION_CACHE_COOLDOWN_SECONDS: int = Field(default=300, env="RECOMMENDATION_CACHE_COOLDOWN_SECONDS")
     RECOMMENDATION_CACHE_MAX_ENTRIES: int = Field(default=1000, env="RECOMMENDATION_CACHE_MAX_ENTRIES")
     RECOMMENDATION_CACHE_TTL_SECONDS: int = Field(default=600, env="RECOMMENDATION_CACHE_TTL_SECONDS")
 

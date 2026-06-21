@@ -32,6 +32,13 @@ public class CvRankingResponse {
     @JsonProperty("ranked_applicants")
     private List<RankedApplicant> rankedApplicants;
 
+    /** "computing" when recommendation-engine returned 202 (cache miss, background compute running). */
+    @JsonProperty("status")
+    private String status;
+
+    @JsonProperty("retry_after_seconds")
+    private Integer retryAfterSeconds;
+
     @Data
     @Builder
     @NoArgsConstructor
