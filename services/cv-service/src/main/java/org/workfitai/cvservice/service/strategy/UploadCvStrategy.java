@@ -9,25 +9,19 @@ import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.ParsedCvData;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
 import org.workfitai.cvservice.model.mapper.CVMapper;
+import org.workfitai.cvservice.service.nlp.DynamicSkillExtractionService;
+import org.workfitai.cvservice.service.nlp.SemanticMatchingService;
 import org.workfitai.cvservice.service.shared.FileService;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
-    private static final Map<String, List<String>> SECTION_ALIASES = Map.of(
-            "skills", List.of("Skills", "Technical Skills", "Professional Skills", "Key Skills"),
-            "projects", List.of("Projects", "Project", "Personal Projects", "Work Projects"),
-            "experience", List.of("Experience", "Work Experience", "Professional Experience"),
-            "education", List.of("Education", "Academic Background", "Education & Training"),
-            "languages", List.of("Languages", "Language Skills", "Languages Known"),
-            "objective",
-            List.of("Objective", "Career Objective", "Professional Summary", "Summary", "About Me"),
-            "certifications", List.of("Certifications", "Certification", "Licenses", "Credentials"));
+    private final SemanticMatchingService semanticMatchingService;
+    private final DynamicSkillExtractionService skillExtractor;
     private final FileService fileService;
 
     @Override
@@ -49,17 +43,14 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             CV cv = CVMapper.INSTANCE.toEntityFromUpload(dto);
 
             Map<String, Object> sections = new HashMap<>();
-            sections.put("skills", parsedData.getSkills());
-            sections.put("projects", parsedData.getProjects());
-            sections.put("experience", parsedData.getExperience());
-            sections.put("education", parsedData.getEducation());
-            sections.put("languages", parsedData.getLanguages());
-            sections.put("objective", parsedData.getObjective());
-            sections.put("certifications", parsedData.getCertifications());
+            sections.put("skills", Objects.requireNonNullElse(parsedData.getSkills(), Collections.emptyList()));
+            sections.put("experience", Objects.requireNonNullElse(parsedData.getExperience(), Collections.emptyList()));
+            sections.put("education", Objects.requireNonNullElse(parsedData.getEducation(), Collections.emptyList()));
+            sections.put("summary", Objects.requireNonNullElse(parsedData.getSummary(), Collections.emptyList()));
 
             cv.setSections(sections);
-            cv.setHeadline(parsedData.getHeadline());
-            cv.setSummary(String.join("\n", parsedData.getSummary()));
+            List<String> summary = parsedData.getSummary();
+            cv.setSummary(summary != null ? String.join("\n", summary) : "");
             return cv;
 
         } catch (Exception e) {
@@ -67,10 +58,13 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
         }
     }
 
-    /** Parse a PDF MultipartFile into structured CV sections. Used by snapshot creation. */
+    /**
+     * Parse a PDF MultipartFile into structured CV sections. Used by snapshot
+     * creation.
+     */
     public ParsedCvData parsePdfFile(MultipartFile file) throws IOException {
-        String text = extractPdfText(file);
-        return parseCvText(text);
+        String rawText = extractPdfText(file);
+        return parseCvText(rawText);
     }
 
     private String extractPdfText(MultipartFile file) throws IOException {
@@ -81,48 +75,73 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
         }
     }
 
-    private ParsedCvData parseCvText(String text) {
-        ParsedCvData data = new ParsedCvData();
+    private boolean isContactInfo(String line) {
+        String lower = line.toLowerCase();
+        if (lower.contains("@") && lower.contains("."))
+            return true;
+        if (lower.contains("github.com") || lower.contains("linkedin.com") || lower.startsWith("http")
+                || lower.contains("www."))
+            return true;
 
-        List<String> lines = Arrays.stream(text.split("\n"))
+        String numbersOnly = line.replaceAll("[^0-9]", "");
+        return numbersOnly.length() >= 8 && numbersOnly.length() <= 15;
+    }
+
+    private ParsedCvData parseCvText(String rawText) {
+        Map<String, List<String>> sectionData = new HashMap<>();
+        sectionData.put("summary", new ArrayList<>());
+        sectionData.put("experience", new ArrayList<>());
+        sectionData.put("skills", new ArrayList<>());
+        sectionData.put("education", new ArrayList<>());
+
+        List<String> lines = Arrays.stream(rawText.split("\n"))
                 .map(String::trim)
                 .filter(l -> !l.isEmpty())
                 .toList();
 
-        data.setSummary(extractSection(lines, "Objective"));
-        data.setSkills(extractSection(lines, "Skills"));
-        data.setProjects(extractSection(lines, "Projects"));
-        data.setExperience(extractSection(lines, "Experience"));
-        data.setEducation(extractSection(lines, "Education"));
-        data.setLanguages(extractSection(lines, "Languages"));
-        data.setCertifications(extractSection(lines, "Certifications"));
-
-        return data;
-    }
-
-    private List<String> extractSection(List<String> lines, String sectionKey) {
-        List<String> result = new ArrayList<>();
-        boolean inSection = false;
-        List<String> aliases = SECTION_ALIASES.getOrDefault(sectionKey.toLowerCase(), List.of(sectionKey));
-
-        Set<String> allAliases = SECTION_ALIASES.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        // Mặc định bỏ qua các dòng thông tin cá nhân trên cùng cho đến khi gặp section
+        // đầu tiên
+        String currentSection = "ignored";
 
         for (String line : lines) {
-            // Bắt đầu section nếu match alias
-            if (aliases.stream().anyMatch(a -> line.equalsIgnoreCase(a))) {
-                inSection = true;
+            // 1. Loại bỏ PII (Email, Phone, Links)
+            if (isContactInfo(line)) {
                 continue;
             }
 
-            // Dừng khi gặp alias section khác
-            if (inSection && allAliases.stream().anyMatch(a -> line.equalsIgnoreCase(a))) {
-                break;
+            String cleanLine = line.toLowerCase().replaceAll("[^a-z0-9\\s]", "").trim();
+
+            // 2. Chặn tiêu đề bằng Semantic AI (nếu dòng ngắn <= 4 từ)
+            if (cleanLine.split("\\s+").length <= 4) {
+                String mappedSection = semanticMatchingService.mapToCoreField(cleanLine);
+                currentSection = mappedSection;
+                continue;
             }
 
-            if (inSection) {
-                result.add(line);
+            // 3. Gom Data vào 4 trụ cột
+            if (!"ignored".equals(currentSection) && sectionData.containsKey(currentSection)) {
+                sectionData.get(currentSection).add(line);
             }
         }
-        return result;
+
+        // 4. Vét cạn Kỹ năng (Moi từ trong Experience và Summary)
+        String textToMine = String.join(" ", sectionData.get("experience")) +
+                " " +
+                String.join(" ", sectionData.get("summary"));
+
+        List<String> minedSkills = skillExtractor.extractSkills(textToMine);
+
+        // Merge kỹ năng móc được vào mảng kỹ năng chính (nếu có)
+        Set<String> finalSkills = new HashSet<>(sectionData.get("skills"));
+        finalSkills.addAll(minedSkills);
+
+        // 5. Build DTO trả về
+        ParsedCvData data = new ParsedCvData();
+        data.setSummary(sectionData.get("summary"));
+        data.setExperience(sectionData.get("experience"));
+        data.setEducation(sectionData.get("education"));
+        data.setSkills(new ArrayList<>(finalSkills));
+
+        return data;
     }
 }

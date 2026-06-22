@@ -8,7 +8,7 @@ Stage 3: T5 / rule-based     → natural language explanation + label
 Input contract (api_contract.md):
   JobInput   : jd_overview/512, jd_requirements/512, jd_responsibilities/400, jd_preferred/256
   ResumeInput: resume_summary/400, resume_experience/512, resume_skills/300, resume_education/256
-  Fields *_text (job_description_text, resume_text) are display-only — never fed to model.
+  Fields *_text (job_description_text, resume_text): used as fallback when structured fields are empty.
 
 Place trained weights under models/cv-refer/:
   bi-encoder/       — SentenceTransformer bi-encoder (required)
@@ -51,7 +51,7 @@ class JobInput:
     jd_requirements: str
     jd_responsibilities: str
     jd_preferred: str = ""
-    job_description_text: str = ""  # display only — never fed to model
+    job_description_text: str = ""  # fallback when structured fields empty
 
 
 @dataclass
@@ -61,7 +61,7 @@ class ResumeInput:
     resume_experience: str
     resume_skills: str
     resume_education: str = ""
-    resume_text: str = ""  # display only — never fed to model
+    resume_text: str = ""  # fallback when structured fields empty
 
 
 @dataclass
@@ -112,7 +112,11 @@ def _build_job_text(job: JobInput) -> str:
         parts.append(f"Responsibilities: {job.jd_responsibilities[:400]}")
     if job.jd_preferred:
         parts.append(f"Preferred: {job.jd_preferred[:256]}")
-    return "\n".join(parts).strip()
+    text = " | ".join(parts).strip()
+    # Fallback: use raw description when structured fields were not populated
+    if not text:
+        text = (job.job_description_text or "")[:450].strip()
+    return text
 
 
 def _build_resume_text(resume: ResumeInput) -> str:
@@ -125,19 +129,28 @@ def _build_resume_text(resume: ResumeInput) -> str:
         parts.append(f"Skills: {resume.resume_skills[:300]}")
     if resume.resume_education:
         parts.append(f"Education: {resume.resume_education[:256]}")
-    return "\n".join(parts).strip()
+    text = " | ".join(parts).strip()
+    # Fallback: use raw resume text when structured fields were not populated
+    if not text:
+        text = (resume.resume_text or "")[:450].strip()
+    return text
 
 
 # ---------------------------------------------------------------------------
 # Explanation helpers (module-level, no model state)
 # ---------------------------------------------------------------------------
 
-def _t5_generate(model, tokenizer, job_text: str, resume_text: str) -> str:
+def _t5_generate(model, tokenizer, job_text: str, resume_text: str, score: float) -> str:
     import torch
-    prompt = f"explain cv fit: job: {job_text[:200]} | resume: {resume_text[:300]}"
+    # Format must match training: "rank job: {jd} | resume: {cv} | score: {N}"
+    prompt = (
+        f"rank job: {job_text[:450]} | "
+        f"resume: {resume_text[:450]} | "
+        f"score: {score:.0f}"
+    )
     inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
     with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=80, num_beams=2, early_stopping=True)
+        outputs = model.generate(**inputs, max_new_tokens=128, num_beams=4, early_stopping=True)
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
@@ -399,14 +412,21 @@ class CVRankingPipeline:
         return results
 
     def _explain(self, candidate: Dict[str, Any], label: str) -> str:
+        job_text = candidate.get("_job_text", "")
+        resume_text = _build_resume_text(candidate["_resume"])
+        score = candidate["score"]
+
+        # If either side has no content, skip T5 — rule-based is more honest than hallucination
+        if not job_text or not resume_text:
+            logger.debug(
+                "Skipping T5 for resume_index=%s (job_text=%d chars, resume_text=%d chars); using rule-based.",
+                candidate.get("resume_index"), len(job_text), len(resume_text),
+            )
+            return _rule_explanation(score)
+
         if self._t5_model is not None:
             try:
-                return _t5_generate(
-                    self._t5_model,
-                    self._t5_tokenizer,
-                    candidate.get("_job_text", ""),
-                    _build_resume_text(candidate["_resume"]),
-                )
+                return _t5_generate(self._t5_model, self._t5_tokenizer, job_text, resume_text, score)
             except Exception as e:
                 logger.warning("T5 generation failed (%s); using rule-based fallback.", e)
-        return _rule_explanation(candidate["score"])
+        return _rule_explanation(score)

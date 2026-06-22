@@ -42,7 +42,7 @@ if [ -z "$HF_TOKEN" ] || [ -z "$HF_TOKEN_VP" ]; then
     if [ -f "$ENV_FILE" ]; then
         parse_env_var() {
             local key="$1"
-            grep -E "^${key}=" "$ENV_FILE" | head -1 | sed -E "s/^${key}=['\"]?//;s/['\"]?\s*$//"
+            grep -E "^${key}=" "$ENV_FILE" | head -1 | sed -E "s/^${key}=['\"]?//;s/['\"]?\s*$//" | tr -d '\r'
         }
         HF_TOKEN="${HF_TOKEN:-$(parse_env_var HF_TOKEN)}"
         HF_TOKEN_VP="${HF_TOKEN_VP:-$(parse_env_var HF_TOKEN_VP)}"
@@ -105,10 +105,14 @@ python3 -c "import huggingface_hub" 2>/dev/null || {
     pip3 install -q "huggingface_hub>=0.20.0"
 }
 
+export HF_TOKEN
+export HF_TOKEN_VP
+
 # ---------------------------------------------------------------------------
 # Python download script
 # ---------------------------------------------------------------------------
 python3 - <<PYEOF
+import os
 import sys
 from pathlib import Path
 from huggingface_hub import snapshot_download, HfApi
@@ -118,13 +122,13 @@ models_dir = Path("$MODELS_DIR")
 repos = [
     {
         "repo_id": "thanhdi3110/workfitai-jobrecomendation",
-        "token":   "$HF_TOKEN",
+        "token":   os.environ.get("HF_TOKEN"),
         "label":   "cv-refer",
         "dest":    models_dir / "cv-refer",
     },
     {
         "repo_id": "vanphat15it/job-recommendation",
-        "token":   "$HF_TOKEN_VP",
+        "token":   os.environ.get("HF_TOKEN_VP"),
         "label":   "job-recommend",
         "dest":    models_dir / "job-recommend",
     },
