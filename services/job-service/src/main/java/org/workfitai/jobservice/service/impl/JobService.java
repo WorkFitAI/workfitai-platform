@@ -50,7 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_NOT_FOUND;
-import static org.workfitai.jobservice.util.MessageConstant.JOB_CLOSE_CONFLICT;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_UPDATE_CONFLICT;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_DRAFT_EXPIRED_NEEDS_UPDATING;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_ACCESS;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_HAVE_NO_PERMISSION_TO_UPDATE;
@@ -288,9 +288,10 @@ public class JobService implements iJobService {
             throw new ResourceConflictException(JOB_NOT_FOUND);
         }
 
-        if (dbJob.getStatus() == JobStatus.CLOSED) {
-            throw new ResourceConflictException(JOB_CLOSE_CONFLICT);
+        if (dbJob.getStatus() != JobStatus.DRAFT && dbJob.getTotalApplications() > 0) {
+            throw new ResourceConflictException(JOB_UPDATE_CONFLICT);
         }
+
         // Clone the old job for change detection
         Job oldJob = cloneJobForComparison(dbJob);
 

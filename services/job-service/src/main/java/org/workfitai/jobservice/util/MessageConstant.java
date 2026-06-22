@@ -13,7 +13,7 @@ public class MessageConstant {
     public static final String JOB_NOT_FOUND = "Job not found";
     public static final String JOB_STATUS_CONFLICT = "Job status conflict";
     public static final String JOB_DELETE_CONFLICT = "Cannot delete a PUBLISHED job";
-    public static final String JOB_CLOSE_CONFLICT = "Cannot update a closed job";
+    public static final String JOB_UPDATE_CONFLICT = "Cannot update this job";
     public static final String JOB_BANNER_UPLOADED_SUCCESSFULLY = "Job banner uploaded successfully";
     public static final String JOB_BANNER_UPLOAD_FAILED = "Failed to upload job banner";
     public static final String JOB_BANNER_INVALID_FILE = "Invalid file for job banner";
