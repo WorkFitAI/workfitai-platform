@@ -10,13 +10,13 @@ from typing import List, Dict, Optional
 import anyio
 from fastapi import APIRouter, HTTPException, Request, status
 
-from app.models.requests import (
+from app.models.job_recommend_requests import (
     RecommendByResumeRequest,
     RecommendByProfileRequest,
     SimilarJobsRequest,
     SemanticSearchRequest
 )
-from app.models.responses import (
+from app.models.job_recommend_responses import (
     RecommendationResponse,
     RecommendationData,
     JobRecommendation

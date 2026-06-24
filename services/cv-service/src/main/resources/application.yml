@@ -185,3 +185,11 @@ logging:
     org.springframework.cloud.vault: DEBUG
     org.springframework.kafka: DEBUG
     org.springframework.security: DEBUG
+
+cv-parser:
+  threshold: 0.45
+  anchors:
+    summary: "professional summary, career objective, about me, executive profile, personal statement"
+    experience: "work experience, professional experience, employment history, work history, related projects"
+    skills: "technical skills, core competencies, technologies, programming languages, tools"
+    education: "academic background, education, certifications, degrees, university"
