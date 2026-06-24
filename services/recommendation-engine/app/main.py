@@ -36,6 +36,8 @@ app_state = {
     "cv_ranking_pipeline": None,
     "cv_refer_store": None,
     "cv_ranking_refresher": None,
+    "feature_toggle_store": None,
+    "feature_toggle_consumer": None,
 }
 
 
@@ -99,6 +101,31 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Initial sync failed: {e}", exc_info=True)
                 logger.warning("Service will continue without initial data")
         
+        # Initialize feature toggle store + consumer (admin AI kill switch).
+        # Cold-start default is enabled=true for every key until the first
+        # Kafka message arrives - documented in FeatureToggleStore.get().
+        from app.services.feature_toggle_store import get_feature_toggle_store
+        app_state["feature_toggle_store"] = get_feature_toggle_store()
+        logger.info("✓ FeatureToggleStore initialised")
+
+        if settings.ENABLE_KAFKA_CONSUMER:
+            try:
+                from app.kafka_consumer.feature_toggle_consumer import FeatureToggleConsumer
+                feature_toggle_kafka_config = {
+                    "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                    "group_id": settings.KAFKA_FEATURE_TOGGLE_GROUP,
+                    "topic_feature_toggle": settings.KAFKA_TOPIC_FEATURE_TOGGLE,
+                }
+                app_state["feature_toggle_consumer"] = FeatureToggleConsumer(
+                    kafka_config=feature_toggle_kafka_config,
+                    store=app_state["feature_toggle_store"],
+                )
+                app_state["feature_toggle_consumer"].start()
+                logger.info("✓ FeatureToggleConsumer started")
+            except Exception as e:
+                logger.error(f"Failed to start FeatureToggleConsumer: {e}", exc_info=True)
+                logger.warning("Feature toggles will stay at cold-start defaults (enabled)")
+
         # Initialize cv-refer store (always; Kafka consumer writes, route reads)
         from app.services.cv_refer_store import get_store
         app_state["cv_refer_store"] = get_store()
@@ -248,6 +275,13 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to stop CvReferConsumer: {e}")
 
+        if app_state["feature_toggle_consumer"]:
+            try:
+                app_state["feature_toggle_consumer"].stop()
+                logger.info("✓ FeatureToggleConsumer stopped")
+            except Exception as e:
+                logger.error(f"Failed to stop FeatureToggleConsumer: {e}")
+
         if app_state["cv_ranking_refresher"]:
             try:
                 await app_state["cv_ranking_refresher"].stop()
@@ -385,6 +419,7 @@ app.state.resume_parser = lambda: app_state["resume_parser"]
 app.state.reranker = lambda: app_state["reranker"]
 app.state.cv_ranking_pipeline = lambda: app_state["cv_ranking_pipeline"]
 app.state.cv_refer_store = lambda: app_state["cv_refer_store"]
+app.state.feature_toggle_store = lambda: app_state["feature_toggle_store"]
 
 
 if __name__ == "__main__":

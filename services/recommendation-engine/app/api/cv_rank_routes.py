@@ -29,6 +29,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/cv-ranking", tags=["CV Ranking"])
 
 
+def _ensure_cv_referral_enabled(req: Request) -> None:
+    """
+    Raise 503 if cv-referral AI is disabled by the admin platform-wide toggle.
+
+    HR-initiated feature (HR browsing AI-ranked candidates) - no candidate
+    consent dimension, admin toggle is the only gate.
+    """
+    store = req.app.state.feature_toggle_store()
+    if store is not None and not store.get("cv-referral"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI CV ranking is currently disabled by administrator.",
+        )
+
+
 async def _background_rank_by_job(job_id, store, settings, pipeline, cache, options) -> None:
     """
     Off-request-path compute for a rank-by-job cache miss.
@@ -92,6 +107,8 @@ async def rank_cvs(request: CvRankRequest, req: Request):
     Returns CVs with score >= min_score, sorted by score descending.
     CVs below min_score are excluded entirely.
     """
+    _ensure_cv_referral_enabled(req)
+
     pipeline = req.app.state.cv_ranking_pipeline()
 
     if pipeline is None:
@@ -165,6 +182,8 @@ async def rank_by_job(
     """
     from app.config import get_settings
     from app.services.cv_ranking_cache import get_cv_ranking_cache
+
+    _ensure_cv_referral_enabled(req)
 
     start_time = time.time()
     settings = get_settings()

@@ -101,10 +101,21 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_APPLICATION_STATUS: str = Field(default="application-status", env="KAFKA_TOPIC_APPLICATION_STATUS")
     KAFKA_TOPIC_CV_UPDATED: str = Field(default="cv.updated", env="KAFKA_TOPIC_CV_UPDATED")
     KAFKA_CV_REFER_GROUP: str = Field(default="recommendation-engine-cv-refer", env="KAFKA_CV_REFER_GROUP")
-    
+
+    # Platform feature toggle (admin AI kill switch) Kafka topic
+    KAFKA_TOPIC_FEATURE_TOGGLE: str = Field(
+        default="platform-feature-toggle-events", env="KAFKA_TOPIC_FEATURE_TOGGLE"
+    )
+    KAFKA_FEATURE_TOGGLE_GROUP: str = Field(
+        default="recommendation-engine-feature-toggle", env="KAFKA_FEATURE_TOGGLE_GROUP"
+    )
+
     # Job Service Integration
     JOB_SERVICE_URL: str = Field(default="http://job-service:9082", env="JOB_SERVICE_URL")
     JOB_SERVICE_TIMEOUT: int = Field(default=30, env="JOB_SERVICE_TIMEOUT")
+
+    # User Service Integration (candidate AI-recommendation consent lookup)
+    USER_SERVICE_URL: str = Field(default="http://user-service:9081", env="USER_SERVICE_URL")
 
     # Application Service & CV Service (for cv-refer initial sync)
     APPLICATION_SERVICE_URL: str = Field(default="http://application-service:9084", env="APPLICATION_SERVICE_URL")

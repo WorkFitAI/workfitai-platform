@@ -3,7 +3,6 @@ package org.workfitai.userservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import org.workfitai.userservice.model.UserEntity;
 import org.workfitai.userservice.exception.BadRequestException;
 import org.workfitai.userservice.exception.NotFoundException;
 import org.workfitai.userservice.repository.UserRepository;
+import org.workfitai.userservice.util.JsonSettingsMerger;
 
 @Slf4j
 @Service
@@ -72,7 +72,7 @@ public class NotificationSettingsService {
             JsonNode newSettings = objectMapper.valueToTree(request);
 
             // Merge settings (partial update)
-            JsonNode mergedSettings = mergeSettings(currentSettings, newSettings);
+            JsonNode mergedSettings = JsonSettingsMerger.merge(currentSettings, newSettings);
 
             user.setNotificationSettings(mergedSettings);
             userRepository.save(user);
@@ -85,30 +85,6 @@ public class NotificationSettingsService {
             log.error("Error updating notification settings for user: {}", username, e);
             throw new BadRequestException("Failed to update notification settings");
         }
-    }
-
-    private JsonNode mergeSettings(JsonNode current, JsonNode update) {
-        if (current == null || current.isNull()) {
-            return update;
-        }
-
-        ObjectNode merged = current.deepCopy();
-
-        update.fields().forEachRemaining(entry -> {
-            String fieldName = entry.getKey();
-            JsonNode value = entry.getValue();
-
-            if (value.isObject() && merged.has(fieldName) && merged.get(fieldName).isObject()) {
-                // Recursively merge nested objects
-                JsonNode mergedNested = mergeSettings(merged.get(fieldName), value);
-                merged.set(fieldName, mergedNested);
-            } else if (!value.isNull()) {
-                // Update field only if new value is not null
-                merged.set(fieldName, value);
-            }
-        });
-
-        return merged;
     }
 
     private NotificationSettingsResponse createDefaultSettings() {
@@ -126,11 +102,6 @@ public class NotificationSettingsService {
                         .applicationUpdates(true)
                         .messages(true)
                         .reminders(true)
-                        .build())
-                .sms(NotificationSettingsResponse.SmsNotifications.builder()
-                        .jobAlerts(false)
-                        .securityAlerts(true)
-                        .importantUpdates(true)
                         .build())
                 .build();
     }

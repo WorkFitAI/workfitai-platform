@@ -267,6 +267,15 @@ public class ManagerStatsService {
                 Instant firstChangeAt = app.getStatusHistory().get(0).getChangedAt();
                 Instant appliedAt = app.getCreatedAt();
 
+                // Skip records with missing audit timestamps (e.g. legacy/seeded data
+                // inserted outside Spring's @CreatedDate auditing) instead of failing
+                // the whole company stats request.
+                if (appliedAt == null || firstChangeAt == null) {
+                    log.warn("Skipping application {} for avg time to review: missing createdAt or changedAt",
+                            app.getId());
+                    continue;
+                }
+
                 long daysBetween = Duration.between(appliedAt, firstChangeAt).toDays();
                 reviewTimes.add(daysBetween);
             }

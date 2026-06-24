@@ -115,6 +115,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("admin:list", "List all admins");
         perms.put("admin:search", "Search admins");
         perms.put("admin:approve", "Approve admin profiles");
+        perms.put("admin:feature-toggle", "Manage platform-wide AI feature toggles");
 
         // User management
         perms.put("user:list", "List all user");
@@ -582,6 +583,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         permissions.add("admin:list");
         permissions.add("admin:search");
         permissions.add("admin:approve");
+        permissions.add("admin:feature-toggle");
 
         permissions.add("user:read");
         permissions.add("user:block");

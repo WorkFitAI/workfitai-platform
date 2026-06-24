@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class NotificationSettingsRequest {
     private EmailNotifications email;
     private PushNotifications push;
-    private SmsNotifications sms;
 
     @Data
     @Builder
@@ -36,15 +35,5 @@ public class NotificationSettingsRequest {
         private Boolean applicationUpdates;
         private Boolean messages;
         private Boolean reminders;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SmsNotifications {
-        private Boolean jobAlerts;
-        private Boolean securityAlerts;
-        private Boolean importantUpdates;
     }
 }

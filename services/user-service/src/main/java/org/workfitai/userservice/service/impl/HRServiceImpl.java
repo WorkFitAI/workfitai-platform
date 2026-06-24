@@ -175,7 +175,11 @@ public class HRServiceImpl implements HRService {
 
   @Override
   public Map<String, Long> countByDepartment() {
-    return hrRepository.countByDepartment();
+    return hrRepository.countByDepartment().stream()
+        .collect(Collectors.toMap(
+            row -> (String) row[0],
+            row -> (Long) row[1]
+        ));
   }
 
   @Override

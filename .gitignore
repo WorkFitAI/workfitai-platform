@@ -40,6 +40,8 @@ replay_pid*
 **/dist/
 **/.mvn/
 **/*.log
+**/htmlcov/
+**/.coverage
 .env.local
 
 .DS_Store

@@ -5,15 +5,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.workfitai.userservice.constants.Messages;
 import org.workfitai.userservice.dto.request.AdminUpdateRequest;
 import org.workfitai.userservice.dto.request.CandidateUpdateRequest;
+import org.workfitai.userservice.dto.request.DeactivateAccountRequest;
+import org.workfitai.userservice.dto.request.DeleteAccountRequest;
 import org.workfitai.userservice.dto.request.HRUpdateRequest;
+import org.workfitai.userservice.dto.response.AccountManagementResponse;
 import org.workfitai.userservice.dto.response.AdminResponse;
 import org.workfitai.userservice.dto.response.CandidateResponse;
 import org.workfitai.userservice.dto.response.HRResponse;
 import org.workfitai.userservice.dto.response.ResponseData;
+import org.workfitai.userservice.service.AccountManagementService;
 import org.workfitai.userservice.service.AdminService;
 import org.workfitai.userservice.service.CandidateService;
 import org.workfitai.userservice.service.HRService;
@@ -23,7 +28,8 @@ import java.util.UUID;
 
 /**
  * Controller for user profile operations.
- * Allows authenticated users to view and update their own profiles.
+ * Allows authenticated users to view and update their own profiles,
+ * and manage their account lifecycle (deactivate/delete/cancel deletion).
  */
 @RestController
 @RequestMapping("/profile")
@@ -35,6 +41,7 @@ public class UserProfileController {
     private final CandidateService candidateService;
     private final HRService hrService;
     private final AdminService adminService;
+    private final AccountManagementService accountManagementService;
 
     /**
      * Get current user's profile.
@@ -105,5 +112,43 @@ public class UserProfileController {
         UUID userId = userService.findUserIdByUsername(username);
         AdminResponse updated = adminService.update(userId, request);
         return ResponseEntity.ok(ResponseData.success(Messages.Profile.ADMIN_PROFILE_UPDATED, updated));
+    }
+
+    @PostMapping("/deactivate")
+    public ResponseEntity<AccountManagementResponse> deactivateAccount(
+            @Valid @RequestBody DeactivateAccountRequest request,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        log.info("Deactivate account request for user: {}", username);
+        log.info("Authentication principal: {}", authentication.getPrincipal());
+        log.info("Authentication details: {}", authentication.getDetails());
+
+        AccountManagementResponse response = accountManagementService.deactivateAccount(username, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/delete-request")
+    public ResponseEntity<AccountManagementResponse> requestAccountDeletion(
+            @Valid @RequestBody DeleteAccountRequest request,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        log.info("Delete account request for user: {}", username);
+
+        AccountManagementResponse response = accountManagementService.requestAccountDeletion(username, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/cancel-deletion")
+    public ResponseEntity<AccountManagementResponse> cancelAccountDeletion(Authentication authentication) {
+        String username = authentication.getName();
+        log.info("Cancel account deletion request for user: {}", username);
+
+        AccountManagementResponse response = accountManagementService.cancelAccountDeletion(username);
+
+        return ResponseEntity.ok(response);
     }
 }

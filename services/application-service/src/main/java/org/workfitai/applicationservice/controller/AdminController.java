@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -66,7 +67,7 @@ public class AdminController {
         log.info("ADMIN: Fetching applications, page={}, size={}, status={}, companyId={}, username={}, jobTitle={}, keyword={}, includeDeleted={}",
                 page, size, status, companyId, username, jobTitle, keyword, includeDeleted);
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<ApplicationResponse> applications = adminApplicationService.getApplications(
                 status, companyId, username, jobTitle, keyword, includeDeleted, pageable);
 

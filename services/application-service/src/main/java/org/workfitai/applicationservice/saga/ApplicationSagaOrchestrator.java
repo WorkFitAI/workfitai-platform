@@ -259,6 +259,11 @@ public class ApplicationSagaOrchestrator {
                 .assignedTo(validHR ? createdBy : null)
                 .assignedAt(validHR ? now : null)
                 .assignedBy(validHR ? "SYSTEM" : null)
+                // @CreatedDate/@LastModifiedDate auditing relies on the entity being "new"
+                // (i.e. @Id null at save time), but the id is pre-generated above so
+                // cv-service can link its snapshot before persistence — set explicitly instead.
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         Application saved = applicationRepository.save(application);
