@@ -14,18 +14,14 @@ import org.workfitai.userservice.dto.elasticsearch.UserSearchRequest;
 import org.workfitai.userservice.dto.elasticsearch.UserSearchResponse;
 import org.workfitai.userservice.dto.request.AdminCreateRequest;
 import org.workfitai.userservice.dto.request.AdminUpdateRequest;
-import org.workfitai.userservice.dto.request.FeatureToggleUpdateRequest;
 import org.workfitai.userservice.dto.response.AdminResponse;
-import org.workfitai.userservice.dto.response.FeatureToggleResponse;
 import org.workfitai.userservice.dto.response.ResponseData;
 import org.workfitai.userservice.dto.response.UserBaseResponse;
 import org.workfitai.userservice.service.AdminService;
-import org.workfitai.userservice.service.PlatformFeatureToggleService;
 import org.workfitai.userservice.service.UserIndexManagementService;
 import org.workfitai.userservice.service.UserSearchService;
 import org.workfitai.userservice.service.UserService;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,7 +36,6 @@ public class AdminController {
     private final UserService userService;
     private final UserSearchService userSearchService;
     private final UserIndexManagementService indexManagementService;
-    private final PlatformFeatureToggleService featureToggleService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('admin:create')")
@@ -225,27 +220,4 @@ public class AdminController {
                 null));
     }
 
-    /**
-     * List platform-wide AI feature toggles (job-recommendation, cv-referral).
-     */
-    @GetMapping("/features")
-    @PreAuthorize("hasAuthority('admin:feature-toggle')")
-    public ResponseEntity<ResponseData<List<FeatureToggleResponse>>> listFeatureToggles() {
-        return ResponseEntity.ok(ResponseData.success(featureToggleService.listAll()));
-    }
-
-    /**
-     * Enable or disable a platform-wide AI feature for all users.
-     */
-    @PutMapping("/features/{featureKey}")
-    @PreAuthorize("hasAuthority('admin:feature-toggle')")
-    public ResponseEntity<ResponseData<FeatureToggleResponse>> updateFeatureToggle(
-            @PathVariable String featureKey,
-            @RequestBody FeatureToggleUpdateRequest request,
-            @RequestAttribute("userId") String currentUserId) {
-
-        FeatureToggleResponse updated = featureToggleService.updateToggle(
-                featureKey, request.getEnabled(), currentUserId);
-        return ResponseEntity.ok(ResponseData.success(updated));
-    }
 }

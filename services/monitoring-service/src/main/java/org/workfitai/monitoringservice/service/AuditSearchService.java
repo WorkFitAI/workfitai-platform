@@ -238,6 +238,33 @@ public class AuditSearchService {
         );
     }
 
+    // ─── Recent errors ───────────────────────────────────────────────────────────
+
+    /**
+     * Returns the most recent failed audit events (success=false), sorted by occurredAt DESC.
+     * Deduplicated at the document level (each eventId is unique by ES _id).
+     */
+    public List<AuditEventResponse> getRecentErrorLogs(int limit) {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(
+                    SearchRequest.of(s -> s
+                            .index(INDEX_PREFIX + "*")
+                            .query(q -> q.term(t -> t.field("success").value(false)))
+                            .sort(sort -> sort.field(f -> f.field("occurredAt").order(SortOrder.Desc)))
+                            .size(limit)),
+                    Map.class);
+
+            return response.hits().hits().stream()
+                    .map(Hit::source)
+                    .map(this::toResponse)
+                    .toList();
+
+        } catch (ElasticsearchException | IOException e) {
+            log.error("[AUDIT-ERRORS] Elasticsearch query failed: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     // ─── Stats ───────────────────────────────────────────────────────────────────
 
     /**

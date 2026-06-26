@@ -8,6 +8,7 @@ import org.workfitai.monitoringservice.client.JobServiceClient;
 import org.workfitai.monitoringservice.client.JobStatsServiceClient;
 import org.workfitai.monitoringservice.client.UserServiceClient;
 import org.workfitai.monitoringservice.dto.AdminDashboardResponse;
+import org.workfitai.monitoringservice.dto.AuditEventResponse;
 import org.workfitai.monitoringservice.dto.AuditStatsResponse;
 import org.workfitai.monitoringservice.dto.downstream.DownstreamApiResponse;
 import org.workfitai.monitoringservice.dto.downstream.JobStatsSummary;
@@ -29,12 +30,13 @@ public class AdminDashboardService {
     private final AuditSearchService auditSearchService;
 
     public AdminDashboardResponse getDashboard() {
-        SystemStatsSummary appStats   = fetchAppStats();
-        UserStatsSummary userStats    = fetchUserStats();
-        JobStatsSummary jobStats      = fetchJobStats();
-        List<TopSkillItem> topSkills  = fetchTopSkills();
-        AuditStatsResponse auditStats = auditSearchService.getAuditStats(null, null);
-        return new AdminDashboardResponse(appStats, userStats, jobStats, topSkills, auditStats);
+        SystemStatsSummary appStats              = fetchAppStats();
+        UserStatsSummary userStats               = fetchUserStats();
+        JobStatsSummary jobStats                 = fetchJobStats();
+        List<TopSkillItem> topSkills             = fetchTopSkills();
+        AuditStatsResponse auditStats            = auditSearchService.getAuditStats(null, null);
+        List<AuditEventResponse> recentAuditErrors = auditSearchService.getRecentErrorLogs(20);
+        return new AdminDashboardResponse(appStats, userStats, jobStats, topSkills, auditStats, recentAuditErrors);
     }
 
     private SystemStatsSummary fetchAppStats() {

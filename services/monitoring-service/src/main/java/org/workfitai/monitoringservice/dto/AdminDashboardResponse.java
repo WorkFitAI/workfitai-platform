@@ -12,5 +12,6 @@ public record AdminDashboardResponse(
         UserStatsSummary userStats,
         JobStatsSummary jobStats,
         List<TopSkillItem> topSkills,
-        AuditStatsResponse auditStats
+        AuditStatsResponse auditStats,
+        List<AuditEventResponse> recentAuditErrors
 ) {}
