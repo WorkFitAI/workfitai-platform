@@ -112,10 +112,15 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             String cleanLine = line.toLowerCase().replaceAll("[^a-z0-9\\s]", "").trim();
 
             // 2. Chặn tiêu đề bằng Semantic AI (nếu dòng ngắn <= 4 từ)
-            if (cleanLine.split("\\s+").length <= 4) {
+            if (!cleanLine.isEmpty() && cleanLine.split("\\s+").length <= 4) {
                 String mappedSection = semanticMatchingService.mapToCoreField(cleanLine);
-                currentSection = mappedSection;
-                continue;
+                // Chỉ đổi section khi khớp đủ tin cậy. Nếu không khớp (ignored),
+                // dòng ngắn này (tiêu đề công việc, ngày tháng, bullet ngắn...)
+                // vẫn thuộc về section hiện tại, không được reset về ignored.
+                if (!"ignored".equals(mappedSection)) {
+                    currentSection = mappedSection;
+                    continue;
+                }
             }
 
             // 3. Gom Data vào 4 trụ cột
