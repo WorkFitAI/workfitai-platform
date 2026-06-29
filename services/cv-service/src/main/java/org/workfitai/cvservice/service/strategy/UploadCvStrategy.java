@@ -57,6 +57,28 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             Map.entry("professional summary", "summary"),
             Map.entry("about me", "summary"));
 
+    /**
+     * Job-title / role words. A short line containing any of these is virtually
+     * always a job title or role name (real CV content), never a section header —
+     * but empirically scores above the semantic-match threshold against "skills"
+     * or "experience" anchors often enough to corrupt currentSection if not
+     * blocked here first (e.g. "Junior Software Engineer" → falsely "skills").
+     */
+    private static final Set<String> JOB_TITLE_WORDS = Set.of(
+            "engineer", "developer", "manager", "analyst", "specialist", "intern",
+            "consultant", "designer", "architect", "officer", "director",
+            "coordinator", "administrator", "scientist", "lead", "founder",
+            "president", "executive", "associate", "assistant", "supervisor");
+
+    private static boolean looksLikeJobTitle(String cleanLine) {
+        for (String word : cleanLine.split("\\s+")) {
+            if (JOB_TITLE_WORDS.contains(word)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private final SemanticMatchingService semanticMatchingService;
     private final DynamicSkillExtractionService skillExtractor;
     private final FileService fileService;
@@ -150,8 +172,12 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
                 || lower.contains("www."))
             return true;
 
+        // Phone numbers are short lines that are *mostly* digits (e.g. "0901 234 567",
+        // "+1 (415) 555-0199"). Require the line itself to be short too, otherwise a
+        // sentence that happens to contain several numbers (a budget figure, a year,
+        // a metric like "reduced cost by $80,000 in 2023") gets wrongly dropped as PII.
         String numbersOnly = line.replaceAll("[^0-9]", "");
-        return numbersOnly.length() >= 8 && numbersOnly.length() <= 15;
+        return numbersOnly.length() >= 8 && numbersOnly.length() <= 15 && line.length() <= 25;
     }
 
     private ParsedCvData parseCvText(String rawText) {
@@ -181,7 +207,12 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             String cleanLine = line.toLowerCase().replaceAll("[^a-z0-9\\s]", "").trim();
 
             // 2. Detect section headers (short lines ≤ 5 words)
-            if (!cleanLine.isEmpty() && cleanLine.split("\\s+").length <= 5) {
+            // Job titles ("Junior Software Engineer", "Project Manager"...) are real
+            // content, never headers — skip header detection entirely for them.
+            // Empirically (real embedding model probe) several of these otherwise
+            // score above threshold against an unrelated anchor (e.g. "skills"),
+            // silently hijacking currentSection mid-document.
+            if (!cleanLine.isEmpty() && cleanLine.split("\\s+").length <= 5 && !looksLikeJobTitle(cleanLine)) {
                 // Fast-path: exact phrase lookup for standard CV headers
                 String exactMatch = SECTION_HEADER_MAP.get(cleanLine);
                 if (exactMatch != null) {
@@ -190,7 +221,6 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
                 }
                 // Semantic fallback for non-standard but semantically similar headers
                 String mappedSection = semanticMatchingService.mapToCoreField(cleanLine);
-
                 if (!"ignored".equals(mappedSection)) {
                     currentSection = mappedSection;
                     continue;

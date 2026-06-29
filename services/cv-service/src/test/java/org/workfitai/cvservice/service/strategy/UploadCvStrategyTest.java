@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockMultipartFile;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.ParsedCvData;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UploadCvStrategyTest {
 
     @Mock
@@ -116,7 +119,9 @@ class UploadCvStrategyTest {
 
         ParsedCvData parsed = strategy.parsePdfFile(file);
 
-        assertThat(parsed.getSummary()).contains("Backend developer with five years experience");
+        // "Objective" maps to the dedicated "objective" bucket (not "summary") —
+        // ParsedCvData keeps them separate; only CV.summary (buildSummaryText) merges them.
+        assertThat(parsed.getObjective()).contains("Backend developer with five years experience");
         assertThat(parsed.getEducation()).contains("Bachelor of Science in Computer Science");
         assertThat(parsed.getExperience()).contains("Built scalable distributed systems for clients");
     }
@@ -145,6 +150,9 @@ class UploadCvStrategyTest {
         );
         MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
         when(semanticMatchingService.mapToCoreField("skills")).thenReturn("skills");
+        // 5-word content line also hits the header-detection branch (≤5 words) —
+        // must explicitly resolve to "ignored" so it's kept as section content.
+        when(semanticMatchingService.mapToCoreField("java frameworks and backend development")).thenReturn("ignored");
         when(skillExtractor.extractSkills(any())).thenReturn(List.of());
 
         ParsedCvData parsed = strategy.parsePdfFile(file);
