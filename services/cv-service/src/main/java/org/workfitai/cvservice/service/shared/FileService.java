@@ -61,6 +61,25 @@ public class FileService {
         return sanitized.isBlank() ? "cv" : sanitized;
     }
 
+    /**
+     * Uploads raw PDF bytes (not a multipart upload) — used when re-creating a CV
+     * snapshot from a previously stored {@code cvFileUrl} (reconciliation flow).
+     */
+    public String uploadCvBytes(InputStream content, long size, String contentType, String displayName) throws Exception {
+        String objectName = UUID.randomUUID() + "-" + sanitizeFileNameSegment(displayName) + ".pdf";
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(objectName)
+                        .stream(content, size, -1)
+                        .contentType(contentType)
+                        .build()
+        );
+
+        return objectName;
+    }
+
     public InputStream downloadCV(String objectName) throws Exception {
         return minioClient.getObject(
                 GetObjectArgs.builder()

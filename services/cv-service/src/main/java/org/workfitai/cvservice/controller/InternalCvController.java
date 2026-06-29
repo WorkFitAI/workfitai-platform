@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.workfitai.cvservice.model.dto.request.ReparseSnapshotRequest;
 import org.workfitai.cvservice.model.dto.response.CvDataResponse;
 import org.workfitai.cvservice.model.dto.response.CvSnapshotResponse;
 import org.workfitai.cvservice.service.iCVService;
@@ -86,5 +87,21 @@ public class InternalCvController {
         log.info("Internal batch-by-application-ids: found {}/{} snapshots",
                 results.size(), applicationIds.size());
         return ResponseEntity.ok(results);
+    }
+
+    /**
+     * Re-creates a snapshot CV by re-downloading the PDF from {@code cvFileUrl}.
+     *
+     * Used by application-service's reconciliation job to backfill applications
+     * whose original SNAPSHOT_CV call failed (cvSnapshotId still null).
+     */
+    @PostMapping("/reparse-snapshot")
+    public ResponseEntity<CvSnapshotResponse> reparseSnapshot(@RequestBody ReparseSnapshotRequest request) {
+        log.info("Internal reparse-snapshot request: username={} applicationId={} jobName={}",
+                request.getUsername(), request.getApplicationId(), request.getJobName());
+
+        CvSnapshotResponse response = cvService.reparseApplicationSnapshot(
+                request.getUsername(), request.getApplicationId(), request.getJobName(), request.getCvFileUrl());
+        return ResponseEntity.ok(response);
     }
 }

@@ -252,7 +252,16 @@ class CVRankingPipeline:
         top_n: Optional[int] = None,
         min_score: Optional[float] = None,
         good_fit_threshold: Optional[float] = None,
+        resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
     ) -> RankResult:
+        """
+        resume_embeddings, when given, must be the same length as resumes — one
+        precomputed bi-encoder embedding per resume (None entries fall back to
+        encoding on the fly). Lets callers with a persistent embedding cache
+        (rank-by-job) skip re-encoding resumes that haven't changed since their
+        last CV snapshot, while the raw /rank endpoint (no cache) keeps encoding
+        every resume on every call as before.
+        """
         if not self._ready:
             raise RuntimeError(
                 "CVRankingPipeline is not ready. "
@@ -268,7 +277,7 @@ class CVRankingPipeline:
         )
 
         t0 = time.perf_counter()
-        stage1 = self._stage1_retrieve(job, resumes, top_k)
+        stage1 = self._stage1_retrieve(job, resumes, top_k, resume_embeddings)
         stage2 = self._stage2_rerank(job, stage1, top_n)
         ranked_resumes = self._stage3_explain(stage2, good_fit_threshold, min_score)
         processing_ms = (time.perf_counter() - t0) * 1000
@@ -304,12 +313,59 @@ class CVRankingPipeline:
     # Stage 1 — Bi-Encoder + FAISS
     # ------------------------------------------------------------------
 
+    def _resolve_resume_embeddings(
+        self,
+        resumes: List[ResumeInput],
+        resume_embeddings: Optional[List[Optional[np.ndarray]]],
+    ) -> np.ndarray:
+        """
+        Fill in any missing entries in resume_embeddings by batch-encoding just
+        those resumes, then stack everything back into resumes' original order.
+        With no precomputed embeddings at all (resume_embeddings=None), this is
+        equivalent to encoding every resume — i.e. unchanged behavior for the
+        raw /rank endpoint.
+        """
+        if resume_embeddings is None:
+            resume_embeddings = [None] * len(resumes)
+
+        missing_idx = [i for i, emb in enumerate(resume_embeddings) if emb is None]
+        if missing_idx:
+            texts = [f"passage: {_build_resume_text(resumes[i])}" for i in missing_idx]
+            encoded = self._bi_encoder.encode(
+                texts,
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+                batch_size=self.batch_size,
+                show_progress_bar=False,
+            ).astype(np.float32)
+            for i, emb in zip(missing_idx, encoded):
+                resume_embeddings[i] = emb
+
+        return np.stack(resume_embeddings).astype(np.float32)
+
+    def encode_resume(self, resume: ResumeInput) -> np.ndarray:
+        """
+        Encode a single resume into the bi-encoder embedding space (same
+        normalization/prefix as stage 1). Used to precompute and cache an
+        embedding when a CV snapshot is written, instead of at rank time.
+        """
+        resume_text = _build_resume_text(resume)
+        return self._bi_encoder.encode(
+            f"passage: {resume_text}",
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        ).astype(np.float32)
+
     def _stage1_retrieve(
-        self, job: JobInput, resumes: List[ResumeInput], top_k: int
+        self,
+        job: JobInput,
+        resumes: List[ResumeInput],
+        top_k: int,
+        resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
     ) -> List[Dict[str, Any]]:
         """Encode job + resumes, FAISS inner-product search, return top_k with similarity_score (0-100)."""
         job_text = _build_job_text(job)
-        resume_texts = [_build_resume_text(r) for r in resumes]
 
         job_emb = self._bi_encoder.encode(
             f"query: {job_text}",
@@ -318,13 +374,7 @@ class CVRankingPipeline:
             show_progress_bar=False,
         ).astype(np.float32)
 
-        resume_embs = self._bi_encoder.encode(
-            [f"passage: {t}" for t in resume_texts],
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            batch_size=self.batch_size,
-            show_progress_bar=False,
-        ).astype(np.float32)
+        resume_embs = self._resolve_resume_embeddings(resumes, resume_embeddings)
 
         index = faiss.IndexFlatIP(resume_embs.shape[1])
         index.add(resume_embs)

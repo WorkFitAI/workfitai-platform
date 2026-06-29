@@ -26,10 +26,10 @@ from app.models.cv_rank_responses import RankedApplicantResponse
 logger = logging.getLogger(__name__)
 
 
-def rank_resumes(pipeline, request):
+def rank_resumes(pipeline, request, embeddings_by_index=None):
     """Lazy shim — defers torch import to first call; module-level name is patchable."""
     from app.services.cv_ranking_service import rank_resumes as _fn
-    return _fn(pipeline, request)
+    return _fn(pipeline, request, embeddings_by_index)
 
 
 class CvRankingRefresher:
@@ -154,7 +154,7 @@ class CvRankingRefresher:
             logger.warning("CvRankingRefresher: could not fetch job data for job_id=%s, skipping", job_id)
             return
 
-        cv_rank_request, idx_to_username, reason = build_cv_rank_request(
+        cv_rank_request, idx_to_username, reason, embeddings_by_index = build_cv_rank_request(
             job_id, self._store, job_data, options=None
         )
         if cv_rank_request is None:
@@ -162,7 +162,7 @@ class CvRankingRefresher:
             return
 
         def _compute() -> dict:
-            result = rank_resumes(pipeline, cv_rank_request)
+            result = rank_resumes(pipeline, cv_rank_request, embeddings_by_index)
             applicants = [
                 RankedApplicantResponse(
                     username=idx_to_username.get(r["resume_index"], "unknown"),

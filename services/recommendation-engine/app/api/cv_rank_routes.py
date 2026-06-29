@@ -59,13 +59,15 @@ async def _background_rank_by_job(job_id, store, settings, pipeline, cache, opti
             logger.warning("rank-by-job %s: background compute aborted — job-service fetch failed", job_id)
             return
 
-        cv_rank_request, idx_to_username, reason = build_cv_rank_request(job_id, store, job_data, options)
+        cv_rank_request, idx_to_username, reason, embeddings_by_index = build_cv_rank_request(
+            job_id, store, job_data, options
+        )
         if cv_rank_request is None:
             logger.warning("rank-by-job %s: background compute aborted — %s", job_id, reason)
             return
 
         def _compute() -> dict:
-            pipeline_result = rank_resumes(pipeline, cv_rank_request)
+            pipeline_result = rank_resumes(pipeline, cv_rank_request, embeddings_by_index)
             applicants = [
                 RankedApplicantResponse(
                     username=idx_to_username.get(r["resume_index"], "unknown"),
@@ -272,7 +274,9 @@ async def rank_by_job(
             detail=f"Failed to fetch job details for job {job_id} from job-service.",
         )
 
-    cv_rank_request, idx_to_username, reason = build_cv_rank_request(job_id, store, job_data, options)
+    cv_rank_request, idx_to_username, reason, embeddings_by_index = build_cv_rank_request(
+        job_id, store, job_data, options
+    )
     if cv_rank_request is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=reason)
 
@@ -284,7 +288,7 @@ async def rank_by_job(
     # Payload stored: dict with job_overview, total_candidates, ranked_applicants
     # ranked_applicants has usernames already resolved — avoids idx staleness risk.
     def _compute() -> dict:
-        result = rank_resumes(pipeline, cv_rank_request)
+        result = rank_resumes(pipeline, cv_rank_request, embeddings_by_index)
         applicants = [
             RankedApplicantResponse(
                 username=idx_to_username.get(r["resume_index"], "unknown"),

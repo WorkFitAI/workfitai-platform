@@ -10,7 +10,7 @@ No business logic lives here — that belongs in the pipeline itself.
 """
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 from src.inference.pipeline import (
     CVRankingPipeline,
@@ -30,9 +30,17 @@ def build_pipeline(config_path: Optional[str] = None) -> CVRankingPipeline:
     return CVRankingPipeline(cfg)
 
 
-def rank_resumes(pipeline: CVRankingPipeline, request: CvRankRequest) -> dict:
+def rank_resumes(
+    pipeline: CVRankingPipeline,
+    request: CvRankRequest,
+    embeddings_by_index: Optional[Dict[int, object]] = None,
+) -> dict:
     """
     Translate API request → pipeline inputs → serialized response dict.
+
+    embeddings_by_index, when given, maps resume_index → precomputed bi-encoder
+    embedding from CvReferStore's cache — resumes missing an entry just get
+    encoded on the fly in stage 1, same as before this cache existed.
 
     Raises RuntimeError if pipeline is not ready (model weights missing).
     """
@@ -57,6 +65,10 @@ def rank_resumes(pipeline: CVRankingPipeline, request: CvRankRequest) -> dict:
         for cv in request.resumes
     ]
 
+    resume_embeddings = None
+    if embeddings_by_index:
+        resume_embeddings = [embeddings_by_index.get(r.resume_index) for r in resumes]
+
     opts = request.options
     result: RankResult = pipeline.rank(
         job=job,
@@ -65,6 +77,7 @@ def rank_resumes(pipeline: CVRankingPipeline, request: CvRankRequest) -> dict:
         top_n=opts.top_n,
         min_score=opts.min_score,
         good_fit_threshold=opts.good_fit_threshold,
+        resume_embeddings=resume_embeddings,
     )
 
     return pipeline.to_dict(result)

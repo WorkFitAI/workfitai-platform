@@ -8,6 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main entry point for application-service.
@@ -20,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * - @EnableAspectJAutoProxy: Enables AOP for audit logging
  * - @EnableAsync: Enables async method execution (@Async)
  * - @EnableCaching: Enables Spring Cache abstraction (@Cacheable)
+ * - @EnableScheduling: Enables @Scheduled methods (rate-limit cleanup, CV snapshot reconciliation)
  *
  * Dependencies:
  * - MongoDB: Stores application documents
@@ -35,6 +37,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAspectJAutoProxy
 @EnableAsync
 @EnableCaching
+@EnableScheduling
 public class ApplicationServiceApplication {
 
     public static void main(String[] args) {

@@ -28,6 +28,12 @@ spring:
           recommendation-engine:
             connect-timeout: 5000
             read-timeout: 60000
+          # cv-service PDF parsing (PDFBox + embedding model) can be slow under burst
+          # apply traffic; previously had no override (default ~10s/60s could still
+          # be too tight under load) — widen so SNAPSHOT_CV doesn't fail spuriously.
+          cv-service:
+            connect-timeout: 5000
+            read-timeout: 30000
   # MongoDB configuration (Vault provides uri via mongodb.uri)
   data:
     mongodb:

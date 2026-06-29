@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -61,6 +62,7 @@ public class CVService implements iCVService {
     private final NotificationProducer notificationProducer;
     private final CvEventProducer cvEventProducer;
     private final UploadCvStrategy uploadCvStrategy;
+    private final org.springframework.web.reactive.function.client.WebClient webClient;
 
     // ---------------- CREATE ----------------
     @Override
@@ -338,6 +340,72 @@ public class CVService implements iCVService {
             log.error("Failed to create CV snapshot for applicationId={} username={}: {}",
                     applicationId, username, e.getMessage(), e);
             throw new RuntimeException("CV snapshot creation failed", e);
+        }
+    }
+
+    // ---------------- RECONCILIATION: REPARSE FROM cvFileUrl ----------------
+    @Override
+    public CvSnapshotResponse reparseApplicationSnapshot(
+            String username, String applicationId, String jobName, String cvFileUrl) {
+        try {
+            byte[] content = webClient.get()
+                    .uri(java.net.URI.create(cvFileUrl))
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .block();
+
+            if (content == null || content.length == 0) {
+                throw new RuntimeException("Downloaded empty content from cvFileUrl=" + cvFileUrl);
+            }
+
+            String objectName = fileService.uploadCvBytes(
+                    new java.io.ByteArrayInputStream(content), content.length, "application/pdf", jobName);
+            String fileUrl = fileService.generateFileUrl(objectName);
+
+            var parsed = uploadCvStrategy.parsePdfFile(new java.io.ByteArrayInputStream(content));
+
+            Map<String, Object> sections = new HashMap<>();
+            sections.put("skills",        Objects.requireNonNullElse(parsed.getSkills(), List.of()));
+            sections.put("experience",    Objects.requireNonNullElse(parsed.getExperience(), List.of()));
+            sections.put("education",     Objects.requireNonNullElse(parsed.getEducation(), List.of()));
+            sections.put("projects",      Objects.requireNonNullElse(parsed.getProjects(), List.of()));
+            sections.put("languages",     Objects.requireNonNullElse(parsed.getLanguages(), List.of()));
+            sections.put("certifications",Objects.requireNonNullElse(parsed.getCertifications(), List.of()));
+            sections.put("objective",     Objects.requireNonNullElse(parsed.getObjective(), List.of()));
+            sections.put("summary",       Objects.requireNonNullElse(parsed.getSummary(), List.of()));
+
+            List<String> summaryLines = new java.util.ArrayList<>();
+            if (parsed.getSummary() != null) summaryLines.addAll(parsed.getSummary());
+            if (parsed.getObjective() != null) summaryLines.addAll(parsed.getObjective());
+            String summary = String.join("\n", summaryLines);
+
+            CV snapshot = new CV();
+            snapshot.setBelongTo(username);
+            snapshot.setApplicationId(applicationId);
+            snapshot.setTemplateType(TemplateType.UPLOAD);
+            snapshot.setObjectName(objectName);
+            snapshot.setPdfUrl(fileUrl);
+            snapshot.setSections(sections);
+            snapshot.setSummary(summary);
+            snapshot.setExist(true);
+
+            CV saved = repository.save(snapshot);
+
+            log.info("CV snapshot reparsed (reconciliation): cvId={} applicationId={} username={}",
+                    saved.getCvId(), applicationId, username);
+
+            return CvSnapshotResponse.builder()
+                    .cvId(saved.getCvId())
+                    .summary(summary)
+                    .experience(extractSection(saved.getSections(), "experience"))
+                    .skills(extractSection(saved.getSections(), "skills"))
+                    .education(extractSection(saved.getSections(), "education"))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Failed to reparse CV snapshot for applicationId={} username={} cvFileUrl={}: {}",
+                    applicationId, username, cvFileUrl, e.getMessage(), e);
+            throw new RuntimeException("CV snapshot reparse failed", e);
         }
     }
 

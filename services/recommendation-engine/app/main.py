@@ -17,6 +17,7 @@ import uvicorn
 from app.config import get_settings
 from app.api.job_recommend_routes import router
 from app.api.cv_rank_routes import router as cv_rank_router
+from app.api.cv_refer_internal_routes import router as cv_refer_internal_router
 
 # Configure logging
 logging.basicConfig(
@@ -212,6 +213,7 @@ async def lifespan(app: FastAPI):
                     # Refresher is started later in this same lifespan block; resolved
                     # lazily on each dirty event so construction order doesn't matter.
                     refresher_getter=lambda: app_state["cv_ranking_refresher"],
+                    pipeline_getter=lambda: app_state["cv_ranking_pipeline"],
                 )
                 app_state["cv_refer_consumer"].start()
                 logger.info("✓ CvReferConsumer started")
@@ -344,6 +346,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include API routes
 app.include_router(router)
 app.include_router(cv_rank_router)
+app.include_router(cv_refer_internal_router)
 
 
 # Health check endpoint
@@ -419,6 +422,7 @@ app.state.resume_parser = lambda: app_state["resume_parser"]
 app.state.reranker = lambda: app_state["reranker"]
 app.state.cv_ranking_pipeline = lambda: app_state["cv_ranking_pipeline"]
 app.state.cv_refer_store = lambda: app_state["cv_refer_store"]
+app.state.cv_ranking_refresher = lambda: app_state["cv_ranking_refresher"]
 app.state.feature_toggle_store = lambda: app_state["feature_toggle_store"]
 
 

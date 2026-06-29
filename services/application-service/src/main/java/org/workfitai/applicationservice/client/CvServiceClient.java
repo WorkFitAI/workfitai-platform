@@ -3,10 +3,12 @@ package org.workfitai.applicationservice.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.applicationservice.config.InternalFeignConfig;
 import org.workfitai.applicationservice.dto.CvSnapshotResponse;
+import org.workfitai.applicationservice.dto.ReparseSnapshotRequest;
 
 /**
  * Feign client for cv-service internal API.
@@ -42,4 +44,12 @@ public interface CvServiceClient {
             @RequestPart("jobName") String jobName,
             @RequestPart("cvPdfFile") MultipartFile cvPdfFile
     );
+
+    /**
+     * Re-creates a snapshot by having cv-service re-download the PDF from cvFileUrl.
+     * Used by the reconciliation job to backfill applications whose original
+     * SNAPSHOT_CV call failed (cvSnapshotId still null).
+     */
+    @PostMapping("/internal/cvs/reparse-snapshot")
+    CvSnapshotResponse reparseSnapshot(@RequestBody ReparseSnapshotRequest request);
 }

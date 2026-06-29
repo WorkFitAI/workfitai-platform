@@ -17,7 +17,7 @@ Thread-safety: reads and writes use a single RLock.
 
 import logging
 import threading
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,11 @@ class CvReferStore:
         self._job_applicants: Dict[str, Set[str]] = {}
         # "{jobId}::{username}" → CV snapshot dict
         self._cv_data: Dict[_CvKey, Dict] = {}
+        # "{jobId}::{username}" → precomputed bi-encoder embedding (np.ndarray)
+        # Optional cache: absence just means stage 1 falls back to encoding on the
+        # fly, same as before this cache existed. Computed once when the snapshot
+        # text is known (Kafka consumer / reconciliation push), not at rank time.
+        self._embeddings: Dict[_CvKey, Any] = {}
 
     # ------------------------------------------------------------------ #
     # Application events                                                   #
@@ -51,10 +56,26 @@ class CvReferStore:
                      username, job_id, len(self._job_applicants[job_id]))
 
     def set_cv_snapshot(self, job_id: str, username: str, snapshot: Dict) -> None:
-        """Store structured CV fields for a specific application."""
+        """
+        Store structured CV fields for a specific application.
+
+        Invalidates any cached embedding for this key — the text changed, so a
+        stale embedding would silently rank against the old snapshot. Callers
+        that have a bi-encoder handy should follow up with set_cv_embedding().
+        """
         with self._lock:
             self._cv_data[_cv_key(job_id, username)] = snapshot
+            self._embeddings.pop(_cv_key(job_id, username), None)
         logger.debug("Store: cv snapshot set for %s / %s", job_id, username)
+
+    def set_cv_embedding(self, job_id: str, username: str, embedding: Any) -> None:
+        """Cache a precomputed bi-encoder embedding for this applicant's resume text."""
+        with self._lock:
+            self._embeddings[_cv_key(job_id, username)] = embedding
+
+    def get_cv_embedding(self, job_id: str, username: str) -> Optional[Any]:
+        with self._lock:
+            return self._embeddings.get(_cv_key(job_id, username))
 
     def remove_applicant(self, job_id: str, username: str) -> None:
         with self._lock:
@@ -62,6 +83,7 @@ class CvReferStore:
             if pool:
                 pool.discard(username)
             self._cv_data.pop(_cv_key(job_id, username), None)
+            self._embeddings.pop(_cv_key(job_id, username), None)
         logger.debug("Store: removed applicant %s from job %s", username, job_id)
 
     def on_status_changed(self, job_id: str, username: str, new_status: str) -> None:
@@ -85,6 +107,7 @@ class CvReferStore:
             return {
                 "total_jobs_tracked": len(self._job_applicants),
                 "total_cv_profiles": len(self._cv_data),
+                "total_cv_embeddings": len(self._embeddings),
                 "job_pool_sizes": {
                     jid: len(pool) for jid, pool in self._job_applicants.items()
                 },

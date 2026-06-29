@@ -29,6 +29,7 @@ class CvReferConsumer:
         kafka_config: Dict,
         store: CvReferStore,
         refresher_getter: Optional[Callable[[], object]] = None,
+        pipeline_getter: Optional[Callable[[], object]] = None,
     ):
         self._store = store
         self._running = False
@@ -38,6 +39,9 @@ class CvReferConsumer:
         # is constructed after this consumer in main.py's lifespan, so it isn't available
         # yet at __init__ time; resolved on each dirty event instead.
         self._refresher_getter = refresher_getter
+        # Lazy accessor for the bi-encoder — used to precompute and cache an embedding
+        # for each snapshot as it arrives, instead of re-encoding at rank time.
+        self._pipeline_getter = pipeline_getter
 
         self._bootstrap_servers = kafka_config["bootstrap_servers"]
         self._group_id = kafka_config["group_id"]
@@ -150,19 +154,25 @@ class CvReferConsumer:
             "skills":     data.get("resumeSkills", ""),
             "education":  data.get("resumeEducation", ""),
         }
+        cv_snapshot_id = data.get("cvSnapshotId")
 
-        # Only store if there's at least some non-empty field to avoid polluting the store
-        # with empty records that would cause unnecessary cache misses
+        # Always store — even when every field is empty — so the applicant still
+        # reaches the ranking pipeline (and gets scored, typically low, instead of
+        # silently disappearing pre-model). The reconciliation job backfills empty
+        # snapshots later when cvSnapshotId is null; this consumer just mirrors
+        # whatever application-service published.
+        self._store.set_cv_snapshot(job_id, username, snapshot)
+        self._try_cache_embedding(job_id, username, snapshot)
         if any(snapshot.values()):
-            self._store.set_cv_snapshot(job_id, username, snapshot)
             logger.info(
                 "cv-refer: APPLICATION_CREATED — jobId=%s username=%s (snapshot stored, cvSnapshotId=%s)",
-                job_id, username, data.get("cvSnapshotId", "none"),
+                job_id, username, cv_snapshot_id or "none",
             )
         else:
             logger.warning(
                 "cv-refer: APPLICATION_CREATED — jobId=%s username=%s — CV snapshot fields empty "
-                "(cv-service may have been unavailable during SNAPSHOT_CV step)",
+                "(cv-service was unavailable during SNAPSHOT_CV step); stored anyway, "
+                "awaiting reconciliation backfill",
                 job_id, username,
             )
 
@@ -187,6 +197,32 @@ class CvReferConsumer:
             self._store.on_status_changed(job_id, username, new_status)
             logger.info("cv-refer: status changed — jobId=%s username=%s newStatus=%s", job_id, username, new_status)
             self._mark_ranking_dirty(job_id)
+
+    def _try_cache_embedding(self, job_id: str, username: str, snapshot: Dict) -> None:
+        """
+        Best-effort: precompute the resume's bi-encoder embedding now, so rank-by-job
+        doesn't have to re-encode this applicant on every call. Skipped (not an error)
+        when the pipeline isn't loaded yet or the snapshot is entirely empty — stage 1
+        falls back to encoding on the fly in either case.
+        """
+        if not any(snapshot.values()):
+            return
+        pipeline = self._pipeline_getter() if self._pipeline_getter else None
+        if pipeline is None or not pipeline.is_ready:
+            return
+        try:
+            from src.inference.pipeline import ResumeInput
+            resume = ResumeInput(
+                resume_index=0,
+                resume_summary=snapshot.get("summary", ""),
+                resume_experience=snapshot.get("experience", ""),
+                resume_skills=snapshot.get("skills", ""),
+                resume_education=snapshot.get("education", ""),
+            )
+            embedding = pipeline.encode_resume(resume)
+            self._store.set_cv_embedding(job_id, username, embedding)
+        except Exception as exc:
+            logger.warning("cv-refer: failed to precompute embedding for %s/%s: %s", job_id, username, exc)
 
     def _mark_ranking_dirty(self, job_id: str) -> None:
         """

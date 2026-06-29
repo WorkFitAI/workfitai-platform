@@ -14,6 +14,7 @@ import org.workfitai.cvservice.service.nlp.SemanticMatchingService;
 import org.workfitai.cvservice.service.shared.FileService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -116,12 +117,25 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
      * creation.
      */
     public ParsedCvData parsePdfFile(MultipartFile file) throws IOException {
-        String rawText = extractPdfText(file);
+        return parsePdfFile(file.getInputStream());
+    }
+
+    /**
+     * Parse a PDF from a raw stream into structured CV sections. Used by snapshot
+     * reconciliation, where the PDF bytes come from re-downloading {@code cvFileUrl}
+     * instead of a fresh multipart upload.
+     */
+    public ParsedCvData parsePdfFile(InputStream pdfStream) throws IOException {
+        String rawText = extractPdfText(pdfStream);
         return parseCvText(rawText);
     }
 
     private String extractPdfText(MultipartFile file) throws IOException {
-        try (PDDocument doc = PDDocument.load(file.getInputStream())) {
+        return extractPdfText(file.getInputStream());
+    }
+
+    private String extractPdfText(InputStream pdfStream) throws IOException {
+        try (PDDocument doc = PDDocument.load(pdfStream)) {
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true);
             return stripper.getText(doc);

@@ -153,9 +153,10 @@ async def _fetch_and_store_cv_snapshots(
                 "skills":     snap.get("skills", ""),
                 "education":  snap.get("education", ""),
             }
-            if any(cv_data.values()):
-                store.set_cv_snapshot(job_id, username, cv_data)
-                loaded += 1
+            # Always store (mirrors CvReferConsumer) — applicant still reaches the
+            # ranking pipeline even with an empty/partial snapshot.
+            store.set_cv_snapshot(job_id, username, cv_data)
+            loaded += 1
 
         logger.info(
             "cv-refer sync phase 2: loaded %d/%d CV snapshots from cv-service",
