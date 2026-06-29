@@ -28,6 +28,9 @@ public class ResCvDTO {
 
     private TemplateType templateType;
 
+    /** Non-null only for immutable CV snapshots created when a candidate applied to a job. */
+    private String applicationId;
+
     private Map<String, Object> sections;
 
     private boolean isExist;

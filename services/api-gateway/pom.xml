@@ -152,6 +152,18 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- ✅ Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -179,6 +191,92 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Application.class</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <exclude>**/config/**Config.class</exclude>
+                        <exclude>**/config/**Config$*.class</exclude>
+                        <exclude>**/*MapperImpl.class</exclude>
+                        <exclude>**/constants/**</exclude>
+                        <exclude>**/enums/**</exclude>
+                        <exclude>**/*Event.class</exclude>
+                        <exclude>**/*Request.class</exclude>
+                        <exclude>**/*Response.class</exclude>
+                        <exclude>**/*DTO.class</exclude>
+                        <!-- Bucket4j + Redis infrastructure — requires real Lettuce -->
+                        <exclude>**/filter/RateLimitFilter.class</exclude>
+                        <!-- Response body buffering — requires full codec stack -->
+                        <exclude>**/filter/ResponseCacheFilter.class</exclude>
+                        <exclude>**/filter/ResponseCacheFilter$*.class</exclude>
+                        <!-- ModifyResponseBodyGatewayFilterFactory wiring -->
+                        <exclude>**/filter/MintOpaquePostFilter.class</exclude>
+                        <exclude>**/filter/MintOpaquePostFilter$*.class</exclude>
+                        <!-- Spring Security reactive chain integration -->
+                        <exclude>**/config/OpaqueToJwtWebFilter.class</exclude>
+                        <exclude>**/filter/OpaqueToJwtPreFilter.class</exclude>
+                        <exclude>**/filter/OpaqueToJwtPreFilter$*.class</exclude>
+                        <!-- HTTP client for fetching public key from auth-service -->
+                        <exclude>**/security/PublicKeyProvider.class</exclude>
+                        <!-- Response body decorator -->
+                        <exclude>**/config/ResponseSourceGlobalFilter.class</exclude>
+                        <exclude>**/config/ResponseSourceGlobalFilter$*.class</exclude>
+                        <!-- Debug/development utilities -->
+                        <exclude>**/filter/DebugLoggingFilter.class</exclude>
+                        <exclude>**/filter/DebugLoggingFilter$*.class</exclude>
+                        <exclude>**/controller/DebugController.class</exclude>
+                        <exclude>**/test/OpaqueTokenTestRunner.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <haltOnFailure>false</haltOnFailure>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.70</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.55</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -23,6 +23,7 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.OutboxExpiredJobEvent;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.HrNotificationSettingsDTO;
 import org.workfitai.jobservice.model.dto.kafka.JobExpiredEventDTO;
 import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
@@ -616,6 +617,27 @@ public class JobService implements iJobService {
             log.error("Failed to fetch users", e);
             return new HashMap<>();
         }
+    }
+
+    /**
+     * Fetch notifyOnJobExpiry per HR email, deduped (a single HR may own
+     * multiple expiring jobs on the same cron run). Fails open per-email on
+     * any error, matching user-service's internal-endpoint resilience.
+     */
+    public Map<String, Boolean> fetchHrJobExpirySettingsMap(Collection<String> hrEmails) {
+        Map<String, Boolean> result = new HashMap<>();
+
+        for (String hrEmail : hrEmails.stream().filter(Objects::nonNull).distinct().toList()) {
+            try {
+                HrNotificationSettingsDTO settings = userFeignClient.getHrNotificationSettings(hrEmail);
+                result.put(hrEmail, settings == null || settings.isNotifyOnJobExpiryEnabled());
+            } catch (Exception e) {
+                log.error("Failed to fetch HR job-expiry settings for {} - failing open", hrEmail, e);
+                result.put(hrEmail, true);
+            }
+        }
+
+        return result;
     }
 
     public JobExpiredEventDTO buildDTO(Job job, String hrEmail) {

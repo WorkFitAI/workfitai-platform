@@ -7,6 +7,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.workfitai.notificationservice.client.UserServiceClient;
+import org.workfitai.notificationservice.dto.HrNotificationSettings;
 import org.workfitai.notificationservice.dto.kafka.ApplicationCreatedEvent;
 import org.workfitai.notificationservice.service.NotificationPersistenceService;
 import org.workfitai.notificationservice.service.TemplateService;
@@ -136,6 +137,11 @@ public class ApplicationEventConsumer {
                 return;
             }
 
+            if (!isNotifyOnNewApplicationEnabled(hrEmail)) {
+                log.info("Skipping HR new-application email for {} - disabled by HR preference", hrEmail);
+                return;
+            }
+
             if (!StringUtils.hasText(mailUsername) || !StringUtils.hasText(mailPassword)) {
                 log.warn("Skip HR email: mail credentials are not configured");
                 return;
@@ -178,6 +184,17 @@ public class ApplicationEventConsumer {
 
         } catch (Exception e) {
             log.error("Failed to send HR notification email: {}", e.getMessage(), e);
+        }
+    }
+
+    private boolean isNotifyOnNewApplicationEnabled(String hrEmail) {
+        try {
+            HrNotificationSettings settings = userServiceClient.getHrNotificationSettings(hrEmail);
+            return settings == null || settings.isNotifyOnNewApplicationEnabled();
+        } catch (Exception e) {
+            log.error("Failed to check HR notification settings for {}: {} - failing open", hrEmail,
+                    e.getMessage());
+            return true;
         }
     }
 

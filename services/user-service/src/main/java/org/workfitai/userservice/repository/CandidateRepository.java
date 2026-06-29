@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import org.workfitai.userservice.model.CandidateEntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,12 +22,12 @@ public interface CandidateRepository
   boolean existsByPhoneNumber(String phoneNumber);
 
   @Query("""
-          SELECT c.education AS edu, COUNT(c) AS cnt
+          SELECT c.education, COUNT(c)
           FROM CandidateEntity c
           WHERE c.education IS NOT NULL
           GROUP BY c.education
       """)
-  Map<String, Long> countByEducation();
+  List<Object[]> countByEducation();
 
   @Query("""
           SELECT

@@ -10,7 +10,6 @@ import org.workfitai.userservice.enums.EUserStatus;
 import org.workfitai.userservice.model.HREntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,12 +28,12 @@ public interface HRRepository extends JpaRepository<HREntity, UUID>, JpaSpecific
   boolean existsByCompanyIdAndUserRole(UUID companyId, EUserRole userRole);
 
   @Query("""
-          SELECT h.department AS dept, COUNT(h) AS cnt
+          SELECT h.department, COUNT(h)
           FROM HREntity h
           WHERE h.department IS NOT NULL
           GROUP BY h.department
       """)
-  Map<String, Long> countByDepartment();
+  List<Object[]> countByDepartment();
 
   @Query("""
       SELECT h.companyNo, h.companyName, h.userRole, COUNT(h)

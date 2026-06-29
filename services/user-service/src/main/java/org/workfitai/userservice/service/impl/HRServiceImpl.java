@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -175,7 +177,11 @@ public class HRServiceImpl implements HRService {
 
   @Override
   public Map<String, Long> countByDepartment() {
-    return hrRepository.countByDepartment();
+    return hrRepository.countByDepartment().stream()
+        .collect(Collectors.toMap(
+            row -> (String) row[0],
+            row -> (Long) row[1]
+        ));
   }
 
   @Override
@@ -535,7 +541,19 @@ public class HRServiceImpl implements HRService {
             .status(hr.getUserStatus().name())
             .build())
         .build();
-    userRegistrationProducer.publishUserRegistrationEvent(event);
+    // Defer publishing until after the current transaction commits to avoid
+    // optimistic locking conflicts: the same-service Kafka consumer would otherwise
+    // update HREntity before this transaction flushes, causing a version mismatch.
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          userRegistrationProducer.publishUserRegistrationEvent(event);
+        }
+      });
+    } else {
+      userRegistrationProducer.publishUserRegistrationEvent(event);
+    }
   }
 
   private void publishCompanySyncOnApproval(HREntity hrManager) {

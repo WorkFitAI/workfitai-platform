@@ -33,6 +33,10 @@ public class SemanticMatchingService {
     @PostConstruct
     public void init() {
         log.info("Khởi tạo Semantic CV Parser...");
+        if (anchors == null || anchors.isEmpty()) {
+            log.warn("cv-parser.anchors not configured — SemanticMatchingService will not embed any anchors.");
+            return;
+        }
         for (Map.Entry<String, String> entry : anchors.entrySet()) {
             coreEmbeddings.put(entry.getKey(), embeddingModel.embed(entry.getValue()).content());
         }

@@ -38,6 +38,14 @@ class RecommendByProfileRequest(BaseModel):
     preferredLocation: Optional[str] = Field(default=None, description="Preferred job location")
     topK: int = Field(default=20, description="Number of recommendations to return", ge=1, le=100)
     filters: Optional[RecommendationFilters] = Field(default=None, description="Optional filters")
+    candidateUsername: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional candidate identity. When supplied, the candidate's personal "
+            "AI job-recommendation consent (set in their privacy settings) is "
+            "enforced in addition to the admin-controlled platform toggle."
+        ),
+    )
 
 
 class SimilarJobsRequest(BaseModel):

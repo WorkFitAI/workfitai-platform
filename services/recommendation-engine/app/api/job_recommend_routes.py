@@ -27,6 +27,36 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/recommendations", tags=["Recommendations"])
 
 
+async def _ensure_job_recommendation_enabled(req: Request, candidate_username: Optional[str] = None) -> None:
+    """
+    Raise 503 if job-recommendation AI is disabled.
+
+    Always checks the admin platform-wide toggle. When candidate_username is
+    supplied (only by-profile carries one today), additionally ANDs with that
+    candidate's personal consent (aiJobRecommendationEnabled).
+    """
+    store = req.app.state.feature_toggle_store()
+    if store is not None and not store.get("job-recommendation"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI job recommendations are currently disabled by administrator.",
+        )
+
+    if candidate_username:
+        from app.config import get_settings
+        from app.services.ai_consent_client import fetch_ai_job_recommendation_consent
+
+        settings = get_settings()
+        consent = await fetch_ai_job_recommendation_consent(
+            settings.USER_SERVICE_URL, candidate_username, settings.INTERNAL_SERVICE_TIMEOUT
+        )
+        if not consent:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI job recommendations are disabled for this candidate.",
+            )
+
+
 def _extract_company_name(result: Dict) -> str:
     """Extract company name from result metadata"""
     company = result.get('company')
@@ -102,6 +132,8 @@ async def recommend_by_resume(request: RecommendByResumeRequest, req: Request):
 
     if not faiss_manager or not embedding_generator or not resume_parser:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    await _ensure_job_recommendation_enabled(req)
 
     logger.info("Recommend by resume (base64 length: %d, topK=%d)", len(request.resumeFile), request.topK)
 
@@ -185,6 +217,8 @@ async def recommend_by_profile(request: RecommendByProfileRequest, req: Request)
     if not faiss_manager or not embedding_generator:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
 
+    await _ensure_job_recommendation_enabled(req, request.candidateUsername)
+
     logger.info("Recommend by profile (text length: %d, topK=%d)", len(request.profileText), request.topK)
 
     filters = _prepare_filters(request.filters)
@@ -257,6 +291,8 @@ async def find_similar_jobs(request: SimilarJobsRequest, req: Request):
     faiss_manager = req.app.state.faiss_manager()
     if not faiss_manager:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    await _ensure_job_recommendation_enabled(req)
 
     logger.info(
         "Finding similar jobs for %s (topK=%d, excludeSameCompany=%s)",
@@ -341,6 +377,8 @@ async def semantic_search(request: SemanticSearchRequest, req: Request):
 
     if not faiss_manager or not embedding_generator:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready")
+
+    await _ensure_job_recommendation_enabled(req)
 
     logger.info("Semantic search: '%.50s...' topK=%d", request.query, request.topK)
 

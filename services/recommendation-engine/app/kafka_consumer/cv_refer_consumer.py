@@ -13,7 +13,7 @@ during the SNAPSHOT_CV saga step). No additional HTTP call is needed at ranking 
 import json
 import logging
 import threading
-from typing import Dict
+from typing import Callable, Dict, Optional
 
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
@@ -24,11 +24,20 @@ logger = logging.getLogger(__name__)
 
 
 class CvReferConsumer:
-    def __init__(self, kafka_config: Dict, store: CvReferStore):
+    def __init__(
+        self,
+        kafka_config: Dict,
+        store: CvReferStore,
+        refresher_getter: Optional[Callable[[], object]] = None,
+    ):
         self._store = store
         self._running = False
         self._consumer = None
         self._thread = None
+        # Lazy accessor (mirrors pipeline_getter in CvRankingRefresher) — the refresher
+        # is constructed after this consumer in main.py's lifespan, so it isn't available
+        # yet at __init__ time; resolved on each dirty event instead.
+        self._refresher_getter = refresher_getter
 
         self._bootstrap_servers = kafka_config["bootstrap_servers"]
         self._group_id = kafka_config["group_id"]
@@ -180,12 +189,19 @@ class CvReferConsumer:
             self._mark_ranking_dirty(job_id)
 
     def _mark_ranking_dirty(self, job_id: str) -> None:
-        """Mark cached ranking for job_id as dirty (application pool changed)."""
+        """
+        Mark cached ranking for job_id as dirty (application pool changed) and ask
+        the refresher to recompute it now instead of waiting for the next poll tick.
+        """
         try:
             from app.config import get_settings
             if not get_settings().CV_RANKING_CACHE_ENABLED:
                 return
             from app.services.cv_ranking_cache import get_cv_ranking_cache
             get_cv_ranking_cache().mark_dirty(job_id)
+
+            refresher = self._refresher_getter() if self._refresher_getter else None
+            if refresher is not None:
+                refresher.trigger_immediate(job_id)
         except Exception as exc:
             logger.warning("Failed to mark ranking cache dirty for job %s: %s", job_id, exc)

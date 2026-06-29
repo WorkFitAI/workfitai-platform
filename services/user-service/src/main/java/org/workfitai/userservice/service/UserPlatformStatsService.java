@@ -36,7 +36,11 @@ public class UserPlatformStatsService {
         long totalBlocked = userRepository.countBlocked();
         long totalDeleted = userRepository.countByDeletedAtIsNotNull();
 
-        Map<String, Long> byEducation = candidateRepository.countByEducation();
+        Map<String, Long> byEducation = candidateRepository.countByEducation().stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
 
         List<UserPlatformStatsResponse.ExperienceBucket> byExperience =
                 candidateRepository.countByExperienceRange().stream()

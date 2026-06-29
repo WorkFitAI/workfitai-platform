@@ -25,6 +25,7 @@ public class ResJobDTO {
     private ExperienceLevel experienceLevel;
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
+    private String currency;
     private Instant expiresAt;
     @JsonIgnoreProperties(value = { "jobs" })
     private List<String> skillNames;

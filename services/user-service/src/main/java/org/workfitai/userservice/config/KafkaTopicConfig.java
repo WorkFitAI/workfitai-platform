@@ -35,4 +35,16 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    /**
+     * Topic for admin platform-wide AI feature toggle changes.
+     * Consumed by recommendation-engine's FeatureToggleConsumer.
+     */
+    @Bean
+    public NewTopic platformFeatureToggleEventsTopic() {
+        return TopicBuilder.name("platform-feature-toggle-events")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
 }

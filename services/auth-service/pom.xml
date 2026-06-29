@@ -251,6 +251,95 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Application.class</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/document/**</exclude>
+                        <exclude>**/entity/**</exclude>
+<!--                        <exclude>**/config/**</exclude>-->
+                        <exclude>**/aspect/**</exclude>
+<!--                        <exclude>**/exception/**</exclude>-->
+                        <exclude>**/constants/**</exclude>
+                        <exclude>**/enums/**</exclude>
+                        <exclude>**/mapper/**</exclude>
+                        <exclude>**/*MapperImpl.class</exclude>
+                        <exclude>**/*Filter.class</exclude>
+                        <exclude>**/*Provider.class</exclude>
+                        <exclude>**/*Fallback.class</exclude>
+                        <exclude>**/util/LogContext.class</exclude>
+                        <exclude>**/*Event.class</exclude>
+                        <exclude>**/*Request.class</exclude>
+                        <exclude>**/*Response.class</exclude>
+                        <exclude>**/*DTO.class</exclude>
+                        <!-- Test-only controller — not production code -->
+                        <exclude>**/controller/TestNotificationController.class</exclude>
+                        <!-- KeyGenerator only has a main() + file-writing logic -->
+                        <exclude>**/utils/KeyGenerator.class</exclude>
+                        <!-- Infrastructure config: Spring wiring, MongoDB TTL indexes, RSA keys, Kafka — not unit-testable -->
+                        <exclude>**/config/MongoConfig.class</exclude>
+                        <exclude>**/config/RsaKeyConfig.class</exclude>
+                        <exclude>**/config/SecurityConfig.class</exclude>
+                        <exclude>**/config/KafkaConfig.class</exclude>
+                        <exclude>**/config/RestTemplateConfig.class</exclude>
+                        <exclude>**/config/GoogleAuthenticatorConfiguration.class</exclude>
+                        <!-- Data initializers: run only at startup against a live database -->
+                        <exclude>**/*DataInitializer.class</exclude>
+                        <exclude>**/*KeyInitializer.class</exclude>
+                        <!-- OAuth provider HTTP adapters: delegate entirely to external HTTP calls -->
+                        <exclude>**/service/oauth/provider/**</exclude>
+                        <!-- OAuthTokenService: AES encrypt/decrypt — covered by integration tests -->
+                        <exclude>**/service/oauth/OAuthTokenService.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <haltOnFailure>false</haltOnFailure>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.75</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

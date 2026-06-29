@@ -254,8 +254,9 @@ public class CVService implements iCVService {
         if (usernames == null || usernames.isEmpty()) {
             return List.of();
         }
-        // One query, then group by belongTo and keep the latest CV per user
-        return repository.findByBelongToInAndIsExistTrue(usernames)
+        // Only consider regular (non-snapshot) CVs so that a broken application snapshot
+        // from a past bad-parser period does not shadow a user's correct regular CV.
+        return repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(usernames)
                 .stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         CV::getBelongTo,
@@ -281,9 +282,15 @@ public class CVService implements iCVService {
     public CvSnapshotResponse createApplicationSnapshot(
             String username,
             String applicationId,
+            String jobName,
             org.springframework.web.multipart.MultipartFile file) {
 
         try {
+            // Persist the PDF to MinIO so it can be downloaded later — named after the job
+            // applied to instead of the candidate's original filename.
+            String objectName = fileService.uploadCV(file, jobName);
+            String fileUrl = fileService.generateFileUrl(objectName);
+
             // Reuse existing PDF → sections logic from UploadCvStrategy
             var parsed = uploadCvStrategy.parsePdfFile(file);
 
@@ -297,14 +304,18 @@ public class CVService implements iCVService {
             sections.put("objective",     parsed.getObjective());
             sections.put("certifications",parsed.getCertifications());
 
-            String summary = String.join("\n",
-                    parsed.getSummary() != null ? parsed.getSummary() : List.of());
+            List<String> summaryLines = new java.util.ArrayList<>();
+            if (parsed.getSummary() != null) summaryLines.addAll(parsed.getSummary());
+            if (parsed.getObjective() != null) summaryLines.addAll(parsed.getObjective());
+            String summary = String.join("\n", summaryLines);
 
             // Build snapshot CV entity — not a regular user CV (isExist kept true for queryability)
             CV snapshot = new CV();
             snapshot.setBelongTo(username);
             snapshot.setApplicationId(applicationId);
             snapshot.setTemplateType(TemplateType.UPLOAD);   // reuse existing enum value
+            snapshot.setObjectName(objectName);
+            snapshot.setPdfUrl(fileUrl);
             snapshot.setSections(sections);
             snapshot.setSummary(summary);
             snapshot.setHeadline(parsed.getHeadline());

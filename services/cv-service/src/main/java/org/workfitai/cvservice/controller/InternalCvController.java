@@ -50,6 +50,7 @@ public class InternalCvController {
      *
      * @param username      candidate's username (JWT sub from application-service context)
      * @param applicationId temporary UUID assigned by application-service before DB save
+     * @param jobName       title of the job applied to — used to name the stored PDF object
      * @param cvPdfFile     the CV PDF file uploaded by the candidate
      * @return {@link CvSnapshotResponse} with cvId and extracted structured fields
      */
@@ -57,12 +58,13 @@ public class InternalCvController {
     public ResponseEntity<CvSnapshotResponse> createApplicationSnapshot(
             @RequestPart("username") String username,
             @RequestPart("applicationId") String applicationId,
+            @RequestPart("jobName") String jobName,
             @RequestPart("cvPdfFile") MultipartFile cvPdfFile) {
 
-        log.info("Internal snapshot request: username={} applicationId={} fileSize={}",
-                username, applicationId, cvPdfFile.getSize());
+        log.info("Internal snapshot request: username={} applicationId={} jobName={} fileSize={}",
+                username, applicationId, jobName, cvPdfFile.getSize());
 
-        CvSnapshotResponse response = cvService.createApplicationSnapshot(username, applicationId, cvPdfFile);
+        CvSnapshotResponse response = cvService.createApplicationSnapshot(username, applicationId, jobName, cvPdfFile);
         return ResponseEntity.ok(response);
     }
 

@@ -1,0 +1,39 @@
+spring:
+  profiles:
+    active: test
+  cloud:
+    vault:
+      enabled: false
+    consul:
+      enabled: false
+      config:
+        enabled: false
+      discovery:
+        enabled: false
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test-auth
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+
+auth:
+  jwt:
+    access-exp-ms: 3600000
+    refresh-exp-ms: 604800000
+    rsa:
+      public-key: classpath:test-public.pem
+      private-key: classpath:test-private.pem
+  otp:
+    ttl-seconds: 86400
+    dev-fixed: false
+
+app:
+  frontend:
+    base-url: http://localhost:3000
+  session:
+    max-sessions-per-user: 5

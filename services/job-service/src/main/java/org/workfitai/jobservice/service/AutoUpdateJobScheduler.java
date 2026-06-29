@@ -32,6 +32,7 @@ public class AutoUpdateJobScheduler {
       return;
 
     Map<String, String> emailMap = jobService.fetchEmailMap(jobs);
+    Map<String, Boolean> hrExpirySettings = jobService.fetchHrJobExpirySettingsMap(emailMap.values());
 
     List<OutboxExpiredJobEvent> events = new ArrayList<>();
 
@@ -43,8 +44,11 @@ public class AutoUpdateJobScheduler {
 
       JobExpiredEventDTO dto = jobService.buildDTO(job, hrEmail);
 
+      // Job status change always fires; only the email is gated by HR preference.
       events.add(outboxService.buildEvent("JOB_EXPIRED", dto, job.getId().toString()));
-      events.add(outboxService.buildEvent("SEND_MAIL", dto, job.getId().toString()));
+      if (hrEmail == null || hrExpirySettings.getOrDefault(hrEmail, true)) {
+        events.add(outboxService.buildEvent("SEND_MAIL", dto, job.getId().toString()));
+      }
     }
 
     jobService.updateJobsAndEvents(jobs, events);

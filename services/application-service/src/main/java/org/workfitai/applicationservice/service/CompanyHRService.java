@@ -1,23 +1,17 @@
 package org.workfitai.applicationservice.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.client.UserServiceClient;
 import org.workfitai.applicationservice.dto.response.HRAuditActivityResponse;
 import org.workfitai.applicationservice.dto.response.HRUserResponse;
-import org.workfitai.applicationservice.model.Application;
 
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -91,25 +85,4 @@ public class CompanyHRService {
         return Page.empty(pageable);
     }
 
-    /**
-     * Returns distinct HR usernames (assignedTo + assignedBy) for a company using
-     * MongoDB distinct queries — avoids loading full application documents.
-     */
-    private List<String> getDistinctHRUsernamesForCompany(String companyId) {
-        Criteria companyCriteria = Criteria.where("companyId").is(companyId);
-
-        List<String> assignedTo = mongoTemplate.findDistinct(
-                Query.query(companyCriteria.and("assignedTo").exists(true).ne(null)),
-                "assignedTo", Application.class, String.class);
-
-        // Re-build criteria to avoid chaining issues with the same field
-        List<String> assignedBy = mongoTemplate.findDistinct(
-                Query.query(Criteria.where("companyId").is(companyId).and("assignedBy").exists(true).ne(null)),
-                "assignedBy", Application.class, String.class);
-
-        Set<String> combined = new LinkedHashSet<>();
-        combined.addAll(assignedTo);
-        combined.addAll(assignedBy);
-        return new ArrayList<>(combined);
-    }
 }

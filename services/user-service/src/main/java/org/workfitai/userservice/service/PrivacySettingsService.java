@@ -64,6 +64,29 @@ public class PrivacySettingsService {
         }
     }
 
+    /**
+     * Get just the AI job-recommendation consent flag by username (for internal
+     * API / recommendation-engine). Defaults to disabled if no user/settings
+     * found - matches the opt-in default for this field.
+     */
+    public boolean getAiJobRecommendationConsentByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> {
+                    if (user.getPrivacySettings() == null) {
+                        return false;
+                    }
+                    try {
+                        PrivacySettingsResponse settings = objectMapper.treeToValue(
+                                user.getPrivacySettings(), PrivacySettingsResponse.class);
+                        return Boolean.TRUE.equals(settings.getAiJobRecommendationEnabled());
+                    } catch (JsonProcessingException e) {
+                        log.error("Error parsing privacy settings for user: {}", username, e);
+                        return false;
+                    }
+                })
+                .orElse(false);
+    }
+
     private void validatePrivacySettings(PrivacySettingsRequest request) {
         // Additional business logic validation can be added here
         // For example: if profile is PRIVATE, certain fields must be false
@@ -73,13 +96,6 @@ public class PrivacySettingsService {
                 throw new BadRequestException("Cannot enable search indexing for private profiles");
             }
         }
-
-        // Validate that if CV download is allowed, profile must be at least
-        // RECRUITERS_ONLY
-        if (request.getAllowCvDownload() &&
-                request.getProfileVisibility() == PrivacySettingsRequest.ProfileVisibility.PRIVATE) {
-            throw new BadRequestException("Cannot allow CV download for private profiles");
-        }
     }
 
     private PrivacySettingsResponse createDefaultSettings() {
@@ -88,11 +104,11 @@ public class PrivacySettingsService {
                 .showEmail(false)
                 .showPhone(false)
                 .showLocation(true)
-                .allowCvDownload(true)
                 .allowMessaging(true)
                 .showActivityStatus(true)
                 .showOnlineStatus(true)
                 .searchIndexing(true)
+                .aiJobRecommendationEnabled(false)
                 .build();
     }
 }

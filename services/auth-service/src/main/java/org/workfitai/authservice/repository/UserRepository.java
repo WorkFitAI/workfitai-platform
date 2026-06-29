@@ -23,6 +23,9 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     List<User> findByRolesContainingAndCompanyNo(String role, String companyNo);
 
+    // used to prevent deleting a role still assigned to any user
+    boolean existsByRolesContains(String role);
+
     @Query(value = "{'email': ?0}", fields = "{'companyNo': 1}")
     Optional<User> findByEmailForCompanyNo(String hrManagerEmail);
 }

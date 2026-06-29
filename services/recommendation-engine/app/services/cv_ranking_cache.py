@@ -51,6 +51,20 @@ class CvRankingCache(SingleFlightCache):
     # Phase 3: background refresher candidates                            #
     # ------------------------------------------------------------------ #
 
+    def is_due_for_refresh(self, job_id: str, cooldown: float) -> bool:
+        """
+        True when job_id is dirty AND has cooled long enough to recompute now.
+
+        Single-key version of iter_refresh_candidates() — lets a Kafka handler ask
+        "should I trigger an immediate refresh for this one job?" without scanning
+        the whole cache.
+        """
+        with self._global_lock:
+            entry = self._entries.get(job_id)
+        if entry is None:
+            return False
+        return entry.dirty and (time.monotonic() - entry.computed_at) >= cooldown
+
     def iter_refresh_candidates(self, cooldown: float) -> Iterator[str]:
         """
         Yield job_ids that are dirty AND have cooled long enough to recompute.

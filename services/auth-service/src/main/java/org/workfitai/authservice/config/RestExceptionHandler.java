@@ -7,10 +7,12 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.response.ApiError;
@@ -121,6 +123,20 @@ public class RestExceptionHandler {
     public ResponseEntity<ApiError> handleCannotUnlinkLastAuthMethod(CannotUnlinkLastAuthMethodException ex) {
         return ResponseEntity.badRequest()
                 .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of()));
+    }
+
+    // 400 – path variable enum type mismatch
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'";
+        return ResponseEntity.badRequest().body(build(HttpStatus.BAD_REQUEST, message, List.of()));
+    }
+
+    // 403 – method-level @PreAuthorize / AccessDeniedException
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(build(HttpStatus.FORBIDDEN, "Access denied", List.of()));
     }
 
     // 500 – last resort

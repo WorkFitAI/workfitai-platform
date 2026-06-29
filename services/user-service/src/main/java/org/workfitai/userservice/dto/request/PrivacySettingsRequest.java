@@ -24,9 +24,6 @@ public class PrivacySettingsRequest {
     @NotNull(message = "Show location setting is required")
     private Boolean showLocation;
 
-    @NotNull(message = "Allow CV download setting is required")
-    private Boolean allowCvDownload;
-
     @NotNull(message = "Allow messaging setting is required")
     private Boolean allowMessaging;
 
@@ -38,6 +35,9 @@ public class PrivacySettingsRequest {
 
     @NotNull(message = "Search indexing setting is required")
     private Boolean searchIndexing;
+
+    @NotNull(message = "AI job recommendation setting is required")
+    private Boolean aiJobRecommendationEnabled;
 
     public enum ProfileVisibility {
         PUBLIC,

@@ -169,6 +169,7 @@ public class ApplicationSagaOrchestrator {
             CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
                     context.getUsername(),
                     context.getApplicationId(),
+                    context.getJobInfo().getTitle(),
                     request.getCvPdfFile()
             );
             context.setCvSnapshot(snapshot);
@@ -258,6 +259,11 @@ public class ApplicationSagaOrchestrator {
                 .assignedTo(validHR ? createdBy : null)
                 .assignedAt(validHR ? now : null)
                 .assignedBy(validHR ? "SYSTEM" : null)
+                // @CreatedDate/@LastModifiedDate auditing relies on the entity being "new"
+                // (i.e. @Id null at save time), but the id is pre-generated above so
+                // cv-service can link its snapshot before persistence — set explicitly instead.
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         Application saved = applicationRepository.save(application);
@@ -304,19 +310,18 @@ public class ApplicationSagaOrchestrator {
             log.debug("Application created event published (cvSnapshotId={})",
                     snapshot != null ? snapshot.getCvId() : "null");
 
-            // Publish JOB_STATS_UPDATE event for job-service
-            long totalApplications = applicationRepository.countByJobIdAndDeletedAtIsNull(app.getJobId());
+            // Publish JOB_STATS_UPDATE event for job-service — always 1 because this saga
+            // creates exactly one application; job-service applies the INCREMENT delta itself.
             JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .jobId(UUID.fromString(app.getJobId()))
-                    .totalApplications((int) totalApplications)
+                    .totalApplications(1)
                     .timestamp(Instant.now())
                     .operation("INCREMENT")
                     .build();
 
             eventPublisher.publishJobStatsUpdate(statsEvent);
-            log.debug("Job stats update event published: jobId={}, totalApplications={}",
-                    app.getJobId(), totalApplications);
+            log.debug("Job stats update event published: jobId={}, totalApplications=1", app.getJobId());
 
             // Fetch user details and publish notification events
             String hrUsername = jobInfo.getCreatedBy();
