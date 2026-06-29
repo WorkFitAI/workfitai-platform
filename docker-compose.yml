@@ -332,6 +332,8 @@ services:
         condition: service_started
       auth-service:
         condition: service_healthy
+      cv-service:
+        condition: service_healthy
     networks: [workfitai-net]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
@@ -384,6 +386,12 @@ services:
         condition: service_started
       auth-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9005/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
     networks: [workfitai-net]
     profiles: ["services", "full"]
 
@@ -410,6 +418,7 @@ services:
       - SERVER_PORT=9005
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
+      - CV_SERVICE_INTERNAL_URL=http://cv-service:9005
     depends_on:
       consul:
         condition: service_started
@@ -934,6 +943,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - KAFKA_TOPIC_APPLICATION_EVENTS=application-events
       - KAFKA_TOPIC_APPLICATION_STATUS=application-status
+      - KAFKA_TOPIC_CV_UPDATED=cv.updated
       - KAFKA_CV_REFER_GROUP=recommendation-engine-cv-refer
       # ── ranking cache ──────────────────────────────────────────────
       - CV_RANKING_CACHE_ENABLED=${CV_RANKING_CACHE_ENABLED:-true}

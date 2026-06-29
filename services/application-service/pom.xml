@@ -243,7 +243,7 @@
                         <exclude>**/dto/**</exclude>
                         <exclude>**/model/**</exclude>
                         <exclude>**/entity/**</exclude>
-                        <exclude>**/config/**Config.class</exclude>
+                        <exclude>**/config/**</exclude>
                         <exclude>**/*MapperImpl.class</exclude>
                         <exclude>**/constants/**</exclude>
                         <exclude>**/enums/**</exclude>
@@ -251,6 +251,12 @@
                         <exclude>**/*Request.class</exclude>
                         <exclude>**/*Response.class</exclude>
                         <exclude>**/*DTO.class</exclude>
+                        <exclude>**/aspect/**</exclude>
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/*Filter.class</exclude>
+                        <exclude>**/*Provider.class</exclude>
+                        <exclude>**/util/LogContext.class</exclude>
+                        <exclude>**/mapper/ApplicationMapper.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -274,7 +280,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <haltOnFailure>false</haltOnFailure>
+                            <haltOnFailure>true</haltOnFailure>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>

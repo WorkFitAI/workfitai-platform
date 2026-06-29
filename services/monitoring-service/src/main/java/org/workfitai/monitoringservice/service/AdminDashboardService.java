@@ -35,7 +35,7 @@ public class AdminDashboardService {
         JobStatsSummary jobStats                 = fetchJobStats();
         List<TopSkillItem> topSkills             = fetchTopSkills();
         AuditStatsResponse auditStats            = auditSearchService.getAuditStats(null, null);
-        List<AuditEventResponse> recentAuditErrors = auditSearchService.getRecentErrorLogs(20);
+        List<AuditEventResponse> recentAuditErrors = auditSearchService.getRecentErrorLogs(10);
         return new AdminDashboardResponse(appStats, userStats, jobStats, topSkills, auditStats, recentAuditErrors);
     }
 

@@ -1,0 +1,40 @@
+spring:
+  profiles:
+    active: test
+  cloud:
+    vault:
+      enabled: false
+    consul:
+      enabled: false
+      config:
+        enabled: false
+      discovery:
+        enabled: false
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test-applications
+  kafka:
+    bootstrap-servers: localhost:9092
+  cache:
+    type: none
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9001
+
+app:
+  kafka:
+    topics:
+      application-events: application-events
+      application-status: application-status
+      job-stats-update: job-stats-update
+      notification-events: notification-events
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: test-key
+  secret-key: test-secret
+  bucket: test-bucket

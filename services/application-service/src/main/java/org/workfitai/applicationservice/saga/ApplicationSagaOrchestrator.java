@@ -310,19 +310,18 @@ public class ApplicationSagaOrchestrator {
             log.debug("Application created event published (cvSnapshotId={})",
                     snapshot != null ? snapshot.getCvId() : "null");
 
-            // Publish JOB_STATS_UPDATE event for job-service
-            long totalApplications = applicationRepository.countByJobIdAndDeletedAtIsNull(app.getJobId());
+            // Publish JOB_STATS_UPDATE event for job-service — always 1 because this saga
+            // creates exactly one application; job-service applies the INCREMENT delta itself.
             JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .jobId(UUID.fromString(app.getJobId()))
-                    .totalApplications((int) totalApplications)
+                    .totalApplications(1)
                     .timestamp(Instant.now())
                     .operation("INCREMENT")
                     .build();
 
             eventPublisher.publishJobStatsUpdate(statsEvent);
-            log.debug("Job stats update event published: jobId={}, totalApplications={}",
-                    app.getJobId(), totalApplications);
+            log.debug("Job stats update event published: jobId={}, totalApplications=1", app.getJobId());
 
             // Fetch user details and publish notification events
             String hrUsername = jobInfo.getCreatedBy();

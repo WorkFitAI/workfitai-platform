@@ -12,6 +12,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.dto.response.ApiError;
@@ -47,6 +49,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'";
+        log.warn("[TYPE MISMATCH] {}", message);
+        ApiError body = ApiError.of(HttpStatus.BAD_REQUEST, message);
+        return ResponseEntity.badRequest().body(body);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("[BAD REQUEST] {}", ex.getMessage());
@@ -70,8 +80,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(statusCode).body(body);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
+        log.warn("[ACCESS DENIED] {}", ex.getMessage());
+        ApiError body = ApiError.of(HttpStatus.FORBIDDEN, "Access denied");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
+        if (ex instanceof AccessDeniedException) {
+            log.warn("[ACCESS DENIED] {}", ex.getMessage());
+            ApiError body = ApiError.of(HttpStatus.FORBIDDEN, "Access denied");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        }
+        if (ex instanceof MethodArgumentTypeMismatchException typeMismatch) {
+            String message = "Invalid value '" + typeMismatch.getValue() + "' for parameter '" + typeMismatch.getName() + "'";
+            log.warn("[TYPE MISMATCH] {}", message);
+            ApiError body = ApiError.of(HttpStatus.BAD_REQUEST, message);
+            return ResponseEntity.badRequest().body(body);
+        }
         log.error("[UNEXPECTED]", ex);
         ApiError body = ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR, Messages.Error.UNEXPECTED_ERROR);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);

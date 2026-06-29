@@ -20,6 +20,42 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
+    /**
+     * Exact-phrase lookup for standard CV section headers.
+     * Matched against the fully cleaned (lower-case, non-alpha stripped) line BEFORE
+     * falling through to the slower semantic embedding model.
+     */
+    private static final Map<String, String> SECTION_HEADER_MAP = Map.ofEntries(
+        Map.entry("objective", "objective"),
+        Map.entry("career objective", "objective"),
+        Map.entry("education", "education"),
+        Map.entry("academic background", "education"),
+        Map.entry("academic qualifications", "education"),
+        Map.entry("experience", "experience"),
+        Map.entry("work experience", "experience"),
+        Map.entry("professional experience", "experience"),
+        Map.entry("employment history", "experience"),
+        Map.entry("work history", "experience"),
+        Map.entry("project", "projects"),
+        Map.entry("projects", "projects"),
+        Map.entry("personal projects", "projects"),
+        Map.entry("side projects", "projects"),
+        Map.entry("skills", "skills"),
+        Map.entry("technical skills", "skills"),
+        Map.entry("core competencies", "skills"),
+        Map.entry("technologies", "skills"),
+        Map.entry("languages", "languages"),
+        Map.entry("language skills", "languages"),
+        Map.entry("certifications", "certifications"),
+        Map.entry("certification", "certifications"),
+        Map.entry("certificates", "certifications"),
+        Map.entry("awards", "certifications"),
+        Map.entry("achievements", "certifications"),
+        Map.entry("summary", "summary"),
+        Map.entry("professional summary", "summary"),
+        Map.entry("about me", "summary")
+    );
+
     private final SemanticMatchingService semanticMatchingService;
     private final DynamicSkillExtractionService skillExtractor;
     private final FileService fileService;
@@ -43,19 +79,30 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             CV cv = CVMapper.INSTANCE.toEntityFromUpload(dto);
 
             Map<String, Object> sections = new HashMap<>();
-            sections.put("skills", Objects.requireNonNullElse(parsedData.getSkills(), Collections.emptyList()));
-            sections.put("experience", Objects.requireNonNullElse(parsedData.getExperience(), Collections.emptyList()));
-            sections.put("education", Objects.requireNonNullElse(parsedData.getEducation(), Collections.emptyList()));
-            sections.put("summary", Objects.requireNonNullElse(parsedData.getSummary(), Collections.emptyList()));
+            sections.put("skills",        Objects.requireNonNullElse(parsedData.getSkills(), Collections.emptyList()));
+            sections.put("experience",    Objects.requireNonNullElse(parsedData.getExperience(), Collections.emptyList()));
+            sections.put("education",     Objects.requireNonNullElse(parsedData.getEducation(), Collections.emptyList()));
+            sections.put("projects",      Objects.requireNonNullElse(parsedData.getProjects(), Collections.emptyList()));
+            sections.put("languages",     Objects.requireNonNullElse(parsedData.getLanguages(), Collections.emptyList()));
+            sections.put("certifications",Objects.requireNonNullElse(parsedData.getCertifications(), Collections.emptyList()));
+            sections.put("objective",     Objects.requireNonNullElse(parsedData.getObjective(), Collections.emptyList()));
+            sections.put("summary",       Objects.requireNonNullElse(parsedData.getSummary(), Collections.emptyList()));
 
             cv.setSections(sections);
-            List<String> summary = parsedData.getSummary();
-            cv.setSummary(summary != null ? String.join("\n", summary) : "");
+            cv.setSummary(buildSummaryText(parsedData));
             return cv;
 
         } catch (Exception e) {
             throw new RuntimeException("Upload CV file failed", e);
         }
+    }
+
+    /** Merges summary and objective lines into a single string for the CV.summary field. */
+    private String buildSummaryText(ParsedCvData data) {
+        List<String> lines = new java.util.ArrayList<>();
+        if (data.getSummary() != null) lines.addAll(data.getSummary());
+        if (data.getObjective() != null) lines.addAll(data.getObjective());
+        return String.join("\n", lines);
     }
 
     /**
@@ -90,17 +137,19 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
     private ParsedCvData parseCvText(String rawText) {
         Map<String, List<String>> sectionData = new HashMap<>();
         sectionData.put("summary", new ArrayList<>());
+        sectionData.put("objective", new ArrayList<>());
         sectionData.put("experience", new ArrayList<>());
         sectionData.put("skills", new ArrayList<>());
         sectionData.put("education", new ArrayList<>());
+        sectionData.put("projects", new ArrayList<>());
+        sectionData.put("languages", new ArrayList<>());
+        sectionData.put("certifications", new ArrayList<>());
 
         List<String> lines = Arrays.stream(rawText.split("\n"))
                 .map(String::trim)
                 .filter(l -> !l.isEmpty())
                 .toList();
 
-        // Mặc định bỏ qua các dòng thông tin cá nhân trên cùng cho đến khi gặp section
-        // đầu tiên
         String currentSection = "ignored";
 
         for (String line : lines) {
@@ -111,35 +160,48 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
             String cleanLine = line.toLowerCase().replaceAll("[^a-z0-9\\s]", "").trim();
 
-            // 2. Chặn tiêu đề bằng Semantic AI (nếu dòng ngắn <= 4 từ)
-            if (cleanLine.split("\\s+").length <= 4) {
+            // 2. Detect section headers (short lines ≤ 5 words)
+            if (!cleanLine.isEmpty() && cleanLine.split("\\s+").length <= 5) {
+                // Fast-path: exact phrase lookup for standard CV headers
+                String exactMatch = SECTION_HEADER_MAP.get(cleanLine);
+                if (exactMatch != null) {
+                    currentSection = exactMatch;
+                    continue;
+                }
+                // Semantic fallback for non-standard but semantically similar headers
                 String mappedSection = semanticMatchingService.mapToCoreField(cleanLine);
-                currentSection = mappedSection;
-                continue;
+                if (!"ignored".equals(mappedSection)) {
+                    currentSection = mappedSection;
+                    continue;
+                }
             }
 
-            // 3. Gom Data vào 4 trụ cột
+            // 3. Accumulate data into the current section bucket
             if (!"ignored".equals(currentSection) && sectionData.containsKey(currentSection)) {
                 sectionData.get(currentSection).add(line);
             }
         }
 
-        // 4. Vét cạn Kỹ năng (Moi từ trong Experience và Summary)
-        String textToMine = String.join(" ", sectionData.get("experience")) +
-                " " +
-                String.join(" ", sectionData.get("summary"));
+        // 4. Mine skills from experience, projects, summary, and objective text
+        String textToMine = String.join(" ", sectionData.get("experience"))
+                + " " + String.join(" ", sectionData.get("projects"))
+                + " " + String.join(" ", sectionData.get("summary"))
+                + " " + String.join(" ", sectionData.get("objective"));
 
         List<String> minedSkills = skillExtractor.extractSkills(textToMine);
 
-        // Merge kỹ năng móc được vào mảng kỹ năng chính (nếu có)
         Set<String> finalSkills = new HashSet<>(sectionData.get("skills"));
         finalSkills.addAll(minedSkills);
 
-        // 5. Build DTO trả về
+        // 5. Build DTO
         ParsedCvData data = new ParsedCvData();
         data.setSummary(sectionData.get("summary"));
+        data.setObjective(sectionData.get("objective"));
         data.setExperience(sectionData.get("experience"));
         data.setEducation(sectionData.get("education"));
+        data.setProjects(sectionData.get("projects"));
+        data.setLanguages(sectionData.get("languages"));
+        data.setCertifications(sectionData.get("certifications"));
         data.setSkills(new ArrayList<>(finalSkills));
 
         return data;

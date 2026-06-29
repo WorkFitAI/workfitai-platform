@@ -254,8 +254,9 @@ public class CVService implements iCVService {
         if (usernames == null || usernames.isEmpty()) {
             return List.of();
         }
-        // One query, then group by belongTo and keep the latest CV per user
-        return repository.findByBelongToInAndIsExistTrue(usernames)
+        // Only consider regular (non-snapshot) CVs so that a broken application snapshot
+        // from a past bad-parser period does not shadow a user's correct regular CV.
+        return repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(usernames)
                 .stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         CV::getBelongTo,
@@ -303,8 +304,10 @@ public class CVService implements iCVService {
             sections.put("objective",     parsed.getObjective());
             sections.put("certifications",parsed.getCertifications());
 
-            String summary = String.join("\n",
-                    parsed.getSummary() != null ? parsed.getSummary() : List.of());
+            List<String> summaryLines = new java.util.ArrayList<>();
+            if (parsed.getSummary() != null) summaryLines.addAll(parsed.getSummary());
+            if (parsed.getObjective() != null) summaryLines.addAll(parsed.getObjective());
+            String summary = String.join("\n", summaryLines);
 
             // Build snapshot CV entity — not a regular user CV (isExist kept true for queryability)
             CV snapshot = new CV();

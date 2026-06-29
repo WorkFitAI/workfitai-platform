@@ -251,112 +251,42 @@ public class RecommendationServiceImpl implements iRecommendationService {
     }
 
     /**
-     * Fetch CV profile text from CV Service and format for recommendations.
-     * Returns null only when the user legitimately has no CVs (not an error).
-     * Feign exceptions propagate to the caller so audit @AfterThrowing fires on service failure.
+     * Fetch CV profile text via the internal batch endpoint (no JWT required, Docker-network only).
+     * Returns null when the user has no CV (legitimate empty state, not an error).
+     * Feign exceptions propagate so audit @AfterThrowing fires on service failure.
      */
     private String fetchCVProfileText(String username) {
-        // Feign exception → CV service down → propagate (error, not "no CV")
-        Map<String, Object> cvResponse = cvFeignClient.getCVsByUsername(username, 0, 10);
+        List<Map<String, Object>> cvDataList = cvFeignClient.getCvDataBatch(List.of(username));
 
-        if (cvResponse == null || !cvResponse.containsKey("data")) {
-            log.warn("No CV response data for user: {}", username);
+        if (cvDataList == null || cvDataList.isEmpty()) {
+            log.warn("No CV found for user: {}", username);
             return null;
         }
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> dataWrapper = (Map<String, Object>) cvResponse.get("data");
-
-        if (!dataWrapper.containsKey("result")) {
-            log.warn("No result field in CV response for user: {}", username);
-            return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> cvList = (List<Map<String, Object>>) dataWrapper.get("result");
-
-        if (cvList == null || cvList.isEmpty()) {
-            log.warn("No CVs found for user: {}", username);
-            return null;
-        }
-
-        Map<String, Object> latestCV = cvList.get(0);
-        log.info("Found {} CVs for user {}, using the most recent one", cvList.size(), username);
+        Map<String, Object> cvData = cvDataList.get(0);
+        log.info("Found CV data for user {}", username);
 
         StringBuilder profileText = new StringBuilder();
+        appendField(profileText, "Summary", cvData.get("resumeSummary"));
+        appendField(profileText, "Skills", cvData.get("resumeSkills"));
+        appendField(profileText, "Experience", cvData.get("resumeExperience"));
+        appendField(profileText, "Education", cvData.get("resumeEducation"));
 
-        if (latestCV.containsKey("headline") && latestCV.get("headline") != null) {
-            profileText.append(latestCV.get("headline").toString()).append("\n\n");
+        String result = profileText.toString().trim();
+        if (result.isEmpty()) {
+            log.warn("CV data empty for user: {}", username);
+            return null;
         }
-
-        if (latestCV.containsKey("summary") && latestCV.get("summary") != null) {
-            profileText.append("Summary: ").append(latestCV.get("summary").toString()).append("\n\n");
-        }
-
-        if (latestCV.containsKey("sections") && latestCV.get("sections") instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> sections = (Map<String, Object>) latestCV.get("sections");
-
-            if (sections.containsKey("skills")) {
-                profileText.append("Skills: ").append(extractTextFromSection(sections.get("skills"))).append("\n\n");
-            }
-            if (sections.containsKey("experience")) {
-                profileText.append("Experience: ").append(extractTextFromSection(sections.get("experience"))).append("\n\n");
-            }
-            if (sections.containsKey("education")) {
-                profileText.append("Education: ").append(extractTextFromSection(sections.get("education"))).append("\n\n");
-            }
-            if (sections.containsKey("projects")) {
-                profileText.append("Projects: ").append(extractTextFromSection(sections.get("projects"))).append("\n\n");
-            }
-            if (sections.containsKey("languages")) {
-                profileText.append("Languages: ").append(extractTextFromSection(sections.get("languages"))).append("\n");
-            }
-        }
-
-        return profileText.toString().trim();
+        return result;
     }
 
-    /**
-     * Extract text content from section (handles string, list, and map)
-     */
-    private String extractTextFromSection(Object sectionData) {
-        if (sectionData == null) {
-            return "";
-        }
-
-        if (sectionData instanceof String) {
-            return (String) sectionData;
-        } else if (sectionData instanceof List) {
-            StringBuilder text = new StringBuilder();
-            @SuppressWarnings("unchecked")
-            List<Object> items = (List<Object>) sectionData;
-            for (Object item : items) {
-                if (item instanceof String) {
-                    text.append(item).append(", ");
-                } else if (item instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> itemMap = (Map<String, Object>) item;
-                    itemMap.values().forEach(value -> {
-                        if (value instanceof String) {
-                            text.append(value).append(", ");
-                        }
-                    });
-                }
+    private void appendField(StringBuilder sb, String label, Object value) {
+        if (value != null) {
+            String text = value.toString().trim();
+            if (!text.isEmpty()) {
+                sb.append(label).append(": ").append(text).append("\n\n");
             }
-            return text.toString().replaceAll(", $", "");
-        } else if (sectionData instanceof Map) {
-            StringBuilder text = new StringBuilder();
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) sectionData;
-            dataMap.values().forEach(value -> {
-                if (value instanceof String) {
-                    text.append(value).append(", ");
-                }
-            });
-            return text.toString().replaceAll(", $", "");
         }
-        return sectionData.toString();
     }
 
     private ResJobRecommendationDTO buildEmptyResponse() {

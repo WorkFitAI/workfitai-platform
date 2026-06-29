@@ -1,0 +1,38 @@
+spring:
+  profiles:
+    active: test
+  cloud:
+    vault:
+      enabled: false
+    consul:
+      enabled: false
+      config:
+        enabled: false
+      discovery:
+        enabled: false
+  datasource:
+    url: jdbc:h2:mem:jobdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  kafka:
+    bootstrap-servers: localhost:9092
+  cloudinary:
+    cloud-name: test-cloud
+    api-key: test-api-key
+    api-secret: test-api-secret
+
+service:
+  auth:
+    url: http://localhost:9080
+  cv:
+    url: http://localhost:9083
+  recommendation:
+    url: http://localhost:8001

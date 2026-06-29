@@ -94,6 +94,18 @@ management:
     sampling:
       probability: 1.0
 
+cv-parser:
+  threshold: 0.45
+  anchors:
+    summary: "professional summary, about me, executive profile, personal statement"
+    objective: "career objective, objective, professional goal, personal goal, career aim"
+    experience: "work experience, professional experience, employment history, work history"
+    skills: "technical skills, core competencies, technologies, programming languages, tools"
+    education: "academic background, education, degrees, university, school, academic qualifications"
+    projects: "projects, personal projects, portfolio, side projects, open source work"
+    languages: "languages, language skills, spoken languages, foreign languages, language proficiency"
+    certifications: "certifications, certificates, licenses, professional certifications, awards, achievements"
+
 ---
 # =============================================================================
 # DOCKER PROFILE (for container deployment)
@@ -185,11 +197,3 @@ logging:
     org.springframework.cloud.vault: DEBUG
     org.springframework.kafka: DEBUG
     org.springframework.security: DEBUG
-
-cv-parser:
-  threshold: 0.45
-  anchors:
-    summary: "professional summary, career objective, about me, executive profile, personal statement"
-    experience: "work experience, professional experience, employment history, work history, related projects"
-    skills: "technical skills, core competencies, technologies, programming languages, tools"
-    education: "academic background, education, certifications, degrees, university"

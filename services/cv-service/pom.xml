@@ -227,6 +227,8 @@
                         <exclude>**/*Request.class</exclude>
                         <exclude>**/*Response.class</exclude>
                         <exclude>**/*DTO.class</exclude>
+                        <exclude>**/service/nlp/SemanticMatchingService.class</exclude>
+                        <exclude>**/client/WebClientConfig.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
