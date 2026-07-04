@@ -1,0 +1,16 @@
+{
+  "candidateNum": 6,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 0
+  },
+  "jobTitle": "Junior Backend Engineer - NodeJS (Internship)",
+  "label": "no_match",
+  "resume_index": 6,
+  "resume_summary": "Results-driven senior AI Research Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Airflow, Docker, and scikit-learn. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal Research Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Research Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | ML Research Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Research Engineer @ MoMo (M-Service) (May 2023–Jan 2026) | Research Engineer @ Zalo Group (Oct 2025–Present)",
+  "resume_skills": "R, Bash, Python, Airflow, NumPy, HuggingFace Transformers, scikit-learn, Docker, Jenkins, ArgoCD, Analytical Thinking, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition",
+  "resume_education": "Master of Science in Computer Science – HUST, 2018 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nResults-driven senior AI Research Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Airflow, Docker, and scikit-learn. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Research Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Research Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | ML Research Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Research Engineer @ MoMo (M-Service) (May 2023–Jan 2026) | Research Engineer @ Zalo Group (Oct 2025–Present)\n\nSKILLS\nR, Bash, Python, Airflow, NumPy, HuggingFace Transformers, scikit-learn, Docker, Jenkins, ArgoCD, Analytical Thinking, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition\n\nEDUCATION\nMaster of Science in Computer Science – HUST, 2018 | TOEIC 860",
+  "pdf_file": "candidate6_11.pdf"
+}

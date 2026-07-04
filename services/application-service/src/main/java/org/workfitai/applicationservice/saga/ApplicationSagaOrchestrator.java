@@ -161,25 +161,40 @@ public class ApplicationSagaOrchestrator {
      * and logged as a warning. The saga continues with {@code context.cvSnapshot == null}.
      * Ranking will still work but CV fields will be empty for this applicant.
      */
+    private static final int SNAPSHOT_CV_MAX_ATTEMPTS = 2;
+
     private void executeSnapshotCvStep(ApplicationSagaContext context, CreateApplicationRequest request) {
         context.setCurrentStep(SagaStep.SNAPSHOT_CV);
         log.debug("Saga Step 4: SNAPSHOT_CV");
 
-        try {
-            CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
-                    context.getUsername(),
-                    context.getApplicationId(),
-                    request.getCvPdfFile()
-            );
-            context.setCvSnapshot(snapshot);
-            log.info("Saga SNAPSHOT_CV: snapshot created — cvId={} applicationId={}",
-                    snapshot.getCvId(), context.getApplicationId());
-        } catch (Exception e) {
-            // Best-effort: swallow error, ranking will work with empty CV data
-            log.warn("Saga SNAPSHOT_CV: failed to create CV snapshot (non-critical, saga continues): {}",
-                    e.getMessage());
-            context.setCvSnapshot(null);
+        // Best-effort, but worth one retry: most cv-service failures here are transient
+        // (timeout under burst apply traffic), not permanent parse errors. A single retry
+        // avoids permanently losing CV data for an applicant over a one-off blip.
+        Exception lastError = null;
+        for (int attempt = 1; attempt <= SNAPSHOT_CV_MAX_ATTEMPTS; attempt++) {
+            try {
+                CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
+                        context.getUsername(),
+                        context.getApplicationId(),
+                        context.getJobInfo().getTitle(),
+                        request.getCvPdfFile()
+                );
+                context.setCvSnapshot(snapshot);
+                log.info("Saga SNAPSHOT_CV: snapshot created — cvId={} applicationId={} (attempt {}/{})",
+                        snapshot.getCvId(), context.getApplicationId(), attempt, SNAPSHOT_CV_MAX_ATTEMPTS);
+                return;
+            } catch (Exception e) {
+                lastError = e;
+                log.warn("Saga SNAPSHOT_CV: attempt {}/{} failed for applicationId={}: {}",
+                        attempt, SNAPSHOT_CV_MAX_ATTEMPTS, context.getApplicationId(), e.getMessage());
+            }
         }
+
+        // Best-effort: swallow error after exhausting retries, ranking will work with
+        // empty CV data (and the reconciliation job will retry later from cvFileUrl).
+        log.warn("Saga SNAPSHOT_CV: failed to create CV snapshot after {} attempts (non-critical, saga continues): {}",
+                SNAPSHOT_CV_MAX_ATTEMPTS, lastError != null ? lastError.getMessage() : "unknown");
+        context.setCvSnapshot(null);
     }
 
     private void executeSaveApplicationStep(ApplicationSagaContext context) {
@@ -258,6 +273,11 @@ public class ApplicationSagaOrchestrator {
                 .assignedTo(validHR ? createdBy : null)
                 .assignedAt(validHR ? now : null)
                 .assignedBy(validHR ? "SYSTEM" : null)
+                // @CreatedDate/@LastModifiedDate auditing relies on the entity being "new"
+                // (i.e. @Id null at save time), but the id is pre-generated above so
+                // cv-service can link its snapshot before persistence — set explicitly instead.
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         Application saved = applicationRepository.save(application);
@@ -304,19 +324,18 @@ public class ApplicationSagaOrchestrator {
             log.debug("Application created event published (cvSnapshotId={})",
                     snapshot != null ? snapshot.getCvId() : "null");
 
-            // Publish JOB_STATS_UPDATE event for job-service
-            long totalApplications = applicationRepository.countByJobIdAndDeletedAtIsNull(app.getJobId());
+            // Publish JOB_STATS_UPDATE event for job-service — always 1 because this saga
+            // creates exactly one application; job-service applies the INCREMENT delta itself.
             JobStatsUpdateEvent statsEvent = JobStatsUpdateEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .jobId(UUID.fromString(app.getJobId()))
-                    .totalApplications((int) totalApplications)
+                    .totalApplications(1)
                     .timestamp(Instant.now())
                     .operation("INCREMENT")
                     .build();
 
             eventPublisher.publishJobStatsUpdate(statsEvent);
-            log.debug("Job stats update event published: jobId={}, totalApplications={}",
-                    app.getJobId(), totalApplications);
+            log.debug("Job stats update event published: jobId={}, totalApplications=1", app.getJobId());
 
             // Fetch user details and publish notification events
             String hrUsername = jobInfo.getCreatedBy();

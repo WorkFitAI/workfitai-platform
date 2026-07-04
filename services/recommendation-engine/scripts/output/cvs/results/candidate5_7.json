@@ -1,15 +1,16 @@
 {
-  "candidateNum": 7,
+  "candidateNum": 5,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 4
+    "hrmKey": "hrm2",
+    "index": 1
   },
-  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
-  "resume_index": 7,
-  "resume_summary": "10+ years as a DevOps / Platform Engineer specialising in Terraform and WebSocket. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Lead Platform Engineer @ Sendo.vn (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Platform Engineer @ CMC Global (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior DevOps Engineer @ MB Bank Tech (Jul 2023–Jul 2025) | DevOps Engineer @ Base.vn (Nov 2023–Present)",
-  "resume_skills": "Linux, Terraform, TDD, CI/CD, Apache Kafka, NATS, WebSocket, AWS, Technical Communication, Negotiation, Project Planning, Stakeholder Management, Empathy & Active Listening",
-  "resume_education": "Bachelor of Engineering in Computer Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
-  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n10+ years as a DevOps / Platform Engineer specialising in Terraform and WebSocket. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ Sendo.vn (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Platform Engineer @ CMC Global (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior DevOps Engineer @ MB Bank Tech (Jul 2023–Jul 2025) | DevOps Engineer @ Base.vn (Nov 2023–Present)\n\nSKILLS\nLinux, Terraform, TDD, CI/CD, Apache Kafka, NATS, WebSocket, AWS, Technical Communication, Negotiation, Project Planning, Stakeholder Management, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Apache Spark, and Kafka. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Data Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead Data Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior Data Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "MySQL, Apache Spark, Kafka, Airflow, Ansible, Helm, GCP, ArgoCD, Redis, DynamoDB, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Computer Science – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Apache Spark, and Kafka. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Data Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead Data Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior Data Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nMySQL, Apache Spark, Kafka, Airflow, Ansible, Helm, GCP, ArgoCD, Redis, DynamoDB, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Computer Science – FTU HCMC, 2008 | TOEIC 600",
   "pdf_file": "candidate5_7.pdf"
 }

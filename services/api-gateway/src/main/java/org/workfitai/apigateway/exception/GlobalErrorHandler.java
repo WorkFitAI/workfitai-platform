@@ -47,6 +47,6 @@ public class GlobalErrorHandler {
     @ExceptionHandler(Exception.class)
     public ResponseData<Void> handleGenericException(Exception ex) {
         log.error("[UNEXPECTED ERROR]", ex);
-        return ResponseData.error(500, "An unexpected error occurred. Please try again later.");
+        return ResponseData.error(500, "Internal server error. Please try again later.");
     }
 }

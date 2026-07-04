@@ -5,12 +5,14 @@ POST /api/v1/cv-ranking/rank          — raw request (caller supplies job + res
 POST /api/v1/cv-ranking/rank-by-job/{job_id} — HR button: uses Kafka-synced store
 """
 
+import asyncio
 import logging
 import time
 from typing import Optional
 
 import anyio
 from fastapi import APIRouter, Body, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 from app.models.cv_rank_requests import CvRankRequest, OptionsRequest
 from app.models.cv_rank_responses import (
@@ -27,6 +29,73 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/cv-ranking", tags=["CV Ranking"])
 
 
+def _ensure_cv_referral_enabled(req: Request) -> None:
+    """
+    Raise 503 if cv-referral AI is disabled by the admin platform-wide toggle.
+
+    HR-initiated feature (HR browsing AI-ranked candidates) - no candidate
+    consent dimension, admin toggle is the only gate.
+    """
+    store = req.app.state.feature_toggle_store()
+    if store is not None and not store.get("cv-referral"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI CV ranking is currently disabled by administrator.",
+        )
+
+
+async def _background_rank_by_job(job_id, store, settings, pipeline, cache, options) -> None:
+    """
+    Off-request-path compute for a rank-by-job cache miss.
+
+    Always calls cache.finish_compute() exactly once (with the result, or None on
+    failure) to release the single-flight slot claimed by try_start_compute() — a
+    later request for the same job_id must be able to retry, not wait forever.
+    """
+    result = None
+    try:
+        job_data = await fetch_job_data(settings.JOB_SERVICE_URL, job_id, settings.JOB_SERVICE_TIMEOUT)
+        if job_data is None:
+            logger.warning("rank-by-job %s: background compute aborted — job-service fetch failed", job_id)
+            return
+
+        cv_rank_request, idx_to_username, reason, embeddings_by_index = build_cv_rank_request(
+            job_id, store, job_data, options
+        )
+        if cv_rank_request is None:
+            logger.warning("rank-by-job %s: background compute aborted — %s", job_id, reason)
+            return
+
+        def _compute() -> dict:
+            pipeline_result = rank_resumes(pipeline, cv_rank_request, embeddings_by_index)
+            applicants = [
+                RankedApplicantResponse(
+                    username=idx_to_username.get(r["resume_index"], "unknown"),
+                    score=r["score"],
+                    similarity_score=r["similarity_score"],
+                    cross_score=r["cross_score"],
+                    label=r["label"],
+                    explanation=r["explanation"],
+                )
+                for r in pipeline_result["ranked_resumes"]
+            ]
+            return {
+                "job_overview": pipeline_result["job_overview"],
+                "total_candidates": pipeline_result["total_candidates"],
+                "ranked_applicants": applicants,
+            }
+
+        result = await anyio.to_thread.run_sync(_compute)
+        logger.info(
+            "rank-by-job %s: background compute stored ranked=%d",
+            job_id, len(result["ranked_applicants"]),
+        )
+    except Exception as exc:
+        logger.error("rank-by-job %s: background compute failed: %s", job_id, exc, exc_info=True)
+    finally:
+        cache.finish_compute(job_id, result)
+
+
 @router.post("/rank", response_model=CvRankResponse)
 async def rank_cvs(request: CvRankRequest, req: Request):
     """
@@ -40,6 +109,8 @@ async def rank_cvs(request: CvRankRequest, req: Request):
     Returns CVs with score >= min_score, sorted by score descending.
     CVs below min_score are excluded entirely.
     """
+    _ensure_cv_referral_enabled(req)
+
     pipeline = req.app.state.cv_ranking_pipeline()
 
     if pipeline is None:
@@ -114,6 +185,8 @@ async def rank_by_job(
     from app.config import get_settings
     from app.services.cv_ranking_cache import get_cv_ranking_cache
 
+    _ensure_cv_referral_enabled(req)
+
     start_time = time.time()
     settings = get_settings()
     pipeline = req.app.state.cv_ranking_pipeline()
@@ -159,7 +232,41 @@ async def rank_by_job(
                 ranked_applicants=cached_payload["ranked_applicants"],
             )
 
-    # Cache miss (or disabled): fetch job data and run full pipeline
+    # -------------------------------------------------------------------
+    # Cache miss: don't block the request on a 10-30s pipeline run. Claim the
+    # single-flight slot (non-blocking) and kick off the compute in the
+    # background; the caller gets a 202 + Retry-After immediately and is
+    # expected to retry — the next call will be a cache hit once compute lands.
+    # -------------------------------------------------------------------
+    if cache is not None:
+        claimed = cache.try_start_compute(job_id)
+        if claimed:
+            asyncio.create_task(
+                _background_rank_by_job(job_id, store, settings, pipeline, cache, options)
+            )
+            logger.info("rank-by-job %s: cache=miss, started background compute", job_id)
+        else:
+            logger.info("rank-by-job %s: cache=miss, compute already in flight", job_id)
+
+        retry_after = settings.CV_RANKING_MISS_RETRY_AFTER_SECONDS
+        return JSONResponse(
+            status_code=status.HTTP_202_ACCEPTED,
+            headers={"Retry-After": str(retry_after)},
+            content={
+                "success": False,
+                "status": "computing",
+                "job_id": job_id,
+                "job_overview": "",
+                "total_candidates": 0,
+                "ranked_count": 0,
+                "processing_time_ms": 0.0,
+                "ranked_applicants": [],
+                "retry_after_seconds": retry_after,
+                "message": f"Ranking for job {job_id} is being computed. Retry in {retry_after}s.",
+            },
+        )
+
+    # Cache disabled: original synchronous inline behavior, unchanged.
     job_data = await fetch_job_data(settings.JOB_SERVICE_URL, job_id, settings.JOB_SERVICE_TIMEOUT)
     if job_data is None:
         raise HTTPException(
@@ -167,7 +274,9 @@ async def rank_by_job(
             detail=f"Failed to fetch job details for job {job_id} from job-service.",
         )
 
-    cv_rank_request, idx_to_username, reason = build_cv_rank_request(job_id, store, job_data, options)
+    cv_rank_request, idx_to_username, reason, embeddings_by_index = build_cv_rank_request(
+        job_id, store, job_data, options
+    )
     if cv_rank_request is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=reason)
 
@@ -179,7 +288,7 @@ async def rank_by_job(
     # Payload stored: dict with job_overview, total_candidates, ranked_applicants
     # ranked_applicants has usernames already resolved — avoids idx staleness risk.
     def _compute() -> dict:
-        result = rank_resumes(pipeline, cv_rank_request)
+        result = rank_resumes(pipeline, cv_rank_request, embeddings_by_index)
         applicants = [
             RankedApplicantResponse(
                 username=idx_to_username.get(r["resume_index"], "unknown"),
@@ -197,33 +306,17 @@ async def rank_by_job(
             "ranked_applicants": applicants,
         }
 
-    if cache is not None:
-        try:
-            payload, _ = await anyio.to_thread.run_sync(
-                lambda: cache.get_or_compute(job_id, _compute, cooldown)
-            )
-        except RuntimeError as exc:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
-        except Exception as exc:
-            logger.error("rank-by-job %s cache/compute failed: %s", job_id, exc, exc_info=True)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
-        logger.info(
-            "rank-by-job %s: cache=miss ranked=%d time=%.1fms",
-            job_id, len(payload["ranked_applicants"]),
-            (time.time() - start_time) * 1000,
-        )
-    else:
-        try:
-            payload = await anyio.to_thread.run_sync(_compute)
-        except RuntimeError as exc:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
-        except Exception as exc:
-            logger.error("rank-by-job %s failed: %s", job_id, exc, exc_info=True)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
-        logger.info(
-            "rank-by-job %s: cache=disabled ranked=%d time=%.1fms",
-            job_id, len(payload["ranked_applicants"]), (time.time() - start_time) * 1000,
-        )
+    try:
+        payload = await anyio.to_thread.run_sync(_compute)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+    except Exception as exc:
+        logger.error("rank-by-job %s failed: %s", job_id, exc, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+    logger.info(
+        "rank-by-job %s: cache=disabled ranked=%d time=%.1fms",
+        job_id, len(payload["ranked_applicants"]), (time.time() - start_time) * 1000,
+    )
 
     return CvRankByJobResponse(
         job_id=job_id,

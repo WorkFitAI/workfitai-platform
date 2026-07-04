@@ -1,15 +1,16 @@
 {
-  "candidateNum": 9,
+  "candidateNum": 4,
   "jobRef": {
-    "hrmKey": "hrm1",
+    "hrmKey": "hrm2",
     "index": 3
   },
-  "jobTitle": "Mobile Developer - React Native",
-  "resume_index": 9,
-  "resume_summary": "Pragmatic Mobile Engineer (Android & iOS) with 4 years across edtech and enterprise software. Skilled in Agile / Scrum, Bash, and CI/CD. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
-  "resume_experience": "Lead Mobile Engineer @ ACB Bank (Sep 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 20h to under 10min. | Senior Mobile Engineer @ AIA Vietnam (May 2023–Apr 2025) · Led 4-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ McKinsey & Company Vietnam (Apr 2024–Sep 2025) | Mobile Developer @ PwC Vietnam (Sep 2025–Present)",
-  "resume_skills": "Redux, Angular, Flutter, React, Microservices, CI/CD, Agile / Scrum, Bash, Dart, Empathy & Active Listening, Leadership & Mentoring, Project Planning",
-  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750",
-  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nPragmatic Mobile Engineer (Android & iOS) with 4 years across edtech and enterprise software. Skilled in Agile / Scrum, Bash, and CI/CD. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nLead Mobile Engineer @ ACB Bank (Sep 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 20h to under 10min. | Senior Mobile Engineer @ AIA Vietnam (May 2023–Apr 2025) · Led 4-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ McKinsey & Company Vietnam (Apr 2024–Sep 2025) | Mobile Developer @ PwC Vietnam (Sep 2025–Present)\n\nSKILLS\nRedux, Angular, Flutter, React, Microservices, CI/CD, Agile / Scrum, Bash, Dart, Empathy & Active Listening, Leadership & Mentoring, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750",
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Principal-level Security Engineer who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in Cassandra and TDD. Cut release cycle by 30% through CI/CD automation at last role.",
+  "resume_experience": "Lead Security Engineer @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Senior Security Engineer @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Security Engineer @ Shopee Vietnam (Mar 2024–Feb 2025) | Security Analyst @ Medici Health (Sep 2024–Jan 2026) | Security Analyst @ ACB Bank (Feb 2025–Present)",
+  "resume_skills": "Kali Linux, SIEM, Python, AWS, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Project Planning, Conflict Resolution, Presentation Skills, Time Management",
+  "resume_education": "Bachelor of Science in Cybersecurity – NEU – Hanoi, 2015 | TOEIC 750",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nPrincipal-level Security Engineer who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in Cassandra and TDD. Cut release cycle by 30% through CI/CD automation at last role.\n\nEXPERIENCE\nLead Security Engineer @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Senior Security Engineer @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Security Engineer @ Shopee Vietnam (Mar 2024–Feb 2025) | Security Analyst @ Medici Health (Sep 2024–Jan 2026) | Security Analyst @ ACB Bank (Feb 2025–Present)\n\nSKILLS\nKali Linux, SIEM, Python, AWS, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Project Planning, Conflict Resolution, Presentation Skills, Time Management\n\nEDUCATION\nBachelor of Science in Cybersecurity – NEU – Hanoi, 2015 | TOEIC 750",
   "pdf_file": "candidate4_9.pdf"
 }

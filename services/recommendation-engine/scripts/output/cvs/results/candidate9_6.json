@@ -1,15 +1,16 @@
 {
-  "candidateNum": 6,
+  "candidateNum": 9,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 3
+    "index": 0
   },
-  "jobTitle": "Cybersecurity Engineer - Application Security",
-  "resume_index": 6,
-  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
-  "resume_skills": "Kali Linux, AWS, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nKali Linux, AWS, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
   "pdf_file": "candidate9_6.pdf"
 }

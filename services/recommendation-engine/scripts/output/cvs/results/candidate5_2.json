@@ -1,15 +1,16 @@
 {
-  "candidateNum": 2,
+  "candidateNum": 5,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 4
+    "index": 1
   },
-  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
-  "resume_index": 2,
-  "resume_summary": "Results-driven principal-level DevOps / Platform Engineer with 15 years building high-throughput proptech platforms. Deep expertise in CQRS, CQRS, and Linux. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Lead Platform Engineer @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Platform Engineer @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.",
-  "resume_skills": "AWS, Linux, Docker, Terraform, CQRS, CI/CD, Jenkins, RabbitMQ, gRPC, NATS, JavaScript, Swift, Kotlin, Rust, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
-  "resume_education": "Bachelor of Engineering in Computer Engineering – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
-  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nResults-driven principal-level DevOps / Platform Engineer with 15 years building high-throughput proptech platforms. Deep expertise in CQRS, CQRS, and Linux. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Platform Engineer @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Platform Engineer @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.\n\nSKILLS\nAWS, Linux, Docker, Terraform, CQRS, CI/CD, Jenkins, RabbitMQ, gRPC, NATS, JavaScript, Swift, Kotlin, Rust, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, ReactJS, and TypeScript. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Platform Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Platform Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior DevOps Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "Redux, ReactJS, TypeScript, TailwindCSS, TDD, REST API Design, Code Review, CI/CD, Kotlin, Bash, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, ReactJS, and TypeScript. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Platform Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Platform Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior DevOps Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nRedux, ReactJS, TypeScript, TailwindCSS, TDD, REST API Design, Code Review, CI/CD, Kotlin, Bash, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – FTU HCMC, 2008 | TOEIC 600",
   "pdf_file": "candidate5_2.pdf"
 }

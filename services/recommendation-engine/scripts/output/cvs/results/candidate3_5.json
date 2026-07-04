@@ -1,15 +1,16 @@
 {
-  "candidateNum": 5,
+  "candidateNum": 3,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 2
+    "index": 4
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 5,
-  "resume_summary": "Versatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
-  "resume_skills": "Node.js, ReactJS, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening",
-  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nNode.js, ReactJS, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "3+ years as a DevOps / Platform Engineer specialising in C++ and GCP. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Platform Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Platform Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior DevOps Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | DevOps Engineer @ BCG Vietnam (Nov 2024–Nov 2025) | DevOps Engineer @ Oracle Vietnam (Jun 2025–Present)",
+  "resume_skills": "Docker, Terraform, AWS, Kubernetes, GCP, Helm, Java, Go, C#, C++, Apache Kafka, gRPC, RabbitMQ, NATS, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – HUST, 2022 | TOEIC 650",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\n3+ years as a DevOps / Platform Engineer specialising in C++ and GCP. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Platform Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior DevOps Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | DevOps Engineer @ BCG Vietnam (Nov 2024–Nov 2025) | DevOps Engineer @ Oracle Vietnam (Jun 2025–Present)\n\nSKILLS\nDocker, Terraform, AWS, Kubernetes, GCP, Helm, Java, Go, C#, C++, Apache Kafka, gRPC, RabbitMQ, NATS, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – HUST, 2022 | TOEIC 650",
   "pdf_file": "candidate3_5.pdf"
 }

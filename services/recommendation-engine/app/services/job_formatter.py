@@ -169,4 +169,3 @@ def format_resume_as_text(resume_data: Dict) -> str:
         sections.append(f"Education: {resume_data['education']}")
     
     return "\n".join(sections)
-    return job_text.strip()

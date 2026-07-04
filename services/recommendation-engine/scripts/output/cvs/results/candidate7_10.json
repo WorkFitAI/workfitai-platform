@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 7,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 1
+    "index": 4
   },
-  "jobTitle": "Data Engineer - Apache Spark / Airflow",
-  "resume_index": 10,
-  "resume_summary": "7+ years as a Data Engineer specialising in MySQL and Kafka. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Principal Data Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Data Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Data Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Data Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Data Engineer I @ MoMo (M-Service) (Aug 2023–Present)",
-  "resume_skills": "Kafka, SQL, Python, Apache Spark, Kubernetes, Ansible, Jenkins, Docker, scikit-learn, Spark, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making",
-  "resume_education": "Bachelor of Science in Computer Science – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Data Engineer specialising in MySQL and Kafka. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Data Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Data Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Data Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Data Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Data Engineer I @ MoMo (M-Service) (Aug 2023–Present)\n\nSKILLS\nKafka, SQL, Python, Apache Spark, Kubernetes, Ansible, Jenkins, Docker, scikit-learn, Spark, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Science in Computer Science – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "no_match",
+  "resume_index": 7,
+  "resume_summary": "13+ years as a Site Reliability Engineer specialising in Elasticsearch and RabbitMQ. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal SRE @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Lead SRE @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior SRE @ HDBank (Jul 2023–Jul 2025) | SRE @ Rikkeisoft (Dec 2023–Present)",
+  "resume_skills": "TDD, CI/CD, Docker, GCP, Helm, MySQL, Elasticsearch, gRPC, RabbitMQ, NATS, WebSocket, Negotiation, Ownership & Accountability, Cross-functional Collaboration, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n13+ years as a Site Reliability Engineer specialising in Elasticsearch and RabbitMQ. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal SRE @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Lead SRE @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior SRE @ HDBank (Jul 2023–Jul 2025) | SRE @ Rikkeisoft (Dec 2023–Present)\n\nSKILLS\nTDD, CI/CD, Docker, GCP, Helm, MySQL, Elasticsearch, gRPC, RabbitMQ, NATS, WebSocket, Negotiation, Ownership & Accountability, Cross-functional Collaboration, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate7_10.pdf"
 }

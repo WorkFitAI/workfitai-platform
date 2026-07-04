@@ -31,15 +31,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CvRankingService {
 
+    /** recommendation-engine returns this status (HTTP 202) while a cache miss is computing in the background. */
+    private static final String STATUS_COMPUTING = "computing";
+    /** Bounded retries on a "computing" response — caps total wait around the recommendation-engine's
+     *  own CV_RANKING_MISS_RETRY_AFTER_SECONDS default (10s), matching the prior synchronous 10-30s budget. */
+    private static final int MAX_RANKING_ATTEMPTS = 5;
+    private static final int DEFAULT_RETRY_AFTER_SECONDS = 15;
+
     private final RecommendationEngineClient recommendationEngineClient;
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
     private final AuditLogService auditLogService;
 
     /**
-     * Calls the recommendation engine (may take 10-30 s), then merges the ranked
-     * applicant list with full Application records.  Unranked applicants (those in
-     * the DB but not returned by the AI) are appended at the end.
+     * Calls the recommendation engine, then merges the ranked applicant list with full
+     * Application records. Unranked applicants (those in the DB but not returned by the
+     * AI) are appended at the end.
      */
     public CvRankingResultResponse rankCvsByJob(String jobId, String performedBy) {
         log.info("CV ranking requested: jobId={}, by={}", jobId, performedBy);
@@ -49,17 +56,7 @@ public class CvRankingService {
                 .findByJobIdAndDeletedAtIsNull(jobId, Pageable.unpaged())
                 .getContent();
 
-        CvRankingResponse aiResult = null;
-        try {
-            aiResult = recommendationEngineClient.rankCvsByJob(jobId);
-        } catch (Exception e) {
-            log.warn("Recommendation engine unavailable for job {}, returning unranked candidates: {}", jobId, e.getMessage());
-            auditLogService.logFailure(
-                    "JOB", jobId, "CV_RANKING_FAILED", performedBy,
-                    e.getMessage(),
-                    Map.of("jobId", jobId)
-            );
-        }
+        CvRankingResponse aiResult = fetchRankingWithRetry(jobId, performedBy);
 
         Map<String, Application> appByUsername = allApplications.stream()
                 .collect(Collectors.toMap(Application::getUsername, a -> a, (a1, a2) -> a1));
@@ -132,5 +129,53 @@ public class CvRankingService {
                 .processingTimeMs(processingTimeMs)
                 .applications(items)
                 .build();
+    }
+
+    /**
+     * Calls recommendation-engine's rank-by-job endpoint, retrying on a "computing"
+     * (cache miss, background compute in progress) response up to MAX_RANKING_ATTEMPTS
+     * times. Returns null when the engine is unreachable or still computing after all
+     * retries — callers fall back to an unranked list in that case.
+     */
+    private CvRankingResponse fetchRankingWithRetry(String jobId, String performedBy) {
+        for (int attempt = 1; attempt <= MAX_RANKING_ATTEMPTS; attempt++) {
+            CvRankingResponse result;
+            try {
+                result = recommendationEngineClient.rankCvsByJob(jobId);
+            } catch (Exception e) {
+                log.warn("Recommendation engine unavailable for job {}, returning unranked candidates: {}", jobId, e.getMessage());
+                auditLogService.logFailure(
+                        "JOB", jobId, "CV_RANKING_FAILED", performedBy,
+                        e.getMessage(),
+                        Map.of("jobId", jobId)
+                );
+                return null;
+            }
+
+            if (result == null || !STATUS_COMPUTING.equals(result.getStatus())) {
+                return result;
+            }
+
+            int retryAfterSeconds = result.getRetryAfterSeconds() != null
+                    ? result.getRetryAfterSeconds() : DEFAULT_RETRY_AFTER_SECONDS;
+            log.info("CV ranking still computing for job {} (attempt {}/{}); retrying in {}s",
+                    jobId, attempt, MAX_RANKING_ATTEMPTS, retryAfterSeconds);
+
+            if (attempt < MAX_RANKING_ATTEMPTS) {
+                sleepQuietly(retryAfterSeconds);
+            }
+        }
+
+        log.info("CV ranking not ready after {} attempts for job {}; returning unranked candidates for now",
+                MAX_RANKING_ATTEMPTS, jobId);
+        return null;
+    }
+
+    private void sleepQuietly(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

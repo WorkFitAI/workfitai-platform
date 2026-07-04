@@ -14,9 +14,9 @@ public class PrivacySettingsResponse {
     private Boolean showEmail;
     private Boolean showPhone;
     private Boolean showLocation;
-    private Boolean allowCvDownload;
     private Boolean allowMessaging;
     private Boolean showActivityStatus;
     private Boolean showOnlineStatus;
     private Boolean searchIndexing;
+    private Boolean aiJobRecommendationEnabled;
 }

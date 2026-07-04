@@ -115,6 +115,7 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
         perms.put("admin:list", "List all admins");
         perms.put("admin:search", "Search admins");
         perms.put("admin:approve", "Approve admin profiles");
+        perms.put("admin:feature-toggle", "Manage platform-wide AI feature toggles");
 
         // User management
         perms.put("user:list", "List all user");
@@ -228,78 +229,101 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
     }
 
     /**
+     * Create the role if absent, or sync any newly-added permissions onto an
+     * already-existing role row. Without this, a permission added to a role's
+     * definition here never reaches roles bootstrapped before that change -
+     * the role is only ever created once via findByName().orElseGet(), so
+     * later edits to its permission set are silently ignored for existing data.
+     */
+    private void upsertRole(String roleName, String description, Set<String> permissions) {
+        roleRepository.findByName(roleName).ifPresentOrElse(
+                existing -> {
+                    Set<String> merged = new HashSet<>(
+                            existing.getPermissions() != null ? existing.getPermissions() : Set.of());
+                    if (merged.addAll(permissions)) {
+                        existing.setPermissions(merged);
+                        roleRepository.save(existing);
+                        log.info("[BOOTSTRAP] Synced new permission(s) onto existing role: {}", roleName);
+                    }
+                },
+                () -> {
+                    log.info("[BOOTSTRAP] Creating role: {}", roleName);
+                    roleRepository.save(Role.builder()
+                            .name(roleName)
+                            .description(description)
+                            .permissions(permissions)
+                            .build());
+                });
+    }
+
+    /**
      * Create CANDIDATE role with appropriate permissions.
      * Candidates can manage their own profile, CV, and applications.
      */
     private void createCandidateRole() {
-        roleRepository.findByName(UserRole.CANDIDATE.getRoleName()).orElseGet(() -> {
-            log.info("[BOOTSTRAP] Creating role: CANDIDATE");
-            Set<String> permissions = new HashSet<>();
+        Set<String> permissions = new HashSet<>();
 
-            // Auth permissions
-            permissions.add("auth:login");
-            permissions.add("auth:logout");
-            permissions.add("auth:refresh");
+        // Auth permissions
+        permissions.add("auth:login");
+        permissions.add("auth:logout");
+        permissions.add("auth:refresh");
 
-            // Profile permissions (own profile only)
-            permissions.add("profile:read");
-            permissions.add("profile:update");
+        // Profile permissions (own profile only)
+        permissions.add("profile:read");
+        permissions.add("profile:update");
 
-            // Candidate self-management
-            permissions.add("candidate:read");
-            permissions.add("candidate:update");
-            permissions.add("candidate:skill:add");
-            permissions.add("candidate:skill:remove");
-            permissions.add("candidate:skill:read");
+        // Candidate self-management
+        permissions.add("candidate:read");
+        permissions.add("candidate:update");
+        permissions.add("candidate:skill:add");
+        permissions.add("candidate:skill:remove");
+        permissions.add("candidate:skill:read");
 
-            // Job browsing (read-only)
-            permissions.add("job:read");
-            permissions.add("job:list");
-            permissions.add("job:search");
+        // Job browsing (read-only)
+        permissions.add("job:read");
+        permissions.add("job:list");
+        permissions.add("job:search");
 
-            // Company browsing (read-only)
-            permissions.add("company:read");
-            permissions.add("company:list");
-            permissions.add("company:search");
+        // Company browsing (read-only)
+        permissions.add("company:read");
+        permissions.add("company:list");
+        permissions.add("company:search");
 
-            // Skill browsing
-            permissions.add("skill:read");
-            permissions.add("skill:list");
-            permissions.add("skill:search");
+        // Skill browsing
+        permissions.add("skill:read");
+        permissions.add("skill:list");
+        permissions.add("skill:search");
 
-            // Report
-            permissions.add("report:create");
+        // Report
+        permissions.add("report:create");
 
-            // CV management (own CVs)
-            permissions.add("cv:create");
-            permissions.add("cv:read");
-            permissions.add("cv:update");
-            permissions.add("cv:delete");
-            permissions.add("cv:list");
-            permissions.add("cv:download");
-            permissions.add("cv:parse");
+        // CV management (own CVs)
+        permissions.add("cv:create");
+        permissions.add("cv:read");
+        permissions.add("cv:update");
+        permissions.add("cv:delete");
+        permissions.add("cv:list");
+        permissions.add("cv:download");
+        permissions.add("cv:parse");
 
-            // Application management (own applications)
-            permissions.add("application:create");
-            permissions.add("application:read");
-            permissions.add("application:update");
-            permissions.add("application:delete");
-            permissions.add("application:list");
+        // Application management (own applications)
+        permissions.add("application:create");
+        permissions.add("application:read");
+        permissions.add("application:update");
+        permissions.add("application:delete");
+        permissions.add("application:list");
 
-            // Interview (own interviews - read only)
-            permissions.add("interview:read");
+        // Interview (own interviews - read only)
+        permissions.add("interview:read");
 
-            // Notification management
-            permissions.add("notification:read");
-            permissions.add("notification:update");
-            permissions.add("notification:list");
+        // Notification management
+        permissions.add("notification:read");
+        permissions.add("notification:update");
+        permissions.add("notification:list");
 
-            return roleRepository.save(Role.builder()
-                    .name(UserRole.CANDIDATE.getRoleName())
-                    .description("Job seekers who can manage their profile, CV, and applications")
-                    .permissions(permissions)
-                    .build());
-        });
+        upsertRole(UserRole.CANDIDATE.getRoleName(),
+                "Job seekers who can manage their profile, CV, and applications",
+                permissions);
     }
 
     /**
@@ -307,92 +331,87 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
      * HR users can manage jobs, review applications, and conduct interviews.
      */
     private void createHRRole() {
-        roleRepository.findByName(UserRole.HR.getRoleName()).orElseGet(() -> {
-            log.info("[BOOTSTRAP] Creating role: HR");
-            Set<String> permissions = new HashSet<>();
+        Set<String> permissions = new HashSet<>();
 
-            // Auth permissions
-            permissions.add("auth:login");
-            permissions.add("auth:logout");
-            permissions.add("auth:refresh");
+        // Auth permissions
+        permissions.add("auth:login");
+        permissions.add("auth:logout");
+        permissions.add("auth:refresh");
 
-            // Profile permissions
-            permissions.add("profile:read");
-            permissions.add("profile:update");
+        // Profile permissions
+        permissions.add("profile:read");
+        permissions.add("profile:update");
 
-            // HR self-management
-            permissions.add("hr:read");
-            permissions.add("hr:update");
+        // HR self-management
+        permissions.add("hr:read");
+        permissions.add("hr:update");
 
-            // Candidate viewing (for recruitment)
-            permissions.add("candidate:read");
-            permissions.add("candidate:list");
-            permissions.add("candidate:search");
-            permissions.add("candidate:stats");
-            permissions.add("candidate:skill:read");
+        // Candidate viewing (for recruitment)
+        permissions.add("candidate:read");
+        permissions.add("candidate:list");
+        permissions.add("candidate:search");
+        permissions.add("candidate:stats");
+        permissions.add("candidate:skill:read");
 
-            // Job management (full CRUD)
-            permissions.add("job:create");
-            permissions.add("job:read");
-            permissions.add("job:update");
-            permissions.add("job:delete");
-            permissions.add("job:list");
-            permissions.add("job:search");
-            permissions.add("job:publish");
-            permissions.add("job:unpublish");
-            permissions.add("job:stats");
+        // Job management (full CRUD)
+        permissions.add("job:create");
+        permissions.add("job:read");
+        permissions.add("job:update");
+        permissions.add("job:delete");
+        permissions.add("job:list");
+        permissions.add("job:search");
+        permissions.add("job:publish");
+        permissions.add("job:unpublish");
+        permissions.add("job:stats");
 
-            // Company management (own company)
-            permissions.add("company:read");
-            permissions.add("company:update");
-            permissions.add("company:list");
-            permissions.add("company:search");
+        // Company management (own company)
+        permissions.add("company:read");
+        permissions.add("company:update");
+        permissions.add("company:list");
+        permissions.add("company:search");
 
-            // Skill management
-            permissions.add("skill:create");
-            permissions.add("skill:read");
-            permissions.add("skill:update");
-            permissions.add("skill:list");
-            permissions.add("skill:search");
+        // Skill management
+        permissions.add("skill:create");
+        permissions.add("skill:read");
+        permissions.add("skill:update");
+        permissions.add("skill:list");
+        permissions.add("skill:search");
 
-            // CV viewing (for candidate review)
-            permissions.add("cv:read");
-            permissions.add("cv:list");
-            permissions.add("cv:download");
-            permissions.add("cv:analyze");
+        // CV viewing (for candidate review)
+        permissions.add("cv:read");
+        permissions.add("cv:list");
+        permissions.add("cv:download");
+        permissions.add("cv:analyze");
 
-            // Application management (full access)
-            permissions.add("application:read");
-            permissions.add("application:update");
-            permissions.add("application:list");
-            permissions.add("application:search");
-            permissions.add("application:review");
-            permissions.add("application:shortlist");
-            permissions.add("application:reject");
-            permissions.add("application:approve");
-            permissions.add("application:stats");
+        // Application management (full access)
+        permissions.add("application:read");
+        permissions.add("application:update");
+        permissions.add("application:list");
+        permissions.add("application:search");
+        permissions.add("application:review");
+        permissions.add("application:shortlist");
+        permissions.add("application:reject");
+        permissions.add("application:approve");
+        permissions.add("application:stats");
 
-            // Interview management (full CRUD)
-            permissions.add("interview:create");
-            permissions.add("interview:read");
-            permissions.add("interview:update");
-            permissions.add("interview:delete");
-            permissions.add("interview:feedback");
+        // Interview management (full CRUD)
+        permissions.add("interview:create");
+        permissions.add("interview:read");
+        permissions.add("interview:update");
+        permissions.add("interview:delete");
+        permissions.add("interview:feedback");
 
-            // Notification management
-            permissions.add("notification:read");
-            permissions.add("notification:update");
-            permissions.add("notification:list");
+        // Notification management
+        permissions.add("notification:read");
+        permissions.add("notification:update");
+        permissions.add("notification:list");
 
-            // HR statistics
-            permissions.add("hr:stats");
+        // HR statistics
+        permissions.add("hr:stats");
 
-            return roleRepository.save(Role.builder()
-                    .name(UserRole.HR.getRoleName())
-                    .description("HR managers who can post jobs, review applications, and conduct interviews")
-                    .permissions(permissions)
-                    .build());
-        });
+        upsertRole(UserRole.HR.getRoleName(),
+                "HR managers who can post jobs, review applications, and conduct interviews",
+                permissions);
     }
 
     /**
@@ -404,110 +423,104 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
      * - Data export capabilities
      */
     private void createHRManagerRole() {
-        roleRepository.findByName(UserRole.HR_MANAGER.getRoleName()).orElseGet(() -> {
-            log.info("[BOOTSTRAP] Creating role: HR_MANAGER");
-            Set<String> permissions = new HashSet<>();
+        Set<String> permissions = new HashSet<>();
 
-            // Auth permissions
-            permissions.add("auth:login");
-            permissions.add("auth:logout");
-            permissions.add("auth:refresh");
+        // Auth permissions
+        permissions.add("auth:login");
+        permissions.add("auth:logout");
+        permissions.add("auth:refresh");
 
-            // Profile permissions
-            permissions.add("profile:read");
-            permissions.add("profile:update");
+        // Profile permissions
+        permissions.add("profile:read");
+        permissions.add("profile:update");
 
-            // HR self-management
-            permissions.add("hr:read");
-            permissions.add("hr:update");
-            permissions.add("hr:list"); // Can view HR team members
-            permissions.add("hr:search"); // Can search HR team
-            permissions.add("hr:approve");
+        // HR self-management
+        permissions.add("hr:read");
+        permissions.add("hr:update");
+        permissions.add("hr:list"); // Can view HR team members
+        permissions.add("hr:search"); // Can search HR team
+        permissions.add("hr:approve");
 
-            // HR staff management within company — can only grant/revoke the HR role
-            // to users in the same company. Service layer enforces company scope.
-            permissions.add("role:grant");
-            permissions.add("role:revoke");
-            permissions.add("role:read");
+        // HR staff management within company - can only grant/revoke the HR role
+        // to users in the same company. Service layer enforces company scope.
+        permissions.add("role:grant");
+        permissions.add("role:revoke");
+        permissions.add("role:read");
 
-            // Candidate viewing (for recruitment)
-            permissions.add("candidate:read");
-            permissions.add("candidate:list");
-            permissions.add("candidate:search");
-            permissions.add("candidate:stats");
-            permissions.add("candidate:skill:read");
+        // Candidate viewing (for recruitment)
+        permissions.add("candidate:read");
+        permissions.add("candidate:list");
+        permissions.add("candidate:search");
+        permissions.add("candidate:stats");
+        permissions.add("candidate:skill:read");
 
-            // Job management (full CRUD)
-            permissions.add("job:create");
-            permissions.add("job:read");
-            permissions.add("job:update");
-            permissions.add("job:delete");
-            permissions.add("job:list");
-            permissions.add("job:search");
-            permissions.add("job:publish");
-            permissions.add("job:unpublish");
-            permissions.add("job:stats");
+        // Job management (full CRUD)
+        permissions.add("job:create");
+        permissions.add("job:read");
+        permissions.add("job:update");
+        permissions.add("job:delete");
+        permissions.add("job:list");
+        permissions.add("job:search");
+        permissions.add("job:publish");
+        permissions.add("job:unpublish");
+        permissions.add("job:stats");
 
-            // Company management (own company - full control)
-            permissions.add("company:create"); // Can create company during registration
-            permissions.add("company:read");
-            permissions.add("company:update");
-            permissions.add("company:list");
-            permissions.add("company:search");
+        // Company management (own company - full control)
+        permissions.add("company:create"); // Can create company during registration
+        permissions.add("company:read");
+        permissions.add("company:update");
+        permissions.add("company:list");
+        permissions.add("company:search");
 
-            // Skill management
-            permissions.add("skill:create");
-            permissions.add("skill:read");
-            permissions.add("skill:update");
-            permissions.add("skill:delete"); // Can remove obsolete skills
-            permissions.add("skill:list");
-            permissions.add("skill:search");
+        // Skill management
+        permissions.add("skill:create");
+        permissions.add("skill:read");
+        permissions.add("skill:update");
+        permissions.add("skill:delete"); // Can remove obsolete skills
+        permissions.add("skill:list");
+        permissions.add("skill:search");
 
-            // CV viewing (for candidate review)
-            permissions.add("cv:read");
-            permissions.add("cv:list");
-            permissions.add("cv:download");
-            permissions.add("cv:analyze");
+        // CV viewing (for candidate review)
+        permissions.add("cv:read");
+        permissions.add("cv:list");
+        permissions.add("cv:download");
+        permissions.add("cv:analyze");
 
-            // Application management (full access + advanced features)
-            permissions.add("application:read");
-            permissions.add("application:update");
-            permissions.add("application:list");
-            permissions.add("application:search");
-            permissions.add("application:review");
-            permissions.add("application:shortlist");
-            permissions.add("application:reject");
-            permissions.add("application:approve");
-            permissions.add("application:stats");
+        // Application management (full access + advanced features)
+        permissions.add("application:read");
+        permissions.add("application:update");
+        permissions.add("application:list");
+        permissions.add("application:search");
+        permissions.add("application:review");
+        permissions.add("application:shortlist");
+        permissions.add("application:reject");
+        permissions.add("application:approve");
+        permissions.add("application:stats");
 
-            // HR_MANAGER exclusive permissions
-            permissions.add("application:note"); // Add internal/public notes
-            permissions.add("application:assign"); // Assign apps to HR team
-            permissions.add("application:export"); // Export to CSV/Excel
-            permissions.add("application:manage"); // Manager dashboard & company stats
+        // HR_MANAGER exclusive permissions
+        permissions.add("application:note"); // Add internal/public notes
+        permissions.add("application:assign"); // Assign apps to HR team
+        permissions.add("application:export"); // Export to CSV/Excel
+        permissions.add("application:manage"); // Manager dashboard & company stats
 
-            // Interview management (full CRUD)
-            permissions.add("interview:create");
-            permissions.add("interview:read");
-            permissions.add("interview:update");
-            permissions.add("interview:delete");
-            permissions.add("interview:feedback");
+        // Interview management (full CRUD)
+        permissions.add("interview:create");
+        permissions.add("interview:read");
+        permissions.add("interview:update");
+        permissions.add("interview:delete");
+        permissions.add("interview:feedback");
 
-            // Notification management
-            permissions.add("notification:read");
-            permissions.add("notification:update");
-            permissions.add("notification:list");
+        // Notification management
+        permissions.add("notification:read");
+        permissions.add("notification:update");
+        permissions.add("notification:list");
 
-            // HR statistics
-            permissions.add("hr:stats");
+        // HR statistics
+        permissions.add("hr:stats");
 
-            return roleRepository.save(Role.builder()
-                    .name(UserRole.HR_MANAGER.getRoleName())
-                    .description(
-                            "HR managers who lead recruitment teams, manage company jobs, and coordinate hiring processes")
-                    .permissions(permissions)
-                    .build());
-        });
+        upsertRole(UserRole.HR_MANAGER.getRoleName(),
+                "HR managers who lead recruitment teams, manage company jobs, and coordinate hiring processes",
+                permissions);
     }
 
     /**
@@ -515,155 +528,151 @@ public class RolePermissionDataInitializer implements ApplicationRunner {
      * Admins have complete control over all resources.
      */
     private void createAdminRole() {
-        roleRepository.findByName(UserRole.ADMIN.getRoleName()).orElseGet(() -> {
-            log.info("[BOOTSTRAP] Creating role: ADMIN");
-            Set<String> permissions = new HashSet<>();
+        Set<String> permissions = new HashSet<>();
 
-            // Auth permissions
-            permissions.add("auth:register");
-            permissions.add("auth:login");
-            permissions.add("auth:logout");
-            permissions.add("auth:refresh");
+        // Auth permissions
+        permissions.add("auth:register");
+        permissions.add("auth:login");
+        permissions.add("auth:logout");
+        permissions.add("auth:refresh");
 
-            // Profile permissions
-            permissions.add("profile:read");
-            permissions.add("profile:update");
+        // Profile permissions
+        permissions.add("profile:read");
+        permissions.add("profile:update");
 
-            // Role management (full CRUD)
-            permissions.add("role:create");
-            permissions.add("role:read");
-            permissions.add("role:update");
-            permissions.add("role:delete");
-            permissions.add("role:grant");
-            permissions.add("role:revoke");
+        // Role management (full CRUD)
+        permissions.add("role:create");
+        permissions.add("role:read");
+        permissions.add("role:update");
+        permissions.add("role:delete");
+        permissions.add("role:grant");
+        permissions.add("role:revoke");
 
-            // Permission management (full CRUD — ADMIN only)
-            permissions.add("perm:create");
-            permissions.add("perm:read");
-            permissions.add("perm:update");
-            permissions.add("perm:delete");
+        // Permission management (full CRUD - ADMIN only)
+        permissions.add("perm:create");
+        permissions.add("perm:read");
+        permissions.add("perm:update");
+        permissions.add("perm:delete");
 
-            // User management - Candidates
-            permissions.add("candidate:create");
-            permissions.add("candidate:read");
-            permissions.add("candidate:update");
-            permissions.add("candidate:delete");
-            permissions.add("candidate:list");
-            permissions.add("candidate:search");
-            permissions.add("candidate:stats");
-            permissions.add("candidate:skill:add");
-            permissions.add("candidate:skill:remove");
-            permissions.add("candidate:skill:read");
+        // User management - Candidates
+        permissions.add("candidate:create");
+        permissions.add("candidate:read");
+        permissions.add("candidate:update");
+        permissions.add("candidate:delete");
+        permissions.add("candidate:list");
+        permissions.add("candidate:search");
+        permissions.add("candidate:stats");
+        permissions.add("candidate:skill:add");
+        permissions.add("candidate:skill:remove");
+        permissions.add("candidate:skill:read");
 
-            // User management - HR
-            permissions.add("hr:create");
-            permissions.add("hr:read");
-            permissions.add("hr:update");
-            permissions.add("hr:delete");
-            permissions.add("hr:list");
-            permissions.add("hr:search");
-            permissions.add("hr:stats");
+        // User management - HR
+        permissions.add("hr:create");
+        permissions.add("hr:read");
+        permissions.add("hr:update");
+        permissions.add("hr:delete");
+        permissions.add("hr:list");
+        permissions.add("hr:search");
+        permissions.add("hr:stats");
 
-            // User management - Admins
-            permissions.add("admin:create");
-            permissions.add("admin:read");
-            permissions.add("admin:update");
-            permissions.add("admin:delete");
-            permissions.add("admin:list");
-            permissions.add("admin:search");
-            permissions.add("admin:approve");
+        // User management - Admins
+        permissions.add("admin:create");
+        permissions.add("admin:read");
+        permissions.add("admin:update");
+        permissions.add("admin:delete");
+        permissions.add("admin:list");
+        permissions.add("admin:search");
+        permissions.add("admin:approve");
+        permissions.add("admin:feature-toggle");
 
-            permissions.add("user:read");
-            permissions.add("user:block");
-            permissions.add("user:delete");
-            permissions.add("user:list");
+        permissions.add("user:read");
+        permissions.add("user:block");
+        permissions.add("user:delete");
+        permissions.add("user:list");
 
-            // Job management (full CRUD)
-            permissions.add("job:create");
-            permissions.add("job:read");
-            permissions.add("job:update");
-            permissions.add("job:delete");
-            permissions.add("job:list");
-            permissions.add("job:search");
-            permissions.add("job:publish");
-            permissions.add("job:unpublish");
-            permissions.add("job:stats");
+        // Job management (full CRUD)
+        permissions.add("job:create");
+        permissions.add("job:read");
+        permissions.add("job:update");
+        permissions.add("job:delete");
+        permissions.add("job:list");
+        permissions.add("job:search");
+        permissions.add("job:publish");
+        permissions.add("job:unpublish");
+        permissions.add("job:stats");
 
-            // Company management (full CRUD)
-            permissions.add("company:create");
-            permissions.add("company:read");
-            permissions.add("company:update");
-            permissions.add("company:delete");
-            permissions.add("company:list");
-            permissions.add("company:search");
-            permissions.add("company:verify");
+        // Company management (full CRUD)
+        permissions.add("company:create");
+        permissions.add("company:read");
+        permissions.add("company:update");
+        permissions.add("company:delete");
+        permissions.add("company:list");
+        permissions.add("company:search");
+        permissions.add("company:verify");
 
-            // Skill management (full CRUD)
-            permissions.add("skill:create");
-            permissions.add("skill:read");
-            permissions.add("skill:update");
-            permissions.add("skill:delete");
-            permissions.add("skill:list");
-            permissions.add("skill:search");
+        // Skill management (full CRUD)
+        permissions.add("skill:create");
+        permissions.add("skill:read");
+        permissions.add("skill:update");
+        permissions.add("skill:delete");
+        permissions.add("skill:list");
+        permissions.add("skill:search");
 
-            permissions.add("report:create");
-            permissions.add("report:read");
-            permissions.add("report:update");
-            permissions.add("report:delete");
-            permissions.add("report:list");
-            permissions.add("report:stats");
+        permissions.add("report:create");
+        permissions.add("report:read");
+        permissions.add("report:update");
+        permissions.add("report:delete");
+        permissions.add("report:list");
+        permissions.add("report:stats");
 
-            // CV management (full access)
-            permissions.add("cv:create");
-            permissions.add("cv:read");
-            permissions.add("cv:update");
-            permissions.add("cv:delete");
-            permissions.add("cv:list");
-            permissions.add("cv:download");
-            permissions.add("cv:parse");
-            permissions.add("cv:analyze");
+        // CV management (full access)
+        permissions.add("cv:create");
+        permissions.add("cv:read");
+        permissions.add("cv:update");
+        permissions.add("cv:delete");
+        permissions.add("cv:list");
+        permissions.add("cv:download");
+        permissions.add("cv:parse");
+        permissions.add("cv:analyze");
 
-            // Application management (full access)
-            permissions.add("application:create");
-            permissions.add("application:read");
-            permissions.add("application:update");
-            permissions.add("application:delete");
-            permissions.add("application:list");
-            permissions.add("application:search");
-            permissions.add("application:review");
-            permissions.add("application:shortlist");
-            permissions.add("application:reject");
-            permissions.add("application:approve");
-            permissions.add("application:stats");
-            permissions.add("application:note");
-            permissions.add("application:assign");
-            permissions.add("application:export");
-            permissions.add("application:manage");
+        // Application management (full access)
+        permissions.add("application:create");
+        permissions.add("application:read");
+        permissions.add("application:update");
+        permissions.add("application:delete");
+        permissions.add("application:list");
+        permissions.add("application:search");
+        permissions.add("application:review");
+        permissions.add("application:shortlist");
+        permissions.add("application:reject");
+        permissions.add("application:approve");
+        permissions.add("application:stats");
+        permissions.add("application:note");
+        permissions.add("application:assign");
+        permissions.add("application:export");
+        permissions.add("application:manage");
 
-            // Interview management (full CRUD)
-            permissions.add("interview:create");
-            permissions.add("interview:read");
-            permissions.add("interview:update");
-            permissions.add("interview:delete");
-            permissions.add("interview:feedback");
+        // Interview management (full CRUD)
+        permissions.add("interview:create");
+        permissions.add("interview:read");
+        permissions.add("interview:update");
+        permissions.add("interview:delete");
+        permissions.add("interview:feedback");
 
-            // Notification management (full access)
-            permissions.add("notification:read");
-            permissions.add("notification:update");
-            permissions.add("notification:list");
-            permissions.add("notification:manage");
+        // Notification management (full access)
+        permissions.add("notification:read");
+        permissions.add("notification:update");
+        permissions.add("notification:list");
+        permissions.add("notification:manage");
 
-            // System management
-            permissions.add("system:health");
-            permissions.add("system:metrics");
-            permissions.add("system:logs");
-            permissions.add("system:config");
+        // System management
+        permissions.add("system:health");
+        permissions.add("system:metrics");
+        permissions.add("system:logs");
+        permissions.add("system:config");
 
-            return roleRepository.save(Role.builder()
-                    .name(UserRole.ADMIN.getRoleName())
-                    .description("System administrators with full access to all resources and configurations")
-                    .permissions(permissions)
-                    .build());
-        });
+        upsertRole(UserRole.ADMIN.getRoleName(),
+                "System administrators with full access to all resources and configurations",
+                permissions);
     }
 }

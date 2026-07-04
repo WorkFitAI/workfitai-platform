@@ -1,15 +1,16 @@
 {
-  "candidateNum": 4,
+  "candidateNum": 1,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 0
+    "index": 3
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 4,
-  "resume_summary": "Results-driven principal-level Software Engineer with 11 years building high-throughput edtech platforms. Deep expertise in CQRS, REST API Design, and Django. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Software Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Software Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Software Engineer @ Medici Health (Apr 2024–Feb 2026) | Junior Software Engineer @ ACB Bank (May 2025–Present)",
-  "resume_skills": "TypeScript, Redis, DynamoDB, Next.js, Angular, Django, REST API Design, CI/CD, CQRS, Agile / Scrum, Presentation Skills, Analytical Thinking, Leadership & Mentoring",
-  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Software Engineer with 11 years building high-throughput edtech platforms. Deep expertise in CQRS, REST API Design, and Django. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Software Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Software Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Software Engineer @ Medici Health (Apr 2024–Feb 2026) | Junior Software Engineer @ ACB Bank (May 2025–Present)\n\nSKILLS\nTypeScript, Redis, DynamoDB, Next.js, Angular, Django, REST API Design, CI/CD, CQRS, Agile / Scrum, Presentation Skills, Analytical Thinking, Leadership & Mentoring\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Mobile Developer - React Native",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Senior Mobile Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in Firebase and Django. Cut release cycle by 29% through CI/CD automation at last role.",
+  "resume_experience": "Lead Mobile Engineer @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Mobile Engineer @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | iOS/Android Engineer @ KMS Technology (Apr 2024–Present)",
+  "resume_skills": "NodeJS, Firebase, Redux, React Native, Django, Vue.js, Flutter, Node.js, Java, Dart, JavaScript, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Time Management, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nSenior Mobile Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in Firebase and Django. Cut release cycle by 29% through CI/CD automation at last role.\n\nEXPERIENCE\nLead Mobile Engineer @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Mobile Engineer @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | iOS/Android Engineer @ KMS Technology (Apr 2024–Present)\n\nSKILLS\nNodeJS, Firebase, Redux, React Native, Django, Vue.js, Flutter, Node.js, Java, Dart, JavaScript, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_4.pdf"
 }

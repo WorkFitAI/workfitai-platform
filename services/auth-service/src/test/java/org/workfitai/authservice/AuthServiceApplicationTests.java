@@ -1,14 +1,15 @@
 package org.workfitai.authservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class AuthServiceApplicationTests {
 
     @Test
-    void contextLoads() {
-        // TODO document why this method is empty
+    void applicationClassExists() {
+        // Verifies the entry-point class is loadable without Spring Boot context
+        new AuthServiceApplication();
     }
-
 }

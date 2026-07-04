@@ -1,19 +1,21 @@
 model_dir: /app/models/cv-refer
 
 # Stage 1: Bi-Encoder + FAISS
-top_k: 100           # Candidates retrieved by bi-encoder for reranking
-bi_encoder_model: bi-encoder   # subdir under model_dir
+top_k: 100
+bi_encoder_model: bi-encoder     # subdir under model_dir (symlink or copy of job-recommend/bi-encoder-e5-large)
 
 # Stage 2: Cross-Encoder
-top_n: 20            # Final candidates returned after cross-encoder
-cross_encoder_model: cross-encoder
+top_n: 20
+cross_encoder_model: cross-encoder  # subdir under model_dir (symlink or copy of job-recommend/cross-encoder)
 
-# Stage 3: T5 Explanation
+# Stage 3: T5 Explanation (optional — rule-based fallback used when absent)
 t5_model: explanation-t5
 
 # Score thresholds
-min_score: 20.0          # CVs below this are excluded from results entirely
-good_fit_threshold: 55.0  # CVs >= this get label "Good Fit"
+# NOTE: evaluation auto-calibrated threshold to 27.1 (F1-optimal on 1630 test pairs).
+#       good_fit_threshold=55 gives Recall=0.095; set to 27 in production.
+min_score: 20.0
+good_fit_threshold: 27.0
 
 # Batch processing
 batch_size: 32

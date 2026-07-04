@@ -1,15 +1,16 @@
 {
-  "candidateNum": 5,
+  "candidateNum": 10,
   "jobRef": {
-    "hrmKey": "hrm2",
+    "hrmKey": "hrm1",
     "index": 4
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
-  "resume_index": 5,
-  "resume_summary": "Versatile Machine Learning Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NumPy and HuggingFace Transformers. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead ML Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior ML Engineer @ VPBank (Aug 2022–Jun 2025) | ML Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
-  "resume_skills": "PyTorch, Python, HuggingFace Transformers, NumPy, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Machine Learning Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NumPy and HuggingFace Transformers. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead ML Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior ML Engineer @ VPBank (Aug 2022–Jun 2025) | ML Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nPyTorch, Python, HuggingFace Transformers, NumPy, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Commercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Lead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (May 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Feb 2024–Present)",
+  "resume_skills": "DynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution",
+  "resume_education": "Bachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nCommercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nLead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (May 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Feb 2024–Present)\n\nSKILLS\nDynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
   "pdf_file": "candidate10_5.pdf"
 }

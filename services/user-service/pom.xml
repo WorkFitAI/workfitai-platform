@@ -106,6 +106,11 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Actuator endpoints (/actuator/**) -->
         <dependency>
@@ -232,6 +237,78 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Application.class</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <exclude>**/config/**Config.class</exclude>
+                        <exclude>**/*MapperImpl.class</exclude>
+                        <exclude>**/constants/**</exclude>
+                        <exclude>**/enums/**</exclude>
+                        <exclude>**/*Event.class</exclude>
+                        <exclude>**/*Request.class</exclude>
+                        <exclude>**/*Response.class</exclude>
+                        <exclude>**/*DTO.class</exclude>
+                        <!-- Infrastructure / cross-cutting concerns: hard to unit test -->
+                        <exclude>**/aspect/**</exclude>
+                        <exclude>**/UserSearchService.class</exclude>
+                        <exclude>**/UserIndexManagementService.class</exclude>
+                        <exclude>**/AvatarService.class</exclude>
+                        <exclude>**/config/LoggingMdcFilter.class</exclude>
+                        <exclude>**/security/UserIdExtractionFilter.class</exclude>
+                        <exclude>**/config/SecurityConfig$*.class</exclude>
+                        <exclude>**/kafka/OAuthEventKafkaFilter*.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <haltOnFailure>true</haltOnFailure>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

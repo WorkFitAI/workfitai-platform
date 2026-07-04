@@ -1,15 +1,16 @@
 {
-  "candidateNum": 2,
+  "candidateNum": 8,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 2
+    "hrmKey": "hrm1",
+    "index": 1
   },
-  "jobTitle": "Data Scientist - Machine Learning",
-  "resume_index": 2,
-  "resume_summary": "Results-driven principal-level Data Scientist with 15 years building high-throughput proptech platforms. Deep expertise in Neo4j, Neo4j, and TensorFlow. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Lead Data Scientist @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Senior Data Scientist @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.",
-  "resume_skills": "Python, TensorFlow, scikit-learn, SQL, Neo4j, MySQL, Kotlin, C#, Looker, Excel (Advanced), Amplitude, Pandas, dbt, FAISS, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
-  "resume_education": "Bachelor of Science in Data Science – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
-  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nResults-driven principal-level Data Scientist with 15 years building high-throughput proptech platforms. Deep expertise in Neo4j, Neo4j, and TensorFlow. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Data Scientist @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Senior Data Scientist @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.\n\nSKILLS\nPython, TensorFlow, scikit-learn, SQL, Neo4j, MySQL, Kotlin, C#, Looker, Excel (Advanced), Amplitude, Pandas, dbt, FAISS, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Data Science – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "label": "no_match",
+  "resume_index": 8,
+  "resume_summary": "Commercially minded HR Manager (16 yrs) with a track record of driving 55% efficiency gains. Expertise in MS Project and Asana. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Senior HR Manager @ NashTech Vietnam (Nov 2022–Jan 2025) · Recruited and onboarded 4 specialist hires for the operations function in under 1 weeks. | HR Manager @ ThoughtWorks Vietnam (Oct 2024–Oct 2025) · Built financial model for $45M capex project; approved by CFO within 4 weeks. | HR Specialist @ Shopee Vietnam (Dec 2023–Present)",
+  "resume_skills": "Performance Management, SAP SuccessFactors, Talent Acquisition, Monday.com, MS Project, Asana, Mixpanel, Metabase, Excel (Advanced), Conflict Resolution, Continuous Learning, Problem Decomposition, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Business Administration in Human Resources – UEH, 2009 | TOEIC 600 | Cert: Meta Blueprint: Digital Marketing Associate",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/emartin\n\nOBJECTIVE\nCommercially minded HR Manager (16 yrs) with a track record of driving 55% efficiency gains. Expertise in MS Project and Asana. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nSenior HR Manager @ NashTech Vietnam (Nov 2022–Jan 2025) · Recruited and onboarded 4 specialist hires for the operations function in under 1 weeks. | HR Manager @ ThoughtWorks Vietnam (Oct 2024–Oct 2025) · Built financial model for $45M capex project; approved by CFO within 4 weeks. | HR Specialist @ Shopee Vietnam (Dec 2023–Present)\n\nSKILLS\nPerformance Management, SAP SuccessFactors, Talent Acquisition, Monday.com, MS Project, Asana, Mixpanel, Metabase, Excel (Advanced), Conflict Resolution, Continuous Learning, Problem Decomposition, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Business Administration in Human Resources – UEH, 2009 | TOEIC 600 | Cert: Meta Blueprint: Digital Marketing Associate",
   "pdf_file": "candidate8_2.pdf"
 }

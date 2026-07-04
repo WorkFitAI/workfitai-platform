@@ -1,15 +1,16 @@
 {
-  "candidateNum": 6,
+  "candidateNum": 2,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 1
+    "hrmKey": "hrm2",
+    "index": 0
   },
-  "jobTitle": "Frontend Developer - React / TypeScript",
-  "resume_index": 6,
-  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
-  "resume_skills": "TypeScript, ReactJS, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nTypeScript, ReactJS, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "match",
+  "resume_index": 2,
+  "resume_summary": "Pragmatic Cloud Solutions Architect with 10 years across insurtech and enterprise software. Skilled in GitHub Actions, Azure, and AWS. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
+  "resume_experience": "Principal Architect @ Zalo Group (Oct 2022–Jul 2023) · Drove 38% improvement in MAU through 4 A/B experiments across the enterprise segment. | Senior Solutions Architect @ Haravan (May 2023–Mar 2024) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ Masan Group (Jul 2023–Aug 2024) | Cloud Engineer @ BCG Vietnam (Jan 2023–Jul 2025) | Cloud Engineer @ Google LLC (Dec 2024–Present)",
+  "resume_skills": "Python, AWS, Kubernetes, Terraform, Event-Driven Architecture, CQRS, MongoDB, MySQL, GitHub Actions, Azure, Kotlin, Rust, Java, Project Planning, Time Management, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Science in Information Technology – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nPragmatic Cloud Solutions Architect with 10 years across insurtech and enterprise software. Skilled in GitHub Actions, Azure, and AWS. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nPrincipal Architect @ Zalo Group (Oct 2022–Jul 2023) · Drove 38% improvement in MAU through 4 A/B experiments across the enterprise segment. | Senior Solutions Architect @ Haravan (May 2023–Mar 2024) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ Masan Group (Jul 2023–Aug 2024) | Cloud Engineer @ BCG Vietnam (Jan 2023–Jul 2025) | Cloud Engineer @ Google LLC (Dec 2024–Present)\n\nSKILLS\nPython, AWS, Kubernetes, Terraform, Event-Driven Architecture, CQRS, MongoDB, MySQL, GitHub Actions, Azure, Kotlin, Rust, Java, Project Planning, Time Management, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Science in Information Technology – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate2_6.pdf"
 }

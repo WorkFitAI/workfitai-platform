@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 3,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 2
+    "hrmKey": "hrm2",
+    "index": 4
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 10,
-  "resume_summary": "7+ years as a Software Engineer (Backend) specialising in MySQL and NextJS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Principal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)",
-  "resume_skills": "NextJS, PostgreSQL, ReactJS, Node.js, Kubernetes, Ansible, Jenkins, Docker, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making",
-  "resume_education": "Bachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Software Engineer (Backend) specialising in MySQL and NextJS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)\n\nSKILLS\nNextJS, PostgreSQL, ReactJS, Node.js, Kubernetes, Ansible, Jenkins, Docker, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, Problem Decomposition, Project Planning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of OpenAI API-based tooling, improving MTTR by 37%.",
+  "resume_experience": "Principal ML Engineer @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Dec 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Mar 2025) | ML Engineer @ BCG Vietnam (Dec 2023–Mar 2026) | ML Engineer @ Oracle Vietnam (Oct 2023–Present)",
+  "resume_skills": "LangChain, PostgreSQL, PyTorch, OpenAI API, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Docker, Project Planning, Empathy & Active Listening, Time Management",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of OpenAI API-based tooling, improving MTTR by 37%.\n\nEXPERIENCE\nPrincipal ML Engineer @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Dec 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Mar 2025) | ML Engineer @ BCG Vietnam (Dec 2023–Mar 2026) | ML Engineer @ Oracle Vietnam (Oct 2023–Present)\n\nSKILLS\nLangChain, PostgreSQL, PyTorch, OpenAI API, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Docker, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate3_10.pdf"
 }

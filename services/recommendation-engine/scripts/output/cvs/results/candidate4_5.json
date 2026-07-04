@@ -1,15 +1,16 @@
 {
-  "candidateNum": 5,
+  "candidateNum": 4,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 3
+    "index": 4
   },
-  "jobTitle": "Mobile Developer - React Native",
-  "resume_index": 5,
-  "resume_summary": "Engineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with TypeScript, Kotlin, and Firebase. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Lead Mobile Engineer @ VinAI Research (Oct 2023–Oct 2024) · Automated reporting workflows, saving the team approximately 22 engineering-hours per sprint. | Senior Mobile Engineer @ TopCV Vietnam (Sep 2023–Aug 2025) · Defined and shipped 8 major product features that increased DAU by 60%. | iOS/Android Engineer @ VPBank (Aug 2023–Mar 2026) | Mobile Developer @ Samsung R&D Institute Vietnam (Apr 2025–Present)",
-  "resume_skills": "Firebase, TypeScript, Kotlin, NestJS, Flutter, React, CQRS, Agile / Scrum, Empathy & Active Listening, Negotiation, Time Management",
-  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Business Analysis Professional (CBAP)",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with TypeScript, Kotlin, and Firebase. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Mobile Engineer @ VinAI Research (Oct 2023–Oct 2024) · Automated reporting workflows, saving the team approximately 22 engineering-hours per sprint. | Senior Mobile Engineer @ TopCV Vietnam (Sep 2023–Aug 2025) · Defined and shipped 8 major product features that increased DAU by 60%. | iOS/Android Engineer @ VPBank (Aug 2023–Mar 2026) | Mobile Developer @ Samsung R&D Institute Vietnam (Apr 2025–Present)\n\nSKILLS\nFirebase, TypeScript, Kotlin, NestJS, Flutter, React, CQRS, Agile / Scrum, Empathy & Active Listening, Negotiation, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Business Analysis Professional (CBAP)",
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Principal-level DevOps / Platform Engineer who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in CI/CD and RabbitMQ. Cut release cycle by 30% through CI/CD automation at last role.",
+  "resume_experience": "Lead Platform Engineer @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Platform Engineer @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Senior DevOps Engineer @ Shopee Vietnam (Mar 2024–Feb 2025) | DevOps Engineer @ Medici Health (Sep 2024–Jan 2026) | DevOps Engineer @ ACB Bank (Feb 2025–Present)",
+  "resume_skills": "Terraform, AWS, Docker, Kubernetes, Apache Kafka, RabbitMQ, NATS, gRPC, Git, CI/CD, REST API Design, Event-Driven Architecture, Helm, GitHub Actions, Ansible, Project Planning, Conflict Resolution, Presentation Skills, Time Management",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – NEU – Hanoi, 2015 | TOEIC 750",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nPrincipal-level DevOps / Platform Engineer who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in CI/CD and RabbitMQ. Cut release cycle by 30% through CI/CD automation at last role.\n\nEXPERIENCE\nLead Platform Engineer @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Platform Engineer @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Senior DevOps Engineer @ Shopee Vietnam (Mar 2024–Feb 2025) | DevOps Engineer @ Medici Health (Sep 2024–Jan 2026) | DevOps Engineer @ ACB Bank (Feb 2025–Present)\n\nSKILLS\nTerraform, AWS, Docker, Kubernetes, Apache Kafka, RabbitMQ, NATS, gRPC, Git, CI/CD, REST API Design, Event-Driven Architecture, Helm, GitHub Actions, Ansible, Project Planning, Conflict Resolution, Presentation Skills, Time Management\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – NEU – Hanoi, 2015 | TOEIC 750",
   "pdf_file": "candidate4_5.pdf"
 }

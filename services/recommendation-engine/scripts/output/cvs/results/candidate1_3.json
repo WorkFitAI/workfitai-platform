@@ -1,15 +1,16 @@
 {
-  "candidateNum": 3,
+  "candidateNum": 1,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 0
+    "index": 2
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 3,
-  "resume_summary": "Hands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of Redis-based tooling, improving MTTR by 37%.",
-  "resume_experience": "Principal ML Engineer @ VPBank (Oct 2022–Feb 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Nov 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Feb 2025) | ML Engineer @ BCG Vietnam (Nov 2023–Feb 2026) | ML Engineer @ Oracle Vietnam (Sep 2023–Present)",
-  "resume_skills": "PostgreSQL, Docker, TypeScript, Redis, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Azure, Project Planning, Empathy & Active Listening, Time Management",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
-  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in HuggingFace Transformers and Go. Drove adoption of Redis-based tooling, improving MTTR by 37%.\n\nEXPERIENCE\nPrincipal ML Engineer @ VPBank (Oct 2022–Feb 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Lead ML Engineer @ Techcombank (Nov 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Senior ML Engineer @ ThoughtWorks Vietnam (Nov 2022–Feb 2025) | ML Engineer @ BCG Vietnam (Nov 2023–Feb 2026) | ML Engineer @ Oracle Vietnam (Sep 2023–Present)\n\nSKILLS\nPostgreSQL, Docker, TypeScript, Redis, Python, Scala, Go, Swift, scikit-learn, HuggingFace Transformers, TensorFlow, NumPy, GitHub Actions, ArgoCD, Azure, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "jobTitle": "Fullstack Engineer - Next.js / NodeJS",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Versatile Software Engineer (Full-Stack) (13 yrs) with a track record of delivering complex distributed systems on time. Proficient in Kotlin and AWS. Mentored 5 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ KMS Technology (Dec 2023–Feb 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 40% to 92%. | Lead Software Engineer @ Techcombank (Jun 2024–Jan 2026) · Reduced design-to-dev handoff cycle time by 31% by introducing a shared Figma design system. | Senior Software Engineer @ Rikkeisoft (Jan 2024–Present)",
+  "resume_skills": "ReactJS, TypeScript, NextJS, PostgreSQL, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, Flutter, NestJS, Continuous Learning, Data-Driven Decision Making, Technical Communication, Analytical Thinking, Project Planning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nVersatile Software Engineer (Full-Stack) (13 yrs) with a track record of delivering complex distributed systems on time. Proficient in Kotlin and AWS. Mentored 5 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ KMS Technology (Dec 2023–Feb 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 40% to 92%. | Lead Software Engineer @ Techcombank (Jun 2024–Jan 2026) · Reduced design-to-dev handoff cycle time by 31% by introducing a shared Figma design system. | Senior Software Engineer @ Rikkeisoft (Jan 2024–Present)\n\nSKILLS\nReactJS, TypeScript, NextJS, PostgreSQL, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, Flutter, NestJS, Continuous Learning, Data-Driven Decision Making, Technical Communication, Analytical Thinking, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate1_3.pdf"
 }

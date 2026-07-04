@@ -21,7 +21,18 @@ public class FileService {
     private final String bucket = "cvs-files";
 
     public String uploadCV(MultipartFile file) throws Exception {
-        String objectName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        return uploadCV(file, file.getOriginalFilename());
+    }
+
+    /**
+     * Uploads a CV PDF, naming the MinIO object after {@code displayName} instead of the
+     * raw original filename (e.g. the job title for an application snapshot).
+     *
+     * The name is sanitized to satisfy {@link org.workfitai.cvservice.constant.CVConst#PDF_FILE_PATTERN}
+     * — downloadCV() rejects anything that doesn't match, so whatever we store here MUST match it too.
+     */
+    public String uploadCV(MultipartFile file, String displayName) throws Exception {
+        String objectName = UUID.randomUUID() + "-" + sanitizeFileNameSegment(displayName) + ".pdf";
 
         minioClient.putObject(
                 PutObjectArgs.builder()
@@ -33,6 +44,40 @@ public class FileService {
         );
 
         return objectName; // chính là storageKey bạn lưu DB
+    }
+
+    /**
+     * Strips the extension (if any) and replaces every character outside [a-zA-Z0-9._-]
+     * with "_" so the result is always safe to embed in a MinIO object key and a download
+     * Content-Disposition header.
+     */
+    private String sanitizeFileNameSegment(String rawName) {
+        String base = rawName == null || rawName.isBlank() ? "cv" : rawName;
+        int dot = base.lastIndexOf('.');
+        if (dot > 0) {
+            base = base.substring(0, dot);
+        }
+        String sanitized = base.replaceAll("[^a-zA-Z0-9._-]", "_");
+        return sanitized.isBlank() ? "cv" : sanitized;
+    }
+
+    /**
+     * Uploads raw PDF bytes (not a multipart upload) — used when re-creating a CV
+     * snapshot from a previously stored {@code cvFileUrl} (reconciliation flow).
+     */
+    public String uploadCvBytes(InputStream content, long size, String contentType, String displayName) throws Exception {
+        String objectName = UUID.randomUUID() + "-" + sanitizeFileNameSegment(displayName) + ".pdf";
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(objectName)
+                        .stream(content, size, -1)
+                        .contentType(contentType)
+                        .build()
+        );
+
+        return objectName;
     }
 
     public InputStream downloadCV(String objectName) throws Exception {

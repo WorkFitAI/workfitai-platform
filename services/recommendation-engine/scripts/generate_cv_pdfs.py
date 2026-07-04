@@ -911,10 +911,15 @@ def _parse_job_spec(source) -> dict:
     }
 
 
-def generate_cv_data_for_job(index: int, job_spec: dict) -> dict:
+def generate_cv_data_for_job(index: int, job_spec: dict, force_match: bool | None = None) -> dict:
     """
     Generate CV data biased toward a specific job spec.
     job_spec (from _parse_job_spec): title, skills, level, mix_rate, job_id.
+
+    force_match: deterministic override for analytics/ground-truth datasets.
+        True  -> guaranteed matching role + heavy job-skill injection (label "match")
+        False -> guaranteed non-matching role + zero job-skill injection (label "no_match")
+        None  -> original probabilistic behaviour driven by mix_rate / tier
     """
     Faker.seed(index * 37 + 11)
     random.seed(index * 19 + 5)
@@ -926,7 +931,12 @@ def generate_cv_data_for_job(index: int, job_spec: dict) -> dict:
 
     # ── Role selection ────────────────────────────────────────────────────────
     matched_roles = _find_matching_roles(job_title)
-    if random.random() < mix_rate:
+    if force_match is True:
+        role_base, speciality = random.choice(matched_roles)
+    elif force_match is False:
+        nonmatched_roles = [r for r in JOB_ROLES if r not in matched_roles] or JOB_ROLES
+        role_base, speciality = random.choice(nonmatched_roles)
+    elif random.random() < mix_rate:
         role_base, speciality = random.choice(matched_roles)
     else:
         role_base, speciality = random.choice(JOB_ROLES)
@@ -958,7 +968,14 @@ def generate_cv_data_for_job(index: int, job_spec: dict) -> dict:
     # tier 0 (40%): strong match — inject almost all job skills
     # tier 1 (35%): partial match — inject ~50% job skills
     # tier 2 (25%): weak match — inject ~20% job skills + possibly different role
-    _tier = 0 if index % 10 < 4 else (1 if index % 10 < 8 else 2)
+    # force_match short-circuits the tier system for deterministic ground-truth labels.
+    if force_match is True:
+        inject_rate = 0.9
+    elif force_match is False:
+        inject_rate = 0.0
+    else:
+        _tier = 0 if index % 10 < 4 else (1 if index % 10 < 8 else 2)
+        inject_rate = {0: 0.9, 1: 0.5, 2: 0.2}[_tier]
 
     cat_pool    = ROLE_SKILL_CATS.get(role_base, list(SKILLS_BY_CAT.keys()))
     chosen_cats = random.sample(cat_pool, k=min(random.randint(3, 5), len(cat_pool)))
@@ -967,8 +984,7 @@ def generate_cv_data_for_job(index: int, job_spec: dict) -> dict:
         pool = SKILLS_BY_CAT.get(cat, [])
         bg_skills += random.sample(pool, k=min(random.randint(2, 4), len(pool)))
 
-    if job_skills:
-        inject_rate = {0: 0.9, 1: 0.5, 2: 0.2}[_tier]
+    if job_skills and inject_rate > 0:
         n_inject = max(1, round(len(job_skills) * inject_rate))
         injected = random.sample(job_skills, k=min(n_inject, len(job_skills)))
     else:
@@ -1737,11 +1753,11 @@ def main():
             if key not in seen_job_keys:
                 seen_job_keys[key] = len(seen_job_keys) + 1
 
-        # Group candidates per job key (preserving order)
-        job_candidates: dict[tuple, list[int]] = {}
+        # Group candidates per job key (preserving order); carry optional ground-truth label
+        job_candidates: dict[tuple, list[tuple[int, str | None]]] = {}
         for app in applications:
             key = (app["jobRef"]["hrmKey"], app["jobRef"]["index"])
-            job_candidates.setdefault(key, []).append(app["candidateNum"])
+            job_candidates.setdefault(key, []).append((app["candidateNum"], app.get("label")))
 
         out_dir = Path(args.output) if args.output != "output/cvs" else Path("output/cvs/results")
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -1766,11 +1782,12 @@ def main():
 
             print(f"\n  Job {job_idx}: [{hrm_key}/{job_index}] {job_spec['title']}")
 
-            for cand_ordinal, cand_num in enumerate(candidates, start=1):
-                data = generate_cv_data_for_job(cand_num, job_spec)
+            for cand_ordinal, (cand_num, label) in enumerate(candidates, start=1):
+                force_match = {"match": True, "no_match": False}.get(label)
+                data = generate_cv_data_for_job(cand_num, job_spec, force_match=force_match)
                 meta = data["_meta"]
 
-                basename = f"candidate{job_idx}_{cand_ordinal}"
+                basename = f"candidate{cand_num}_{job_idx}"
                 pdf_path  = str(out_dir / f"{basename}.pdf")
                 json_path = str(out_dir / f"{basename}.json")
 
@@ -1781,6 +1798,7 @@ def main():
                         "candidateNum":      cand_num,
                         "jobRef":            {"hrmKey": hrm_key, "index": job_index},
                         "jobTitle":          job_spec["title"],
+                        "label":             label,
                         "resume_index":      cand_num,
                         "resume_summary":    data["resume_summary"],
                         "resume_experience": data["resume_experience"],
@@ -1797,6 +1815,7 @@ def main():
                     "candidateNum": cand_num,
                     "name":         meta["name"],
                     "role":         meta["role"],
+                    "label":        label,
                     "job_idx":      job_idx,
                     "jobRef":       {"hrmKey": hrm_key, "index": job_index},
                     "jobTitle":     job_spec["title"],

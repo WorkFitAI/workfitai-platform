@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 8,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 2
+    "index": 4
   },
-  "jobTitle": "Data Scientist - Machine Learning",
-  "resume_index": 10,
-  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with R, Tableau, and Python. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Lead Data Scientist @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Data Scientist @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Data Scientist @ Oracle Vietnam (Jan 2023–Jun 2025) | Data Analyst @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Data Analyst @ MoMo (M-Service) (Dec 2024–Present)",
-  "resume_skills": "TensorFlow, scikit-learn, SQL, Python, MongoDB, BigQuery, Tableau, Metabase, Power BI, Mixpanel, R, Dart, Kotlin, Bash, Spark, Problem Decomposition, Empathy & Active Listening, Continuous Learning, Negotiation",
-  "resume_education": "Bachelor of Science in Data Science – VNU-HN, 2017 | TOEIC 900",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with R, Tableau, and Python. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Data Scientist @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Senior Data Scientist @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Data Scientist @ Oracle Vietnam (Jan 2023–Jun 2025) | Data Analyst @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | Data Analyst @ MoMo (M-Service) (Dec 2024–Present)\n\nSKILLS\nTensorFlow, scikit-learn, SQL, Python, MongoDB, BigQuery, Tableau, Metabase, Power BI, Mixpanel, R, Dart, Kotlin, Bash, Spark, Problem Decomposition, Empathy & Active Listening, Continuous Learning, Negotiation\n\nEDUCATION\nBachelor of Science in Data Science – VNU-HN, 2017 | TOEIC 900",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "no_match",
+  "resume_index": 8,
+  "resume_summary": "Strategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.",
+  "resume_experience": "Lead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Aug 2024–Jun 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)",
+  "resume_skills": "Excel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nStrategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.\n\nEXPERIENCE\nLead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Aug 2024–Jun 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)\n\nSKILLS\nExcel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate8_10.pdf"
 }

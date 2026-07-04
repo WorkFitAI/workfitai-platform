@@ -101,10 +101,21 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_APPLICATION_STATUS: str = Field(default="application-status", env="KAFKA_TOPIC_APPLICATION_STATUS")
     KAFKA_TOPIC_CV_UPDATED: str = Field(default="cv.updated", env="KAFKA_TOPIC_CV_UPDATED")
     KAFKA_CV_REFER_GROUP: str = Field(default="recommendation-engine-cv-refer", env="KAFKA_CV_REFER_GROUP")
-    
+
+    # Platform feature toggle (admin AI kill switch) Kafka topic
+    KAFKA_TOPIC_FEATURE_TOGGLE: str = Field(
+        default="platform-feature-toggle-events", env="KAFKA_TOPIC_FEATURE_TOGGLE"
+    )
+    KAFKA_FEATURE_TOGGLE_GROUP: str = Field(
+        default="recommendation-engine-feature-toggle", env="KAFKA_FEATURE_TOGGLE_GROUP"
+    )
+
     # Job Service Integration
     JOB_SERVICE_URL: str = Field(default="http://job-service:9082", env="JOB_SERVICE_URL")
     JOB_SERVICE_TIMEOUT: int = Field(default=30, env="JOB_SERVICE_TIMEOUT")
+
+    # User Service Integration (candidate AI-recommendation consent lookup)
+    USER_SERVICE_URL: str = Field(default="http://user-service:9081", env="USER_SERVICE_URL")
 
     # Application Service & CV Service (for cv-refer initial sync)
     APPLICATION_SERVICE_URL: str = Field(default="http://application-service:9084", env="APPLICATION_SERVICE_URL")
@@ -125,13 +136,15 @@ class Settings(BaseSettings):
     # Performance
     MAX_WORKERS: int = Field(default=4, env="MAX_WORKERS")
 
-    # CV Ranking Cache (rank-by-job) — ships dark; enable after load test
-    CV_RANKING_CACHE_ENABLED: bool = Field(default=False, env="CV_RANKING_CACHE_ENABLED")
+    # CV Ranking Cache (rank-by-job)
+    CV_RANKING_CACHE_ENABLED: bool = Field(default=True, env="CV_RANKING_CACHE_ENABLED")
     CV_RANKING_CACHE_COOLDOWN_SECONDS: int = Field(default=300, env="CV_RANKING_CACHE_COOLDOWN_SECONDS")
+    # Retry-After (seconds) returned on a cache miss while the background compute runs
+    CV_RANKING_MISS_RETRY_AFTER_SECONDS: int = Field(default=10, env="CV_RANKING_MISS_RETRY_AFTER_SECONDS")
 
-    # Recommendation Cache — ships dark; enable after load test
-    RECOMMENDATION_CACHE_ENABLED: bool = Field(default=False, env="RECOMMENDATION_CACHE_ENABLED")
-    RECOMMENDATION_CACHE_COOLDOWN_SECONDS: int = Field(default=60, env="RECOMMENDATION_CACHE_COOLDOWN_SECONDS")
+    # Recommendation Cache
+    RECOMMENDATION_CACHE_ENABLED: bool = Field(default=True, env="RECOMMENDATION_CACHE_ENABLED")
+    RECOMMENDATION_CACHE_COOLDOWN_SECONDS: int = Field(default=300, env="RECOMMENDATION_CACHE_COOLDOWN_SECONDS")
     RECOMMENDATION_CACHE_MAX_ENTRIES: int = Field(default=1000, env="RECOMMENDATION_CACHE_MAX_ENTRIES")
     RECOMMENDATION_CACHE_TTL_SECONDS: int = Field(default=600, env="RECOMMENDATION_CACHE_TTL_SECONDS")
 

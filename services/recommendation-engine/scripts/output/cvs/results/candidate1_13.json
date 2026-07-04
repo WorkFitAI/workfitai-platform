@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 2
+  },
+  "jobTitle": "Lead Data Engineer - Data Platform",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with WebSocket, Elasticsearch, and Kafka. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Data Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead Data Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior Data Engineer @ KMS Technology (Aug 2025–Present)",
+  "resume_skills": "Python, Apache Spark, Kafka, Airflow, GitHub Actions, AWS, Ansible, Dart, Scala, WebSocket, RabbitMQ, NATS, Elasticsearch, MongoDB, Cassandra, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
+  "resume_education": "Bachelor of Science in Computer Science – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with WebSocket, Elasticsearch, and Kafka. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Data Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead Data Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior Data Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nPython, Apache Spark, Kafka, Airflow, GitHub Actions, AWS, Ansible, Dart, Scala, WebSocket, RabbitMQ, NATS, Elasticsearch, MongoDB, Cassandra, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Computer Science – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate1_13.pdf"
+}

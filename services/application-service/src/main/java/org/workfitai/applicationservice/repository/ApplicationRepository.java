@@ -146,4 +146,11 @@ public interface ApplicationRepository extends MongoRepository<Application, Stri
 
         /** Finds all active applications in the given statuses — used for cv-refer initial sync. */
         List<Application> findByStatusInAndDeletedAtIsNull(List<ApplicationStatus> statuses);
+
+        /**
+         * Finds active applications still missing a CV snapshot (SNAPSHOT_CV saga step
+         * failed and was never retried successfully) — used by the reconciliation job
+         * to backfill them from cvFileUrl.
+         */
+        List<Application> findByCvSnapshotIdIsNullAndStatusInAndDeletedAtIsNull(List<ApplicationStatus> statuses);
 }

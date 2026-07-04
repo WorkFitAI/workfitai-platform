@@ -614,7 +614,7 @@ public class OAuthService {
      * Get backend base URL for OAuth provider callback
      */
     private String getBackendBaseUrl() {
-        return backendBaseUrl;
+        return backendBaseUrl.replaceAll("/+$", "");
     }
 
     /**

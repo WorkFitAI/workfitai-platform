@@ -164,6 +164,36 @@ class SingleFlightCache:
             return entry.result, True   # fresh hit
         return None, False              # TTL-expired, needs recompute
 
+    def try_start_compute(self, key: str) -> bool:
+        """
+        Non-blocking. Claims the per-key single-flight slot for `key` without computing
+        anything. Returns True if this caller won the race and MUST call finish_compute()
+        exactly once (success or failure). Returns False when a compute is already in
+        flight — caller should just signal "retry later", no new work needed.
+
+        Pairs with finish_compute() for callers that need to return to the client
+        immediately (e.g. a 202 Accepted) while compute runs in the background.
+        """
+        return self._get_key_lock(key).acquire(blocking=False)
+
+    def finish_compute(self, key: str, result: Optional[Any]) -> None:
+        """
+        Releases the single-flight slot claimed by try_start_compute(). Stores `result`
+        as a fresh entry when not None; leaves any existing entry untouched on failure
+        (result=None) so the next request retries the compute instead of caching a gap.
+        """
+        if result is not None:
+            new_entry = CacheEntry(
+                result=result,
+                computed_at=time.monotonic(),
+                version=self._get_current_version(),
+                state=CacheState.FRESH,
+                dirty=False,
+            )
+            with self._global_lock:
+                self._set_entry(key, new_entry)
+        self._get_key_lock(key).release()
+
     def force_refresh(self, key: str, compute_fn: Callable[[], Any]) -> Any:
         """
         Unconditionally recompute and store a fresh entry, bypassing stale/TTL checks.

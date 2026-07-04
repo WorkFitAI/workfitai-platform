@@ -1,0 +1,16 @@
+{
+  "candidateNum": 4,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 3
+  },
+  "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Detail-oriented principal-level Solutions Consultant with 11 years optimising operations and delivering insights. Strong command of JIRA and Kanban. Managed portfolios of up to $8M across 5 concurrent projects.",
+  "resume_experience": "Principal Consultant @ CMC Global (Sep 2022–Nov 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior Solutions Consultant @ Techcombank (Jul 2023–Jun 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Solutions Consultant @ Shopee Vietnam (Jan 2024–May 2025) | Junior Consultant @ Medici Health (Jun 2024–Oct 2025) | Junior Consultant @ ACB Bank (Dec 2023–Present)",
+  "resume_skills": "Docker, AWS, Terraform, Linux, JIRA, Kanban, Visio, BPMN, Stakeholder Workshops, Process Mapping, Scala, TypeScript, Dart, Time Management, Presentation Skills, Empathy & Active Listening, Stakeholder Management, Conflict Resolution",
+  "resume_education": "Bachelor of Science in Information Systems – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nDetail-oriented principal-level Solutions Consultant with 11 years optimising operations and delivering insights. Strong command of JIRA and Kanban. Managed portfolios of up to $8M across 5 concurrent projects.\n\nEXPERIENCE\nPrincipal Consultant @ CMC Global (Sep 2022–Nov 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior Solutions Consultant @ Techcombank (Jul 2023–Jun 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Solutions Consultant @ Shopee Vietnam (Jan 2024–May 2025) | Junior Consultant @ Medici Health (Jun 2024–Oct 2025) | Junior Consultant @ ACB Bank (Dec 2023–Present)\n\nSKILLS\nDocker, AWS, Terraform, Linux, JIRA, Kanban, Visio, BPMN, Stakeholder Workshops, Process Mapping, Scala, TypeScript, Dart, Time Management, Presentation Skills, Empathy & Active Listening, Stakeholder Management, Conflict Resolution\n\nEDUCATION\nBachelor of Science in Information Systems – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate4_14.pdf"
+}

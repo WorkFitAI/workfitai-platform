@@ -194,5 +194,10 @@ def get_recommendation_cache() -> RecommendationCache:
     """Module-level singleton — mirrors get_store() in cv_refer_store.py."""
     global _cache
     if _cache is None:
-        _cache = RecommendationCache()
+        from app.config import get_settings
+        settings = get_settings()
+        _cache = RecommendationCache(
+            max_entries=settings.RECOMMENDATION_CACHE_MAX_ENTRIES,
+            ttl_seconds=float(settings.RECOMMENDATION_CACHE_TTL_SECONDS),
+        )
     return _cache

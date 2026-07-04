@@ -1,15 +1,16 @@
 {
-  "candidateNum": 5,
+  "candidateNum": 1,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 0
+    "index": 4
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 5,
-  "resume_summary": "Versatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
-  "resume_skills": "TypeScript, Node.js, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening",
-  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Software Engineer (Frontend) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NestJS and Flask. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Software Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Software Engineer @ VPBank (Aug 2022–Jun 2025) | Software Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nTypeScript, Node.js, Flask, NestJS, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Senior DevOps / Platform Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in AWS and Kubernetes. Cut release cycle by 29% through CI/CD automation at last role.",
+  "resume_experience": "Lead Platform Engineer @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Platform Engineer @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior DevOps Engineer @ KMS Technology (Apr 2024–Present)",
+  "resume_skills": "Docker, AWS, Terraform, Kubernetes, CI/CD, Agile / Scrum, Git, REST API Design, gRPC, Apache Kafka, NATS, ArgoCD, GCP, Java, C#, Time Management, Presentation Skills, Cross-functional Collaboration, Project Planning",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nSenior DevOps / Platform Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in AWS and Kubernetes. Cut release cycle by 29% through CI/CD automation at last role.\n\nEXPERIENCE\nLead Platform Engineer @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Platform Engineer @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior DevOps Engineer @ KMS Technology (Apr 2024–Present)\n\nSKILLS\nDocker, AWS, Terraform, Kubernetes, CI/CD, Agile / Scrum, Git, REST API Design, gRPC, Apache Kafka, NATS, ArgoCD, GCP, Java, C#, Time Management, Presentation Skills, Cross-functional Collaboration, Project Planning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_5.pdf"
 }

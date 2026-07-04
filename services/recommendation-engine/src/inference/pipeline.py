@@ -1,26 +1,41 @@
 """
-CV Ranking Pipeline — three-stage inference.
+CV Ranking Pipeline — 3-stage inference.
 
-Stage 1: Bi-Encoder + cosine similarity → top-K candidates
-Stage 2: Cross-Encoder reranking → top-N (optional; degrades to bi-encoder)
-Stage 3: T5 explanation generation → human-readable rationale (optional; degrades to rule-based)
+Stage 1: Bi-Encoder + FAISS  → top-K candidates (similarity_score)
+Stage 2: Cross-Encoder       → rerank to top-N   (cross_score + final_score)
+Stage 3: T5 / rule-based     → natural language explanation + label
+
+Input contract (api_contract.md):
+  JobInput   : jd_overview/512, jd_requirements/512, jd_responsibilities/400, jd_preferred/256
+  ResumeInput: resume_summary/400, resume_experience/512, resume_skills/300, resume_education/256
+  Fields *_text (job_description_text, resume_text): used as fallback when structured fields are empty.
 
 Place trained weights under models/cv-refer/:
-  bi-encoder/       — SentenceTransformer bi-encoder
-  cross-encoder/    — CrossEncoder (sentence-transformers)
-  explanation-t5/   — T5 seq2seq model (AutoModelForSeq2SeqLM)
+  bi-encoder/       — SentenceTransformer bi-encoder (required)
+  cross-encoder/    — CrossEncoder sentence-transformers (optional; degrades to bi-encoder)
+  explanation-t5/   — T5 seq2seq AutoModelForSeq2SeqLM (optional; degrades to rule-based)
+
+Score fusion:
+  final_score = 0.3 * similarity_score + 0.7 * cross_score   (all scores 0–100)
+
+Labels (configurable via good_fit_threshold; calibrated optimum ~27):
+  score >= good_fit_threshold → "Good Fit"
+  score <  good_fit_threshold → "No Fit"
+  score <  min_score          → excluded from results entirely
 """
 
 from __future__ import annotations
 
 import os
 import time
-import logging
 import yaml
-from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
-
+import logging
 import numpy as np
+import faiss
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any, Tuple
+
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +51,7 @@ class JobInput:
     jd_requirements: str
     jd_responsibilities: str
     jd_preferred: str = ""
-    job_description_text: str = ""  # display only — never fed to model
+    job_description_text: str = ""  # fallback when structured fields empty
 
 
 @dataclass
@@ -46,7 +61,7 @@ class ResumeInput:
     resume_experience: str
     resume_skills: str
     resume_education: str = ""
-    resume_text: str = ""  # display only — never fed to model
+    resume_text: str = ""  # fallback when structured fields empty
 
 
 @dataclass
@@ -84,6 +99,84 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Text assembly helpers (section labels + hard char limits per spec)
+# ---------------------------------------------------------------------------
+
+def _build_job_text(job: JobInput) -> str:
+    parts = []
+    if job.jd_overview:
+        parts.append(f"Overview: {job.jd_overview[:512]}")
+    if job.jd_requirements:
+        parts.append(f"Requirements: {job.jd_requirements[:512]}")
+    if job.jd_responsibilities:
+        parts.append(f"Responsibilities: {job.jd_responsibilities[:400]}")
+    if job.jd_preferred:
+        parts.append(f"Preferred: {job.jd_preferred[:256]}")
+    text = " | ".join(parts).strip()
+    # Fallback: use raw description when structured fields were not populated
+    if not text:
+        text = (job.job_description_text or "")[:450].strip()
+    return text
+
+
+def _build_resume_text(resume: ResumeInput) -> str:
+    parts = []
+    if resume.resume_summary:
+        parts.append(f"Summary: {resume.resume_summary[:400]}")
+    if resume.resume_experience:
+        parts.append(f"Experience: {resume.resume_experience[:512]}")
+    if resume.resume_skills:
+        parts.append(f"Skills: {resume.resume_skills[:300]}")
+    if resume.resume_education:
+        parts.append(f"Education: {resume.resume_education[:256]}")
+    text = " | ".join(parts).strip()
+    # Fallback: use raw resume text when structured fields were not populated
+    if not text:
+        text = (resume.resume_text or "")[:450].strip()
+    return text
+
+
+# ---------------------------------------------------------------------------
+# Explanation helpers (module-level, no model state)
+# ---------------------------------------------------------------------------
+
+def _t5_generate(model, tokenizer, job_text: str, resume_text: str, score: float) -> str:
+    import torch
+    # Format must match training: "rank job: {jd} | resume: {cv} | score: {N}"
+    prompt = (
+        f"rank job: {job_text[:450]} | "
+        f"resume: {resume_text[:450]} | "
+        f"score: {score:.0f}"
+    )
+    inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+    with torch.no_grad():
+        outputs = model.generate(**inputs, max_new_tokens=128, num_beams=4, early_stopping=True)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+
+def _rule_explanation(score: float) -> str:
+    if score >= 75:
+        return "Strong match across skills, experience, and qualifications for this role."
+    if score >= 55:
+        return "Good alignment with key requirements; meets most criteria for this position."
+    if score >= 35:
+        return "Partial match; has some relevant skills but may lack key qualifications."
+    return "Limited alignment with the job requirements based on profile analysis."
+
+
+def _is_valid_t5_explanation(text: str) -> bool:
+    """
+    Reject T5 output that is empty, too short, or contains error/diagnostic patterns
+    from a bad or undertrained model. Falls back to rule-based in those cases.
+    """
+    if not text or len(text.strip()) < 15:
+        return False
+    lower = text.lower()
+    # Reject outputs that look like internal error messages or diagnostic artifacts
+    return not any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score ("))
+
+
+# ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
@@ -91,68 +184,54 @@ class CVRankingPipeline:
     """
     Three-stage CV ranking pipeline.
 
-    Initialization loads all three models once; rank() is called per request.
-    Thread-safe for concurrent read-only inference (eval mode, no state mutation).
+    Bi-encoder and cross-encoder are required; T5 explanation model is optional
+    (falls back to rule-based explanations when absent).
+    Thread-safe for concurrent read-only inference (models in eval mode, no shared mutable state).
     """
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.model_dir = config.get("model_dir", "/app/models/cv-refer")
+        self.batch_size: int = config.get("batch_size", 32)
+        self.device: str = config.get("device", "cpu")
+
         self.top_k_default: int = config.get("top_k", 100)
         self.top_n_default: int = config.get("top_n", 20)
         self.min_score_default: float = config.get("min_score", 20.0)
-        self.good_fit_threshold_default: float = config.get("good_fit_threshold", 55.0)
+        self.good_fit_threshold_default: float = config.get("good_fit_threshold", 27.0)
 
-        self._bi_encoder = None
-        self._cross_encoder = None
+        self._bi_encoder: Optional[SentenceTransformer] = None
+        self._cross_encoder: Optional[CrossEncoder] = None
         self._t5_model = None
         self._t5_tokenizer = None
-        self._batch_size: int = config.get("batch_size", 32)
         self._ready = False
 
         self._load_models()
 
-    # ------------------------------------------------------------------
-    # Model loading
-    # ------------------------------------------------------------------
-
     def _load_models(self):
-        """Load bi-encoder (required), cross-encoder and T5 (optional)."""
-        from sentence_transformers import SentenceTransformer, CrossEncoder
+        bi_path = os.path.join(self.model_dir, self.config.get("bi_encoder_model", "bi-encoder"))
+        ce_path = os.path.join(self.model_dir, self.config.get("cross_encoder_model", "cross-encoder"))
+        t5_path = os.path.join(self.model_dir, self.config.get("t5_model", "explanation-t5"))
 
-        bi_encoder_path = os.path.join(
-            self.model_dir, self.config.get("bi_encoder_model", "bi-encoder")
-        )
-        cross_encoder_path = os.path.join(
-            self.model_dir, self.config.get("cross_encoder_model", "cross-encoder")
-        )
-        t5_path = os.path.join(
-            self.model_dir, self.config.get("t5_model", "explanation-t5")
-        )
-
-        # Stage 1 model — required; failure prevents startup
+        # Bi-encoder — required
         try:
-            self._bi_encoder = SentenceTransformer(bi_encoder_path)
-            logger.info("CVRankingPipeline: bi-encoder loaded from %s", bi_encoder_path)
+            self._bi_encoder = SentenceTransformer(bi_path, device=self.device)
+            self._bi_encoder.eval()
+            logger.info("CVRankingPipeline: bi-encoder loaded from %s", bi_path)
         except Exception as e:
             logger.error(
-                "CVRankingPipeline: bi-encoder failed to load from %s: %s — "
-                "endpoint will return 503 until models are in place.",
-                bi_encoder_path, e,
+                "CVRankingPipeline: bi-encoder failed (%s) — endpoint will return 503.", e
             )
-            return  # _ready stays False
+            return
 
-        # Stage 2 model — optional
+        # Cross-encoder — optional
         try:
-            self._cross_encoder = CrossEncoder(cross_encoder_path)
-            logger.info("CVRankingPipeline: cross-encoder loaded from %s", cross_encoder_path)
+            self._cross_encoder = CrossEncoder(ce_path, device=self.device)
+            logger.info("CVRankingPipeline: cross-encoder loaded from %s", ce_path)
         except Exception as e:
-            logger.warning(
-                "CVRankingPipeline: cross-encoder not loaded (%s) — "
-                "stage 2 will use bi-encoder scores only.", e
-            )
+            logger.warning("CVRankingPipeline: cross-encoder not loaded (%s) — stage 2 uses bi-encoder scores.", e)
 
-        # Stage 3 model — optional
+        # T5 explanation — optional
         try:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
             self._t5_tokenizer = AutoTokenizer.from_pretrained(t5_path)
@@ -160,10 +239,7 @@ class CVRankingPipeline:
             self._t5_model.eval()
             logger.info("CVRankingPipeline: T5 explanation model loaded from %s", t5_path)
         except Exception as e:
-            logger.warning(
-                "CVRankingPipeline: T5 model not loaded (%s) — "
-                "explanations will be rule-based.", e
-            )
+            logger.warning("CVRankingPipeline: T5 not loaded (%s) — explanations will be rule-based.", e)
 
         self._ready = True
         logger.info(
@@ -181,14 +257,23 @@ class CVRankingPipeline:
     # ------------------------------------------------------------------
 
     def rank(
-        self,
-        job: JobInput,
-        resumes: List[ResumeInput],
-        top_k: Optional[int] = None,
-        top_n: Optional[int] = None,
-        min_score: Optional[float] = None,
-        good_fit_threshold: Optional[float] = None,
+            self,
+            job: JobInput,
+            resumes: List[ResumeInput],
+            top_k: Optional[int] = None,
+            top_n: Optional[int] = None,
+            min_score: Optional[float] = None,
+            good_fit_threshold: Optional[float] = None,
+            resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
     ) -> RankResult:
+        """
+        resume_embeddings, when given, must be the same length as resumes — one
+        precomputed bi-encoder embedding per resume (None entries fall back to
+        encoding on the fly). Lets callers with a persistent embedding cache
+        (rank-by-job) skip re-encoding resumes that haven't changed since their
+        last CV snapshot, while the raw /rank endpoint (no cache) keeps encoding
+        every resume on every call as before.
+        """
         if not self._ready:
             raise RuntimeError(
                 "CVRankingPipeline is not ready. "
@@ -204,7 +289,7 @@ class CVRankingPipeline:
         )
 
         t0 = time.perf_counter()
-        stage1 = self._stage1_retrieve(job, resumes, top_k)
+        stage1 = self._stage1_retrieve(job, resumes, top_k, resume_embeddings)
         stage2 = self._stage2_rerank(job, stage1, top_n)
         ranked_resumes = self._stage3_explain(stage2, good_fit_threshold, min_score)
         processing_ms = (time.perf_counter() - t0) * 1000
@@ -237,52 +322,99 @@ class CVRankingPipeline:
         }
 
     # ------------------------------------------------------------------
-    # Stage implementations
+    # Stage 1 — Bi-Encoder + FAISS
     # ------------------------------------------------------------------
 
-    def _stage1_retrieve(
-        self, job: JobInput, resumes: List[ResumeInput], top_k: int
-    ) -> List[Dict[str, Any]]:
-        """Bi-encoder: encode job + resumes, return top_k by cosine similarity (0-100)."""
-        job_text = _build_job_text(job)
-        resume_texts = [_build_resume_text(r) for r in resumes]
+    def _resolve_resume_embeddings(
+            self,
+            resumes: List[ResumeInput],
+            resume_embeddings: Optional[List[Optional[np.ndarray]]],
+    ) -> np.ndarray:
+        """
+        Fill in any missing entries in resume_embeddings by batch-encoding just
+        those resumes, then stack everything back into resumes' original order.
+        With no precomputed embeddings at all (resume_embeddings=None), this is
+        equivalent to encoding every resume — i.e. unchanged behavior for the
+        raw /rank endpoint.
+        """
+        if resume_embeddings is None:
+            resume_embeddings = [None] * len(resumes)
 
-        # E5 convention: job is the query, CVs are passages
+        missing_idx = [i for i, emb in enumerate(resume_embeddings) if emb is None]
+        if missing_idx:
+            texts = [f"passage: {_build_resume_text(resumes[i])}" for i in missing_idx]
+            encoded = self._bi_encoder.encode(
+                texts,
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+                batch_size=self.batch_size,
+                show_progress_bar=False,
+            ).astype(np.float32)
+            for i, emb in zip(missing_idx, encoded):
+                resume_embeddings[i] = emb
+
+        return np.stack(resume_embeddings).astype(np.float32)
+
+    def encode_resume(self, resume: ResumeInput) -> np.ndarray:
+        """
+        Encode a single resume into the bi-encoder embedding space (same
+        normalization/prefix as stage 1). Used to precompute and cache an
+        embedding when a CV snapshot is written, instead of at rank time.
+        """
+        resume_text = _build_resume_text(resume)
+        return self._bi_encoder.encode(
+            f"passage: {resume_text}",
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        ).astype(np.float32)
+
+    def _stage1_retrieve(
+            self,
+            job: JobInput,
+            resumes: List[ResumeInput],
+            top_k: int,
+            resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Encode job + resumes, FAISS inner-product search, return top_k with similarity_score (0-100)."""
+        job_text = _build_job_text(job)
+
         job_emb = self._bi_encoder.encode(
             f"query: {job_text}",
             normalize_embeddings=True,
             convert_to_numpy=True,
             show_progress_bar=False,
-        )
-        resume_embs = self._bi_encoder.encode(
-            [f"passage: {t}" for t in resume_texts],
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            batch_size=self._batch_size,
-            show_progress_bar=False,
-        )
+        ).astype(np.float32)
 
-        # Dot product of L2-normalised vectors = cosine similarity ∈ [-1, 1]
-        scores = resume_embs @ job_emb
-        scores_100 = ((np.clip(scores, -1.0, 1.0) + 1.0) / 2.0) * 100.0
+        resume_embs = self._resolve_resume_embeddings(resumes, resume_embeddings)
 
-        top_indices = np.argsort(scores_100)[::-1][:top_k]
+        index = faiss.IndexFlatIP(resume_embs.shape[1])
+        index.add(resume_embs)
+        scores, indices = index.search(job_emb.reshape(1, -1), min(top_k, len(resumes)))
 
-        return [
-            {
-                "resume_index": resumes[i].resume_index,
-                "similarity_score": round(float(scores_100[i]), 2),
-                "score": round(float(scores_100[i]), 2),
-                "_resume": resumes[i],
+        candidates = []
+        for sim, idx in zip(scores[0], indices[0]):
+            if idx < 0:
+                continue
+            candidates.append({
+                "resume_index": resumes[idx].resume_index,
+                "_resume": resumes[idx],
                 "_job_text": job_text,
-            }
-            for i in top_indices
-        ]
+                "similarity_score": round(float(sim) * 100, 2),
+                "score": round(float(sim) * 100, 2),
+            })
+
+        logger.debug("Stage 1: %d / %d candidates", len(candidates), len(resumes))
+        return candidates
+
+    # ------------------------------------------------------------------
+    # Stage 2 — Cross-Encoder reranking
+    # ------------------------------------------------------------------
 
     def _stage2_rerank(
-        self, job: JobInput, candidates: List[Dict[str, Any]], top_n: int
+            self, job: JobInput, candidates: List[Dict[str, Any]], top_n: int
     ) -> List[Dict[str, Any]]:
-        """Cross-encoder: rerank top-K candidates to top-N. Falls back to bi-encoder order."""
+        """Cross-encoder reranking with score fusion (0.3 sim + 0.7 cross). Falls back to bi-encoder order."""
         if not candidates:
             return []
 
@@ -292,19 +424,17 @@ class CVRankingPipeline:
             return candidates[:top_n]
 
         job_text = candidates[0].get("_job_text", _build_job_text(job))
-        pairs = [[job_text, _build_resume_text(c["_resume"])] for c in candidates]
+        pairs: List[Tuple[str, str]] = [
+            (job_text, _build_resume_text(c["_resume"])) for c in candidates
+        ]
 
         try:
-            raw_scores = self._cross_encoder.predict(
-                pairs, convert_to_numpy=True, show_progress_bar=False
-            )
-            # Sigmoid → [0, 1] → scale to [0, 100]
-            scores_100 = (1.0 / (1.0 + np.exp(-raw_scores))) * 100.0
+            raw = self._cross_encoder.predict(pairs, convert_to_numpy=True, show_progress_bar=False)
+            cross_scores = (1.0 / (1.0 + np.exp(-raw))) * 100.0
 
-            for c, ce_score in zip(candidates, scores_100):
-                c["cross_score"] = round(float(ce_score), 2)
-                # Blended final score: 40% bi-encoder + 60% cross-encoder
-                c["score"] = round(0.4 * c["similarity_score"] + 0.6 * float(ce_score), 2)
+            for c, cs in zip(candidates, cross_scores):
+                c["cross_score"] = round(float(cs), 2)
+                c["score"] = round(0.3 * c["similarity_score"] + 0.7 * c["cross_score"], 2)
 
             candidates.sort(key=lambda c: c["score"], reverse=True)
         except Exception as e:
@@ -312,94 +442,59 @@ class CVRankingPipeline:
             for c in candidates:
                 c["cross_score"] = c["similarity_score"]
 
+        logger.debug("Stage 2: reranked to top %d", top_n)
         return candidates[:top_n]
 
+    # ------------------------------------------------------------------
+    # Stage 3 — Explanation + label + min_score filter
+    # ------------------------------------------------------------------
+
     def _stage3_explain(
-        self,
-        ranked: List[Dict[str, Any]],
-        good_fit_threshold: float,
-        min_score: float,
+            self,
+            ranked: List[Dict[str, Any]],
+            good_fit_threshold: float,
+            min_score: float,
     ) -> List[RankedResume]:
-        """Generate explanations, apply label, filter by min_score."""
+        """Assign label, generate explanation, filter score < min_score."""
         results = []
         for c in ranked:
             score = c["score"]
             if score < min_score:
                 continue
             label = "Good Fit" if score >= good_fit_threshold else "No Fit"
-            explanation = self._explain(c, label)
             results.append(RankedResume(
                 resume_index=c["resume_index"],
                 score=round(score, 2),
                 similarity_score=c["similarity_score"],
                 cross_score=c.get("cross_score", c["similarity_score"]),
                 label=label,
-                explanation=explanation,
+                explanation=self._explain(c, label),
             ))
+        logger.debug("Stage 3: %d resumes after min_score filter (%.1f)", len(results), min_score)
         return results
 
     def _explain(self, candidate: Dict[str, Any], label: str) -> str:
-        """T5 explanation with rule-based fallback."""
+        job_text = candidate.get("_job_text", "")
+        resume_text = _build_resume_text(candidate["_resume"])
+        score = candidate["score"]
+
+        # If either side has no content, skip T5 — rule-based is more honest than hallucination
+        if not job_text or not resume_text:
+            logger.debug(
+                "Skipping T5 for resume_index=%s (job_text=%d chars, resume_text=%d chars); using rule-based.",
+                candidate.get("resume_index"), len(job_text), len(resume_text),
+            )
+            return _rule_explanation(score)
+
         if self._t5_model is not None:
             try:
-                return _t5_generate(
-                    self._t5_model,
-                    self._t5_tokenizer,
-                    candidate.get("_job_text", ""),
-                    _build_resume_text(candidate["_resume"]),
+                t5_text = _t5_generate(self._t5_model, self._t5_tokenizer, job_text, resume_text, score)
+                if _is_valid_t5_explanation(t5_text):
+                    return t5_text
+                logger.warning(
+                    "T5 generated invalid/garbage explanation for resume_index=%s (output=%r); using rule-based fallback.",
+                    candidate.get("resume_index"), t5_text,
                 )
             except Exception as e:
                 logger.warning("T5 generation failed (%s); using rule-based fallback.", e)
-        return _rule_explanation(candidate["score"])
-
-
-# ---------------------------------------------------------------------------
-# Pure helper functions (no model state)
-# ---------------------------------------------------------------------------
-
-def _build_job_text(job: JobInput) -> str:
-    parts = []
-    if job.jd_overview:
-        parts.append(f"Overview: {job.jd_overview}")
-    if job.jd_requirements:
-        parts.append(f"Requirements: {job.jd_requirements}")
-    if job.jd_responsibilities:
-        parts.append(f"Responsibilities: {job.jd_responsibilities}")
-    if job.jd_preferred:
-        parts.append(f"Preferred: {job.jd_preferred}")
-    return "\n".join(parts) or job.job_description_text
-
-
-def _build_resume_text(resume: ResumeInput) -> str:
-    parts = []
-    if resume.resume_summary:
-        parts.append(f"Summary: {resume.resume_summary}")
-    if resume.resume_experience:
-        parts.append(f"Experience: {resume.resume_experience}")
-    if resume.resume_skills:
-        parts.append(f"Skills: {resume.resume_skills}")
-    if resume.resume_education:
-        parts.append(f"Education: {resume.resume_education}")
-    return "\n".join(parts) or resume.resume_text
-
-
-def _t5_generate(model, tokenizer, job_text: str, resume_text: str) -> str:
-    import torch
-    prompt = (
-        f"explain cv fit: job: {job_text[:200]} "
-        f"| resume: {resume_text[:300]}"
-    )
-    inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=80, num_beams=2, early_stopping=True)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-
-def _rule_explanation(score: float) -> str:
-    if score >= 75:
-        return "Strong match across skills, experience, and qualifications for this role."
-    if score >= 55:
-        return "Good alignment with key requirements; meets most criteria for this position."
-    if score >= 35:
-        return "Partial match; has some relevant skills but may lack key qualifications."
-    return "Limited alignment with the job requirements based on profile analysis."
+        return _rule_explanation(score)

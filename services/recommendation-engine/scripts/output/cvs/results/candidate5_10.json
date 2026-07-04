@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 5,
   "jobRef": {
-    "hrmKey": "hrm1",
+    "hrmKey": "hrm2",
     "index": 4
   },
-  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
-  "resume_index": 10,
-  "resume_summary": "7+ years as a DevOps / Platform Engineer specialising in NATS and NATS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Lead Platform Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Platform Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior DevOps Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | DevOps Engineer @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | DevOps Engineer @ MoMo (M-Service) (May 2025–Present)",
-  "resume_skills": "Docker, AWS, Kubernetes, Terraform, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning",
-  "resume_education": "Bachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a DevOps / Platform Engineer specialising in NATS and NATS. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Platform Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior DevOps Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | DevOps Engineer @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | DevOps Engineer @ MoMo (M-Service) (May 2025–Present)\n\nSKILLS\nDocker, AWS, Kubernetes, Terraform, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, PyTorch, and PostgreSQL. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "OpenAI API, PyTorch, PostgreSQL, LangChain, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, PyTorch, and PostgreSQL. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nOpenAI API, PyTorch, PostgreSQL, LangChain, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
   "pdf_file": "candidate5_10.pdf"
 }

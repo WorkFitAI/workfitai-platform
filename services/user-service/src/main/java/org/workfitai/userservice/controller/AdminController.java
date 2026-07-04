@@ -219,4 +219,5 @@ public class AdminController {
                 "Reindex job started. Check logs for progress.",
                 null));
     }
+
 }

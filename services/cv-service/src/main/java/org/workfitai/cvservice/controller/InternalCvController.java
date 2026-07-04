@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.workfitai.cvservice.model.dto.request.ReparseSnapshotRequest;
 import org.workfitai.cvservice.model.dto.response.CvDataResponse;
 import org.workfitai.cvservice.model.dto.response.CvSnapshotResponse;
 import org.workfitai.cvservice.service.iCVService;
@@ -50,6 +51,7 @@ public class InternalCvController {
      *
      * @param username      candidate's username (JWT sub from application-service context)
      * @param applicationId temporary UUID assigned by application-service before DB save
+     * @param jobName       title of the job applied to — used to name the stored PDF object
      * @param cvPdfFile     the CV PDF file uploaded by the candidate
      * @return {@link CvSnapshotResponse} with cvId and extracted structured fields
      */
@@ -57,12 +59,13 @@ public class InternalCvController {
     public ResponseEntity<CvSnapshotResponse> createApplicationSnapshot(
             @RequestPart("username") String username,
             @RequestPart("applicationId") String applicationId,
+            @RequestPart("jobName") String jobName,
             @RequestPart("cvPdfFile") MultipartFile cvPdfFile) {
 
-        log.info("Internal snapshot request: username={} applicationId={} fileSize={}",
-                username, applicationId, cvPdfFile.getSize());
+        log.info("Internal snapshot request: username={} applicationId={} jobName={} fileSize={}",
+                username, applicationId, jobName, cvPdfFile.getSize());
 
-        CvSnapshotResponse response = cvService.createApplicationSnapshot(username, applicationId, cvPdfFile);
+        CvSnapshotResponse response = cvService.createApplicationSnapshot(username, applicationId, jobName, cvPdfFile);
         return ResponseEntity.ok(response);
     }
 
@@ -84,5 +87,21 @@ public class InternalCvController {
         log.info("Internal batch-by-application-ids: found {}/{} snapshots",
                 results.size(), applicationIds.size());
         return ResponseEntity.ok(results);
+    }
+
+    /**
+     * Re-creates a snapshot CV by re-downloading the PDF from {@code cvFileUrl}.
+     *
+     * Used by application-service's reconciliation job to backfill applications
+     * whose original SNAPSHOT_CV call failed (cvSnapshotId still null).
+     */
+    @PostMapping("/reparse-snapshot")
+    public ResponseEntity<CvSnapshotResponse> reparseSnapshot(@RequestBody ReparseSnapshotRequest request) {
+        log.info("Internal reparse-snapshot request: username={} applicationId={} jobName={}",
+                request.getUsername(), request.getApplicationId(), request.getJobName());
+
+        CvSnapshotResponse response = cvService.reparseApplicationSnapshot(
+                request.getUsername(), request.getApplicationId(), request.getJobName(), request.getCvFileUrl());
+        return ResponseEntity.ok(response);
     }
 }

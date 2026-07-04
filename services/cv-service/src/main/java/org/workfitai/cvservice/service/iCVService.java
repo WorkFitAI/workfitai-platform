@@ -62,10 +62,11 @@ public interface iCVService {
      *
      * @param username      the candidate's username
      * @param applicationId the application's temporary UUID (assigned by application-service before save)
+     * @param jobName       title of the job applied to — used to name the stored PDF object
      * @param file          the uploaded CV PDF file bytes
      * @return {@link CvSnapshotResponse} containing cvId and structured extracted fields
      */
-    CvSnapshotResponse createApplicationSnapshot(String username, String applicationId,
+    CvSnapshotResponse createApplicationSnapshot(String username, String applicationId, String jobName,
                                                   org.springframework.web.multipart.MultipartFile file);
 
     /**
@@ -73,5 +74,23 @@ public interface iCVService {
      * Used by application-service to enrich active-pool responses.
      */
     List<CvSnapshotResponse> getCvSnapshotsByApplicationIds(List<String> applicationIds);
+
+    /**
+     * Re-creates a snapshot CV by downloading the candidate's original PDF from
+     * {@code cvFileUrl} (the URL application-service stores on the Application record,
+     * independent of whether the original SNAPSHOT_CV call ever succeeded).
+     *
+     * Used by application-service's reconciliation job to backfill applications whose
+     * {@code cvSnapshotId} is still null (the original apply-time call to cv-service
+     * failed and was never retried successfully).
+     *
+     * @param username      the candidate's username
+     * @param applicationId the application's UUID
+     * @param jobName       title of the job applied to — used to name the stored PDF object
+     * @param cvFileUrl     URL of the originally uploaded CV PDF (application-service's storage)
+     * @return {@link CvSnapshotResponse} containing cvId and structured extracted fields
+     */
+    CvSnapshotResponse reparseApplicationSnapshot(String username, String applicationId, String jobName,
+                                                   String cvFileUrl);
 }
 

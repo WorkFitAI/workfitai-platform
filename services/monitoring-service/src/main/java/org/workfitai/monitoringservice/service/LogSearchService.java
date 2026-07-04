@@ -85,37 +85,6 @@ public class LogSearchService {
                 .collect(Collectors.toList());
     }
 
-    public UserActivityResponse getUserActivity(LogSearchRequest request, boolean includeSummary) {
-        try {
-            LogSearchRequest activityRequest = buildActivitySearchRequest(request);
-            LogSearchResponse logResponse = searchLogs(activityRequest);
-
-            List<UserActivityEntry> activities = logResponse.getLogs().stream()
-                    .filter(this::isUserActivity)
-                    .map(UserActivityEntry::fromLogEntry)
-                    .collect(Collectors.toList());
-
-            long filteredTotal = activities.size();
-            int filteredTotalPages = (int) Math.ceil((double) filteredTotal / activityRequest.getSize());
-
-            UserActivityResponse.UserActivityResponseBuilder builder = UserActivityResponse.builder()
-                    .total(filteredTotal)
-                    .page(logResponse.getPage())
-                    .size(logResponse.getSize())
-                    .totalPages(filteredTotalPages)
-                    .activities(activities);
-
-            if (includeSummary) {
-                builder.summary(calculateActivitySummary(activities, activityRequest));
-            }
-
-            return builder.build();
-        } catch (Exception e) {
-            log.error("Failed to get user activity: {}", e.getMessage(), e);
-            return UserActivityResponse.builder().total(0).activities(Collections.emptyList()).build();
-        }
-    }
-
     // ─── Query builders ───────────────────────────────────────────────────────────
 
     private BoolQuery.Builder buildLogBoolQuery(LogSearchRequest request) {
@@ -306,22 +275,6 @@ public class LogSearchService {
 
     // ─── User activity ────────────────────────────────────────────────────────────
 
-    private LogSearchRequest buildActivitySearchRequest(LogSearchRequest request) {
-        return LogSearchRequest.builder()
-                .query(request.getQuery())
-                .service(request.getService())
-                .levels(request.getLevels())
-                .from(request.getFrom() != null ? request.getFrom() : Instant.now().minus(24, ChronoUnit.HOURS))
-                .to(request.getTo() != null ? request.getTo() : Instant.now())
-                .traceId(request.getTraceId())
-                .userId(request.getUserId())
-                .username(request.getUsername())
-                .page(request.getPage())
-                .size(request.getSize())
-                .sortOrder(request.getSortOrder())
-                .build();
-    }
-
     /**
      * Returns true for user-initiated requests; false for system/health/infrastructure logs.
      */
@@ -376,51 +329,6 @@ public class LogSearchService {
         return lower.contains("health check") || lower.contains("scheduled task")
                 || lower.contains("background job") || lower.contains("auto-refresh")
                 || lower.contains("elasticsearch health");
-    }
-
-    private ActivitySummary calculateActivitySummary(List<UserActivityEntry> activities,
-                                                      LogSearchRequest request) {
-        try {
-            Map<String, Integer> actionsByUser = activities.stream()
-                    .filter(a -> a.getUsername() != null)
-                    .collect(Collectors.groupingBy(UserActivityEntry::getUsername,
-                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
-
-            Map<String, Integer> actionsByService = activities.stream()
-                    .filter(a -> a.getService() != null)
-                    .collect(Collectors.groupingBy(UserActivityEntry::getService,
-                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
-
-            Map<String, Integer> topActions = buildTopActionsMap(activities);
-
-            int errorCount = (int) activities.stream()
-                    .filter(a -> Boolean.TRUE.equals(a.getIsError()))
-                    .count();
-
-            return ActivitySummary.builder()
-                    .activeUsers(actionsByUser.size())
-                    .totalActions(activities.size())
-                    .errorCount(errorCount)
-                    .actionsByUser(actionsByUser)
-                    .actionsByService(actionsByService)
-                    .topActions(topActions)
-                    .build();
-        } catch (Exception e) {
-            log.warn("Failed to calculate activity summary: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private Map<String, Integer> buildTopActionsMap(List<UserActivityEntry> activities) {
-        Map<String, Integer> raw = activities.stream()
-                .filter(a -> a.getAction() != null)
-                .collect(Collectors.groupingBy(UserActivityEntry::getAction,
-                        Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
-        return raw.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(10)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
     }
 
     // ─── Document mapping ─────────────────────────────────────────────────────────

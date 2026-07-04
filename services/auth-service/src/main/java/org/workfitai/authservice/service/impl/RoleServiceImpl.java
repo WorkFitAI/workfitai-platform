@@ -8,13 +8,16 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.workfitai.authservice.constants.Messages;
 import org.workfitai.authservice.enums.UserRole;
 import org.workfitai.authservice.model.Role;
 import org.workfitai.authservice.repository.PermissionRepository;
 import org.workfitai.authservice.repository.RoleRepository;
+import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.service.iRoleService;
 
 @Service
@@ -22,6 +25,7 @@ import org.workfitai.authservice.service.iRoleService;
 public class RoleServiceImpl implements iRoleService {
     private final RoleRepository roles;
     private final PermissionRepository perms;
+    private final UserRepository users;
 
     /** Names of built-in system roles seeded at startup — they are immutable. */
     private static final Set<String> BUILT_IN_ROLES = Arrays.stream(UserRole.values())
@@ -138,6 +142,12 @@ public class RoleServiceImpl implements iRoleService {
     public void deleteByName(String roleName) {
         assertNotBuiltInForDelete(roleName);
         Role existing = getByName(roleName);
+        // Prevent destructive delete if any user still holds this role —
+        // User.roles is a denormalized Set<String> with no FK, so an unchecked
+        // delete here would leave deleted role names returned by getUserRoles.
+        if (users.existsByRolesContains(roleName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, Messages.Error.ROLE_IN_USE);
+        }
         roles.delete(existing);
     }
 

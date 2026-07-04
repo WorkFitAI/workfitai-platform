@@ -1,0 +1,16 @@
+{
+  "candidateNum": 6,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 2
+  },
+  "jobTitle": "Lead Data Engineer - Data Platform",
+  "label": "no_match",
+  "resume_index": 6,
+  "resume_summary": "Versatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in CQRS and Helm. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Lead Security Engineer @ Base.vn (May 2022–Aug 2023) · Collaborated with ML team to serve a model at <20ms p99 latency using ONNX Runtime. | Senior Security Engineer @ PwC Vietnam (Dec 2021–May 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Security Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Feb 2025) | Security Analyst @ MoMo (M-Service) (Jun 2024–Jan 2026) | Security Analyst @ Zalo Group (Feb 2024–Present)",
+  "resume_skills": "Docker, GCP, Helm, Terraform, Python, Scala, C#, Agile / Scrum, CQRS, Event-Driven Architecture, Microservices, Redis, ClickHouse, Analytical Thinking, Ownership & Accountability, Continuous Learning, Data-Driven Decision Making",
+  "resume_education": "Bachelor of Science in Cybersecurity – HUST, 2018 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in CQRS and Helm. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nLead Security Engineer @ Base.vn (May 2022–Aug 2023) · Collaborated with ML team to serve a model at <20ms p99 latency using ONNX Runtime. | Senior Security Engineer @ PwC Vietnam (Dec 2021–May 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Security Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Feb 2025) | Security Analyst @ MoMo (M-Service) (Jun 2024–Jan 2026) | Security Analyst @ Zalo Group (Feb 2024–Present)\n\nSKILLS\nDocker, GCP, Helm, Terraform, Python, Scala, C#, Agile / Scrum, CQRS, Event-Driven Architecture, Microservices, Redis, ClickHouse, Analytical Thinking, Ownership & Accountability, Continuous Learning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Science in Cybersecurity – HUST, 2018 | TOEIC 860",
+  "pdf_file": "candidate6_13.pdf"
+}

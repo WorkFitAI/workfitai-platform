@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 6,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 0
+    "index": 2
   },
-  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
-  "resume_index": 8,
-  "resume_summary": "Detail-oriented senior Cloud Solutions Architect (6 yrs) with end-to-end SDLC ownership. Proficient in Jenkins and Rust. Active technical mentor — helped grow the team from 4 to 10 engineers.",
-  "resume_experience": "Principal Architect @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Solutions Architect @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "Terraform, Azure, AWS, Jenkins, Rust, C++, PostgreSQL, MongoDB, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
-  "resume_education": "Bachelor of Science in Information Technology – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nDetail-oriented senior Cloud Solutions Architect (6 yrs) with end-to-end SDLC ownership. Proficient in Jenkins and Rust. Active technical mentor — helped grow the team from 4 to 10 engineers.\n\nEXPERIENCE\nPrincipal Architect @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Solutions Architect @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nTerraform, Azure, AWS, Jenkins, Rust, C++, PostgreSQL, MongoDB, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Science in Information Technology – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "no_match",
+  "resume_index": 6,
+  "resume_summary": "Results-driven senior Mobile Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Flutter, Microservices, and Django. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Lead Mobile Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Mobile Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | iOS/Android Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Mobile Developer @ MoMo (M-Service) (May 2023–Jan 2026) | Mobile Developer @ Zalo Group (Oct 2025–Present)",
+  "resume_skills": "R, Bash, Python, Flutter, NestJS, Flask, Django, Microservices, Git, Agile / Scrum, Time Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2018 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nResults-driven senior Mobile Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Flutter, Microservices, and Django. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Mobile Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Mobile Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | iOS/Android Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Mobile Developer @ MoMo (M-Service) (May 2023–Jan 2026) | Mobile Developer @ Zalo Group (Oct 2025–Present)\n\nSKILLS\nR, Bash, Python, Flutter, NestJS, Flask, Django, Microservices, Git, Agile / Scrum, Time Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2018 | TOEIC 860",
   "pdf_file": "candidate6_8.pdf"
 }

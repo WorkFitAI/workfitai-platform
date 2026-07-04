@@ -14,7 +14,6 @@
 
 # .vscode files
 .vscode/
-.github/
 
 # BlueJ files
 *.ctxt
@@ -38,8 +37,10 @@ replay_pid*
 **/target/
 **/node_modules/
 **/dist/
-**/.mvn/
+**/.mvn/wrapper/maven-wrapper.jar
 **/*.log
+**/htmlcov/
+**/.coverage
 .env.local
 
 .DS_Store
@@ -50,8 +51,6 @@ source_dump.txt
 
 # Database dumps (keep directory via .gitkeep, ignore dump content)
 dumps/*/
-
-.github/
 
 .claude/
 docs/

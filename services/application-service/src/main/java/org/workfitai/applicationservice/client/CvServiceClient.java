@@ -3,10 +3,12 @@ package org.workfitai.applicationservice.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import org.workfitai.applicationservice.config.InternalFeignConfig;
 import org.workfitai.applicationservice.dto.CvSnapshotResponse;
+import org.workfitai.applicationservice.dto.ReparseSnapshotRequest;
 
 /**
  * Feign client for cv-service internal API.
@@ -20,7 +22,7 @@ import org.workfitai.applicationservice.dto.CvSnapshotResponse;
  *
  * Note: Uses InternalFeignConfig to avoid forwarding JWT (internal endpoint is permitAll).
  */
-@FeignClient(name = "cv")
+@FeignClient(name = "cv-service", url = "${service.cv.url:http://localhost:8001}")
 public interface CvServiceClient {
 
     /**
@@ -28,6 +30,7 @@ public interface CvServiceClient {
      *
      * @param username      candidate's username
      * @param applicationId temporary application UUID (assigned before DB save)
+     * @param jobName       title of the job applied to — cv-service uses it to name the stored PDF object
      * @param cvPdfFile     the CV PDF file
      * @return structured CV fields extracted by cv-service
      */
@@ -38,6 +41,15 @@ public interface CvServiceClient {
     CvSnapshotResponse createApplicationSnapshot(
             @RequestPart("username") String username,
             @RequestPart("applicationId") String applicationId,
+            @RequestPart("jobName") String jobName,
             @RequestPart("cvPdfFile") MultipartFile cvPdfFile
     );
+
+    /**
+     * Re-creates a snapshot by having cv-service re-download the PDF from cvFileUrl.
+     * Used by the reconciliation job to backfill applications whose original
+     * SNAPSHOT_CV call failed (cvSnapshotId still null).
+     */
+    @PostMapping("/internal/cvs/reparse-snapshot")
+    CvSnapshotResponse reparseSnapshot(@RequestBody ReparseSnapshotRequest request);
 }

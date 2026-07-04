@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 10,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 4
+    "index": 2
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
-  "resume_index": 8,
-  "resume_summary": "Results-driven senior Machine Learning Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in TensorFlow, R, and Jenkins. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal ML Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead ML Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "LangChain, Rust, JavaScript, R, Jenkins, Kubernetes, Azure, GitHub Actions, PyTorch, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior Machine Learning Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in TensorFlow, R, and Jenkins. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal ML Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead ML Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nLangChain, Rust, JavaScript, R, Jenkins, Kubernetes, Azure, GitHub Actions, PyTorch, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Principal-level Digital Marketing Manager with 13+ years delivering data-driven insights in proptech. Proficient in Monday.com and Monday.com. Trusted by stakeholders to translate complex data into clear, actionable strategies.",
+  "resume_experience": "Head of Digital Marketing @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Digital Marketing Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Digital Marketing Specialist @ Vingroup (Nov 2024–Present)",
+  "resume_skills": "Metabase, Excel (Advanced), Monday.com, Asana, Agile / Scrum, Confluence, CRM Management, SEO / SEM, Technical Communication, Negotiation, Ownership & Accountability",
+  "resume_education": "Bachelor of Arts in Marketing & Communications – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan\n\nOBJECTIVE\nPrincipal-level Digital Marketing Manager with 13+ years delivering data-driven insights in proptech. Proficient in Monday.com and Monday.com. Trusted by stakeholders to translate complex data into clear, actionable strategies.\n\nEXPERIENCE\nHead of Digital Marketing @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Digital Marketing Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Digital Marketing Specialist @ Vingroup (Nov 2024–Present)\n\nSKILLS\nMetabase, Excel (Advanced), Monday.com, Asana, Agile / Scrum, Confluence, CRM Management, SEO / SEM, Technical Communication, Negotiation, Ownership & Accountability\n\nEDUCATION\nBachelor of Arts in Marketing & Communications – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
   "pdf_file": "candidate10_8.pdf"
 }

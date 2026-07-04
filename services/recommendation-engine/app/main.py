@@ -15,8 +15,9 @@ from fastapi.exceptions import RequestValidationError
 import uvicorn
 
 from app.config import get_settings
-from app.api.routes import router
+from app.api.job_recommend_routes import router
 from app.api.cv_rank_routes import router as cv_rank_router
+from app.api.cv_refer_internal_routes import router as cv_refer_internal_router
 
 # Configure logging
 logging.basicConfig(
@@ -36,6 +37,8 @@ app_state = {
     "cv_ranking_pipeline": None,
     "cv_refer_store": None,
     "cv_ranking_refresher": None,
+    "feature_toggle_store": None,
+    "feature_toggle_consumer": None,
 }
 
 
@@ -51,7 +54,7 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize model (blocking but safer than threading)
         logger.info("Loading Sentence Transformer model...")
-        from app.services.embedding_service import EmbeddingGenerator
+        from app.services.job_embedding_service import EmbeddingGenerator
         app_state["model"] = EmbeddingGenerator(settings.MODEL_PATH)
         logger.info(f"✓ Model loaded: {settings.MODEL_PATH}")
         
@@ -74,7 +77,7 @@ async def lifespan(app: FastAPI):
         if settings.ENABLE_RERANKING:
             logger.info("Initializing Cross-Encoder Reranker...")
             try:
-                from app.services.reranker import JobReranker
+                from app.services.job_reranker import JobReranker
                 app_state["reranker"] = JobReranker(settings.CROSS_ENCODER_PATH)
                 logger.info(f"✓ Reranker initialized: {settings.CROSS_ENCODER_PATH}")
             except Exception as e:
@@ -99,6 +102,31 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Initial sync failed: {e}", exc_info=True)
                 logger.warning("Service will continue without initial data")
         
+        # Initialize feature toggle store + consumer (admin AI kill switch).
+        # Cold-start default is enabled=true for every key until the first
+        # Kafka message arrives - documented in FeatureToggleStore.get().
+        from app.services.feature_toggle_store import get_feature_toggle_store
+        app_state["feature_toggle_store"] = get_feature_toggle_store()
+        logger.info("✓ FeatureToggleStore initialised")
+
+        if settings.ENABLE_KAFKA_CONSUMER:
+            try:
+                from app.kafka_consumer.feature_toggle_consumer import FeatureToggleConsumer
+                feature_toggle_kafka_config = {
+                    "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                    "group_id": settings.KAFKA_FEATURE_TOGGLE_GROUP,
+                    "topic_feature_toggle": settings.KAFKA_TOPIC_FEATURE_TOGGLE,
+                }
+                app_state["feature_toggle_consumer"] = FeatureToggleConsumer(
+                    kafka_config=feature_toggle_kafka_config,
+                    store=app_state["feature_toggle_store"],
+                )
+                app_state["feature_toggle_consumer"].start()
+                logger.info("✓ FeatureToggleConsumer started")
+            except Exception as e:
+                logger.error(f"Failed to start FeatureToggleConsumer: {e}", exc_info=True)
+                logger.warning("Feature toggles will stay at cold-start defaults (enabled)")
+
         # Initialize cv-refer store (always; Kafka consumer writes, route reads)
         from app.services.cv_refer_store import get_store
         app_state["cv_refer_store"] = get_store()
@@ -182,6 +210,10 @@ async def lifespan(app: FastAPI):
                 app_state["cv_refer_consumer"] = CvReferConsumer(
                     kafka_config=cv_refer_kafka_config,
                     store=app_state["cv_refer_store"],
+                    # Refresher is started later in this same lifespan block; resolved
+                    # lazily on each dirty event so construction order doesn't matter.
+                    refresher_getter=lambda: app_state["cv_ranking_refresher"],
+                    pipeline_getter=lambda: app_state["cv_ranking_pipeline"],
                 )
                 app_state["cv_refer_consumer"].start()
                 logger.info("✓ CvReferConsumer started")
@@ -245,6 +277,13 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.error(f"Failed to stop CvReferConsumer: {e}")
 
+        if app_state["feature_toggle_consumer"]:
+            try:
+                app_state["feature_toggle_consumer"].stop()
+                logger.info("✓ FeatureToggleConsumer stopped")
+            except Exception as e:
+                logger.error(f"Failed to stop FeatureToggleConsumer: {e}")
+
         if app_state["cv_ranking_refresher"]:
             try:
                 await app_state["cv_ranking_refresher"].stop()
@@ -307,6 +346,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include API routes
 app.include_router(router)
 app.include_router(cv_rank_router)
+app.include_router(cv_refer_internal_router)
 
 
 # Health check endpoint
@@ -382,6 +422,8 @@ app.state.resume_parser = lambda: app_state["resume_parser"]
 app.state.reranker = lambda: app_state["reranker"]
 app.state.cv_ranking_pipeline = lambda: app_state["cv_ranking_pipeline"]
 app.state.cv_refer_store = lambda: app_state["cv_refer_store"]
+app.state.cv_ranking_refresher = lambda: app_state["cv_ranking_refresher"]
+app.state.feature_toggle_store = lambda: app_state["feature_toggle_store"]
 
 
 if __name__ == "__main__":
