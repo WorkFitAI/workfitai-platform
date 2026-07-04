@@ -19,6 +19,7 @@ import org.workfitai.cvservice.constant.CVConst;
 import org.workfitai.cvservice.constant.ErrorConst;
 import org.workfitai.cvservice.dto.kafka.CvUpdatedEvent;
 import org.workfitai.cvservice.dto.kafka.NotificationEvent;
+import org.workfitai.cvservice.errors.BusinessException;
 import org.workfitai.cvservice.errors.CVConflictException;
 import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.errors.ResourceNotFoundException;
@@ -336,6 +337,11 @@ public class CVService implements iCVService {
                     .education(extractSection(saved.getSections(), "education"))
                     .build();
 
+        } catch (BusinessException e) {
+            // Preserve the specific 4xx (e.g. InvalidDataException from the OCR
+            // pre-check in UploadCvStrategy) instead of flattening it into a
+            // generic 500 below.
+            throw e;
         } catch (Exception e) {
             log.error("Failed to create CV snapshot for applicationId={} username={}: {}",
                     applicationId, username, e.getMessage(), e);
@@ -402,6 +408,11 @@ public class CVService implements iCVService {
                     .education(extractSection(saved.getSections(), "education"))
                     .build();
 
+        } catch (BusinessException e) {
+            // Preserve the specific 4xx (e.g. InvalidDataException from the OCR
+            // pre-check in UploadCvStrategy) instead of flattening it into a
+            // generic 500 below.
+            throw e;
         } catch (Exception e) {
             log.error("Failed to reparse CV snapshot for applicationId={} username={} cvFileUrl={}: {}",
                     applicationId, username, cvFileUrl, e.getMessage(), e);

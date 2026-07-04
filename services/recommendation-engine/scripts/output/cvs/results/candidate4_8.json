@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 4,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 3
+    "hrmKey": "hrm2",
+    "index": 2
   },
-  "jobTitle": "Mobile Developer - React Native",
-  "resume_index": 8,
-  "resume_summary": "Results-driven senior Mobile Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in REST API Design, Dart, and FastAPI. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Lead Mobile Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Mobile Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "Firebase, JavaScript, R, Dart, FastAPI, React, Vue.js, Django, Event-Driven Architecture, REST API Design, Time Management, Empathy & Active Listening, Continuous Learning, Conflict Resolution",
-  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior Mobile Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in REST API Design, Dart, and FastAPI. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Mobile Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Mobile Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nFirebase, JavaScript, R, Dart, FastAPI, React, Vue.js, Django, Event-Driven Architecture, REST API Design, Time Management, Empathy & Active Listening, Continuous Learning, Conflict Resolution\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Hands-on Machine Learning Engineer with 11 years building resilient, observable microservices in logistics. Expertise in Dart and TypeScript. Drove adoption of Jenkins-based tooling, improving MTTR by 38%.",
+  "resume_experience": "Principal ML Engineer @ CMC Global (May 2023–Aug 2024) · Delivered payment feature 1 weeks ahead of schedule, contributing to a 29% revenue uplift. | Lead ML Engineer @ Techcombank (Sep 2023–Feb 2025) · Reduced customer acquisition cost by 15% by optimising email spend allocation. | Senior ML Engineer @ Shopee Vietnam (Dec 2023–Oct 2025) | ML Engineer @ Medici Health (Jan 2025–Feb 2026) | ML Engineer @ ACB Bank (Nov 2024–Present)",
+  "resume_skills": "SQL, PyTorch, scikit-learn, TensorFlow, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, TypeScript, Dart, Ownership & Accountability, Presentation Skills, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 11 years building resilient, observable microservices in logistics. Expertise in Dart and TypeScript. Drove adoption of Jenkins-based tooling, improving MTTR by 38%.\n\nEXPERIENCE\nPrincipal ML Engineer @ CMC Global (May 2023–Aug 2024) · Delivered payment feature 1 weeks ahead of schedule, contributing to a 29% revenue uplift. | Lead ML Engineer @ Techcombank (Sep 2023–Feb 2025) · Reduced customer acquisition cost by 15% by optimising email spend allocation. | Senior ML Engineer @ Shopee Vietnam (Dec 2023–Oct 2025) | ML Engineer @ Medici Health (Jan 2025–Feb 2026) | ML Engineer @ ACB Bank (Nov 2024–Present)\n\nSKILLS\nSQL, PyTorch, scikit-learn, TensorFlow, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, TypeScript, Dart, Ownership & Accountability, Presentation Skills, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate4_8.pdf"
 }

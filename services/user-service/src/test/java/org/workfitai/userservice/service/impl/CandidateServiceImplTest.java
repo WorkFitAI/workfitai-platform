@@ -1,6 +1,8 @@
 package org.workfitai.userservice.service.impl;
 
 import jakarta.validation.Validator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,6 +123,32 @@ class CandidateServiceImplTest {
                 .hasMessageContaining("experience");
     }
 
+    @Test
+    void create_negativeExperience_throws() {
+        CandidateCreateRequest req = buildCreateRequest("e@test.com", "0900000003", -1);
+
+        assertThatThrownBy(() -> candidateService.create(req))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("experience");
+    }
+
+    @Test
+    void create_constraintViolation_throwsValidationError() {
+        CandidateCreateRequest req = buildCreateRequest("bad@test.com", "0900000003", 2);
+        @SuppressWarnings("unchecked")
+        ConstraintViolation<CandidateCreateRequest> violation = mock(ConstraintViolation.class);
+        Path path = mock(Path.class);
+        when(path.toString()).thenReturn("email");
+        when(violation.getPropertyPath()).thenReturn(path);
+        when(violation.getMessage()).thenReturn("must be valid");
+        when(validator.validate(req)).thenReturn(Set.of(violation));
+
+        assertThatThrownBy(() -> candidateService.create(req))
+                .isInstanceOf(ApiException.class);
+
+        verify(candidateRepository, never()).existsByEmail(any());
+    }
+
     // ---- update ----
 
     @Test
@@ -144,6 +172,43 @@ class CandidateServiceImplTest {
         when(candidateRepository.findById(candidateId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> candidateService.update(candidateId, new CandidateUpdateRequest()))
+                .isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void update_negativeExperience_throws() {
+        CandidateUpdateRequest req = new CandidateUpdateRequest();
+        req.setTotalExperience(-1);
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.of(entity));
+
+        assertThatThrownBy(() -> candidateService.update(candidateId, req))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("experience");
+    }
+
+    @Test
+    void update_sameEmailDifferentCase_doesNotCheckEmailDuplicate() {
+        CandidateUpdateRequest req = new CandidateUpdateRequest();
+        req.setEmail("C@TEST.COM");
+        req.setPhoneNumber(entity.getPhoneNumber());
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.of(entity));
+        when(candidateRepository.save(entity)).thenReturn(entity);
+        when(candidateMapper.toResponse(entity)).thenReturn(response);
+
+        assertThat(candidateService.update(candidateId, req)).isSameAs(response);
+
+        verify(candidateRepository, never()).existsByEmail(any());
+        verify(candidateRepository, never()).existsByPhoneNumber(any());
+    }
+
+    @Test
+    void update_phoneDuplicate_throws() {
+        CandidateUpdateRequest req = new CandidateUpdateRequest();
+        req.setPhoneNumber("0900000099");
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.of(entity));
+        when(candidateRepository.existsByPhoneNumber(req.getPhoneNumber())).thenReturn(true);
+
+        assertThatThrownBy(() -> candidateService.update(candidateId, req))
                 .isInstanceOf(ApiException.class);
     }
 
@@ -275,6 +340,24 @@ class CandidateServiceImplTest {
     }
 
     @Test
+    void createFromKafkaEvent_nullRoleAndStatus_defaultsToActiveCandidate() {
+        UserRegistrationEvent.UserData userData = buildUserData(null, false);
+        userData.setStatus(null);
+        userData.setPhoneNumber(null);
+
+        when(candidateRepository.findByEmail(userData.getEmail())).thenReturn(Optional.empty());
+        when(candidateRepository.findByUsername(userData.getUsername())).thenReturn(Optional.empty());
+        when(candidateRepository.save(any(CandidateEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        candidateService.createFromKafkaEvent(userData);
+
+        verify(candidateRepository).save(argThat(candidate ->
+                candidate.getUserRole() == EUserRole.CANDIDATE
+                        && candidate.getUserStatus() == EUserStatus.ACTIVE
+                        && candidate.getPhoneNumber() == null));
+    }
+
+    @Test
     void createFromKafkaEvent_phoneConflict_skipsCreation() {
         UserRegistrationEvent.UserData userData = buildUserData("CANDIDATE", true);
 
@@ -293,6 +376,19 @@ class CandidateServiceImplTest {
 
         assertThatThrownBy(() -> candidateService.createFromKafkaEvent(userData))
                 .isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void createFromKafkaEvent_traditionalRegistrationMissingPhone_throws() {
+        UserRegistrationEvent.UserData userData = buildUserData("CANDIDATE", true);
+        userData.setPhoneNumber(" ");
+
+        when(candidateRepository.findByEmail(userData.getEmail())).thenReturn(Optional.empty());
+        when(candidateRepository.findByUsername(userData.getUsername())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> candidateService.createFromKafkaEvent(userData))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("Phone number");
     }
 
     // ---- updateStatus ----

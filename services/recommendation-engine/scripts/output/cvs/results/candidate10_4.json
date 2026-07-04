@@ -1,15 +1,16 @@
 {
-  "candidateNum": 4,
+  "candidateNum": 10,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 3
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
-  "resume_index": 4,
-  "resume_summary": "11+ years as a Machine Learning Engineer specialising in AWS and Jenkins. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Principal ML Engineer @ CMC Global (Aug 2022–Oct 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Lead ML Engineer @ Techcombank (Jun 2023–May 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior ML Engineer @ Shopee Vietnam (Dec 2023–Apr 2025) | ML Engineer @ Medici Health (May 2024–Oct 2025) | ML Engineer @ ACB Bank (Aug 2024–Present)",
-  "resume_skills": "OpenAI API, PyTorch, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, TypeScript, Dart, Analytical Thinking, Leadership & Mentoring, Ownership & Accountability, Presentation Skills, Stakeholder Management",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\n11+ years as a Machine Learning Engineer specialising in AWS and Jenkins. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal ML Engineer @ CMC Global (Aug 2022–Oct 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Lead ML Engineer @ Techcombank (Jun 2023–May 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior ML Engineer @ Shopee Vietnam (Dec 2023–Apr 2025) | ML Engineer @ Medici Health (May 2024–Oct 2025) | ML Engineer @ ACB Bank (Aug 2024–Present)\n\nSKILLS\nOpenAI API, PyTorch, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, TypeScript, Dart, Analytical Thinking, Leadership & Mentoring, Ownership & Accountability, Presentation Skills, Stakeholder Management\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Mobile Developer - React Native",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Commercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Lead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (May 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Feb 2024–Present)",
+  "resume_skills": "DynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution",
+  "resume_education": "Bachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nCommercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nLead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (May 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Feb 2024–Present)\n\nSKILLS\nDynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
   "pdf_file": "candidate10_4.pdf"
 }

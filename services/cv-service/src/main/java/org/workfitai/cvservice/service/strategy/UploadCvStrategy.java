@@ -1,15 +1,20 @@
 package org.workfitai.cvservice.service.strategy;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.workfitai.cvservice.errors.BusinessException;
+import org.workfitai.cvservice.errors.InvalidDataException;
 import org.workfitai.cvservice.model.CV;
 import org.workfitai.cvservice.model.dto.ParsedCvData;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
 import org.workfitai.cvservice.model.mapper.CVMapper;
 import org.workfitai.cvservice.service.nlp.DynamicSkillExtractionService;
+import org.workfitai.cvservice.service.nlp.PdfComplexityDetector;
+import org.workfitai.cvservice.service.nlp.layout.GridProjectionTextExtractor;
 import org.workfitai.cvservice.service.nlp.SemanticMatchingService;
 import org.workfitai.cvservice.service.shared.FileService;
 
@@ -17,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
@@ -82,6 +88,7 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
     private final SemanticMatchingService semanticMatchingService;
     private final DynamicSkillExtractionService skillExtractor;
     private final FileService fileService;
+    private final PdfComplexityDetector pdfComplexityDetector;
 
     @Override
     public CV createCv(ReqCvUploadDTO dto) {
@@ -116,6 +123,10 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
             cv.setSummary(buildSummaryText(parsedData));
             return cv;
 
+        } catch (BusinessException e) {
+            // Preserve the specific 4xx (e.g. InvalidDataException from the OCR
+            // pre-check) instead of flattening it into a generic 500 below.
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Upload CV file failed", e);
         }
@@ -158,9 +169,14 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
     private String extractPdfText(InputStream pdfStream) throws IOException {
         try (PDDocument doc = PDDocument.load(pdfStream)) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(true);
-            return stripper.getText(doc);
+            PdfComplexityDetector.Assessment assessment = pdfComplexityDetector.assess(doc);
+            if (assessment.needsOcr()) {
+                log.warn("PDF rejected before parsing, reason={}", assessment.reason());
+                throw new InvalidDataException(
+                        "This CV appears to be a scanned image without extractable text — please upload a text-based PDF",
+                        HttpStatus.BAD_REQUEST);
+            }
+            return new GridProjectionTextExtractor().extract(doc);
         }
     }
 

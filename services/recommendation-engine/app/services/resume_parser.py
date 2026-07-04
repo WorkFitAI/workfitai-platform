@@ -268,5 +268,3 @@ class ResumeParser:
         logger.debug(f"Formatted resume to {len(formatted_text)} chars")
         
         return formatted_text
-        # TODO: Implement formatting
-        return ""

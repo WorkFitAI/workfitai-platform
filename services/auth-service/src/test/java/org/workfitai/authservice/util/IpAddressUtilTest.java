@@ -65,6 +65,37 @@ class IpAddressUtilTest {
         // Act — "unknown" is treated as unknown, should fall through to remote addr
         String ip = IpAddressUtil.getClientIp(req);
         // Either "unknown" or "127.0.0.1" is acceptable depending on implementation
-        assertThat(ip).isNotNull();
+        assertThat(ip).isEqualTo("127.0.0.1");
+    }
+
+    @Test
+    void getClientIp_returnsUnknown_whenRequestIsNull() {
+        assertThat(IpAddressUtil.getClientIp(null)).isEqualTo("unknown");
+    }
+
+    @Test
+    void getClientIp_ignoresEmptyHeaderValue() {
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.addHeader("X-Forwarded-For", "");
+        req.setRemoteAddr("127.0.0.2");
+
+        assertThat(IpAddressUtil.getClientIp(req)).isEqualTo("127.0.0.2");
+    }
+
+    @Test
+    void getClientIp_usesLaterHeader_whenEarlierHeaderIsUnknown() {
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.addHeader("X-Forwarded-For", "unknown");
+        req.addHeader("WL-Proxy-Client-IP", "203.0.113.11");
+
+        assertThat(IpAddressUtil.getClientIp(req)).isEqualTo("203.0.113.11");
+    }
+
+    @Test
+    void getClientIp_returnsUnknown_whenNoHeaderOrRemoteAddressExists() {
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setRemoteAddr(null);
+
+        assertThat(IpAddressUtil.getClientIp(req)).isEqualTo("unknown");
     }
 }

@@ -16,6 +16,7 @@ import org.workfitai.cvservice.model.dto.ParsedCvData;
 import org.workfitai.cvservice.model.dto.request.ReqCvUploadDTO;
 import org.workfitai.cvservice.model.enums.TemplateType;
 import org.workfitai.cvservice.service.nlp.DynamicSkillExtractionService;
+import org.workfitai.cvservice.service.nlp.PdfComplexityDetector;
 import org.workfitai.cvservice.service.nlp.SemanticMatchingService;
 import org.workfitai.cvservice.service.shared.FileService;
 
@@ -43,7 +44,8 @@ class UploadCvStrategyTest {
     private UploadCvStrategy strategy;
 
     private void init() {
-        strategy = new UploadCvStrategy(semanticMatchingService, skillExtractor, fileService);
+        strategy = new UploadCvStrategy(semanticMatchingService, skillExtractor, fileService,
+                new PdfComplexityDetector());
     }
 
     /** Generates a real minimal single-page PDF with the given lines (PDFBox can't parse fixtures it didn't write itself reliably without a real PDF structure). */
@@ -103,6 +105,23 @@ class UploadCvStrategyTest {
         assertThatThrownBy(() -> strategy.createCv(dto))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Upload CV file failed");
+    }
+
+    @Test
+    void createCv_throwsInvalidDataException_unwrapped_whenPdfHasNoExtractableText() throws Exception {
+        // The OCR pre-check's InvalidDataException (a BusinessException) must survive
+        // createCv()'s catch block as-is, not get flattened into a generic
+        // RuntimeException("Upload CV file failed", ...) that would lose its 4xx status.
+        init();
+        byte[] pdfBytes = buildPdf(); // no text at all -> PdfComplexityDetector.Reason.NO_TEXT
+        MockMultipartFile file = new MockMultipartFile("file", "scanned.pdf", "application/pdf", pdfBytes);
+        ReqCvUploadDTO dto = new ReqCvUploadDTO();
+        dto.setFile(file);
+        when(fileService.uploadCV(file)).thenReturn("uuid-scanned.pdf");
+        when(fileService.generateFileUrl("uuid-scanned.pdf")).thenReturn("http://minio/uuid-scanned.pdf");
+
+        assertThatThrownBy(() -> strategy.createCv(dto))
+                .isInstanceOf(org.workfitai.cvservice.errors.InvalidDataException.class);
     }
 
     @Test
@@ -249,5 +268,141 @@ class UploadCvStrategyTest {
                 .containsExactly("Experienced backend developer with five years of expertise");
         assertThat(parsed.getExperience()).isEmpty();
         assertThat(parsed.getSkills()).isEmpty();
+    }
+
+    @Test
+    void parsePdfFile_filtersLinkedInAndWwwPrefixedContactLines() throws Exception {
+        // Covers the remaining isContactInfo() OR branches not exercised by
+        // parsePdfFile_filtersContactInfoLines (github.com / email / digits-only phone):
+        // a bare "linkedin.com/..." line (no "http" prefix, no "@") and a bare
+        // "www."-prefixed line (no "http" prefix either) must both still be filtered.
+        init();
+        byte[] pdfBytes = buildPdf(
+                "Skills",
+                "linkedin.com/in/johndoe",
+                "www.johndoe.dev",
+                "Java frameworks and backend development" // 5 words — kept as content
+        );
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        when(semanticMatchingService.mapToCoreField("skills")).thenReturn("skills");
+        when(semanticMatchingService.mapToCoreField("java frameworks and backend development")).thenReturn("ignored");
+        when(skillExtractor.extractSkills(any())).thenReturn(List.of());
+
+        ParsedCvData parsed = strategy.parsePdfFile(file);
+
+        assertThat(parsed.getSkills())
+                .containsExactly("Java frameworks and backend development");
+        assertThat(parsed.getSkills())
+                .doesNotContain("linkedin.com/in/johndoe", "www.johndoe.dev");
+    }
+
+    @Test
+    void parsePdfFile_shortDigitLine_notMistakenForPhoneNumber() throws Exception {
+        // isContactInfo()'s phone heuristic requires >=8 digits: a short numeric
+        // token like a graduation year ("2024", 4 digits) must NOT be filtered as PII,
+        // and — being <=5 words — falls through to header-detection, mapping to "ignored"
+        // so it stays as regular section content. (Extra filler line keeps text density
+        // above PdfComplexityDetector's sparse-text threshold.)
+        init();
+        byte[] pdfBytes = buildPdf(
+                "Education",
+                "Bachelor of Computer Science from a well known university",
+                "2024");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        when(semanticMatchingService.mapToCoreField("education")).thenReturn("education");
+        when(semanticMatchingService.mapToCoreField("2024")).thenReturn("ignored");
+
+        ParsedCvData parsed = strategy.parsePdfFile(file);
+
+        assertThat(parsed.getEducation()).contains(
+                "Bachelor of Computer Science from a well known university", "2024");
+    }
+
+    @Test
+    void parsePdfFile_longSentenceWithManyDigits_notMistakenForPhoneNumber() throws Exception {
+        // A long metric-bearing sentence can contain >=8 digits total, but isContactInfo()
+        // also requires the whole line to be short (<=25 chars) — this line is long, so it
+        // must be kept as real content, not dropped as PII.
+        init();
+        byte[] pdfBytes = buildPdf(
+                "Experience",
+                "Reduced infrastructure cost by 80000 dollars across 12 months in 2023");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        when(semanticMatchingService.mapToCoreField("experience")).thenReturn("experience");
+
+        ParsedCvData parsed = strategy.parsePdfFile(file);
+
+        assertThat(parsed.getExperience())
+                .containsExactly("Reduced infrastructure cost by 80000 dollars across 12 months in 2023");
+    }
+
+    @Test
+    void createCv_buildsSummaryFromObjectiveOnly_whenNoDedicatedSummarySection() throws Exception {
+        // buildSummaryText() null-checks summary and objective independently — a CV
+        // with only an "Objective" section (no "Summary" section at all, so
+        // ParsedCvData.summary stays an empty list, never null per parseCvText's
+        // initialization) must still populate CV.summary from the objective lines.
+        init();
+        byte[] pdfBytes = buildPdf("Objective", "Seeking a challenging senior backend engineering role");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        ReqCvUploadDTO dto = new ReqCvUploadDTO();
+        dto.setFile(file);
+        when(fileService.uploadCV(file)).thenReturn("uuid-resume.pdf");
+        when(fileService.generateFileUrl("uuid-resume.pdf")).thenReturn("http://minio/uuid-resume.pdf");
+        when(skillExtractor.extractSkills(any())).thenReturn(List.of());
+
+        CV cv = strategy.createCv(dto);
+
+        assertThat(cv.getSummary()).isEqualTo("Seeking a challenging senior backend engineering role");
+    }
+
+    @Test
+    void parsePdfFile_unmappedSemanticSection_isTrackedButNeverAccumulatesContent() throws Exception {
+        // Defensive branch: if the semantic matcher ever returns a section name that
+        // isn't one of the known buckets (sectionData.containsKey(...) == false),
+        // currentSection switches to it but subsequent lines are silently dropped
+        // instead of throwing — parsing must not blow up on an unexpected mapping.
+        init();
+        byte[] pdfBytes = buildPdf(
+                "References",
+                "Available upon request from previous employers");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        when(semanticMatchingService.mapToCoreField("references")).thenReturn("references");
+        when(skillExtractor.extractSkills(any())).thenReturn(List.of());
+
+        ParsedCvData parsed = strategy.parsePdfFile(file);
+
+        assertThat(parsed.getExperience()).isEmpty();
+        assertThat(parsed.getSkills()).isEmpty();
+        assertThat(parsed.getSummary()).isEmpty();
+    }
+
+    @Test
+    void parsePdfFile_jobTitleWithInlineDate_shortCircuitsHeaderDetection_staysAsContent() throws Exception {
+        // Phase 05 verification: "Senior Backend Engineer 2020 - Present" cleans to
+        // 5 words (<=5, would normally trigger header-detection) but contains
+        // "engineer" (JOB_TITLE_WORDS) so looksLikeJobTitle() must short-circuit
+        // it — mapToCoreField must NEVER be called for this line, and it must
+        // stay as experience content, not get treated as a section header.
+        init();
+        byte[] pdfBytes = buildPdf(
+                "Experience",
+                "Senior Backend Engineer 2020 - Present",
+                "Backend Engineer 2018 - 2020",
+                "Built distributed systems for clients worldwide");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", pdfBytes);
+        when(semanticMatchingService.mapToCoreField("experience")).thenReturn("experience");
+        when(skillExtractor.extractSkills(any())).thenReturn(List.of());
+
+        ParsedCvData parsed = strategy.parsePdfFile(file);
+
+        // If looksLikeJobTitle() had failed to short-circuit, these lines would
+        // either be misrouted to whatever section the unstubbed mock happens to
+        // return, or (per Mockito's default) throw/return null and break parsing
+        // — landing here unchanged, in the right section, is the proof.
+        assertThat(parsed.getExperience()).containsExactly(
+                "Senior Backend Engineer 2020 - Present",
+                "Backend Engineer 2018 - 2020",
+                "Built distributed systems for clients worldwide");
     }
 }

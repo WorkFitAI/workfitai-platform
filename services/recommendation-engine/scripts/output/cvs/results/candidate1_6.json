@@ -1,15 +1,16 @@
 {
-  "candidateNum": 6,
+  "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm1",
+    "hrmKey": "hrm2",
     "index": 0
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 6,
-  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
-  "resume_skills": "TypeScript, Docker, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nTypeScript, Docker, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Java, MongoDB, and Kubernetes. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Architect @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Solutions Architect @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Solutions Architect @ KMS Technology (Aug 2025–Present)",
+  "resume_skills": "AWS, GCP, Kubernetes, Terraform, CI/CD, Agile / Scrum, Git, REST API Design, C++, Java, Dart, ArgoCD, MongoDB, DynamoDB, Cassandra, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
+  "resume_education": "Bachelor of Science in Information Technology – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Java, MongoDB, and Kubernetes. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Architect @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Solutions Architect @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Solutions Architect @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nAWS, GCP, Kubernetes, Terraform, CI/CD, Agile / Scrum, Git, REST API Design, C++, Java, Dart, ArgoCD, MongoDB, DynamoDB, Cassandra, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Information Technology – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_6.pdf"
 }

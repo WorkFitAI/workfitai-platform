@@ -1,0 +1,16 @@
+{
+  "candidateNum": 6,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 5
+  },
+  "jobTitle": "Security Analyst Intern - AppSec (Internship)",
+  "label": "no_match",
+  "resume_index": 6,
+  "resume_summary": "6+ years as a QA / Automation Engineer specialising in Git and Code Review. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "QA Lead @ Base.vn (Oct 2021–May 2023) · Led cross-functional team of 10 to deliver onboarding launch across APAC in 3 weeks. | Senior QA Engineer @ PwC Vietnam (Jul 2021–Apr 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | SDET @ Samsung R&D Institute Vietnam (Dec 2023–Jan 2025) | QA Engineer @ MoMo (M-Service) (Dec 2024–Feb 2026) | QA Engineer @ Zalo Group (May 2025–Present)",
+  "resume_skills": "R, Python, Dart, Bash, Flask, Django, Vue.js, Git, Code Review, GitHub Actions, Azure, Kubernetes, Docker, Problem Decomposition, Analytical Thinking, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2018 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\n6+ years as a QA / Automation Engineer specialising in Git and Code Review. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nQA Lead @ Base.vn (Oct 2021–May 2023) · Led cross-functional team of 10 to deliver onboarding launch across APAC in 3 weeks. | Senior QA Engineer @ PwC Vietnam (Jul 2021–Apr 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | SDET @ Samsung R&D Institute Vietnam (Dec 2023–Jan 2025) | QA Engineer @ MoMo (M-Service) (Dec 2024–Feb 2026) | QA Engineer @ Zalo Group (May 2025–Present)\n\nSKILLS\nR, Python, Dart, Bash, Flask, Django, Vue.js, Git, Code Review, GitHub Actions, Azure, Kubernetes, Docker, Problem Decomposition, Analytical Thinking, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2018 | TOEIC 860",
+  "pdf_file": "candidate6_16.pdf"
+}

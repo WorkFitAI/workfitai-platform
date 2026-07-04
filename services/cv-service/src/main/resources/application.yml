@@ -96,12 +96,22 @@ management:
 
 cv-parser:
   threshold: 0.45
+  # Interval (ms) at which the skill dictionary is re-fetched from job-service
+  skill-refresh-interval-ms: ${CV_PARSER_SKILL_REFRESH_INTERVAL_MS:3600000}
+  ocr-detection:
+    # Non-whitespace chars per page-area (pt²) below this => "sparse-text" (needs OCR)
+    min-chars-per-page-area: 0.00003
+    # Replacement/control-char ratio above this => "garbled" (needs OCR)
+    max-garbled-ratio: 0.3
+    # Fraction of pages that are image-only (has an image, ~no own text) => "image-only" (needs OCR)
+    min-image-only-page-ratio: 0.5
   anchors:
     summary: "professional summary, about me, executive profile, personal statement"
     objective: "career objective, objective, professional goal, personal goal, career aim"
     experience: "work experience, professional experience, employment history, work history"
     skills: "technical skills, core competencies, technologies, programming languages, tools"
-    education: "academic background, education, degrees, university, school, academic qualifications"
+    # "academic journey" added for icon-bullet-headers fixture — see SemanticMatchingServiceTest
+    education: "academic background, academic journey, education, degrees, university, school, academic qualifications"
     projects: "projects, personal projects, portfolio, side projects, open source work"
     languages: "languages, language skills, spoken languages, foreign languages, language proficiency"
     certifications: "certifications, certificates, licenses, professional certifications, awards, achievements"
@@ -145,6 +155,15 @@ spring:
 service:
   auth:
     url: ${AUTH_SERVICE_URL:http://auth-service:9005}
+  job:
+    url: ${JOB_SERVICE_URL:http://job-service:9005}
+
+feign:
+  client:
+    config:
+      job-service:
+        connectTimeout: 3000
+        readTimeout: 10000
 
 ---
 # =============================================================================

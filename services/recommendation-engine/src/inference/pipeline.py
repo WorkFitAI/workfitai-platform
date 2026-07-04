@@ -164,6 +164,18 @@ def _rule_explanation(score: float) -> str:
     return "Limited alignment with the job requirements based on profile analysis."
 
 
+def _is_valid_t5_explanation(text: str) -> bool:
+    """
+    Reject T5 output that is empty, too short, or contains error/diagnostic patterns
+    from a bad or undertrained model. Falls back to rule-based in those cases.
+    """
+    if not text or len(text.strip()) < 15:
+        return False
+    lower = text.lower()
+    # Reject outputs that look like internal error messages or diagnostic artifacts
+    return not any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score ("))
+
+
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
@@ -245,14 +257,14 @@ class CVRankingPipeline:
     # ------------------------------------------------------------------
 
     def rank(
-        self,
-        job: JobInput,
-        resumes: List[ResumeInput],
-        top_k: Optional[int] = None,
-        top_n: Optional[int] = None,
-        min_score: Optional[float] = None,
-        good_fit_threshold: Optional[float] = None,
-        resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
+            self,
+            job: JobInput,
+            resumes: List[ResumeInput],
+            top_k: Optional[int] = None,
+            top_n: Optional[int] = None,
+            min_score: Optional[float] = None,
+            good_fit_threshold: Optional[float] = None,
+            resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
     ) -> RankResult:
         """
         resume_embeddings, when given, must be the same length as resumes — one
@@ -314,9 +326,9 @@ class CVRankingPipeline:
     # ------------------------------------------------------------------
 
     def _resolve_resume_embeddings(
-        self,
-        resumes: List[ResumeInput],
-        resume_embeddings: Optional[List[Optional[np.ndarray]]],
+            self,
+            resumes: List[ResumeInput],
+            resume_embeddings: Optional[List[Optional[np.ndarray]]],
     ) -> np.ndarray:
         """
         Fill in any missing entries in resume_embeddings by batch-encoding just
@@ -358,11 +370,11 @@ class CVRankingPipeline:
         ).astype(np.float32)
 
     def _stage1_retrieve(
-        self,
-        job: JobInput,
-        resumes: List[ResumeInput],
-        top_k: int,
-        resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
+            self,
+            job: JobInput,
+            resumes: List[ResumeInput],
+            top_k: int,
+            resume_embeddings: Optional[List[Optional[np.ndarray]]] = None,
     ) -> List[Dict[str, Any]]:
         """Encode job + resumes, FAISS inner-product search, return top_k with similarity_score (0-100)."""
         job_text = _build_job_text(job)
@@ -400,7 +412,7 @@ class CVRankingPipeline:
     # ------------------------------------------------------------------
 
     def _stage2_rerank(
-        self, job: JobInput, candidates: List[Dict[str, Any]], top_n: int
+            self, job: JobInput, candidates: List[Dict[str, Any]], top_n: int
     ) -> List[Dict[str, Any]]:
         """Cross-encoder reranking with score fusion (0.3 sim + 0.7 cross). Falls back to bi-encoder order."""
         if not candidates:
@@ -438,10 +450,10 @@ class CVRankingPipeline:
     # ------------------------------------------------------------------
 
     def _stage3_explain(
-        self,
-        ranked: List[Dict[str, Any]],
-        good_fit_threshold: float,
-        min_score: float,
+            self,
+            ranked: List[Dict[str, Any]],
+            good_fit_threshold: float,
+            min_score: float,
     ) -> List[RankedResume]:
         """Assign label, generate explanation, filter score < min_score."""
         results = []
@@ -476,7 +488,13 @@ class CVRankingPipeline:
 
         if self._t5_model is not None:
             try:
-                return _t5_generate(self._t5_model, self._t5_tokenizer, job_text, resume_text, score)
+                t5_text = _t5_generate(self._t5_model, self._t5_tokenizer, job_text, resume_text, score)
+                if _is_valid_t5_explanation(t5_text):
+                    return t5_text
+                logger.warning(
+                    "T5 generated invalid/garbage explanation for resume_index=%s (output=%r); using rule-based fallback.",
+                    candidate.get("resume_index"), t5_text,
+                )
             except Exception as e:
                 logger.warning("T5 generation failed (%s); using rule-based fallback.", e)
         return _rule_explanation(score)

@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "education": [
+      "Bachelor of Science in Computer Science"
+    ],
+    "languages": [
+      "English, Vietnamese"
+    ],
+    "skills": [
+      "Java, Spring Boot"
+    ]
+  },
+  "skills": ["java", "spring boot"]
+}

@@ -1,15 +1,16 @@
 {
-  "candidateNum": 2,
+  "candidateNum": 10,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 1
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
-  "resume_index": 2,
-  "resume_summary": "Results-driven principal-level Machine Learning Engineer with 15 years building high-throughput proptech platforms. Deep expertise in Neo4j, Neo4j, and PostgreSQL. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal ML Engineer @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Lead ML Engineer @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.",
-  "resume_skills": "Python, PostgreSQL, LangChain, OpenAI API, Neo4j, MySQL, Kotlin, C#, Terraform, Azure, Jenkins, dbt, scikit-learn, FAISS, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
-  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nResults-driven principal-level Machine Learning Engineer with 15 years building high-throughput proptech platforms. Deep expertise in Neo4j, Neo4j, and PostgreSQL. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal ML Engineer @ Deloitte Vietnam (Sep 2022–Jul 2025) · Grew mid-market segment revenue by 48% YoY through 12 data-driven go-to-market initiatives. | Lead ML Engineer @ Amazon Web Services Vietnam (Jan 2024–Present) · Led cross-functional team of 8 to deliver search launch across Vietnam in 6 weeks.\n\nSKILLS\nPython, PostgreSQL, LangChain, OpenAI API, Neo4j, MySQL, Kotlin, C#, Terraform, Azure, Jenkins, dbt, scikit-learn, FAISS, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – OU, 2011 | GPA: 8.25/10 | TOEIC 900",
+  "jobTitle": "Frontend Developer - React / TypeScript",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Principal-level HR Manager with 13+ years delivering data-driven insights in proptech. Proficient in Looker and Looker. Trusted by stakeholders to translate complex data into clear, actionable strategies.",
+  "resume_experience": "Senior HR Manager @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | HR Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | HR Specialist @ Vingroup (Nov 2024–Present)",
+  "resume_skills": "JIRA, Stakeholder Reporting, Looker, Power BI, SQL, SAP SuccessFactors, Compensation & Benefits, Performance Management, Workday, Technical Communication, Negotiation, Ownership & Accountability",
+  "resume_education": "Bachelor of Business Administration in Human Resources – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan\n\nOBJECTIVE\nPrincipal-level HR Manager with 13+ years delivering data-driven insights in proptech. Proficient in Looker and Looker. Trusted by stakeholders to translate complex data into clear, actionable strategies.\n\nEXPERIENCE\nSenior HR Manager @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | HR Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | HR Specialist @ Vingroup (Nov 2024–Present)\n\nSKILLS\nJIRA, Stakeholder Reporting, Looker, Power BI, SQL, SAP SuccessFactors, Compensation & Benefits, Performance Management, Workday, Technical Communication, Negotiation, Ownership & Accountability\n\nEDUCATION\nBachelor of Business Administration in Human Resources – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
   "pdf_file": "candidate10_2.pdf"
 }

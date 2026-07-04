@@ -116,6 +116,164 @@ class JobServiceTest {
         return job;
     }
 
+    // ---------------- fetchAll / fetchAllForHr / fetchAllForAdmin / fetchJobsByCompany ----------------
+
+    @Test
+    void fetchAll_returnsPaginatedResult() {
+        Page<Job> page = new PageImpl<>(List.of(existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0)));
+        when(jobRepository.findAll(
+                Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any(),
+                Mockito.<Pageable>any())).thenReturn(page);
+
+        ResultPaginationDTO result = jobService.fetchAll(null, PageRequest.of(0, 10));
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+    }
+
+    @Test
+    void fetchAllForHr_scopesToCompany() {
+        authenticateAsCompany("FPT#25");
+        Page<Job> page = new PageImpl<>(List.of(existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0)));
+        when(jobRepository.findAll(
+                Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any(),
+                Mockito.<Pageable>any())).thenReturn(page);
+
+        ResultPaginationDTO result = jobService.fetchAllForHr(null, PageRequest.of(0, 10));
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+    }
+
+    @Test
+    void fetchAllForAdmin_returnsPaginatedResult() {
+        Page<Job> page = new PageImpl<>(List.of(existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0)));
+        when(jobRepository.findAll(
+                Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any(),
+                Mockito.<Pageable>any())).thenReturn(page);
+
+        ResultPaginationDTO result = jobService.fetchAllForAdmin(null, PageRequest.of(0, 10));
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+    }
+
+    @Test
+    void fetchJobsByCompany_returnsPaginatedResult() {
+        Page<Job> page = new PageImpl<>(List.of(existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0)));
+        when(jobRepository.findAll(
+                Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any(),
+                Mockito.<Pageable>any())).thenReturn(page);
+
+        ResultPaginationDTO result = jobService.fetchJobsByCompany("FPT#25", PageRequest.of(0, 10));
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+    }
+
+    // ---------------- fetchJobById ----------------
+
+    @Test
+    void fetchJobById_returnsNull_whenNotFound() {
+        UUID jobId = UUID.randomUUID();
+        when(jobRepository.findById(jobId)).thenReturn(Optional.empty());
+
+        assertThat(jobService.fetchJobById(jobId)).isNull();
+    }
+
+    @Test
+    void fetchJobById_returnsNull_whenDeleted() {
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        job.setDeleted(true);
+        when(jobRepository.findById(job.getJobId())).thenReturn(Optional.of(job));
+
+        assertThat(jobService.fetchJobById(job.getJobId())).isNull();
+    }
+
+    @Test
+    void fetchJobById_returnsNull_whenDraft() {
+        Job job = existingJob(company("FPT#25"), JobStatus.DRAFT, 0);
+        when(jobRepository.findById(job.getJobId())).thenReturn(Optional.of(job));
+
+        assertThat(jobService.fetchJobById(job.getJobId())).isNull();
+    }
+
+    @Test
+    void fetchJobById_returnsDetails_whenPublished() {
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        when(jobRepository.findById(job.getJobId())).thenReturn(Optional.of(job));
+
+        var result = jobService.fetchJobById(job.getJobId());
+
+        assertThat(result).isNotNull();
+    }
+
+    // ---------------- fetchJobByIdForHr ----------------
+
+    @Test
+    void fetchJobByIdForHr_throwsNoPermission_whenCompanyMissing() {
+        authenticateAsCompany("FPT#25");
+        UUID jobId = UUID.randomUUID();
+        when(companyRepository.findById("FPT#25")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> jobService.fetchJobByIdForHr(jobId))
+                .isInstanceOf(NoPermissionException.class);
+    }
+
+    @Test
+    void fetchJobByIdForHr_throwsResourceNotFound_whenJobMissing() {
+        authenticateAsCompany("FPT#25");
+        UUID jobId = UUID.randomUUID();
+        when(companyRepository.findById("FPT#25")).thenReturn(Optional.of(company("FPT#25")));
+        when(jobRepository.findByIdAndCreatedBy(jobId, "hr1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> jobService.fetchJobByIdForHr(jobId))
+                .isInstanceOf(org.springframework.data.rest.webmvc.ResourceNotFoundException.class);
+    }
+
+    @Test
+    void fetchJobByIdForHr_returnsNull_whenDeleted() {
+        authenticateAsCompany("FPT#25");
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        job.setDeleted(true);
+        when(companyRepository.findById("FPT#25")).thenReturn(Optional.of(company("FPT#25")));
+        when(jobRepository.findByIdAndCreatedBy(job.getJobId(), "hr1")).thenReturn(Optional.of(job));
+
+        assertThat(jobService.fetchJobByIdForHr(job.getJobId())).isNull();
+    }
+
+    @Test
+    void fetchJobByIdForHr_returnsDetails_whenFound() {
+        authenticateAsCompany("FPT#25");
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        when(companyRepository.findById("FPT#25")).thenReturn(Optional.of(company("FPT#25")));
+        when(jobRepository.findByIdAndCreatedBy(job.getJobId(), "hr1")).thenReturn(Optional.of(job));
+
+        var result = jobService.fetchJobByIdForHr(job.getJobId());
+
+        assertThat(result).isNotNull();
+    }
+
+    // ---------------- fetchJobByIdForAdmin / getJobById ----------------
+
+    @Test
+    void fetchJobByIdForAdmin_returnsDetails() {
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        when(jobRepository.findById(job.getJobId())).thenReturn(Optional.of(job));
+
+        var result = jobService.fetchJobByIdForAdmin(job.getJobId());
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void getJobById_delegatesToRepository() {
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        when(jobRepository.findById(job.getJobId())).thenReturn(Optional.of(job));
+
+        assertThat(jobService.getJobById(job.getJobId())).contains(job);
+    }
+
     // ---------------- createJob ----------------
 
     @Test

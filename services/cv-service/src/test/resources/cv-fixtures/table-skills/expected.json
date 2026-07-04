@@ -1,0 +1,11 @@
+{
+  "_orderingNote": "Skills set is order-insensitive per research report 2 §3 — table/grid layouts don't have a single meaningful reading order.",
+  "sections": {
+    "skills": [
+      "Java", "React", "Docker",
+      "PostgreSQL", "Kafka", "Redis",
+      "MongoDB", "TypeScript", "GraphQL"
+    ]
+  },
+  "skills": ["java", "react", "docker", "postgresql", "kafka", "redis", "mongodb", "typescript", "graphql"]
+}

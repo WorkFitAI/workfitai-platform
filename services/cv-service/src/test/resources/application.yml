@@ -19,3 +19,5 @@ minio:
 service:
   auth:
     url: http://localhost:9001
+  job:
+    url: http://localhost:9002

@@ -1,15 +1,16 @@
 {
-  "candidateNum": 4,
+  "candidateNum": 9,
   "jobRef": {
-    "hrmKey": "hrm2",
+    "hrmKey": "hrm1",
     "index": 3
   },
-  "jobTitle": "Cybersecurity Engineer - Application Security",
-  "resume_index": 4,
-  "resume_summary": "Results-driven principal-level Security Engineer with 11 years building high-throughput logistics platforms. Deep expertise in MySQL, Agile / Scrum, and DDD. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Lead Security Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Senior Security Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Security Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Security Analyst @ Medici Health (Apr 2024–Feb 2026) | Security Analyst @ ACB Bank (May 2025–Present)",
-  "resume_skills": "Kali Linux, SIEM, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Ownership & Accountability, Presentation Skills, Empathy & Active Listening",
-  "resume_education": "Bachelor of Science in Cybersecurity – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Security Engineer with 11 years building high-throughput logistics platforms. Deep expertise in MySQL, Agile / Scrum, and DDD. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Security Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Senior Security Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Security Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Security Analyst @ Medici Health (Apr 2024–Feb 2026) | Security Analyst @ ACB Bank (May 2025–Present)\n\nSKILLS\nKali Linux, SIEM, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Ownership & Accountability, Presentation Skills, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Cybersecurity – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Mobile Developer - React Native",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
   "pdf_file": "candidate9_4.pdf"
 }

@@ -18,6 +18,7 @@ import org.workfitai.monitoringservice.dto.LogSearchResponse;
 import org.workfitai.monitoringservice.dto.LogStatistics;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -87,6 +88,51 @@ class LogSearchServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void searchLogs_handlesNullSourceBlankFallbacksAndMissingTotal() throws IOException {
+        init();
+        Map<String, Object> source = new HashMap<>();
+        source.put("log_level", " ");
+        source.put("level", "WARN");
+        source.put("service_name", "");
+        source.put("service", "monitoring-service");
+        source.put("logger_class", "");
+        source.put("logger", "LogSearchService");
+        source.put("thread_name", "main");
+        source.put("http_method", "");
+        source.put("method", "PATCH");
+        source.put("http_path", "");
+        source.put("path", "/api/logs/search");
+        source.put("requestId", "req-1");
+        source.put("userId", "user-1");
+        source.put("username", "alice");
+        source.put("roles", "ADMIN");
+        source.put("traceId", "trace-1");
+        source.put("spanId", "span-1");
+        source.put("exception_class", "RuntimeException");
+        source.put("@timestamp", "not-an-instant");
+
+        Hit<Map> fallbackHit = hitWith(source);
+        Hit<Map> nullSourceHit = hitWith(null);
+        SearchResponse<Map> response = mock(SearchResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(response.hits().hits()).thenReturn(List.of(fallbackHit, nullSourceHit));
+        when(response.hits().total()).thenReturn(null);
+        when(elasticsearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+        LogSearchResponse result = logSearchService.searchLogs(LogSearchRequest.builder().page(1).size(10).build());
+
+        assertThat(result.getTotal()).isZero();
+        assertThat(result.getTotalPages()).isZero();
+        assertThat(result.getLogs()).hasSize(2);
+        assertThat(result.getLogs().get(0).getLevel()).isEqualTo("WARN");
+        assertThat(result.getLogs().get(0).getService()).isEqualTo("monitoring-service");
+        assertThat(result.getLogs().get(0).getLogger()).isEqualTo("LogSearchService");
+        assertThat(result.getLogs().get(0).getTimestamp()).isNull();
+        assertThat(result.getLogs().get(1).getId()).isEqualTo("log-1");
+        assertThat(result.getLogs().get(1).getMessage()).isNull();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void getStatistics_returnsZeroStats_onIOException() throws IOException {
         init();
         when(elasticsearchClient.search(any(Function.class), eq(Void.class))).thenThrow(new IOException("es down"));
@@ -129,6 +175,24 @@ class LogSearchServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void getStatistics_handlesMissingTotalsAndAggregations() throws IOException {
+        init();
+        SearchResponse<Void> response = mock(SearchResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(response.hits().total()).thenReturn(null);
+        when(response.aggregations()).thenReturn(Map.of());
+        when(elasticsearchClient.search(any(Function.class), eq(Void.class))).thenReturn(response);
+
+        LogStatistics result = logSearchService.getStatistics(6);
+
+        assertThat(result.getTotalLogs()).isZero();
+        assertThat(result.getByLevel()).isEmpty();
+        assertThat(result.getByService()).isEmpty();
+        assertThat(result.getErrorRate()).isZero();
+        assertThat(result.getLogsPerMinute()).isZero();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void getLogsByTraceId_delegatesToSearchLogsWithTraceFilter() throws IOException {
         init();
         Hit<Map> hit = hitWith(Map.of("trace_id", "trace-1", "message", "x"));
@@ -161,6 +225,52 @@ class LogSearchServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getUsername()).isEqualTo("alice");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getRecentErrors_filtersInfrastructureLogs() throws IOException {
+        init();
+        Hit<Map> validHit = hitWith(Map.of(
+                "username", "alice", "level", "ERROR", "method", "DELETE", "path", "/api/jobs/1", "message", "deleted"));
+        Hit<Map> nullUserHit = hitWith(Map.of(
+                "level", "ERROR", "method", "GET", "path", "/api/jobs", "message", "boom"));
+        Hit<Map> healthPathHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/actuator/health", "message", "health"));
+        Hit<Map> syncPathHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/internal/sync", "message", "sync"));
+        Hit<Map> pollPathHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/api/poll", "message", "poll"));
+        Hit<Map> logsPathHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/api/logs/stats", "message", "stats"));
+        Hit<Map> unreadPathHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/notification/unread-count", "message", "count"));
+        Hit<Map> debugHit = hitWith(Map.of(
+                "username", "bob", "level", "DEBUG", "method", "GET", "path", "/api/jobs", "message", "debug"));
+        Hit<Map> scheduledMessageHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "GET", "path", "/api/jobs", "message", "scheduled task done"));
+        Hit<Map> invalidMethodHit = hitWith(Map.of(
+                "username", "bob", "level", "ERROR", "method", "OPTIONS", "path", "/api/jobs", "message", "options"));
+
+        SearchResponse<Map> response = mock(SearchResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(response.hits().hits()).thenReturn(List.of(
+                validHit,
+                nullUserHit,
+                healthPathHit,
+                syncPathHit,
+                pollPathHit,
+                logsPathHit,
+                unreadPathHit,
+                debugHit,
+                scheduledMessageHit,
+                invalidMethodHit));
+        when(response.hits().total().value()).thenReturn(10L);
+        when(elasticsearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+        var result = logSearchService.getRecentErrors(15);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("deleted");
     }
 
 }

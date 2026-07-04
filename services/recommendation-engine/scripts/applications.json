@@ -2,603 +2,1603 @@
   "applications": [
     {
       "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "match",
       "cvFile": "candidate1_1.pdf",
-      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate1_2.pdf",
-      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate1_3.pdf",
-      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate1_4.pdf",
-      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate1_5.pdf",
-      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate1_6.pdf",
-      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate1_7.pdf",
-      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate1_8.pdf",
-      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate1_9.pdf",
-      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
-    },
-    {
-      "candidateNum": 1,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate1_10.pdf",
-      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+      "coverLetter": "My hands-on experience with NodeJS, TypeScript, PostgreSQL lines up directly with this Senior Backend Engineer - NodeJS / NestJS role; I have delivered production work in Backend Development and I am confident I can contribute from day one."
     },
     {
       "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "match",
       "cvFile": "candidate2_1.pdf",
-      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate2_2.pdf",
-      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate2_3.pdf",
-      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate2_4.pdf",
-      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate2_5.pdf",
-      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate2_6.pdf",
-      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate2_7.pdf",
-      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate2_8.pdf",
-      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate2_9.pdf",
-      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
-    },
-    {
-      "candidateNum": 2,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate2_10.pdf",
-      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+      "coverLetter": "I have built my career around NodeJS, TypeScript, PostgreSQL, which are exactly the skills you are looking for in this Senior Backend Engineer - NodeJS / NestJS opening. I would welcome the chance to bring this expertise to your Backend Development team."
     },
     {
       "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "match",
       "cvFile": "candidate3_1.pdf",
-      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate3_2.pdf",
-      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate3_3.pdf",
-      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate3_4.pdf",
-      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate3_5.pdf",
-      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate3_6.pdf",
-      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate3_7.pdf",
-      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate3_8.pdf",
-      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate3_9.pdf",
-      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
-    },
-    {
-      "candidateNum": 3,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate3_10.pdf",
-      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+      "coverLetter": "Having spent my recent roles focused on NodeJS, TypeScript, PostgreSQL, I am well matched to the requirements of this Senior Backend Engineer - NodeJS / NestJS position and excited about the scope of work in Backend Development."
     },
     {
       "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "match",
       "cvFile": "candidate4_1.pdf",
-      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate4_2.pdf",
-      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate4_3.pdf",
-      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate4_4.pdf",
-      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate4_5.pdf",
-      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate4_6.pdf",
-      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate4_7.pdf",
-      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate4_8.pdf",
-      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate4_9.pdf",
-      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
-    },
-    {
-      "candidateNum": 4,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate4_10.pdf",
-      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+      "coverLetter": "My hands-on experience with NodeJS, TypeScript, PostgreSQL lines up directly with this Senior Backend Engineer - NodeJS / NestJS role; I have delivered production work in Backend Development and I am confident I can contribute from day one."
     },
     {
       "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "match",
       "cvFile": "candidate5_1.pdf",
-      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate5_2.pdf",
-      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate5_3.pdf",
-      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate5_4.pdf",
-      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate5_5.pdf",
-      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate5_6.pdf",
-      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate5_7.pdf",
-      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate5_8.pdf",
-      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate5_9.pdf",
-      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
-    },
-    {
-      "candidateNum": 5,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate5_10.pdf",
-      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+      "coverLetter": "I have built my career around NodeJS, TypeScript, PostgreSQL, which are exactly the skills you are looking for in this Senior Backend Engineer - NodeJS / NestJS opening. I would welcome the chance to bring this expertise to your Backend Development team."
     },
     {
       "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate6_1.pdf",
-      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate6_2.pdf",
-      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate6_3.pdf",
-      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate6_4.pdf",
-      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate6_5.pdf",
-      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate6_6.pdf",
-      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate6_7.pdf",
-      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate6_8.pdf",
-      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate6_9.pdf",
-      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
-    },
-    {
-      "candidateNum": 6,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate6_10.pdf",
-      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+      "coverLetter": "This Senior Backend Engineer - NodeJS / NestJS posting is a bit outside my usual focus on hardware/firmware engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Backend Development."
     },
     {
       "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate7_1.pdf",
-      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate7_2.pdf",
-      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate7_3.pdf",
-      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate7_4.pdf",
-      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate7_5.pdf",
-      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate7_6.pdf",
-      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate7_7.pdf",
-      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate7_8.pdf",
-      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate7_9.pdf",
-      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
-    },
-    {
-      "candidateNum": 7,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate7_10.pdf",
-      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+      "coverLetter": "My background is mainly in embedded systems engineering, which differs from the core stack for this Senior Backend Engineer - NodeJS / NestJS role, but I am eager to explore Backend Development and bring a fresh, adaptable engineering perspective."
     },
     {
       "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate8_1.pdf",
-      "coverLetter": "My 3+ years of professional backend development in TypeScript, combined with deep PostgreSQL and Redis expertise, make me a strong fit for this role. I am passionate about clean architecture and robust API design."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate8_2.pdf",
-      "coverLetter": "I have shipped multiple production SPAs using React, TypeScript, and TailwindCSS with Lighthouse performance scores consistently above 90. I would love to bring this discipline to your team."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate8_3.pdf",
-      "coverLetter": "My fullstack background with TypeScript, Prisma ORM, and Playwright E2E testing aligns well with your technical requirements. I thrive in Agile environments where I can collaborate directly with product and design."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate8_4.pdf",
-      "coverLetter": "My cross-platform mobile development experience includes integrating push notifications, biometric authentication, and payment SDKs in React Native. I focus on performance, particularly on lower-end Android devices."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate8_5.pdf",
-      "coverLetter": "My DevOps background covers EKS cluster management, GitHub Actions CI/CD, and Grafana/Prometheus monitoring. I am passionate about reducing toil and enabling engineering teams to ship faster."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate8_6.pdf",
-      "coverLetter": "As a certified AWS Solutions Architect with GCP hands-on experience, I have led cloud-native architecture initiatives that improved resilience and reduced infrastructure costs significantly."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate8_7.pdf",
-      "coverLetter": "I have built and monitored batch and streaming data pipelines processing millions of events daily. My experience with Kafka, PySpark, and dbt aligns well with your data engineering stack."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate8_8.pdf",
-      "coverLetter": "My data science work spans model development, A/B experiment design, and production deployment with MLflow. I excel at translating complex findings into actionable insights for business stakeholders."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate8_9.pdf",
-      "coverLetter": "My security career covers web application pen testing, threat modelling, and building SIEM alerting rules. I am passionate about embedding security practices into development workflows."
-    },
-    {
-      "candidateNum": 8,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate8_10.pdf",
-      "coverLetter": "I have deployed AI features for resume analysis and semantic job search using pgvector and GPT-4 in production. I am excited about your mission to build an intelligent, AI-driven recruitment platform."
+      "coverLetter": "I have not worked directly in Backend Development before — most of my experience is in manual QA testing — but I am applying because I am motivated to pivot into this area and ramp up quickly."
     },
     {
       "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate9_1.pdf",
-      "coverLetter": "As a backend engineer with deep experience in event-driven microservices and Node.js, I have shipped resilient APIs serving millions of requests daily. Your engineering challenges are exactly what motivates me."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
-      "cvFile": "candidate9_2.pdf",
-      "coverLetter": "With a background bridging design and development, I build accessible, responsive UIs in React that delight users and meet WCAG 2.1 standards. Your SaaS platform is an exciting opportunity to grow further."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
-      "cvFile": "candidate9_3.pdf",
-      "coverLetter": "I have built and maintained fullstack features for platforms with 50,000+ MAU, balancing performance, reliability, and developer experience. I am excited about the breadth of this fullstack role."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
-      "cvFile": "candidate9_4.pdf",
-      "coverLetter": "I have shipped two production React Native applications, leveraging Reanimated 3 for smooth animations and EAS Build for reliable CI/CD. I am excited about your mobile product roadmap."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
-      "cvFile": "candidate9_5.pdf",
-      "coverLetter": "Having led infrastructure-as-code adoption and multi-region AWS deployments, I bring both technical depth and a cost-optimization mindset to every infrastructure challenge."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
-      "cvFile": "candidate9_6.pdf",
-      "coverLetter": "My work designing multi-cloud architectures, authoring ADRs, and leading FinOps cost management has consistently aligned technical strategy with business outcomes. I am eager to bring this to your team."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
-      "cvFile": "candidate9_7.pdf",
-      "coverLetter": "Designing data lakes on AWS S3 and orchestrating complex Airflow DAGs is core to my data engineering experience. I am excited about the challenge of scaling your data infrastructure."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
-      "cvFile": "candidate9_8.pdf",
-      "coverLetter": "With a background in NLP and candidate scoring models, combined with strong SQL and statistical skills, I am confident I can contribute meaningfully to your machine learning efforts."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
-      "cvFile": "candidate9_9.pdf",
-      "coverLetter": "With experience in security code reviews, WAF configuration, and cloud security posture management, I bring a holistic approach to protecting platforms and candidate data."
-    },
-    {
-      "candidateNum": 9,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
-      "cvFile": "candidate9_10.pdf",
-      "coverLetter": "My background combines ML engineering fundamentals with production LLM work — prompt engineering, embedding models, and MLOps. I am eager to apply this to your AI-powered recruitment features."
+      "coverLetter": "This Senior Backend Engineer - NodeJS / NestJS posting is a bit outside my usual focus on network administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Backend Development."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm1", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate10_1.pdf",
-      "coverLetter": "With over 4 years building scalable Node.js and NestJS APIs, I have delivered high-performance REST and GraphQL services for fintech and SaaS products. I am excited to bring my microservices expertise to your engineering team."
+      "coverLetter": "My background is mainly in IT helpdesk support, which differs from the core stack for this Senior Backend Engineer - NodeJS / NestJS role, but I am eager to explore Backend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate1_2.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, TypeScript, TailwindCSS lines up directly with this Frontend Developer - React / TypeScript role; I have delivered production work in Frontend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate2_2.pdf",
+      "coverLetter": "I have built my career around ReactJS, TypeScript, TailwindCSS, which are exactly the skills you are looking for in this Frontend Developer - React / TypeScript opening. I would welcome the chance to bring this expertise to your Frontend Development team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate3_2.pdf",
+      "coverLetter": "Having spent my recent roles focused on ReactJS, TypeScript, TailwindCSS, I am well matched to the requirements of this Frontend Developer - React / TypeScript position and excited about the scope of work in Frontend Development."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate4_2.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, TypeScript, TailwindCSS lines up directly with this Frontend Developer - React / TypeScript role; I have delivered production work in Frontend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate5_2.pdf",
+      "coverLetter": "I have built my career around ReactJS, TypeScript, TailwindCSS, which are exactly the skills you are looking for in this Frontend Developer - React / TypeScript opening. I would welcome the chance to bring this expertise to your Frontend Development team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_2.pdf",
+      "coverLetter": "This Frontend Developer - React / TypeScript posting is a bit outside my usual focus on embedded systems engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Frontend Development."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_2.pdf",
+      "coverLetter": "My background is mainly in manual QA testing, which differs from the core stack for this Frontend Developer - React / TypeScript role, but I am eager to explore Frontend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_2.pdf",
+      "coverLetter": "I have not worked directly in Frontend Development before — most of my experience is in network administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_2.pdf",
+      "coverLetter": "This Frontend Developer - React / TypeScript posting is a bit outside my usual focus on IT helpdesk support; I wanted to apply anyway since I am actively looking to broaden my technical experience into Frontend Development."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm1", "index": 1 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 1
+      },
+      "label": "no_match",
       "cvFile": "candidate10_2.pdf",
-      "coverLetter": "Two years of professional React and TypeScript development, combined with a strong focus on Core Web Vitals and accessibility, make me well-suited for this Frontend Developer role. I deliver polished, performant interfaces."
+      "coverLetter": "My background is mainly in database administration, which differs from the core stack for this Frontend Developer - React / TypeScript role, but I am eager to explore Frontend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate1_3.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, NodeJS, TypeScript lines up directly with this Fullstack Engineer - Next.js / NodeJS role; I have delivered production work in Fullstack Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate2_3.pdf",
+      "coverLetter": "I have built my career around ReactJS, NodeJS, TypeScript, which are exactly the skills you are looking for in this Fullstack Engineer - Next.js / NodeJS opening. I would welcome the chance to bring this expertise to your Fullstack Development team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate3_3.pdf",
+      "coverLetter": "Having spent my recent roles focused on ReactJS, NodeJS, TypeScript, I am well matched to the requirements of this Fullstack Engineer - Next.js / NodeJS position and excited about the scope of work in Fullstack Development."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate4_3.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, NodeJS, TypeScript lines up directly with this Fullstack Engineer - Next.js / NodeJS role; I have delivered production work in Fullstack Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate5_3.pdf",
+      "coverLetter": "I have built my career around ReactJS, NodeJS, TypeScript, which are exactly the skills you are looking for in this Fullstack Engineer - Next.js / NodeJS opening. I would welcome the chance to bring this expertise to your Fullstack Development team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_3.pdf",
+      "coverLetter": "This Fullstack Engineer - Next.js / NodeJS posting is a bit outside my usual focus on manual QA testing; I wanted to apply anyway since I am actively looking to broaden my technical experience into Fullstack Development."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_3.pdf",
+      "coverLetter": "My background is mainly in network administration, which differs from the core stack for this Fullstack Engineer - Next.js / NodeJS role, but I am eager to explore Fullstack Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_3.pdf",
+      "coverLetter": "I have not worked directly in Fullstack Development before — most of my experience is in IT helpdesk support — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_3.pdf",
+      "coverLetter": "This Fullstack Engineer - Next.js / NodeJS posting is a bit outside my usual focus on database administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Fullstack Development."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm1", "index": 2 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "label": "no_match",
       "cvFile": "candidate10_3.pdf",
-      "coverLetter": "Owning features from database schema to deployed UI is what I love about fullstack engineering. With 2+ years across Next.js and NestJS, I am comfortable navigating the full stack and shipping with confidence."
+      "coverLetter": "My background is mainly in technical support engineering, which differs from the core stack for this Fullstack Engineer - Next.js / NodeJS role, but I am eager to explore Fullstack Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate1_4.pdf",
+      "coverLetter": "My hands-on experience with React Native, TypeScript, Firebase lines up directly with this Mobile Developer - React Native role; I have delivered production work in Mobile Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate2_4.pdf",
+      "coverLetter": "I have built my career around React Native, TypeScript, Firebase, which are exactly the skills you are looking for in this Mobile Developer - React Native opening. I would welcome the chance to bring this expertise to your Mobile Development team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate3_4.pdf",
+      "coverLetter": "Having spent my recent roles focused on React Native, TypeScript, Firebase, I am well matched to the requirements of this Mobile Developer - React Native position and excited about the scope of work in Mobile Development."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate4_4.pdf",
+      "coverLetter": "My hands-on experience with React Native, TypeScript, Firebase lines up directly with this Mobile Developer - React Native role; I have delivered production work in Mobile Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate5_4.pdf",
+      "coverLetter": "I have built my career around React Native, TypeScript, Firebase, which are exactly the skills you are looking for in this Mobile Developer - React Native opening. I would welcome the chance to bring this expertise to your Mobile Development team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_4.pdf",
+      "coverLetter": "This Mobile Developer - React Native posting is a bit outside my usual focus on network administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Mobile Development."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_4.pdf",
+      "coverLetter": "My background is mainly in IT helpdesk support, which differs from the core stack for this Mobile Developer - React Native role, but I am eager to explore Mobile Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_4.pdf",
+      "coverLetter": "I have not worked directly in Mobile Development before — most of my experience is in database administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_4.pdf",
+      "coverLetter": "This Mobile Developer - React Native posting is a bit outside my usual focus on technical support engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Mobile Development."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm1", "index": 3 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 3
+      },
+      "label": "no_match",
       "cvFile": "candidate10_4.pdf",
-      "coverLetter": "With 2 years of React Native development and a proven record delivering production apps on both iOS and Android, I am confident I can build excellent mobile experiences for your users."
+      "coverLetter": "My background is mainly in systems administration, which differs from the core stack for this Mobile Developer - React Native role, but I am eager to explore Mobile Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate1_5.pdf",
+      "coverLetter": "My hands-on experience with AWS, Kubernetes, Docker lines up directly with this DevOps Engineer - AWS / Kubernetes role; I have delivered production work in DevOps and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate2_5.pdf",
+      "coverLetter": "I have built my career around AWS, Kubernetes, Docker, which are exactly the skills you are looking for in this DevOps Engineer - AWS / Kubernetes opening. I would welcome the chance to bring this expertise to your DevOps team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate3_5.pdf",
+      "coverLetter": "Having spent my recent roles focused on AWS, Kubernetes, Docker, I am well matched to the requirements of this DevOps Engineer - AWS / Kubernetes position and excited about the scope of work in DevOps."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate4_5.pdf",
+      "coverLetter": "My hands-on experience with AWS, Kubernetes, Docker lines up directly with this DevOps Engineer - AWS / Kubernetes role; I have delivered production work in DevOps and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate5_5.pdf",
+      "coverLetter": "I have built my career around AWS, Kubernetes, Docker, which are exactly the skills you are looking for in this DevOps Engineer - AWS / Kubernetes opening. I would welcome the chance to bring this expertise to your DevOps team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_5.pdf",
+      "coverLetter": "This DevOps Engineer - AWS / Kubernetes posting is a bit outside my usual focus on IT helpdesk support; I wanted to apply anyway since I am actively looking to broaden my technical experience into DevOps."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_5.pdf",
+      "coverLetter": "My background is mainly in database administration, which differs from the core stack for this DevOps Engineer - AWS / Kubernetes role, but I am eager to explore DevOps and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_5.pdf",
+      "coverLetter": "I have not worked directly in DevOps before — most of my experience is in technical support engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_5.pdf",
+      "coverLetter": "This DevOps Engineer - AWS / Kubernetes posting is a bit outside my usual focus on systems administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into DevOps."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm1", "index": 4 },
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 4
+      },
+      "label": "no_match",
       "cvFile": "candidate10_5.pdf",
-      "coverLetter": "With 3 years of cloud infrastructure experience on AWS using Kubernetes and Terraform, I have built zero-downtime deployment pipelines and robust observability stacks. I thrive in SRE-focused cultures."
+      "coverLetter": "My background is mainly in hardware/firmware engineering, which differs from the core stack for this DevOps Engineer - AWS / Kubernetes role, but I am eager to explore DevOps and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate1_6.pdf",
+      "coverLetter": "My hands-on experience with AWS, GCP, Terraform lines up directly with this Cloud Solutions Architect - AWS / GCP role; I have delivered production work in Cloud Computing and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate2_6.pdf",
+      "coverLetter": "I have built my career around AWS, GCP, Terraform, which are exactly the skills you are looking for in this Cloud Solutions Architect - AWS / GCP opening. I would welcome the chance to bring this expertise to your Cloud Computing team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate3_6.pdf",
+      "coverLetter": "Having spent my recent roles focused on AWS, GCP, Terraform, I am well matched to the requirements of this Cloud Solutions Architect - AWS / GCP position and excited about the scope of work in Cloud Computing."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate4_6.pdf",
+      "coverLetter": "My hands-on experience with AWS, GCP, Terraform lines up directly with this Cloud Solutions Architect - AWS / GCP role; I have delivered production work in Cloud Computing and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate5_6.pdf",
+      "coverLetter": "I have built my career around AWS, GCP, Terraform, which are exactly the skills you are looking for in this Cloud Solutions Architect - AWS / GCP opening. I would welcome the chance to bring this expertise to your Cloud Computing team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_6.pdf",
+      "coverLetter": "This Cloud Solutions Architect - AWS / GCP posting is a bit outside my usual focus on database administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cloud Computing."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_6.pdf",
+      "coverLetter": "My background is mainly in technical support engineering, which differs from the core stack for this Cloud Solutions Architect - AWS / GCP role, but I am eager to explore Cloud Computing and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_6.pdf",
+      "coverLetter": "I have not worked directly in Cloud Computing before — most of my experience is in systems administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_6.pdf",
+      "coverLetter": "This Cloud Solutions Architect - AWS / GCP posting is a bit outside my usual focus on hardware/firmware engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cloud Computing."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm2", "index": 0 },
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "label": "no_match",
       "cvFile": "candidate10_6.pdf",
-      "coverLetter": "Five years of cloud architecture experience across AWS and GCP has prepared me to design scalable, secure, and cost-efficient systems. I am excited to drive cloud strategy and governance for your platform."
+      "coverLetter": "My background is mainly in embedded systems engineering, which differs from the core stack for this Cloud Solutions Architect - AWS / GCP role, but I am eager to explore Cloud Computing and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate1_7.pdf",
+      "coverLetter": "My hands-on experience with Python, Apache Spark, Airflow lines up directly with this Data Engineer - Apache Spark / Airflow role; I have delivered production work in Data Engineering and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate2_7.pdf",
+      "coverLetter": "I have built my career around Python, Apache Spark, Airflow, which are exactly the skills you are looking for in this Data Engineer - Apache Spark / Airflow opening. I would welcome the chance to bring this expertise to your Data Engineering team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate3_7.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, Apache Spark, Airflow, I am well matched to the requirements of this Data Engineer - Apache Spark / Airflow position and excited about the scope of work in Data Engineering."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate4_7.pdf",
+      "coverLetter": "My hands-on experience with Python, Apache Spark, Airflow lines up directly with this Data Engineer - Apache Spark / Airflow role; I have delivered production work in Data Engineering and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate5_7.pdf",
+      "coverLetter": "I have built my career around Python, Apache Spark, Airflow, which are exactly the skills you are looking for in this Data Engineer - Apache Spark / Airflow opening. I would welcome the chance to bring this expertise to your Data Engineering team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_7.pdf",
+      "coverLetter": "This Data Engineer - Apache Spark / Airflow posting is a bit outside my usual focus on technical support engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Engineering."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_7.pdf",
+      "coverLetter": "My background is mainly in systems administration, which differs from the core stack for this Data Engineer - Apache Spark / Airflow role, but I am eager to explore Data Engineering and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_7.pdf",
+      "coverLetter": "I have not worked directly in Data Engineering before — most of my experience is in hardware/firmware engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_7.pdf",
+      "coverLetter": "This Data Engineer - Apache Spark / Airflow posting is a bit outside my usual focus on embedded systems engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Engineering."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm2", "index": 1 },
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "label": "no_match",
       "cvFile": "candidate10_7.pdf",
-      "coverLetter": "Two years of data engineering with Apache Spark, Airflow, and BigQuery has given me expertise in building reliable ETL pipelines at scale. I am passionate about data quality and enabling analytics teams."
+      "coverLetter": "My background is mainly in manual QA testing, which differs from the core stack for this Data Engineer - Apache Spark / Airflow role, but I am eager to explore Data Engineering and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate1_8.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, scikit-learn lines up directly with this Data Scientist - Machine Learning role; I have delivered production work in Data Science and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate2_8.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, scikit-learn, which are exactly the skills you are looking for in this Data Scientist - Machine Learning opening. I would welcome the chance to bring this expertise to your Data Science team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate3_8.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, PyTorch, scikit-learn, I am well matched to the requirements of this Data Scientist - Machine Learning position and excited about the scope of work in Data Science."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate4_8.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, scikit-learn lines up directly with this Data Scientist - Machine Learning role; I have delivered production work in Data Science and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate5_8.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, scikit-learn, which are exactly the skills you are looking for in this Data Scientist - Machine Learning opening. I would welcome the chance to bring this expertise to your Data Science team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_8.pdf",
+      "coverLetter": "This Data Scientist - Machine Learning posting is a bit outside my usual focus on systems administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Science."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_8.pdf",
+      "coverLetter": "My background is mainly in hardware/firmware engineering, which differs from the core stack for this Data Scientist - Machine Learning role, but I am eager to explore Data Science and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_8.pdf",
+      "coverLetter": "I have not worked directly in Data Science before — most of my experience is in embedded systems engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_8.pdf",
+      "coverLetter": "This Data Scientist - Machine Learning posting is a bit outside my usual focus on manual QA testing; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Science."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm2", "index": 2 },
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "label": "no_match",
       "cvFile": "candidate10_8.pdf",
-      "coverLetter": "Two years of applied machine learning with PyTorch and scikit-learn, focused on recommendation systems and classification models, makes me a strong candidate for this Data Scientist role."
+      "coverLetter": "My background is mainly in network administration, which differs from the core stack for this Data Scientist - Machine Learning role, but I am eager to explore Data Science and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate1_9.pdf",
+      "coverLetter": "My hands-on experience with Python, Kali Linux, Burp Suite lines up directly with this Cybersecurity Engineer - Application Security role; I have delivered production work in Cyber Security and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate2_9.pdf",
+      "coverLetter": "I have built my career around Python, Kali Linux, Burp Suite, which are exactly the skills you are looking for in this Cybersecurity Engineer - Application Security opening. I would welcome the chance to bring this expertise to your Cyber Security team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate3_9.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, Kali Linux, Burp Suite, I am well matched to the requirements of this Cybersecurity Engineer - Application Security position and excited about the scope of work in Cyber Security."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate4_9.pdf",
+      "coverLetter": "My hands-on experience with Python, Kali Linux, Burp Suite lines up directly with this Cybersecurity Engineer - Application Security role; I have delivered production work in Cyber Security and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate5_9.pdf",
+      "coverLetter": "I have built my career around Python, Kali Linux, Burp Suite, which are exactly the skills you are looking for in this Cybersecurity Engineer - Application Security opening. I would welcome the chance to bring this expertise to your Cyber Security team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_9.pdf",
+      "coverLetter": "This Cybersecurity Engineer - Application Security posting is a bit outside my usual focus on hardware/firmware engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cyber Security."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_9.pdf",
+      "coverLetter": "My background is mainly in embedded systems engineering, which differs from the core stack for this Cybersecurity Engineer - Application Security role, but I am eager to explore Cyber Security and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_9.pdf",
+      "coverLetter": "I have not worked directly in Cyber Security before — most of my experience is in manual QA testing — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_9.pdf",
+      "coverLetter": "This Cybersecurity Engineer - Application Security posting is a bit outside my usual focus on network administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cyber Security."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm2", "index": 3 },
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "label": "no_match",
       "cvFile": "candidate10_9.pdf",
-      "coverLetter": "Three years of application security engineering, including penetration testing and secure SDLC championing, has prepared me well. I hold an OSCP certification and have deep experience with Burp Suite and OWASP Top 10."
+      "coverLetter": "My background is mainly in IT helpdesk support, which differs from the core stack for this Cybersecurity Engineer - Application Security role, but I am eager to explore Cyber Security and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate1_10.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, LangChain lines up directly with this AI Engineer - LLM & Generative AI role; I have delivered production work in Artificial Intelligence and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate2_10.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, LangChain, which are exactly the skills you are looking for in this AI Engineer - LLM & Generative AI opening. I would welcome the chance to bring this expertise to your Artificial Intelligence team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate3_10.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, PyTorch, LangChain, I am well matched to the requirements of this AI Engineer - LLM & Generative AI position and excited about the scope of work in Artificial Intelligence."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate4_10.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, LangChain lines up directly with this AI Engineer - LLM & Generative AI role; I have delivered production work in Artificial Intelligence and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate5_10.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, LangChain, which are exactly the skills you are looking for in this AI Engineer - LLM & Generative AI opening. I would welcome the chance to bring this expertise to your Artificial Intelligence team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_10.pdf",
+      "coverLetter": "This AI Engineer - LLM & Generative AI posting is a bit outside my usual focus on embedded systems engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Artificial Intelligence."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_10.pdf",
+      "coverLetter": "My background is mainly in manual QA testing, which differs from the core stack for this AI Engineer - LLM & Generative AI role, but I am eager to explore Artificial Intelligence and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_10.pdf",
+      "coverLetter": "I have not worked directly in Artificial Intelligence before — most of my experience is in network administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_10.pdf",
+      "coverLetter": "This AI Engineer - LLM & Generative AI posting is a bit outside my usual focus on IT helpdesk support; I wanted to apply anyway since I am actively looking to broaden my technical experience into Artificial Intelligence."
     },
     {
       "candidateNum": 10,
-      "jobRef": { "hrmKey": "hrm2", "index": 4 },
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "label": "no_match",
       "cvFile": "candidate10_10.pdf",
-      "coverLetter": "Two years of LLM engineering with LangChain, OpenAI, and Hugging Face Transformers has given me hands-on experience building RAG pipelines and evaluating generative AI outputs rigorously."
+      "coverLetter": "My background is mainly in database administration, which differs from the core stack for this AI Engineer - LLM & Generative AI role, but I am eager to explore Artificial Intelligence and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate1_11.pdf",
+      "coverLetter": "My hands-on experience with NodeJS, JavaScript, MongoDB lines up directly with this Junior Backend Engineer - NodeJS (Internship) role; I have delivered production work in Backend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate2_11.pdf",
+      "coverLetter": "I have built my career around NodeJS, JavaScript, MongoDB, which are exactly the skills you are looking for in this Junior Backend Engineer - NodeJS (Internship) opening. I would welcome the chance to bring this expertise to your Backend Development team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate3_11.pdf",
+      "coverLetter": "Having spent my recent roles focused on NodeJS, JavaScript, MongoDB, I am well matched to the requirements of this Junior Backend Engineer - NodeJS (Internship) position and excited about the scope of work in Backend Development."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate4_11.pdf",
+      "coverLetter": "My hands-on experience with NodeJS, JavaScript, MongoDB lines up directly with this Junior Backend Engineer - NodeJS (Internship) role; I have delivered production work in Backend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "match",
+      "cvFile": "candidate5_11.pdf",
+      "coverLetter": "I have built my career around NodeJS, JavaScript, MongoDB, which are exactly the skills you are looking for in this Junior Backend Engineer - NodeJS (Internship) opening. I would welcome the chance to bring this expertise to your Backend Development team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_11.pdf",
+      "coverLetter": "This Junior Backend Engineer - NodeJS (Internship) posting is a bit outside my usual focus on manual QA testing; I wanted to apply anyway since I am actively looking to broaden my technical experience into Backend Development."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_11.pdf",
+      "coverLetter": "My background is mainly in network administration, which differs from the core stack for this Junior Backend Engineer - NodeJS (Internship) role, but I am eager to explore Backend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_11.pdf",
+      "coverLetter": "I have not worked directly in Backend Development before — most of my experience is in IT helpdesk support — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_11.pdf",
+      "coverLetter": "This Junior Backend Engineer - NodeJS (Internship) posting is a bit outside my usual focus on database administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Backend Development."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 0
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_11.pdf",
+      "coverLetter": "My background is mainly in technical support engineering, which differs from the core stack for this Junior Backend Engineer - NodeJS (Internship) role, but I am eager to explore Backend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate1_12.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, TypeScript, TailwindCSS lines up directly with this Frontend Software Engineer - React (Contract) role; I have delivered production work in Frontend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate2_12.pdf",
+      "coverLetter": "I have built my career around ReactJS, TypeScript, TailwindCSS, which are exactly the skills you are looking for in this Frontend Software Engineer - React (Contract) opening. I would welcome the chance to bring this expertise to your Frontend Development team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate3_12.pdf",
+      "coverLetter": "Having spent my recent roles focused on ReactJS, TypeScript, TailwindCSS, I am well matched to the requirements of this Frontend Software Engineer - React (Contract) position and excited about the scope of work in Frontend Development."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate4_12.pdf",
+      "coverLetter": "My hands-on experience with ReactJS, TypeScript, TailwindCSS lines up directly with this Frontend Software Engineer - React (Contract) role; I have delivered production work in Frontend Development and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "match",
+      "cvFile": "candidate5_12.pdf",
+      "coverLetter": "I have built my career around ReactJS, TypeScript, TailwindCSS, which are exactly the skills you are looking for in this Frontend Software Engineer - React (Contract) opening. I would welcome the chance to bring this expertise to your Frontend Development team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_12.pdf",
+      "coverLetter": "This Frontend Software Engineer - React (Contract) posting is a bit outside my usual focus on network administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Frontend Development."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_12.pdf",
+      "coverLetter": "My background is mainly in IT helpdesk support, which differs from the core stack for this Frontend Software Engineer - React (Contract) role, but I am eager to explore Frontend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_12.pdf",
+      "coverLetter": "I have not worked directly in Frontend Development before — most of my experience is in database administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_12.pdf",
+      "coverLetter": "This Frontend Software Engineer - React (Contract) posting is a bit outside my usual focus on technical support engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Frontend Development."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 1
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_12.pdf",
+      "coverLetter": "My background is mainly in systems administration, which differs from the core stack for this Frontend Software Engineer - React (Contract) role, but I am eager to explore Frontend Development and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate1_13.pdf",
+      "coverLetter": "My hands-on experience with Python, Apache Spark, Airflow lines up directly with this Lead Data Engineer - Data Platform role; I have delivered production work in Data Engineering and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate2_13.pdf",
+      "coverLetter": "I have built my career around Python, Apache Spark, Airflow, which are exactly the skills you are looking for in this Lead Data Engineer - Data Platform opening. I would welcome the chance to bring this expertise to your Data Engineering team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate3_13.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, Apache Spark, Airflow, I am well matched to the requirements of this Lead Data Engineer - Data Platform position and excited about the scope of work in Data Engineering."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate4_13.pdf",
+      "coverLetter": "My hands-on experience with Python, Apache Spark, Airflow lines up directly with this Lead Data Engineer - Data Platform role; I have delivered production work in Data Engineering and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "match",
+      "cvFile": "candidate5_13.pdf",
+      "coverLetter": "I have built my career around Python, Apache Spark, Airflow, which are exactly the skills you are looking for in this Lead Data Engineer - Data Platform opening. I would welcome the chance to bring this expertise to your Data Engineering team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_13.pdf",
+      "coverLetter": "This Lead Data Engineer - Data Platform posting is a bit outside my usual focus on IT helpdesk support; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Engineering."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_13.pdf",
+      "coverLetter": "My background is mainly in database administration, which differs from the core stack for this Lead Data Engineer - Data Platform role, but I am eager to explore Data Engineering and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_13.pdf",
+      "coverLetter": "I have not worked directly in Data Engineering before — most of my experience is in technical support engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_13.pdf",
+      "coverLetter": "This Lead Data Engineer - Data Platform posting is a bit outside my usual focus on systems administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Data Engineering."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 2
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_13.pdf",
+      "coverLetter": "My background is mainly in hardware/firmware engineering, which differs from the core stack for this Lead Data Engineer - Data Platform role, but I am eager to explore Data Engineering and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate1_14.pdf",
+      "coverLetter": "My hands-on experience with AWS, Terraform, Linux lines up directly with this Associate Cloud Solutions Engineer - AWS Support (Part-Time) role; I have delivered production work in Cloud Computing and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate2_14.pdf",
+      "coverLetter": "I have built my career around AWS, Terraform, Linux, which are exactly the skills you are looking for in this Associate Cloud Solutions Engineer - AWS Support (Part-Time) opening. I would welcome the chance to bring this expertise to your Cloud Computing team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate3_14.pdf",
+      "coverLetter": "Having spent my recent roles focused on AWS, Terraform, Linux, I am well matched to the requirements of this Associate Cloud Solutions Engineer - AWS Support (Part-Time) position and excited about the scope of work in Cloud Computing."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate4_14.pdf",
+      "coverLetter": "My hands-on experience with AWS, Terraform, Linux lines up directly with this Associate Cloud Solutions Engineer - AWS Support (Part-Time) role; I have delivered production work in Cloud Computing and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "match",
+      "cvFile": "candidate5_14.pdf",
+      "coverLetter": "I have built my career around AWS, Terraform, Linux, which are exactly the skills you are looking for in this Associate Cloud Solutions Engineer - AWS Support (Part-Time) opening. I would welcome the chance to bring this expertise to your Cloud Computing team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_14.pdf",
+      "coverLetter": "This Associate Cloud Solutions Engineer - AWS Support (Part-Time) posting is a bit outside my usual focus on database administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cloud Computing."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_14.pdf",
+      "coverLetter": "My background is mainly in technical support engineering, which differs from the core stack for this Associate Cloud Solutions Engineer - AWS Support (Part-Time) role, but I am eager to explore Cloud Computing and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_14.pdf",
+      "coverLetter": "I have not worked directly in Cloud Computing before — most of my experience is in systems administration — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_14.pdf",
+      "coverLetter": "This Associate Cloud Solutions Engineer - AWS Support (Part-Time) posting is a bit outside my usual focus on hardware/firmware engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cloud Computing."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 3
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_14.pdf",
+      "coverLetter": "My background is mainly in embedded systems engineering, which differs from the core stack for this Associate Cloud Solutions Engineer - AWS Support (Part-Time) role, but I am eager to explore Cloud Computing and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate1_15.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, HuggingFace Transformers lines up directly with this Machine Learning Engineer - NLP role; I have delivered production work in Artificial Intelligence and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate2_15.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, HuggingFace Transformers, which are exactly the skills you are looking for in this Machine Learning Engineer - NLP opening. I would welcome the chance to bring this expertise to your Artificial Intelligence team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate3_15.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, PyTorch, HuggingFace Transformers, I am well matched to the requirements of this Machine Learning Engineer - NLP position and excited about the scope of work in Artificial Intelligence."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate4_15.pdf",
+      "coverLetter": "My hands-on experience with Python, PyTorch, HuggingFace Transformers lines up directly with this Machine Learning Engineer - NLP role; I have delivered production work in Artificial Intelligence and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "match",
+      "cvFile": "candidate5_15.pdf",
+      "coverLetter": "I have built my career around Python, PyTorch, HuggingFace Transformers, which are exactly the skills you are looking for in this Machine Learning Engineer - NLP opening. I would welcome the chance to bring this expertise to your Artificial Intelligence team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_15.pdf",
+      "coverLetter": "This Machine Learning Engineer - NLP posting is a bit outside my usual focus on technical support engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Artificial Intelligence."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_15.pdf",
+      "coverLetter": "My background is mainly in systems administration, which differs from the core stack for this Machine Learning Engineer - NLP role, but I am eager to explore Artificial Intelligence and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_15.pdf",
+      "coverLetter": "I have not worked directly in Artificial Intelligence before — most of my experience is in hardware/firmware engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_15.pdf",
+      "coverLetter": "This Machine Learning Engineer - NLP posting is a bit outside my usual focus on embedded systems engineering; I wanted to apply anyway since I am actively looking to broaden my technical experience into Artificial Intelligence."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 4
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_15.pdf",
+      "coverLetter": "My background is mainly in manual QA testing, which differs from the core stack for this Machine Learning Engineer - NLP role, but I am eager to explore Artificial Intelligence and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 1,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "match",
+      "cvFile": "candidate1_16.pdf",
+      "coverLetter": "My hands-on experience with Python, Burp Suite, OWASP Top 10 lines up directly with this Security Analyst Intern - AppSec (Internship) role; I have delivered production work in Cyber Security and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 2,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "match",
+      "cvFile": "candidate2_16.pdf",
+      "coverLetter": "I have built my career around Python, Burp Suite, OWASP Top 10, which are exactly the skills you are looking for in this Security Analyst Intern - AppSec (Internship) opening. I would welcome the chance to bring this expertise to your Cyber Security team."
+    },
+    {
+      "candidateNum": 3,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "match",
+      "cvFile": "candidate3_16.pdf",
+      "coverLetter": "Having spent my recent roles focused on Python, Burp Suite, OWASP Top 10, I am well matched to the requirements of this Security Analyst Intern - AppSec (Internship) position and excited about the scope of work in Cyber Security."
+    },
+    {
+      "candidateNum": 4,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "match",
+      "cvFile": "candidate4_16.pdf",
+      "coverLetter": "My hands-on experience with Python, Burp Suite, OWASP Top 10 lines up directly with this Security Analyst Intern - AppSec (Internship) role; I have delivered production work in Cyber Security and I am confident I can contribute from day one."
+    },
+    {
+      "candidateNum": 5,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "match",
+      "cvFile": "candidate5_16.pdf",
+      "coverLetter": "I have built my career around Python, Burp Suite, OWASP Top 10, which are exactly the skills you are looking for in this Security Analyst Intern - AppSec (Internship) opening. I would welcome the chance to bring this expertise to your Cyber Security team."
+    },
+    {
+      "candidateNum": 6,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "no_match",
+      "cvFile": "candidate6_16.pdf",
+      "coverLetter": "This Security Analyst Intern - AppSec (Internship) posting is a bit outside my usual focus on systems administration; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cyber Security."
+    },
+    {
+      "candidateNum": 7,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "no_match",
+      "cvFile": "candidate7_16.pdf",
+      "coverLetter": "My background is mainly in hardware/firmware engineering, which differs from the core stack for this Security Analyst Intern - AppSec (Internship) role, but I am eager to explore Cyber Security and bring a fresh, adaptable engineering perspective."
+    },
+    {
+      "candidateNum": 8,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "no_match",
+      "cvFile": "candidate8_16.pdf",
+      "coverLetter": "I have not worked directly in Cyber Security before — most of my experience is in embedded systems engineering — but I am applying because I am motivated to pivot into this area and ramp up quickly."
+    },
+    {
+      "candidateNum": 9,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "no_match",
+      "cvFile": "candidate9_16.pdf",
+      "coverLetter": "This Security Analyst Intern - AppSec (Internship) posting is a bit outside my usual focus on manual QA testing; I wanted to apply anyway since I am actively looking to broaden my technical experience into Cyber Security."
+    },
+    {
+      "candidateNum": 10,
+      "jobRef": {
+        "hrmKey": "hrm3",
+        "index": 5
+      },
+      "label": "no_match",
+      "cvFile": "candidate10_16.pdf",
+      "coverLetter": "My background is mainly in network administration, which differs from the core stack for this Security Analyst Intern - AppSec (Internship) role, but I am eager to explore Cyber Security and bring a fresh, adaptable engineering perspective."
     }
   ]
 }

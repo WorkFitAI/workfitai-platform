@@ -1,15 +1,16 @@
 {
-  "candidateNum": 4,
+  "candidateNum": 3,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 2
+    "index": 3
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 4,
-  "resume_summary": "Results-driven principal-level Software Engineer with 11 years building high-throughput edtech platforms. Deep expertise in CI/CD, Django, and Angular. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Software Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Software Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Software Engineer @ Medici Health (Apr 2024–Feb 2026) | Junior Software Engineer @ ACB Bank (May 2025–Present)",
-  "resume_skills": "Node.js, PostgreSQL, Redis, DynamoDB, Next.js, Angular, Django, REST API Design, CI/CD, CQRS, Agile / Scrum, Presentation Skills, Analytical Thinking, Leadership & Mentoring",
-  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Software Engineer with 11 years building high-throughput edtech platforms. Deep expertise in CI/CD, Django, and Angular. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ CMC Global (Feb 2023–Jan 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Software Engineer @ Techcombank (Aug 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Software Engineer @ Shopee Vietnam (Jan 2024–Jun 2025) | Software Engineer @ Medici Health (Apr 2024–Feb 2026) | Junior Software Engineer @ ACB Bank (May 2025–Present)\n\nSKILLS\nNode.js, PostgreSQL, Redis, DynamoDB, Next.js, Angular, Django, REST API Design, CI/CD, CQRS, Agile / Scrum, Presentation Skills, Analytical Thinking, Leadership & Mentoring\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Mobile Developer - React Native",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Mobile Engineer with 3 years building resilient, observable microservices in edtech. Expertise in React Native and NestJS. Drove adoption of Flask-based tooling, improving MTTR by 32%.",
+  "resume_experience": "Lead Mobile Engineer @ VPBank (Sep 2021–Mar 2024) · Negotiated $34M vendor contract, achieving 46% cost savings vs. prior agreement. | Senior Mobile Engineer @ Techcombank (Jul 2023–Aug 2024) · Led migration of 12 monolithic services to microservices, cutting deployment time by 62%. | iOS/Android Engineer @ ThoughtWorks Vietnam (Feb 2024–Mar 2025) | Mobile Developer @ BCG Vietnam (Mar 2024–Jun 2025) | Mobile Developer @ Oracle Vietnam (Apr 2024–Present)",
+  "resume_skills": "Firebase, NodeJS, TypeScript, React Native, Python, Scala, Go, Swift, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, Empathy & Active Listening, Project Planning, Continuous Learning, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Mobile Engineer with 3 years building resilient, observable microservices in edtech. Expertise in React Native and NestJS. Drove adoption of Flask-based tooling, improving MTTR by 32%.\n\nEXPERIENCE\nLead Mobile Engineer @ VPBank (Sep 2021–Mar 2024) · Negotiated $34M vendor contract, achieving 46% cost savings vs. prior agreement. | Senior Mobile Engineer @ Techcombank (Jul 2023–Aug 2024) · Led migration of 12 monolithic services to microservices, cutting deployment time by 62%. | iOS/Android Engineer @ ThoughtWorks Vietnam (Feb 2024–Mar 2025) | Mobile Developer @ BCG Vietnam (Mar 2024–Jun 2025) | Mobile Developer @ Oracle Vietnam (Apr 2024–Present)\n\nSKILLS\nFirebase, NodeJS, TypeScript, React Native, Python, Scala, Go, Swift, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, Empathy & Active Listening, Project Planning, Continuous Learning, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate3_4.pdf"
 }

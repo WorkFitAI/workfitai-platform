@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -29,13 +30,16 @@ import org.workfitai.authservice.config.PasswordPolicyConfig;
 import org.workfitai.authservice.dto.request.ChangePasswordRequest;
 import org.workfitai.authservice.dto.request.ForgotPasswordRequest;
 import org.workfitai.authservice.dto.request.ResetPasswordRequest;
+import org.workfitai.authservice.dto.request.SetPasswordRequest;
 import org.workfitai.authservice.dto.request.VerifyOtpRequest;
 import org.workfitai.authservice.enums.UserStatus;
 import org.workfitai.authservice.exception.BadRequestException;
 import org.workfitai.authservice.exception.NotFoundException;
+import org.workfitai.authservice.exception.TooManyRequestsException;
 import org.workfitai.authservice.messaging.NotificationProducer;
 import org.workfitai.authservice.model.PasswordResetToken;
 import org.workfitai.authservice.model.User;
+import org.workfitai.authservice.model.UserSession;
 import org.workfitai.authservice.repository.PasswordResetTokenRepository;
 import org.workfitai.authservice.repository.UserRepository;
 import org.workfitai.authservice.repository.UserSessionRepository;
@@ -151,6 +155,103 @@ class PasswordServiceTest {
                 .isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void changePassword_throwsTooManyRequests_whenRateLimitReached() {
+        when(valueOps.get("password:change:alice")).thenReturn("3");
+        when(passwordPolicy.getChangeRateLimit()).thenReturn(3);
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "NewPass1!", "NewPass1!")))
+                .isInstanceOf(TooManyRequestsException.class);
+    }
+
+    @Test
+    void changePassword_rejectsPasswordShorterThanPolicy() {
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(passwordPolicy.getMinLength()).thenReturn(12);
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "Short1!", "Short1!")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("at least 12");
+    }
+
+    @Test
+    void changePassword_rejectsMissingUppercaseWhenRequired() {
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(passwordPolicy.getMinLength()).thenReturn(8);
+        when(passwordPolicy.getRequireUppercase()).thenReturn(true);
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "lowercase1!", "lowercase1!")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("uppercase");
+    }
+
+    @Test
+    void changePassword_rejectsMissingLowercaseWhenRequired() {
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(passwordPolicy.getMinLength()).thenReturn(8);
+        when(passwordPolicy.getRequireUppercase()).thenReturn(true);
+        when(passwordPolicy.getRequireLowercase()).thenReturn(true);
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "UPPERCASE1!", "UPPERCASE1!")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("lowercase");
+    }
+
+    @Test
+    void changePassword_rejectsMissingDigitWhenRequired() {
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(passwordPolicy.getMinLength()).thenReturn(8);
+        when(passwordPolicy.getRequireDigit()).thenReturn(true);
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "NoDigits!", "NoDigits!")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("digit");
+    }
+
+    @Test
+    void changePassword_rejectsMissingSpecialCharacterWhenRequired() {
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(passwordPolicy.getMinLength()).thenReturn(8);
+        when(passwordPolicy.getRequireSpecialChar()).thenReturn(true);
+        when(passwordPolicy.getSpecialChars()).thenReturn("@$");
+
+        assertThatThrownBy(() -> service.changePassword("alice",
+                changeReq("current-pass", "NoSpecial1", "NoSpecial1")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("special character");
+    }
+
+    @Test
+    void changePassword_notificationUsesForwardedIpWindowsAndLocationParts() {
+        User user = activeUser();
+        UserSession.Location location = UserSession.Location.builder()
+                .city("Saigon").region("HCMC").country("VN").build();
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-pass", "hashed-current")).thenReturn(true);
+        when(passwordEncoder.matches("NewPass1!", "hashed-current")).thenReturn(false);
+        when(passwordEncoder.encode("NewPass1!")).thenReturn("hashed-new");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(refreshTokenService).deleteAllByUserId(anyString());
+        when(sessionRepository.deleteByUserId(anyString())).thenReturn(0);
+        doNothing().when(passwordChangeProducer).publishPasswordChangeEvent(any());
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("203.0.113.10, 10.0.0.2");
+        when(httpRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 Windows NT 10.0");
+        when(geoLocationService.getLocation("203.0.113.10")).thenReturn(location);
+
+        service.changePassword("alice", changeReq("current-pass", "NewPass1!", "NewPass1!"));
+
+        verify(notificationProducer).send(org.mockito.ArgumentMatchers.argThat(event ->
+                event.getMetadata().get("deviceInfo").equals("Windows PC")
+                        && event.getMetadata().get("ipAddress").equals("203.0.113.10")
+                        && event.getMetadata().get("location").equals("Saigon, HCMC, VN")));
+    }
+
     // ─── forgotPassword ───────────────────────────────────────────────────────
 
     @Test
@@ -175,6 +276,29 @@ class PasswordServiceTest {
 
         assertThatThrownBy(() -> service.forgotPassword(forgotReq("ghost@example.com")))
                 .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void forgotPassword_throwsTooManyRequests_whenRateLimitReached() {
+        when(valueOps.get("password:forgot:alice@example.com")).thenReturn("2");
+        when(passwordPolicy.getForgotRateLimit()).thenReturn(2);
+
+        assertThatThrownBy(() -> service.forgotPassword(forgotReq("alice@example.com")))
+                .isInstanceOf(TooManyRequestsException.class);
+    }
+
+    @Test
+    void forgotPassword_shortLocalPartEmailIsNotMasked() {
+        User user = activeUser();
+        user.setEmail("al@example.com");
+        when(valueOps.get(anyString())).thenReturn(null);
+        when(userRepository.findByEmail("al@example.com")).thenReturn(Optional.of(user));
+        doNothing().when(resetTokenRepository).deleteByEmail(anyString());
+        when(resetTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var response = service.forgotPassword(forgotReq("al@example.com"));
+
+        assertThat(response.getEmail()).isEqualTo("al@example.com");
     }
 
     private ForgotPasswordRequest forgotReq(String email) {
@@ -318,6 +442,110 @@ class PasswordServiceTest {
         assertThatThrownBy(() -> service.resetPassword(req))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid or expired reset token");
+    }
+
+    @Test
+    void resetPassword_throwsNotFound_whenTokenEmailHasNoUser() {
+        PasswordResetToken token = resetToken("valid-token", "111222", 0);
+        when(resetTokenRepository.findByTokenAndUsedFalseAndExpiresAtAfter(anyString(), any()))
+                .thenReturn(Optional.of(token));
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
+
+        ResetPasswordRequest req = new ResetPasswordRequest();
+        req.setToken("valid-token");
+        req.setNewPassword("NewPass@1");
+        req.setConfirmPassword("NewPass@1");
+
+        assertThatThrownBy(() -> service.resetPassword(req))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void resetPassword_notificationFallsBackForMissingHeadersAndLocation() {
+        PasswordResetToken token = resetToken("valid-token", "111222", 0);
+        when(resetTokenRepository.findByTokenAndUsedFalseAndExpiresAtAfter(anyString(), any()))
+                .thenReturn(Optional.of(token));
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(activeUser()));
+        when(passwordEncoder.encode("NewPass@1")).thenReturn("hashed-new");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(resetTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(refreshTokenService).deleteAllByUserId(anyString());
+        when(sessionRepository.deleteByUserId(anyString())).thenReturn(0);
+        doNothing().when(passwordChangeProducer).publishPasswordChangeEvent(any());
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("");
+        when(httpRequest.getRemoteAddr()).thenReturn(null);
+        when(httpRequest.getHeader("User-Agent")).thenReturn(null);
+        when(geoLocationService.getLocation("Unknown IP")).thenReturn(null);
+
+        ResetPasswordRequest req = new ResetPasswordRequest();
+        req.setToken("valid-token");
+        req.setNewPassword("NewPass@1");
+        req.setConfirmPassword("NewPass@1");
+
+        service.resetPassword(req);
+
+        verify(notificationProducer).send(org.mockito.ArgumentMatchers.argThat(event ->
+                event.getMetadata().get("deviceInfo").equals("Unknown Device")
+                        && event.getMetadata().get("ipAddress").equals("Unknown IP")
+                        && event.getMetadata().get("location").equals("Unknown Location")));
+    }
+
+    @Test
+    void setPassword_throwsNotFound_whenUserMissing() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.setPassword("ghost", setPasswordReq("NewPass@1")))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void setPassword_throwsBadRequest_whenUserAlreadyHasPassword() {
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(activeUser()));
+
+        assertThatThrownBy(() -> service.setPassword("alice", setPasswordReq("NewPass@1")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("already has a password");
+    }
+
+    @Test
+    void setPassword_success_usesFullNameInNotificationMetadata() {
+        User user = activeUser();
+        user.setPassword(null);
+        user.setFullName("Alice Example");
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("NewPass@1")).thenReturn("hashed-new");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(passwordChangeProducer).publishPasswordChangeEvent(any());
+
+        service.setPassword("alice", setPasswordReq("NewPass@1"));
+
+        verify(notificationProducer).send(org.mockito.ArgumentMatchers.argThat(event ->
+                event.getMetadata().get("fullName").equals("Alice Example")
+                        && event.getTemplateType().equals("password-set")));
+    }
+
+    @Test
+    void setPassword_notificationFailureIsSwallowedAndFallsBackToUsername() {
+        User user = activeUser();
+        user.setPassword("");
+        user.setFullName(null);
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("NewPass@1")).thenReturn("hashed-new");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(passwordChangeProducer).publishPasswordChangeEvent(any());
+        doThrow(new RuntimeException("mail down")).when(notificationProducer).send(any());
+
+        service.setPassword("alice", setPasswordReq("NewPass@1"));
+
+        verify(userRepository).save(user);
+        verify(notificationProducer).send(org.mockito.ArgumentMatchers.argThat(event ->
+                event.getMetadata().get("fullName").equals("alice")));
+    }
+
+    private SetPasswordRequest setPasswordReq(String password) {
+        SetPasswordRequest req = new SetPasswordRequest();
+        req.setNewPassword(password);
+        return req;
     }
 
     // ─── helper ───────────────────────────────────────────────────────────────

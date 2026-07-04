@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 2,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 1
+    "hrmKey": "hrm2",
+    "index": 4
   },
-  "jobTitle": "Frontend Developer - React / TypeScript",
-  "resume_index": 10,
-  "resume_summary": "Engineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with GCP, Apache Kafka, and TypeScript. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Lead Platform Engineer @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Platform Engineer @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Senior DevOps Engineer @ Oracle Vietnam (Jan 2023–Jun 2025) | DevOps Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | DevOps Engineer @ MoMo (M-Service) (Dec 2024–Present)",
-  "resume_skills": "TailwindCSS, Redux, ReactJS, TypeScript, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Empathy & Active Listening, Continuous Learning, Negotiation",
-  "resume_education": "Bachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nEngineering-focused problem solver with 7 years in insurtech startups and scale-ups. Hands-on with GCP, Apache Kafka, and TypeScript. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Platform Engineer @ AIA Vietnam (May 2023–Jan 2024) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Platform Engineer @ AEON Vietnam (Apr 2023–Aug 2024) · Designed a strangler-fig pipeline that scaled to 50k requests/minute with 99.95% uptime. | Senior DevOps Engineer @ Oracle Vietnam (Jan 2023–Jun 2025) | DevOps Engineer @ McKinsey & Company Vietnam (Jan 2025–Feb 2026) | DevOps Engineer @ MoMo (M-Service) (Dec 2024–Present)\n\nSKILLS\nTailwindCSS, Redux, ReactJS, TypeScript, Event-Driven Architecture, Code Review, Apache Kafka, WebSocket, gRPC, NATS, GCP, Jenkins, Rust, C#, Empathy & Active Listening, Continuous Learning, Negotiation\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – VNU-HN, 2017 | TOEIC 900",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "match",
+  "resume_index": 2,
+  "resume_summary": "Hands-on Machine Learning Engineer with 10 years building resilient, observable microservices in e-commerce. Expertise in MongoDB and MongoDB. Drove adoption of Terraform-based tooling, improving MTTR by 53%.",
+  "resume_experience": "Principal ML Engineer @ Zalo Group (Jan 2021–Aug 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Lead ML Engineer @ Haravan (Dec 2022–Jul 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior ML Engineer @ Masan Group (Jun 2022–Apr 2025) | ML Engineer @ BCG Vietnam (Apr 2025–Mar 2026) | ML Engineer @ Google LLC (Jan 2024–Present)",
+  "resume_skills": "Python, PostgreSQL, LangChain, OpenAI API, MongoDB, Neo4j, TensorFlow, scikit-learn, Bash, C++, Kotlin, Rust, Jenkins, AWS, Terraform, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 10 years building resilient, observable microservices in e-commerce. Expertise in MongoDB and MongoDB. Drove adoption of Terraform-based tooling, improving MTTR by 53%.\n\nEXPERIENCE\nPrincipal ML Engineer @ Zalo Group (Jan 2021–Aug 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Lead ML Engineer @ Haravan (Dec 2022–Jul 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior ML Engineer @ Masan Group (Jun 2022–Apr 2025) | ML Engineer @ BCG Vietnam (Apr 2025–Mar 2026) | ML Engineer @ Google LLC (Jan 2024–Present)\n\nSKILLS\nPython, PostgreSQL, LangChain, OpenAI API, MongoDB, Neo4j, TensorFlow, scikit-learn, Bash, C++, Kotlin, Rust, Jenkins, AWS, Terraform, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
   "pdf_file": "candidate2_10.pdf"
 }

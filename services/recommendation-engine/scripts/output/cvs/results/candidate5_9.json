@@ -1,15 +1,16 @@
 {
-  "candidateNum": 9,
+  "candidateNum": 5,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 4
+    "hrmKey": "hrm2",
+    "index": 3
   },
-  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
-  "resume_index": 9,
-  "resume_summary": "Open-source contributor and mid-level DevOps / Platform Engineer with 4 years of hands-on experience. Strong foundation in Event-Driven Architecture and CQRS. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.",
-  "resume_experience": "Lead Platform Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Platform Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior DevOps Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | DevOps Engineer @ PwC Vietnam (Aug 2025–Present)",
-  "resume_skills": "Linux, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, TypeScript, Dart, R, Apache Kafka, WebSocket, RabbitMQ, GitHub Actions, GCP, AWS, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management",
-  "resume_education": "Bachelor of Engineering in Computer Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
-  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nOpen-source contributor and mid-level DevOps / Platform Engineer with 4 years of hands-on experience. Strong foundation in Event-Driven Architecture and CQRS. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.\n\nEXPERIENCE\nLead Platform Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Platform Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior DevOps Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | DevOps Engineer @ PwC Vietnam (Aug 2025–Present)\n\nSKILLS\nLinux, CQRS, Agile / Scrum, Microservices, Event-Driven Architecture, TypeScript, Dart, R, Apache Kafka, WebSocket, RabbitMQ, GitHub Actions, GCP, AWS, Stakeholder Management, Conflict Resolution, Leadership & Mentoring, Time Management\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, Kali Linux, and AWS. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Security Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Security Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Security Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "SIEM, Kali Linux, AWS, Burp Suite, Redis, Cassandra, BigQuery, MySQL, Kotlin, Bash, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Cybersecurity – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, Kali Linux, and AWS. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Security Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Security Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Security Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nSIEM, Kali Linux, AWS, Burp Suite, Redis, Cassandra, BigQuery, MySQL, Kotlin, Bash, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Cybersecurity – FTU HCMC, 2008 | TOEIC 600",
   "pdf_file": "candidate5_9.pdf"
 }

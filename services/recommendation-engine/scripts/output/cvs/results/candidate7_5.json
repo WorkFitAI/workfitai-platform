@@ -1,15 +1,16 @@
 {
-  "candidateNum": 5,
+  "candidateNum": 7,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 1
+    "hrmKey": "hrm1",
+    "index": 4
   },
-  "jobTitle": "Data Engineer - Apache Spark / Airflow",
-  "resume_index": 5,
-  "resume_summary": "Versatile Data Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NumPy and HuggingFace Transformers. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal Data Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Data Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Data Engineer @ VPBank (Aug 2022–Jun 2025) | Data Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)",
-  "resume_skills": "Apache Spark, Python, HuggingFace Transformers, NumPy, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening",
-  "resume_education": "Bachelor of Science in Computer Science – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Data Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in NumPy and HuggingFace Transformers. Mentored 14 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Data Engineer @ VinAI Research (Nov 2021–Jul 2024) · Conducted 11 rounds of user research, surfacing 11 critical usability issues before launch. | Lead Data Engineer @ TopCV Vietnam (Sep 2022–Feb 2025) · Redesigned auth onboarding flow; user activation rate improved by 24% in 6 weeks. | Senior Data Engineer @ VPBank (Aug 2022–Jun 2025) | Data Engineer @ Samsung R&D Institute Vietnam (Jan 2024–Present)\n\nSKILLS\nApache Spark, Python, HuggingFace Transformers, NumPy, Neo4j, Redis, BigQuery, C#, JavaScript, Rust, Ansible, Kubernetes, Stakeholder Management, Technical Communication, Data-Driven Decision Making, Continuous Learning, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Computer Science – HCMUS, 2020 | TOEIC 700 | Cert: Certified Management Accountant (CMA)",
+  "jobTitle": "DevOps Engineer - AWS / Kubernetes",
+  "label": "no_match",
+  "resume_index": 7,
+  "resume_summary": "13+ years as a Site Reliability Engineer specialising in Elasticsearch and RabbitMQ. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal SRE @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Lead SRE @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior SRE @ HDBank (Jul 2023–Jul 2025) | SRE @ Rikkeisoft (Dec 2023–Present)",
+  "resume_skills": "TDD, CI/CD, Docker, GCP, Helm, MySQL, Elasticsearch, gRPC, RabbitMQ, NATS, WebSocket, Negotiation, Ownership & Accountability, Cross-functional Collaboration, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n13+ years as a Site Reliability Engineer specialising in Elasticsearch and RabbitMQ. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal SRE @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Lead SRE @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Senior SRE @ HDBank (Jul 2023–Jul 2025) | SRE @ Rikkeisoft (Dec 2023–Present)\n\nSKILLS\nTDD, CI/CD, Docker, GCP, Helm, MySQL, Elasticsearch, gRPC, RabbitMQ, NATS, WebSocket, Negotiation, Ownership & Accountability, Cross-functional Collaboration, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate7_5.pdf"
 }

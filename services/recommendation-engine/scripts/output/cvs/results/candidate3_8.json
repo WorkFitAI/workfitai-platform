@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 3,
   "jobRef": {
-    "hrmKey": "hrm1",
+    "hrmKey": "hrm2",
     "index": 2
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 8,
-  "resume_summary": "Results-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "TypeScript, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
-  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nTypeScript, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Data Scientist with 3 years building resilient, observable microservices in insurtech. Expertise in NumPy and Go. Drove adoption of SQL-based tooling, improving MTTR by 37%.",
+  "resume_experience": "Lead Data Scientist @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Senior Data Scientist @ Techcombank (Dec 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Data Scientist @ ThoughtWorks Vietnam (Nov 2022–Mar 2025) | Data Analyst @ BCG Vietnam (Dec 2023–Mar 2026) | Data Analyst @ Oracle Vietnam (Oct 2023–Present)",
+  "resume_skills": "scikit-learn, TensorFlow, PyTorch, SQL, Python, Scala, Go, Swift, HuggingFace Transformers, NumPy, Tableau, Amplitude, Google Analytics, Project Planning, Empathy & Active Listening, Time Management",
+  "resume_education": "Bachelor of Science in Data Science – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Data Scientist with 3 years building resilient, observable microservices in insurtech. Expertise in NumPy and Go. Drove adoption of SQL-based tooling, improving MTTR by 37%.\n\nEXPERIENCE\nLead Data Scientist @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Senior Data Scientist @ Techcombank (Dec 2023–Aug 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | Data Scientist @ ThoughtWorks Vietnam (Nov 2022–Mar 2025) | Data Analyst @ BCG Vietnam (Dec 2023–Mar 2026) | Data Analyst @ Oracle Vietnam (Oct 2023–Present)\n\nSKILLS\nscikit-learn, TensorFlow, PyTorch, SQL, Python, Scala, Go, Swift, HuggingFace Transformers, NumPy, Tableau, Amplitude, Google Analytics, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Science in Data Science – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate3_8.pdf"
 }

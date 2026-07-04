@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 3
+  },
+  "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, AWS, and Terraform. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Architect @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Solutions Architect @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "Docker, AWS, Terraform, Linux, TDD, REST API Design, Code Review, CI/CD, MySQL, BigQuery, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Information Technology – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with GCP, AWS, and Terraform. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Architect @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Solutions Architect @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nDocker, AWS, Terraform, Linux, TDD, REST API Design, Code Review, CI/CD, MySQL, BigQuery, GCP, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Information Technology – FTU HCMC, 2008 | TOEIC 600",
+  "pdf_file": "candidate5_14.pdf"
+}

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -187,6 +188,61 @@ class SessionServiceTest {
         verify(geoLocationService).getLocationFromCoordinates(10.0, 106.0);
     }
 
+    @Test
+    void createSession_usesForwardedForAndMapsLocationIntoResponse() {
+        UserSession.Location location = UserSession.Location.builder()
+                .country("VN").region("HCMC").city("Saigon").build();
+        when(sessionRepository.countByUserId("user-1")).thenReturn(0L);
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("10.0.0.1, 10.0.0.2");
+        when(httpRequest.getHeader("User-Agent")).thenReturn("PostmanRuntime/7.0");
+        when(geoLocationService.getLocation("10.0.0.1")).thenReturn(location);
+        when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        UserSession session = service.createSession(
+                "user-1", "rt-hash", 3_600_000L, httpRequest, null, null);
+        when(sessionRepository.findByUserIdOrderByCreatedAtDesc("user-1")).thenReturn(List.of(session));
+
+        List<SessionResponse> responses = service.getUserSessions("user-1", session.getSessionId());
+
+        assertThat(session.getIpAddress()).isEqualTo("10.0.0.1");
+        assertThat(session.getDeviceName()).isEqualTo("Postman");
+        assertThat(responses.get(0).getLocation().getCountry()).isEqualTo("VN");
+        assertThat(responses.get(0).getLocation().getRegion()).isEqualTo("HCMC");
+        assertThat(responses.get(0).getLocation().getCity()).isEqualTo("Saigon");
+    }
+
+    @Test
+    void createSession_fallsBackWhenRemoteAddrAndUserAgentMissing() {
+        when(sessionRepository.countByUserId("user-1")).thenReturn(0L);
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("");
+        when(httpRequest.getRemoteAddr()).thenReturn(null);
+        when(httpRequest.getHeader("User-Agent")).thenReturn(null);
+        when(geoLocationService.getLocation("0.0.0.0")).thenReturn(null);
+        when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        UserSession result = service.createSession(
+                "user-1", "rt-hash", 3_600_000L, httpRequest, null, null);
+
+        assertThat(result.getIpAddress()).isEqualTo("0.0.0.0");
+        assertThat(result.getUserAgent()).isEqualTo("Unknown");
+        assertThat(result.getDeviceName()).isEqualTo("Unknown Device");
+    }
+
+    @Test
+    void createSession_detectsCommonMobileAndDesktopDeviceNames() {
+        assertDeviceName("Mozilla/5.0 Mobile iPhone", "iPhone");
+        assertDeviceName("Mozilla/5.0 Mobile iPad", "iPad");
+        assertDeviceName("Mozilla/5.0 Mobile Android", "Android Phone");
+        assertDeviceName("Mozilla/5.0 Mobile", "Mobile Device");
+        assertDeviceName("Mozilla/5.0 Windows NT 10.0", "Windows PC");
+        assertDeviceName("Mozilla/5.0 Macintosh", "Mac");
+        assertDeviceName("Mozilla/5.0 Linux x86_64", "Linux PC");
+        assertDeviceName("Mozilla/5.0 Firefox/120", "Firefox Browser");
+        assertDeviceName("Mozilla/5.0 Safari/605", "Safari Browser");
+        assertDeviceName("Mozilla/5.0 Edge/120", "Edge Browser");
+        assertDeviceName("CustomAgent/1.0", "Unknown Device");
+    }
+
     // ─── updateSessionActivity ────────────────────────────────────────────────
 
     @Test
@@ -205,5 +261,20 @@ class SessionServiceTest {
         when(sessionRepository.findBySessionId("sid-ghost")).thenReturn(Optional.empty());
 
         service.updateSessionActivity("sid-ghost"); // must not throw
+    }
+
+    private void assertDeviceName(String userAgent, String expectedDeviceName) {
+        reset(sessionRepository, geoLocationService, httpRequest);
+        when(sessionRepository.countByUserId("user-1")).thenReturn(0L);
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(httpRequest.getHeader("User-Agent")).thenReturn(userAgent);
+        when(geoLocationService.getLocation("127.0.0.1")).thenReturn(null);
+        when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        UserSession result = service.createSession(
+                "user-1", "rt-hash", 3_600_000L, httpRequest, null, null);
+
+        assertThat(result.getDeviceName()).isEqualTo(expectedDeviceName);
     }
 }

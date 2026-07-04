@@ -1,15 +1,16 @@
 {
-  "candidateNum": 7,
+  "candidateNum": 4,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 3
+    "hrmKey": "hrm2",
+    "index": 1
   },
-  "jobTitle": "Mobile Developer - React Native",
-  "resume_index": 7,
-  "resume_summary": "10+ years as a Mobile Engineer (Android & iOS) specialising in NestJS and Kotlin. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Lead Mobile Engineer @ Sendo.vn (Apr 2022–Apr 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior Mobile Engineer @ CMC Global (Jul 2024–Mar 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | iOS/Android Engineer @ MB Bank Tech (Sep 2022–Jul 2025) | Mobile Developer @ Base.vn (Aug 2023–Present)",
-  "resume_skills": "Firebase, Redux, TDD, CI/CD, Spring Boot, Flutter, NestJS, Python, Kotlin, Negotiation, Technical Communication, Time Management, Project Planning",
-  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
-  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n10+ years as a Mobile Engineer (Android & iOS) specialising in NestJS and Kotlin. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Mobile Engineer @ Sendo.vn (Apr 2022–Apr 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior Mobile Engineer @ CMC Global (Jul 2024–Mar 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | iOS/Android Engineer @ MB Bank Tech (Sep 2022–Jul 2025) | Mobile Developer @ Base.vn (Aug 2023–Present)\n\nSKILLS\nFirebase, Redux, TDD, CI/CD, Spring Boot, Flutter, NestJS, Python, Kotlin, Negotiation, Technical Communication, Time Management, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Results-driven principal-level Data Engineer with 11 years building high-throughput logistics platforms. Deep expertise in dbt, DynamoDB, and Redis. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal Data Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Data Engineer @ Techcombank (Sep 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Data Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | Data Engineer @ Medici Health (Apr 2024–Mar 2026) | Data Engineer I @ ACB Bank (May 2025–Present)",
+  "resume_skills": "MySQL, Apache Spark, Airflow, Kafka, Redis, DynamoDB, dbt, Spark, scikit-learn, NATS, RabbitMQ, gRPC, Apache Kafka, Ownership & Accountability, Presentation Skills, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Computer Science – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Data Engineer with 11 years building high-throughput logistics platforms. Deep expertise in dbt, DynamoDB, and Redis. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Data Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead Data Engineer @ Techcombank (Sep 2023–Dec 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior Data Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | Data Engineer @ Medici Health (Apr 2024–Mar 2026) | Data Engineer I @ ACB Bank (May 2025–Present)\n\nSKILLS\nMySQL, Apache Spark, Airflow, Kafka, Redis, DynamoDB, dbt, Spark, scikit-learn, NATS, RabbitMQ, gRPC, Apache Kafka, Ownership & Accountability, Presentation Skills, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Computer Science – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate4_7.pdf"
 }

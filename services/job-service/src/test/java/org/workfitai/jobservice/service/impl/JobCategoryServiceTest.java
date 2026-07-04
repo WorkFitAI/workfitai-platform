@@ -5,13 +5,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
+import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.mapper.JobCategoryMapper;
 import org.workfitai.jobservice.repository.JobCategoryRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,6 +57,22 @@ class JobCategoryServiceTest {
         assertThatThrownBy(() -> jobCategoryService.getById(id))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Job category not found");
+    }
+
+    @Test
+    void fetchAll_returnsPaginatedDTO() {
+        JobCategory category = JobCategory.builder().jobCategoryId(UUID.randomUUID()).name("Engineering").build();
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        Specification<JobCategory> spec = (root, query, cb) -> null;
+        Page<JobCategory> page = new PageImpl<>(List.of(category), pageable, 1);
+        when(jobCategoryRepository.findAll(spec, pageable)).thenReturn(page);
+        ResJobCategoryDTO resDto = new ResJobCategoryDTO();
+        when(jobCategoryMapper.toResDTO(category)).thenReturn(resDto);
+
+        ResultPaginationDTO result = jobCategoryService.fetchAll(spec, pageable);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getResult()).isEqualTo(List.of(resDto));
     }
 
     @Test

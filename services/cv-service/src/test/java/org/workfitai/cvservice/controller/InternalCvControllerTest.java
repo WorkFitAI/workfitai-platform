@@ -64,6 +64,23 @@ class InternalCvControllerTest {
     }
 
     @Test
+    void reparseSnapshot_returnsSnapshotResponse() throws Exception {
+        // Phase 06: /internal/cvs/reparse-snapshot had zero controller-level
+        // coverage before this — the reconciliation job's only entry point.
+        CvSnapshotResponse response = CvSnapshotResponse.builder().cvId("cv2").summary("reparsed").build();
+        when(cvService.reparseApplicationSnapshot(
+                eq("alice"), eq("app-2"), eq("Backend Engineer"), eq("http://minio/original.pdf")))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/internal/cvs/reparse-snapshot")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"alice\",\"applicationId\":\"app-2\","
+                                + "\"jobName\":\"Backend Engineer\",\"cvFileUrl\":\"http://minio/original.pdf\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cvId").value("cv2"));
+    }
+
+    @Test
     void getCvSnapshotsByApplicationIds_returnsEmptyList_whenInputEmpty() throws Exception {
         mockMvc.perform(post("/internal/cvs/batch-by-application-ids")
                         .contentType(MediaType.APPLICATION_JSON)

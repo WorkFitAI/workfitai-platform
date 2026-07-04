@@ -1,0 +1,19 @@
+{
+  "_readingOrderAssumption": "Left sidebar (name/contact/skills) read top-to-bottom in full, then right body (experience/education) read top-to-bottom in full — standard sidebar-CV reading convention.",
+  "sections": {
+    "skills": [
+      "Java",
+      "React",
+      "PostgreSQL"
+    ],
+    "experience": [
+      "Senior Backend Engineer",
+      "Designed and implemented microservices for payments.",
+      "Led migration to microservices architecture."
+    ],
+    "education": [
+      "Bachelor of Science in Computer Science"
+    ]
+  },
+  "skills": ["java", "react", "postgresql"]
+}

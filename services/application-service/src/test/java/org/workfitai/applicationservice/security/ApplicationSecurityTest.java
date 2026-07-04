@@ -2,6 +2,7 @@ package org.workfitai.applicationservice.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -76,6 +77,14 @@ class ApplicationSecurityTest {
         assertThat(applicationSecurity.getCurrentCompanyId(candidateAuth)).isNull();
     }
 
+    @Test
+    void getCurrentCompanyId_nonJwtAuth_throwsIllegalState() {
+        var nonJwt = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "user", null, List.of());
+        assertThatThrownBy(() -> applicationSecurity.getCurrentCompanyId(nonJwt))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     // ─── isOwner ─────────────────────────────────────────────────────────────
 
     @Test
@@ -135,6 +144,21 @@ class ApplicationSecurityTest {
         assertThat(applicationSecurity.isCandidate(candidateAuth)).isTrue();
     }
 
+    @Test
+    void hasPermission_missingPermission_returnsFalse() {
+        assertThat(applicationSecurity.hasPermission(candidateAuth, "application:delete")).isFalse();
+    }
+
+    @Test
+    void canUpdateStatus_withPermission_returnsTrue() {
+        assertThat(applicationSecurity.canUpdateStatus("app-1", adminAuth)).isTrue();
+    }
+
+    @Test
+    void canUpdateStatus_withoutPermission_returnsFalse() {
+        assertThat(applicationSecurity.canUpdateStatus("app-1", candidateAuth)).isFalse();
+    }
+
     // ─── isSameCompany ────────────────────────────────────────────────────────
 
     @Test
@@ -177,6 +201,15 @@ class ApplicationSecurityTest {
                 .isInstanceOf(ForbiddenException.class);
     }
 
+    @Test
+    void requireOwnership_missingApplication_throwsNotFound() {
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-404"))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> applicationSecurity.requireOwnership("app-404", candidateAuth))
+                .isInstanceOf(org.workfitai.applicationservice.exception.NotFoundException.class);
+    }
+
     // ─── isNoteAuthor ─────────────────────────────────────────────────────────
 
     @Test
@@ -206,6 +239,73 @@ class ApplicationSecurityTest {
     }
 
     // ─── helper ───────────────────────────────────────────────────────────────
+
+    @Test
+    void isNoteAuthor_missingNote_returnsFalse() {
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-1"))
+                .thenReturn(Optional.of(application));
+
+        assertThat(applicationSecurity.isNoteAuthor("app-1", "missing-note", hrAuth)).isFalse();
+    }
+
+    @Test
+    void isNoteAuthor_missingApplication_returnsFalse() {
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-404"))
+                .thenReturn(Optional.empty());
+
+        assertThat(applicationSecurity.isNoteAuthor("app-404", "note-1", hrAuth)).isFalse();
+    }
+
+    @Test
+    void canAssign_withoutPermission_returnsFalseWithoutLookup() {
+        assertThat(applicationSecurity.canAssign("app-1", candidateAuth)).isFalse();
+        verifyNoInteractions(applicationRepository);
+    }
+
+    @Test
+    void canAssign_matchingCompany_returnsTrue() {
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-1"))
+                .thenReturn(Optional.of(application));
+
+        assertThat(applicationSecurity.canAssign("app-1", hrWithCompanyAuth)).isTrue();
+    }
+
+    @Test
+    void canAssign_differentCompany_returnsFalse() {
+        Application otherCompanyApp = Application.builder()
+                .id("app-2").username("candidate2").companyId("other-company")
+                .build();
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-2"))
+                .thenReturn(Optional.of(otherCompanyApp));
+
+        assertThat(applicationSecurity.canAssign("app-2", hrWithCompanyAuth)).isFalse();
+    }
+
+    @Test
+    void canAssign_missingApplication_returnsFalse() {
+        when(applicationRepository.findByIdAndDeletedAtIsNull("app-404"))
+                .thenReturn(Optional.empty());
+
+        assertThat(applicationSecurity.canAssign("app-404", hrWithCompanyAuth)).isFalse();
+    }
+
+    @Test
+    void canExport_withPermissionAndSameCompany_returnsTrue() {
+        JwtAuthenticationToken exportAuth = jwtToken("hr1", Map.of("companyId", "company-1"),
+                List.of("ROLE_HR", "application:export"));
+
+        assertThat(applicationSecurity.canExport("company-1", exportAuth)).isTrue();
+    }
+
+    @Test
+    void canExport_withoutPermission_returnsFalse() {
+        assertThat(applicationSecurity.canExport("company-1", hrWithCompanyAuth)).isFalse();
+    }
+
+    @Test
+    void canExport_adminReturnsTrue() {
+        assertThat(applicationSecurity.canExport("company-99", adminAuth)).isTrue();
+    }
 
     private JwtAuthenticationToken jwtToken(String subject, Map<String, Object> extraClaims, List<String> authorities) {
         Map<String, Object> claims = new java.util.HashMap<>(extraClaims);

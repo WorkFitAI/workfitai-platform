@@ -379,7 +379,7 @@ class CVServiceTest {
         newer.setSummary("new");
         newer.setUpdatedAt(Instant.parse("2024-02-01T00:00:00Z"));
         newer.setSections(Map.of("experience", List.of("Did things"), "skills", "Java"));
-        when(repository.findByBelongToInAndIsExistTrue(List.of("alice")))
+        when(repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(List.of("alice")))
                 .thenReturn(List.of(older, newer));
 
         List<CvDataResponse> result = cvService.getCvDataBatch(List.of("alice"));
@@ -397,7 +397,7 @@ class CVServiceTest {
         cv.setBelongTo("bob");
         cv.setCreatedAt(Instant.parse("2024-01-01T00:00:00Z"));
         cv.setSummary(null);
-        when(repository.findByBelongToInAndIsExistTrue(List.of("bob"))).thenReturn(List.of(cv));
+        when(repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(List.of("bob"))).thenReturn(List.of(cv));
 
         List<CvDataResponse> result = cvService.getCvDataBatch(List.of("bob"));
 

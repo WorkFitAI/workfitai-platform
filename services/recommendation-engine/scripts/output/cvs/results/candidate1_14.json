@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 3
+  },
+  "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Results-oriented Solutions Consultant (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Docker and Terraform; comfortable presenting findings directly to C-suite stakeholders.",
+  "resume_experience": "Principal Consultant @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Solutions Consultant @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Solutions Consultant @ KMS Technology (Oct 2023–Present)",
+  "resume_skills": "Linux, Docker, AWS, Terraform, Monday.com, Resource Planning, Confluence, Kanban, Process Mapping, Gap Analysis, BPMN, Go, JavaScript, Java, C#, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning",
+  "resume_education": "Bachelor of Science in Information Systems – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nResults-oriented Solutions Consultant (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Docker and Terraform; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nPrincipal Consultant @ BCG Vietnam (Mar 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Solutions Consultant @ Techcombank (Aug 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Solutions Consultant @ KMS Technology (Oct 2023–Present)\n\nSKILLS\nLinux, Docker, AWS, Terraform, Monday.com, Resource Planning, Confluence, Kanban, Process Mapping, Gap Analysis, BPMN, Go, JavaScript, Java, C#, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning\n\nEDUCATION\nBachelor of Science in Information Systems – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate1_14.pdf"
+}

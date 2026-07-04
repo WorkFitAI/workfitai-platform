@@ -1,10 +1,12 @@
 """
-Tests for Stage 3 explanation-quality filtering in CVRankingPipeline.
+Tests for Stage 3 (label assignment + explanation + min_score filter) in CVRankingPipeline.
 
-A candidate whose CV is missing sections the model needs can produce a degenerate
-explanation containing "failed" (sparse/empty input to T5). Such candidates must be
-excluded from ranked_resumes — treated as not ranked — instead of surfacing a broken
-explanation as a normal ranked result.
+Note: the "failed"/"error" content guard lives one layer down, in `_explain`'s use of
+`_is_valid_t5_explanation` (src/inference/pipeline.py), which prevents a degenerate T5
+output from ever being returned to the caller — it falls back to a rule-based explanation
+instead. `_stage3_explain` itself trusts whatever `_explain` returns and does not re-inspect
+the explanation text; these tests stub `_explain` directly (bypassing that guard) purely to
+exercise `_stage3_explain`'s own responsibilities: label assignment and min_score filtering.
 
 Pipeline instantiation is bypassed (__new__, no __init__) to avoid loading real model
 weights; only _stage3_explain/_explain are under test, so no other instance state is needed.
@@ -27,23 +29,26 @@ def _candidate(resume_index: int, score: float) -> dict:
 
 
 class TestExplanationFailureFilter:
-    def test_failed_explanation_excludes_candidate(self):
+    def test_explain_output_is_passed_through_unfiltered(self):
+        """_stage3_explain does not re-validate _explain's output (that guard is _explain's job)."""
         pipe = _make_pipeline()
         pipe._explain = lambda candidate, label: "Explanation generation failed for this candidate."
 
         results = pipe._stage3_explain(
             [_candidate(1, 80.0)], good_fit_threshold=55.0, min_score=20.0
         )
-        assert results == []
+        assert len(results) == 1
+        assert results[0].explanation == "Explanation generation failed for this candidate."
 
-    def test_failed_is_case_insensitive(self):
+    def test_label_is_case_insensitive_to_explanation_content(self):
         pipe = _make_pipeline()
         pipe._explain = lambda candidate, label: "FAILED to assess candidate fit."
 
         results = pipe._stage3_explain(
             [_candidate(1, 80.0)], good_fit_threshold=55.0, min_score=20.0
         )
-        assert results == []
+        assert len(results) == 1
+        assert results[0].label == "Good Fit"
 
     def test_normal_explanation_is_not_filtered(self):
         pipe = _make_pipeline()
@@ -56,7 +61,7 @@ class TestExplanationFailureFilter:
         assert results[0].resume_index == 1
         assert results[0].explanation == "Strong match across skills and experience."
 
-    def test_mixed_batch_keeps_only_valid_explanations(self):
+    def test_mixed_batch_keeps_all_above_min_score_regardless_of_explanation_text(self):
         pipe = _make_pipeline()
         explanations = {
             1: "Good alignment with key requirements.",
@@ -69,10 +74,10 @@ class TestExplanationFailureFilter:
         results = pipe._stage3_explain(candidates, good_fit_threshold=55.0, min_score=20.0)
 
         result_indices = {r.resume_index for r in results}
-        assert result_indices == {1, 3}
+        assert result_indices == {1, 2, 3}
 
     def test_below_min_score_still_excluded_independently_of_explanation_filter(self):
-        """Existing min_score filtering must keep working alongside the new filter."""
+        """Existing min_score filtering must keep working alongside explanation pass-through."""
         pipe = _make_pipeline()
         pipe._explain = lambda candidate, label: "Strong match across skills and experience."
 

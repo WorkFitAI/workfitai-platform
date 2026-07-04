@@ -69,6 +69,12 @@ class UserRoleServiceImplTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
+    private void setCandidateContext(String username) {
+        var auth = new UsernamePasswordAuthenticationToken(
+                username, null, List.of(new SimpleGrantedAuthority("CANDIDATE")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     // ─── grantRoleToUser ──────────────────────────────────────────────────────
 
     @Test
@@ -88,6 +94,22 @@ class UserRoleServiceImplTest {
         // Assert
         verify(users).save(targetUser);
         verify(auditService).logGrant("admin", "bob", "ROLE", "HR");
+    }
+
+    @Test
+    void grantRoleToUser_adminGrantsCustomRole_succeeds() {
+        setAdminContext();
+        Role customRole = new Role();
+        customRole.setName("RECRUITER");
+        when(users.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("RECRUITER")).thenReturn(Optional.of(customRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.grantRoleToUser("bob", "RECRUITER");
+
+        verify(users).save(targetUser);
+        verify(auditService).logGrant("admin", "bob", "ROLE", "RECRUITER");
     }
 
     @Test
@@ -152,6 +174,23 @@ class UserRoleServiceImplTest {
     }
 
     @Test
+    void revokeRoleFromUser_adminRevokesCustomRole_retainsBuiltInRole() {
+        setAdminContext();
+        targetUser.getRoles().add("RECRUITER");
+        Role customRole = new Role();
+        customRole.setName("RECRUITER");
+        when(users.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("RECRUITER")).thenReturn(Optional.of(customRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.revokeRoleFromUser("bob", "RECRUITER");
+
+        verify(users).save(targetUser);
+        verify(auditService).logRevoke("admin", "bob", "ROLE", "RECRUITER");
+    }
+
+    @Test
     void revokeRoleFromUser_removingLastBuiltInRole_throwsIllegalArgument() {
         // Arrange
         setAdminContext();
@@ -187,6 +226,93 @@ class UserRoleServiceImplTest {
 
         // Act & Assert — HR_MANAGER cannot grant ADMIN
         assertThatThrownBy(() -> userRoleService.grantRoleToUser("bob", "ADMIN"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void grantRoleToUser_hrManagerGrantsHrToUnassignedUser_propagatesCompanyInfo() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        hrManager.setCompanyNo("COMPANY-A");
+        hrManager.setCompanyId("company-id-a");
+
+        setHrManagerContext("hrm");
+        Role hrRole = new Role();
+        hrRole.setName("HR");
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("HR")).thenReturn(Optional.of(hrRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.grantRoleToUser("bob", "HR");
+
+        org.assertj.core.api.Assertions.assertThat(targetUser.getCompanyNo()).isEqualTo("COMPANY-A");
+        org.assertj.core.api.Assertions.assertThat(targetUser.getCompanyId()).isEqualTo("company-id-a");
+        verify(auditService).logGrant("hrm", "bob", "ROLE", "HR");
+    }
+
+    @Test
+    void grantRoleToUser_hrManagerGrantsHrToSameCompanyUser_succeedsWithoutOverwritingCompany() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        hrManager.setCompanyNo("COMPANY-A");
+        hrManager.setCompanyId("company-id-a");
+        targetUser.setCompanyNo("COMPANY-A");
+        targetUser.setCompanyId("existing-company-id");
+
+        setHrManagerContext("hrm");
+        Role hrRole = new Role();
+        hrRole.setName("HR");
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("HR")).thenReturn(Optional.of(hrRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.grantRoleToUser("bob", "HR");
+
+        org.assertj.core.api.Assertions.assertThat(targetUser.getCompanyId()).isEqualTo("existing-company-id");
+        verify(users).save(targetUser);
+    }
+
+    @Test
+    void grantRoleToUser_hrManagerGrantsHrOutsideCompany_throwsAccessDenied() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        hrManager.setCompanyNo("COMPANY-A");
+        targetUser.setCompanyNo("COMPANY-B");
+
+        setHrManagerContext("hrm");
+        Role hrRole = new Role();
+        hrRole.setName("HR");
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("HR")).thenReturn(Optional.of(hrRole));
+
+        assertThatThrownBy(() -> userRoleService.grantRoleToUser("bob", "HR"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void grantRoleToUser_nonManagerCaller_throwsAccessDenied() {
+        User candidate = new User();
+        candidate.setId("candidate-id");
+        candidate.setUsername("candidate");
+        candidate.setRoles(new HashSet<>(Set.of("CANDIDATE")));
+
+        setCandidateContext("candidate");
+        Role hrRole = new Role();
+        hrRole.setName("HR");
+        when(users.findByUsername("candidate")).thenReturn(Optional.of(candidate));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("HR")).thenReturn(Optional.of(hrRole));
+
+        assertThatThrownBy(() -> userRoleService.grantRoleToUser("bob", "HR"))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
@@ -233,6 +359,22 @@ class UserRoleServiceImplTest {
     }
 
     @Test
+    void grantRolesToUser_adminGrantsCustomBatch_succeeds() {
+        setAdminContext();
+        Role customRole = new Role();
+        customRole.setName("RECRUITER");
+        when(users.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("RECRUITER")).thenReturn(Optional.of(customRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.grantRolesToUser("bob", List.of("RECRUITER"));
+
+        verify(users).save(targetUser);
+        verify(auditService).logGrant("admin", "bob", "ROLE", "RECRUITER");
+    }
+
+    @Test
     void grantRolesToUser_selfGrant_throwsAccessDenied() {
         setAdminContext();
         assertThatThrownBy(() -> userRoleService.grantRolesToUser("admin", List.of("HR")))
@@ -276,6 +418,31 @@ class UserRoleServiceImplTest {
 
         org.assertj.core.api.Assertions.assertThat(newHR.getCompanyNo()).isEqualTo("TAX-001");
         verify(users).save(newHR);
+    }
+
+    @Test
+    void grantRolesToUser_hrManagerGrantsHrToSameCompanyUser_doesNotOverwriteCompany() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        hrManager.setCompanyNo("COMPANY-A");
+        hrManager.setCompanyId("company-id-a");
+        targetUser.setCompanyNo("COMPANY-A");
+        targetUser.setCompanyId("existing-company-id");
+
+        setHrManagerContext("hrm");
+        Role hrRole = new Role();
+        hrRole.setName("HR");
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("HR")).thenReturn(Optional.of(hrRole));
+        when(users.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        userRoleService.grantRolesToUser("bob", List.of("HR"));
+
+        org.assertj.core.api.Assertions.assertThat(targetUser.getCompanyId()).isEqualTo("existing-company-id");
+        verify(users).save(targetUser);
     }
 
     @Test
@@ -336,6 +503,17 @@ class UserRoleServiceImplTest {
                 .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
     }
 
+    @Test
+    void revokeRolesFromUser_roleNotFound_throwsNoSuchElement() {
+        setAdminContext();
+        when(users.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        when(users.findByUsername("bob")).thenReturn(Optional.of(targetUser));
+        when(roles.findByName("UNKNOWN")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userRoleService.revokeRolesFromUser("bob", List.of("UNKNOWN")))
+                .isInstanceOf(java.util.NoSuchElementException.class);
+    }
+
     // --- getUserRoles: HR_MANAGER scope -----------------------------------------
 
     @Test
@@ -359,6 +537,29 @@ class UserRoleServiceImplTest {
         Set<String> result = userRoleService.getUserRoles("hruser");
 
         org.assertj.core.api.Assertions.assertThat(result).contains("HR");
+    }
+
+    @Test
+    void getUserRoles_hrManagerViewsHrManagerUser_sameCompany_succeeds() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        hrManager.setCompanyNo("COMPANY-A");
+
+        User peerManager = new User();
+        peerManager.setId("peer-hrm-id");
+        peerManager.setUsername("peer-hrm");
+        peerManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+        peerManager.setCompanyNo("COMPANY-A");
+
+        setHrManagerContext("hrm");
+        when(users.findByUsername("peer-hrm")).thenReturn(Optional.of(peerManager));
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+
+        Set<String> result = userRoleService.getUserRoles("peer-hrm");
+
+        org.assertj.core.api.Assertions.assertThat(result).contains("HR_MANAGER");
     }
 
     @Test
@@ -390,6 +591,27 @@ class UserRoleServiceImplTest {
         hrUser.setUsername("hruser");
         hrUser.setRoles(new HashSet<>(Set.of("HR")));
         hrUser.setCompanyNo("COMPANY-B");
+
+        setHrManagerContext("hrm");
+        when(users.findByUsername("hruser")).thenReturn(Optional.of(hrUser));
+        when(users.findByUsername("hrm")).thenReturn(Optional.of(hrManager));
+
+        assertThatThrownBy(() -> userRoleService.getUserRoles("hruser"))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void getUserRoles_hrManagerWithoutCompanyViewsHrUser_throwsAccessDenied() {
+        User hrManager = new User();
+        hrManager.setId("hrm-id");
+        hrManager.setUsername("hrm");
+        hrManager.setRoles(new HashSet<>(Set.of("HR_MANAGER")));
+
+        User hrUser = new User();
+        hrUser.setId("hr-id");
+        hrUser.setUsername("hruser");
+        hrUser.setRoles(new HashSet<>(Set.of("HR")));
+        hrUser.setCompanyNo("COMPANY-A");
 
         setHrManagerContext("hrm");
         when(users.findByUsername("hruser")).thenReturn(Optional.of(hrUser));

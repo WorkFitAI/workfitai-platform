@@ -57,7 +57,7 @@ class JobReranker:
             Reranked list of jobs with updated scores
         """
         if not candidates:
-            logger.warn("No candidates to rerank")
+            logger.warning("No candidates to rerank")
             return []
         
         logger.info(f"Reranking {len(candidates)} candidates to top-{top_n}")

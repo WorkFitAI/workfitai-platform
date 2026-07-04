@@ -97,4 +97,24 @@ class FileServiceTest {
 
         assertThat(url).isEqualTo("http://minio/cvs-files/some-object.pdf?signed=true");
     }
+
+    @Test
+    void uploadCvBytes_sanitizesDisplayNameAndUploadsRawBytes() throws Exception {
+        java.io.InputStream content = new java.io.ByteArrayInputStream(new byte[] { 1, 2, 3 });
+
+        String objectName = fileService.uploadCvBytes(content, 3L, "application/pdf", "Senior Backend Developer!");
+
+        assertThat(objectName).matches(CVConst.PDF_FILE_PATTERN);
+        assertThat(objectName).endsWith("-Senior_Backend_Developer_.pdf");
+        org.mockito.Mockito.verify(minioClient).putObject(any(PutObjectArgs.class));
+    }
+
+    @Test
+    void uploadCvBytes_fallsBackToDefaultName_whenDisplayNameNull() throws Exception {
+        java.io.InputStream content = new java.io.ByteArrayInputStream(new byte[] { 1 });
+
+        String objectName = fileService.uploadCvBytes(content, 1L, "application/pdf", null);
+
+        assertThat(objectName).endsWith("-cv.pdf");
+    }
 }

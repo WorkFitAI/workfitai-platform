@@ -1,15 +1,16 @@
 {
-  "candidateNum": 1,
+  "candidateNum": 3,
   "jobRef": {
     "hrmKey": "hrm1",
-    "index": 2
+    "index": 0
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 1,
-  "resume_summary": "Results-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in TypeScript and Looker; comfortable presenting findings directly to C-suite stakeholders.",
-  "resume_experience": "Head of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)",
-  "resume_skills": "NextJS, TypeScript, PostgreSQL, ReactJS, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills",
-  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nResults-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in TypeScript and Looker; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nHead of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)\n\nSKILLS\nNextJS, TypeScript, PostgreSQL, ReactJS, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "jobTitle": "Senior Backend Engineer - NodeJS / NestJS",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Engineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with Docker, Java, and Java. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Engineer @ BCG Vietnam (Jun 2023–May 2025) · Led 7-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Oracle Vietnam (Aug 2023–Feb 2026) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jun 2025–Present)",
+  "resume_skills": "Docker, Redis, NodeJS, TypeScript, Spring Boot, NestJS, Next.js, Django, R, Java, Go, GitHub Actions, ArgoCD, Azure, REST API Design, Technical Communication, Continuous Learning, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with Docker, Java, and Java. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Engineer @ BCG Vietnam (Jun 2023–May 2025) · Led 7-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Oracle Vietnam (Aug 2023–Feb 2026) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jun 2025–Present)\n\nSKILLS\nDocker, Redis, NodeJS, TypeScript, Spring Boot, NestJS, Next.js, Django, R, Java, Go, GitHub Actions, ArgoCD, Azure, REST API Design, Technical Communication, Continuous Learning, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720",
   "pdf_file": "candidate3_1.pdf"
 }

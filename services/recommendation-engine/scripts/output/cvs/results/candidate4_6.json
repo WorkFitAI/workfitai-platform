@@ -1,15 +1,16 @@
 {
-  "candidateNum": 6,
+  "candidateNum": 4,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 3
+    "hrmKey": "hrm2",
+    "index": 0
   },
-  "jobTitle": "Mobile Developer - React Native",
-  "resume_index": 6,
-  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
-  "resume_skills": "TypeScript, React Native, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nTypeScript, React Native, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Principal-level Cloud Solutions Architect who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in CI/CD and TypeScript. Cut release cycle by 30% through CI/CD automation at last role.",
+  "resume_experience": "Principal Architect @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Senior Solutions Architect @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Solutions Architect @ Shopee Vietnam (Mar 2024–Feb 2025) | Cloud Engineer @ Medici Health (Sep 2024–Jan 2026) | Cloud Engineer @ ACB Bank (Feb 2025–Present)",
+  "resume_skills": "Kubernetes, AWS, Terraform, GCP, Java, TypeScript, C#, JavaScript, Git, CI/CD, REST API Design, Event-Driven Architecture, Helm, GitHub Actions, Ansible, Project Planning, Conflict Resolution, Presentation Skills, Time Management",
+  "resume_education": "Bachelor of Science in Information Technology – NEU – Hanoi, 2015 | TOEIC 750",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nPrincipal-level Cloud Solutions Architect who thrives at the intersection of technical depth and delivery speed. 11 years shipping production code in CI/CD and TypeScript. Cut release cycle by 30% through CI/CD automation at last role.\n\nEXPERIENCE\nPrincipal Architect @ CMC Global (Dec 2022–Feb 2024) · Built financial model for $30M capex project; approved by CFO within 4 weeks. | Senior Solutions Architect @ Techcombank (May 2023–Jul 2024) · Delivered dashboard feature 6 weeks ahead of schedule, contributing to a 41% revenue uplift. | Solutions Architect @ Shopee Vietnam (Mar 2024–Feb 2025) | Cloud Engineer @ Medici Health (Sep 2024–Jan 2026) | Cloud Engineer @ ACB Bank (Feb 2025–Present)\n\nSKILLS\nKubernetes, AWS, Terraform, GCP, Java, TypeScript, C#, JavaScript, Git, CI/CD, REST API Design, Event-Driven Architecture, Helm, GitHub Actions, Ansible, Project Planning, Conflict Resolution, Presentation Skills, Time Management\n\nEDUCATION\nBachelor of Science in Information Technology – NEU – Hanoi, 2015 | TOEIC 750",
   "pdf_file": "candidate4_6.pdf"
 }

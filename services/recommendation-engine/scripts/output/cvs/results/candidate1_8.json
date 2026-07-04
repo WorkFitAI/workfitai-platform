@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 0
+    "hrmKey": "hrm2",
+    "index": 2
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 8,
-  "resume_summary": "Results-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "PostgreSQL, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
-  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nResults-driven senior Software Engineer with 6 years building high-throughput e-commerce platforms. Deep expertise in FastAPI, Dart, and Kubernetes. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ NashTech Vietnam (Jan 2024–Feb 2026) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Software Engineer @ ThoughtWorks Vietnam (Apr 2024–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nPostgreSQL, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, Flutter, FastAPI, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and SQL. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)",
+  "resume_skills": "Python, PyTorch, SQL, scikit-learn, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and SQL. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nPython, PyTorch, SQL, scikit-learn, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_8.pdf"
 }

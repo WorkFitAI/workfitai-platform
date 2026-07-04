@@ -1,15 +1,16 @@
 {
-  "candidateNum": 9,
+  "candidateNum": 3,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 2
+    "hrmKey": "hrm2",
+    "index": 3
   },
-  "jobTitle": "Fullstack Engineer - Next.js / Node.js",
-  "resume_index": 9,
-  "resume_summary": "Open-source contributor and mid-level Software Engineer with 4 years of hands-on experience. Strong foundation in Docker and Ansible. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.",
-  "resume_experience": "Principal Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead Software Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior Software Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Software Engineer @ PwC Vietnam (Aug 2025–Present)",
-  "resume_skills": "TypeScript, Ansible, Azure, GitHub Actions, Docker, ClickHouse, Redis, Express.js, React, Spring Boot, Next.js, CQRS, Agile / Scrum, REST API Design, Conflict Resolution, Stakeholder Management, Time Management, Leadership & Mentoring, Empathy & Active Listening",
-  "resume_education": "Bachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
-  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nOpen-source contributor and mid-level Software Engineer with 4 years of hands-on experience. Strong foundation in Docker and Ansible. Led refactoring of 4 legacy services, reducing infrastructure cost by 24%.\n\nEXPERIENCE\nPrincipal Engineer @ ACB Bank (May 2021–Mar 2024) · Led cross-functional team of 4 to deliver notification launch across APAC in 3 weeks. | Lead Software Engineer @ AIA Vietnam (Aug 2023–Mar 2025) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks. | Senior Software Engineer @ McKinsey & Company Vietnam (Oct 2023–Dec 2025) | Software Engineer @ PwC Vietnam (Aug 2025–Present)\n\nSKILLS\nTypeScript, Ansible, Azure, GitHub Actions, Docker, ClickHouse, Redis, Express.js, React, Spring Boot, Next.js, CQRS, Agile / Scrum, REST API Design, Conflict Resolution, Stakeholder Management, Time Management, Leadership & Mentoring, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HCMUS, 2022 | GPA: 9.81/10 | TOEIC 750 | Cert: AWS Certified Machine Learning - Specialty",
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Nov 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)",
+  "resume_skills": "Burp Suite, SIEM, Python, Kali Linux, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills",
+  "resume_education": "Bachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\n3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Nov 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)\n\nSKILLS\nBurp Suite, SIEM, Python, Kali Linux, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills\n\nEDUCATION\nBachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
   "pdf_file": "candidate3_9.pdf"
 }

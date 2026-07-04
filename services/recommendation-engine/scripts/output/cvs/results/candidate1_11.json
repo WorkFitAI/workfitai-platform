@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 0
+  },
+  "jobTitle": "Junior Backend Engineer - NodeJS (Internship)",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Versatile Software Engineer (Full-Stack) (13 yrs) with a track record of delivering complex distributed systems on time. Proficient in Kotlin and AWS. Mentored 5 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ KMS Technology (Dec 2023–Feb 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 40% to 92%. | Lead Software Engineer @ Techcombank (Jun 2024–Jan 2026) · Reduced design-to-dev handoff cycle time by 31% by introducing a shared Figma design system. | Senior Software Engineer @ Rikkeisoft (Jan 2024–Present)",
+  "resume_skills": "NodeJS, MongoDB, REST API Design, Git, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, Flutter, NestJS, Continuous Learning, Data-Driven Decision Making, Technical Communication, Analytical Thinking, Project Planning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nVersatile Software Engineer (Full-Stack) (13 yrs) with a track record of delivering complex distributed systems on time. Proficient in Kotlin and AWS. Mentored 5 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ KMS Technology (Dec 2023–Feb 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 40% to 92%. | Lead Software Engineer @ Techcombank (Jun 2024–Jan 2026) · Reduced design-to-dev handoff cycle time by 31% by introducing a shared Figma design system. | Senior Software Engineer @ Rikkeisoft (Jan 2024–Present)\n\nSKILLS\nNodeJS, MongoDB, REST API Design, Git, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, Flutter, NestJS, Continuous Learning, Data-Driven Decision Making, Technical Communication, Analytical Thinking, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate1_11.pdf"
+}

@@ -1,15 +1,16 @@
 {
-  "candidateNum": 1,
+  "candidateNum": 9,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 3
+    "hrmKey": "hrm1",
+    "index": 0
   },
-  "jobTitle": "Cybersecurity Engineer - Application Security",
-  "resume_index": 1,
-  "resume_summary": "Results-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Burp Suite and Looker; comfortable presenting findings directly to C-suite stakeholders.",
-  "resume_experience": "Head of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)",
-  "resume_skills": "AWS, Burp Suite, SIEM, Python, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills",
-  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nResults-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Burp Suite and Looker; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nHead of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)\n\nSKILLS\nAWS, Burp Suite, SIEM, Python, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "jobTitle": "Senior Backend Engineer - NodeJS / NestJS",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Data Engineer (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Neo4j and AWS. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Data Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Data Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Apache Kafka, RabbitMQ, gRPC, WebSocket, FAISS, PyTorch, dbt, Pandas, GitHub Actions, GCP, AWS, Go, Project Planning, Cross-functional Collaboration, Analytical Thinking, Stakeholder Management",
+  "resume_education": "Bachelor of Science in Computer Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Data Engineer (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Neo4j and AWS. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Data Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Data Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Apache Kafka, RabbitMQ, gRPC, WebSocket, FAISS, PyTorch, dbt, Pandas, GitHub Actions, GCP, AWS, Go, Project Planning, Cross-functional Collaboration, Analytical Thinking, Stakeholder Management\n\nEDUCATION\nBachelor of Science in Computer Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
   "pdf_file": "candidate9_1.pdf"
 }

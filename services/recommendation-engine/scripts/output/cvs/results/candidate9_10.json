@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 9,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 3
+    "index": 4
   },
-  "jobTitle": "Cybersecurity Engineer - Application Security",
-  "resume_index": 10,
-  "resume_summary": "7+ years as a Security Engineer specialising in REST API Design and REST API Design. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Lead Security Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Senior Security Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Security Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | Security Analyst @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | Security Analyst @ MoMo (M-Service) (May 2025–Present)",
-  "resume_skills": "Burp Suite, Python, Kali Linux, SIEM, MongoDB, BigQuery, Microservices, Code Review, CI/CD, REST API Design, Ansible, Terraform, ArgoCD, GCP, Rust, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning",
-  "resume_education": "Bachelor of Science in Cybersecurity – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Security Engineer specialising in REST API Design and REST API Design. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Security Engineer @ AIA Vietnam (Jan 2021–Jun 2023) · Automated reporting workflows, saving the team approximately 12 engineering-hours per sprint. | Senior Security Engineer @ AEON Vietnam (Aug 2023–Apr 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Security Engineer @ Oracle Vietnam (Jul 2023–Nov 2024) | Security Analyst @ McKinsey & Company Vietnam (Apr 2023–Oct 2025) | Security Analyst @ MoMo (M-Service) (May 2025–Present)\n\nSKILLS\nBurp Suite, Python, Kali Linux, SIEM, MongoDB, BigQuery, Microservices, Code Review, CI/CD, REST API Design, Ansible, Terraform, ArgoCD, GCP, Rust, Negotiation, Time Management, Stakeholder Management, Problem Decomposition, Continuous Learning\n\nEDUCATION\nBachelor of Science in Cybersecurity – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
   "pdf_file": "candidate9_10.pdf"
 }

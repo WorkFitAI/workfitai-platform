@@ -3,6 +3,7 @@ package org.workfitai.cvservice.service.strategy;
 import org.junit.jupiter.api.Test;
 import org.workfitai.cvservice.model.dto.ParsedCvData;
 import org.workfitai.cvservice.service.nlp.DynamicSkillExtractionService;
+import org.workfitai.cvservice.service.nlp.PdfComplexityDetector;
 import org.workfitai.cvservice.service.nlp.SemanticMatchingService;
 import org.workfitai.cvservice.service.shared.FileService;
 
@@ -42,7 +43,8 @@ class UploadCvStrategyParseSimulationTest {
 
         FileService fileService = mock(FileService.class);
 
-        UploadCvStrategy strategy = new UploadCvStrategy(semanticMatchingService, skillExtractor, fileService);
+        UploadCvStrategy strategy = new UploadCvStrategy(semanticMatchingService, skillExtractor, fileService,
+                new PdfComplexityDetector());
 
         Method parseCvText = UploadCvStrategy.class.getDeclaredMethod("parseCvText", String.class);
         parseCvText.setAccessible(true);

@@ -1,15 +1,16 @@
 {
-  "candidateNum": 6,
+  "candidateNum": 7,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 1
+    "index": 0
   },
-  "jobTitle": "Data Engineer - Apache Spark / Airflow",
-  "resume_index": 6,
-  "resume_summary": "Versatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.",
-  "resume_skills": "Apache Spark, Kafka, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Machine Learning Engineer (14 yrs) with a track record of delivering complex distributed systems on time. Proficient in Jenkins and LangChain. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal ML Engineer @ PwC Vietnam (May 2024–Dec 2025) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Lead ML Engineer @ Samsung R&D Institute Vietnam (Feb 2024–Present) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min.\n\nSKILLS\nApache Spark, Kafka, R, Python, Dart, Bash, HuggingFace Transformers, scikit-learn, LangChain, Jenkins, Ansible, ClickHouse, Neo4j, MongoDB, PostgreSQL, Stakeholder Management, Analytical Thinking, Ownership & Accountability, Continuous Learning\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – CTU, 2011 | GPA: 7.36/10 | TOEIC 700",
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "no_match",
+  "resume_index": 7,
+  "resume_summary": "13+ years as a DevOps / Platform Engineer specialising in NATS and WebSocket. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Platform Engineer @ Gameloft Vietnam (May 2022–May 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Platform Engineer @ GHTK (Jul 2024–Apr 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | Senior DevOps Engineer @ HDBank (Oct 2022–Jul 2025) | DevOps Engineer @ Rikkeisoft (Aug 2023–Present)",
+  "resume_skills": "Dart, TypeScript, GCP, Docker, REST API Design, TDD, Microservices, Event-Driven Architecture, WebSocket, gRPC, NATS, Negotiation, Project Planning, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n13+ years as a DevOps / Platform Engineer specialising in NATS and WebSocket. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Platform Engineer @ Gameloft Vietnam (May 2022–May 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Platform Engineer @ GHTK (Jul 2024–Apr 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | Senior DevOps Engineer @ HDBank (Oct 2022–Jul 2025) | DevOps Engineer @ Rikkeisoft (Aug 2023–Present)\n\nSKILLS\nDart, TypeScript, GCP, Docker, REST API Design, TDD, Microservices, Event-Driven Architecture, WebSocket, gRPC, NATS, Negotiation, Project Planning, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Computer Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate7_6.pdf"
 }

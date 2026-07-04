@@ -1,15 +1,16 @@
 {
-  "candidateNum": 10,
+  "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm1",
-    "index": 0
+    "hrmKey": "hrm2",
+    "index": 4
   },
-  "jobTitle": "Senior Backend Engineer - Node.js / NestJS",
-  "resume_index": 10,
-  "resume_summary": "7+ years as a Software Engineer (Backend) specialising in BigQuery and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Principal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)",
-  "resume_skills": "Docker, Redis, Node.js, TypeScript, Kubernetes, Ansible, Jenkins, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, C#, Problem Decomposition, Project Planning, Data-Driven Decision Making",
-  "resume_education": "Bachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
-  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\n7+ years as a Software Engineer (Backend) specialising in BigQuery and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Engineer @ AIA Vietnam (Mar 2022–Jun 2024) · Reduced end-to-end API latency by 20% by introducing JWT caching and query optimisation. | Lead Software Engineer @ AEON Vietnam (Dec 2021–Dec 2024) · Built financial model for $16M capex project; approved by CFO within 1 weeks. | Senior Software Engineer @ Oracle Vietnam (Jul 2022–Apr 2025) | Software Engineer @ McKinsey & Company Vietnam (Mar 2023–Jul 2025) | Junior Software Engineer @ MoMo (M-Service) (Aug 2023–Present)\n\nSKILLS\nDocker, Redis, Node.js, TypeScript, Kubernetes, Ansible, Jenkins, Django, Flutter, MySQL, BigQuery, Cassandra, Elasticsearch, Rust, C#, Problem Decomposition, Project Planning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Engineering in Software Engineering – VNU-HN, 2017 | TOEIC 900 | Cert: HashiCorp Certified: Terraform Associate",
+  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and OpenAI API. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)",
+  "resume_skills": "Python, PyTorch, OpenAI API, LangChain, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and OpenAI API. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nPython, PyTorch, OpenAI API, LangChain, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_10.pdf"
 }

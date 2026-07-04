@@ -1,13 +1,26 @@
 package org.workfitai.authservice.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.workfitai.authservice.dto.kafka.AuditEvent;
 import org.workfitai.authservice.messaging.AuditEventPublisher;
 
@@ -16,6 +29,12 @@ class AuthAuditServiceTest {
 
     @Mock AuditEventPublisher publisher;
     @InjectMocks AuthAuditService auditService;
+
+    @AfterEach
+    void clearContexts() {
+        SecurityContextHolder.clearContext();
+        RequestContextHolder.resetRequestAttributes();
+    }
 
     // ─── Auth events ──────────────────────────────────────────────────────────
 
@@ -145,6 +164,14 @@ class AuthAuditServiceTest {
     void logUserRejected_publishesAuditEvent() {
         auditService.logUserRejected("admin", "user-789", "Invalid info");
         verify(publisher).publish(any(AuditEvent.class));
+    }
+
+    @Test
+    void logUserRejected_withNullReason_usesEmptyReason() {
+        auditService.logUserRejected("admin", "user-789", null);
+
+        AuditEvent event = publishedEvent();
+        assertThat(event.after()).containsEntry("reason", "");
     }
 
     // ─── Session events ───────────────────────────────────────────────────────
@@ -361,5 +388,79 @@ class AuthAuditServiceTest {
         } finally {
             org.springframework.security.core.context.SecurityContextHolder.clearContext();
         }
+    }
+
+    @Test
+    void logLoginSuccess_withCompanyDetailsAndForwardedHeader_publishesActorMetadata() {
+        var auth = new UsernamePasswordAuthenticationToken(
+                "hrm",
+                null,
+                List.of(
+                        new SimpleGrantedAuthority("HR_MANAGER"),
+                        new SimpleGrantedAuthority("user:read")));
+        auth.setDetails(Map.of("companyId", "company-123"));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-Forwarded-For", " 203.0.113.10, 10.0.0.1 ");
+        request.setRemoteAddr("192.0.2.5");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        auditService.logLoginSuccess("alice");
+
+        AuditEvent event = publishedEvent();
+        assertThat(event.actorRole()).isEqualTo("HR_MANAGER");
+        assertThat(event.companyId()).isEqualTo("company-123");
+        assertThat(event.actorIp()).isEqualTo("203.0.113.10");
+    }
+
+    @Test
+    void logLoginSuccess_withoutForwardedHeader_usesRemoteAddress() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("192.0.2.5");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        auditService.logLoginSuccess("alice");
+
+        assertThat(publishedEvent().actorIp()).isEqualTo("192.0.2.5");
+    }
+
+    @Test
+    void logLoginSuccess_withBlankForwardedHeader_usesRemoteAddress() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-Forwarded-For", "   ");
+        request.setRemoteAddr("192.0.2.6");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        auditService.logLoginSuccess("alice");
+
+        assertThat(publishedEvent().actorIp()).isEqualTo("192.0.2.6");
+    }
+
+    @Test
+    void logPermissionCreated_withAnonymousPrincipal_usesSystemActor() {
+        var auth = new UsernamePasswordAuthenticationToken(
+                "anonymousUser",
+                null,
+                List.of(new SimpleGrantedAuthority("ADMIN")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        auditService.logPermissionCreated("perm:read");
+
+        AuditEvent event = publishedEvent();
+        assertThat(event.actorUsername()).isEqualTo("system");
+        assertThat(event.actorRole()).isNull();
+    }
+
+    @Test
+    void logLoginSuccess_whenPublisherThrows_swallowsException() {
+        doThrow(new IllegalStateException("kafka down")).when(publisher).publish(any(AuditEvent.class));
+
+        assertThatCode(() -> auditService.logLoginSuccess("alice")).doesNotThrowAnyException();
+    }
+
+    private AuditEvent publishedEvent() {
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(publisher).publish(captor.capture());
+        return captor.getValue();
     }
 }

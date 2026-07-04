@@ -1,15 +1,16 @@
 {
-  "candidateNum": 1,
+  "candidateNum": 10,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 0
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
-  "resume_index": 1,
-  "resume_summary": "Results-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in LangChain and Looker; comfortable presenting findings directly to C-suite stakeholders.",
-  "resume_experience": "Head of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)",
-  "resume_skills": "PostgreSQL, LangChain, OpenAI API, Python, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills",
-  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nResults-oriented Customer Success Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in LangChain and Looker; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nHead of Customer Success @ BCG Vietnam (Mar 2023–Jun 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior CSM @ Techcombank (Aug 2024–Oct 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | CSM @ KMS Technology (Sep 2023–Present)\n\nSKILLS\nPostgreSQL, LangChain, OpenAI API, Python, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "jobTitle": "Senior Backend Engineer - NodeJS / NestJS",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Principal-level HR Manager with 13+ years delivering data-driven insights in proptech. Proficient in Looker and Looker. Trusted by stakeholders to translate complex data into clear, actionable strategies.",
+  "resume_experience": "Senior HR Manager @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | HR Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | HR Specialist @ Vingroup (Nov 2024–Present)",
+  "resume_skills": "JIRA, Stakeholder Reporting, Looker, Power BI, SQL, SAP SuccessFactors, Compensation & Benefits, Performance Management, Workday, Technical Communication, Negotiation, Ownership & Accountability",
+  "resume_education": "Bachelor of Business Administration in Human Resources – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan\n\nOBJECTIVE\nPrincipal-level HR Manager with 13+ years delivering data-driven insights in proptech. Proficient in Looker and Looker. Trusted by stakeholders to translate complex data into clear, actionable strategies.\n\nEXPERIENCE\nSenior HR Manager @ GHTK (Nov 2023–Feb 2025) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | HR Manager @ GHN Express (Aug 2023–Dec 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | HR Specialist @ Vingroup (Nov 2024–Present)\n\nSKILLS\nJIRA, Stakeholder Reporting, Looker, Power BI, SQL, SAP SuccessFactors, Compensation & Benefits, Performance Management, Workday, Technical Communication, Negotiation, Ownership & Accountability\n\nEDUCATION\nBachelor of Business Administration in Human Resources – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
   "pdf_file": "candidate10_1.pdf"
 }

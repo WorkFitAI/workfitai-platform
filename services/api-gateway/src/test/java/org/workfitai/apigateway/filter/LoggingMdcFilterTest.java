@@ -18,8 +18,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -123,11 +131,144 @@ class LoggingMdcFilterTest {
                 .verifyComplete();
     }
 
+    @Test
+    void filter_healthPath_setsHealthCheckLogType() {
+        givenPath("/actuator/health");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("log_type")).isEqualTo("HEALTH_CHECK");
+            return Mono.empty();
+        }));
+
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_authPath_setsAuthLogType() {
+        givenPath("/auth/login");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("log_type")).isEqualTo("AUTH");
+            return Mono.empty();
+        }));
+
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_authenticatedJwtBusinessPath_setsUserActionLogType() {
+        givenPath("/api/jobs");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("username")).isEqualTo("alice");
+            assertThat((String) ctx.get("log_type")).isEqualTo("USER_ACTION");
+            return Mono.empty();
+        }));
+
+        StepVerifier.create(filter.filter(exchange, chain)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(jwtAuth("alice"))))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_blankXRequestIdHeader_generatesNewRequestId() {
+        // Arrange — header present but blank (not null); exercises isBlank() branch
+        org.springframework.http.HttpHeaders headersWithBlankId =
+                new org.springframework.http.HttpHeaders();
+        headersWithBlankId.add(LoggingMdcFilter.REQUEST_ID_HEADER, "   ");
+        when(request.getHeaders()).thenReturn(headersWithBlankId);
+
+        // Act & Assert
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+
+        verify(chain).filter(any(ServerWebExchange.class));
+    }
+
+    @Test
+    void filter_authenticationPresentButNotAuthenticated_treatsAsAnonymous() {
+        // Arrange — Authentication in context but isAuthenticated() == false
+        givenPath("/api/jobs");
+        org.springframework.security.core.Authentication unauthenticated =
+                mock(org.springframework.security.core.Authentication.class);
+        lenient().when(unauthenticated.isAuthenticated()).thenReturn(false);
+
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("username")).isEqualTo("anonymous");
+            assertThat((String) ctx.get("log_type")).isEqualTo("SYSTEM");
+            return Mono.empty();
+        }));
+
+        // Act & Assert
+        StepVerifier.create(filter.filter(exchange, chain)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(unauthenticated)))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_pathEndingInHealthWithoutActuatorPrefix_setsHealthCheckLogType() {
+        // Arrange — exercises path.endsWith("/health") without the actuator-prefix short-circuit
+        givenPath("/service/health");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("log_type")).isEqualTo("HEALTH_CHECK");
+            return Mono.empty();
+        }));
+
+        // Act & Assert
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_pathEndingInMetrics_setsHealthCheckLogType() {
+        // Arrange — exercises path.endsWith("/metrics") branch
+        givenPath("/service/metrics");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("log_type")).isEqualTo("HEALTH_CHECK");
+            return Mono.empty();
+        }));
+
+        // Act & Assert
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+    }
+
+    @Test
+    void filter_systemUsername_setsSystemLogType() {
+        // Arrange — exercises the !username.equals("system") == false branch
+        givenPath("/api/jobs");
+        when(chain.filter(any())).thenReturn(Mono.deferContextual(ctx -> {
+            assertThat((String) ctx.get("username")).isEqualTo("system");
+            assertThat((String) ctx.get("log_type")).isEqualTo("SYSTEM");
+            return Mono.empty();
+        }));
+
+        // Act & Assert
+        StepVerifier.create(filter.filter(exchange, chain)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(jwtAuth("system"))))
+                .verifyComplete();
+    }
+
     // ─── getOrder marks filter position after JwtClaimsExtractionFilter ───────
 
     @Test
     void getOrder_isGreaterThanJwtFilterOrder() {
         // JwtClaimsExtractionFilter is at -50; LoggingMdcFilter at -40 runs after it
         assertThat(filter.getOrder()).isGreaterThan(-50);
+    }
+
+    private void givenPath(String value) {
+        RequestPath requestPath = mock(RequestPath.class);
+        when(requestPath.value()).thenReturn(value);
+        when(request.getPath()).thenReturn(requestPath);
+    }
+
+    private AbstractAuthenticationToken jwtAuth(String subject) {
+        Jwt jwt = new Jwt(
+                "token",
+                Instant.now(),
+                Instant.now().plusSeconds(60),
+                Map.of("alg", "none"),
+                Map.of("sub", subject));
+        return new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 }

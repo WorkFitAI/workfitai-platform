@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "summary": [
+      "Backend developer with five years of experience building scalable systems."
+    ],
+    "experience": [
+      "Senior Backend Engineer",
+      "Designed and implemented microservices for the payment platform."
+    ],
+    "education": [
+      "Bachelor of Science in Computer Science"
+    ],
+    "skills": [
+      "Java, Spring Boot, PostgreSQL, Docker"
+    ]
+  },
+  "skills": ["java", "spring boot", "postgresql", "docker"]
+}

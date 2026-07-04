@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm3",
+    "index": 4
+  },
+  "jobTitle": "Machine Learning Engineer - NLP",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Python, and PyTorch. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "LangChain, Python, PyTorch, HuggingFace Transformers, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Python, and PyTorch. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nLangChain, Python, PyTorch, HuggingFace Transformers, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
+  "pdf_file": "candidate5_15.pdf"
+}

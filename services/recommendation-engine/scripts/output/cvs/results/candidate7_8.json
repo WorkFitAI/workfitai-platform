@@ -1,15 +1,16 @@
 {
-  "candidateNum": 8,
+  "candidateNum": 7,
   "jobRef": {
     "hrmKey": "hrm2",
-    "index": 1
+    "index": 2
   },
-  "jobTitle": "Data Engineer - Apache Spark / Airflow",
-  "resume_index": 8,
-  "resume_summary": "Detail-oriented senior Data Engineer (6 yrs) with end-to-end SDLC ownership. Proficient in Dart and Kubernetes. Active technical mentor — helped grow the team from 4 to 10 engineers.",
-  "resume_experience": "Principal Data Engineer @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Data Engineer @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.",
-  "resume_skills": "Airflow, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management",
-  "resume_education": "Bachelor of Science in Computer Science – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nDetail-oriented senior Data Engineer (6 yrs) with end-to-end SDLC ownership. Proficient in Dart and Kubernetes. Active technical mentor — helped grow the team from 4 to 10 engineers.\n\nEXPERIENCE\nPrincipal Data Engineer @ NashTech Vietnam (Nov 2022–Jun 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Lead Data Engineer @ ThoughtWorks Vietnam (Aug 2025–Present) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nAirflow, JavaScript, R, Dart, Kubernetes, Azure, GitHub Actions, Terraform, TensorFlow, Conflict Resolution, Empathy & Active Listening, Continuous Learning, Time Management\n\nEDUCATION\nBachelor of Science in Computer Science – UEH, 2019 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "jobTitle": "Data Scientist - Machine Learning",
+  "label": "no_match",
+  "resume_index": 7,
+  "resume_summary": "13+ years as a Cloud Solutions Architect specialising in DDD and Dart. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Principal Architect @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Senior Solutions Architect @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Solutions Architect @ HDBank (Jul 2023–Jul 2025) | Cloud Engineer @ Rikkeisoft (Dec 2023–Present)",
+  "resume_skills": "Redis, MySQL, Docker, GCP, Helm, CI/CD, DDD, Rust, Dart, Kotlin, Scala, Stakeholder Management, Negotiation, Ownership & Accountability, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Science in Information Technology – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n13+ years as a Cloud Solutions Architect specialising in DDD and Dart. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nPrincipal Architect @ Gameloft Vietnam (Feb 2022–Jul 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Senior Solutions Architect @ GHTK (Mar 2024–Dec 2024) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Solutions Architect @ HDBank (Jul 2023–Jul 2025) | Cloud Engineer @ Rikkeisoft (Dec 2023–Present)\n\nSKILLS\nRedis, MySQL, Docker, GCP, Helm, CI/CD, DDD, Rust, Dart, Kotlin, Scala, Stakeholder Management, Negotiation, Ownership & Accountability, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Science in Information Technology – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate7_8.pdf"
 }

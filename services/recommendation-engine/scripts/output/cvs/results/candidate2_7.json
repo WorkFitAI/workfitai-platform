@@ -1,15 +1,16 @@
 {
-  "candidateNum": 7,
+  "candidateNum": 2,
   "jobRef": {
-    "hrmKey": "hrm1",
+    "hrmKey": "hrm2",
     "index": 1
   },
-  "jobTitle": "Frontend Developer - React / TypeScript",
-  "resume_index": 7,
-  "resume_summary": "10+ years as a QA / Automation Engineer specialising in Dart and Python. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "QA Lead @ Sendo.vn (Apr 2022–Apr 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior QA Engineer @ CMC Global (Jul 2024–Mar 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | SDET @ MB Bank Tech (Sep 2022–Jul 2025) | QA Engineer @ Base.vn (Aug 2023–Present)",
-  "resume_skills": "TypeScript, Redux, Ansible, Helm, REST API Design, Microservices, Dart, Go, Python, Stakeholder Management, Negotiation, Technical Communication, Empathy & Active Listening, Project Planning",
-  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
-  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n10+ years as a QA / Automation Engineer specialising in Dart and Python. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nQA Lead @ Sendo.vn (Apr 2022–Apr 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior QA Engineer @ CMC Global (Jul 2024–Mar 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | SDET @ MB Bank Tech (Sep 2022–Jul 2025) | QA Engineer @ Base.vn (Aug 2023–Present)\n\nSKILLS\nTypeScript, Redux, Ansible, Helm, REST API Design, Microservices, Dart, Go, Python, Stakeholder Management, Negotiation, Technical Communication, Empathy & Active Listening, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2015 | GPA: 7.66/10 | TOEIC 700 | Cert: HubSpot Inbound Marketing Certification",
+  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "label": "match",
+  "resume_index": 2,
+  "resume_summary": "Pragmatic Data Engineer with 10 years across insurtech and enterprise software. Skilled in FAISS, Apache Spark, and Airflow. Known for writing clean, well-tested code and systematically raising engineering standards across the team.",
+  "resume_experience": "Principal Data Engineer @ Zalo Group (Jan 2022–Jun 2023) · Implemented RBAC + Redis authentication, achieving SOC 2 Type II compliance requirements. | Lead Data Engineer @ Haravan (Sep 2023–Jul 2024) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Senior Data Engineer @ Masan Group (May 2024–Mar 2025) | Data Engineer @ BCG Vietnam (Jul 2024–Aug 2025) | Data Engineer I @ Google LLC (May 2024–Present)",
+  "resume_skills": "Apache Spark, Airflow, Kafka, Python, Apache Kafka, gRPC, Kubernetes, Terraform, LangChain, scikit-learn, FAISS, Pandas, Kotlin, Rust, Java, Continuous Learning, Cross-functional Collaboration, Time Management, Negotiation, Presentation Skills",
+  "resume_education": "Bachelor of Science in Computer Science – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nPragmatic Data Engineer with 10 years across insurtech and enterprise software. Skilled in FAISS, Apache Spark, and Airflow. Known for writing clean, well-tested code and systematically raising engineering standards across the team.\n\nEXPERIENCE\nPrincipal Data Engineer @ Zalo Group (Jan 2022–Jun 2023) · Implemented RBAC + Redis authentication, achieving SOC 2 Type II compliance requirements. | Lead Data Engineer @ Haravan (Sep 2023–Jul 2024) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Senior Data Engineer @ Masan Group (May 2024–Mar 2025) | Data Engineer @ BCG Vietnam (Jul 2024–Aug 2025) | Data Engineer I @ Google LLC (May 2024–Present)\n\nSKILLS\nApache Spark, Airflow, Kafka, Python, Apache Kafka, gRPC, Kubernetes, Terraform, LangChain, scikit-learn, FAISS, Pandas, Kotlin, Rust, Java, Continuous Learning, Cross-functional Collaboration, Time Management, Negotiation, Presentation Skills\n\nEDUCATION\nBachelor of Science in Computer Science – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: PMP - Project Management Professional",
   "pdf_file": "candidate2_7.pdf"
 }

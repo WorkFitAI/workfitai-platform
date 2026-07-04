@@ -318,7 +318,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <haltOnFailure>false</haltOnFailure>
+                            <haltOnFailure>true</haltOnFailure>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -326,12 +326,12 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.75</minimum>
+                                            <minimum>0.85</minimum>
                                         </limit>
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.60</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
