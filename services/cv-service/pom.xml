@@ -219,6 +219,7 @@
                         <exclude>**/model/**</exclude>
                         <exclude>**/entity/**</exclude>
                         <exclude>**/config/**Config.class</exclude>
+                        <exclude>**/config/DatabaseConfiguration.class</exclude>
                         <exclude>**/*MapperImpl.class</exclude>
                         <exclude>**/constants/**</exclude>
                         <exclude>**/constant/**</exclude>
