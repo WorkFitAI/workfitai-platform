@@ -257,27 +257,39 @@ public class CVService implements iCVService {
         if (usernames == null || usernames.isEmpty()) {
             return List.of();
         }
-        // Only consider regular (non-snapshot) CVs so that a broken application snapshot
-        // from a past bad-parser period does not shadow a user's correct regular CV.
-        return repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(usernames)
+        // Fetch all active CVs (regular + application snapshots). Within each user's CVs,
+        // prefer the latest regular (non-snapshot) one so a broken snapshot from a past
+        // bad-parser period can't shadow a good regular CV; but fall back to the latest
+        // snapshot when the user has no regular CV at all (e.g. they only ever applied to
+        // jobs and never created/uploaded a standalone CV) so recommendations aren't empty.
+        return repository.findByBelongToInAndIsExistTrue(usernames)
                 .stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         CV::getBelongTo,
                         java.util.stream.Collectors.collectingAndThen(
-                                java.util.stream.Collectors.maxBy(
-                                        java.util.Comparator.comparing(cv ->
-                                                cv.getUpdatedAt() != null ? cv.getUpdatedAt() : cv.getCreatedAt())),
-                                opt -> opt.map(cv -> CvDataResponse.builder()
-                                        .username(cv.getBelongTo())
-                                        .resumeSummary(cv.getSummary() != null ? cv.getSummary() : "")
-                                        .resumeExperience(extractSection(cv.getSections(), "experience"))
-                                        .resumeSkills(extractSection(cv.getSections(), "skills"))
-                                        .resumeEducation(extractSection(cv.getSections(), "education"))
-                                        .build()).orElse(null))))
+                                java.util.stream.Collectors.toList(),
+                                this::pickCvForRecommendation)))
                 .values()
                 .stream()
                 .filter(java.util.Objects::nonNull)
+                .map(cv -> CvDataResponse.builder()
+                        .username(cv.getBelongTo())
+                        .resumeSummary(cv.getSummary() != null ? cv.getSummary() : "")
+                        .resumeExperience(extractSection(cv.getSections(), "experience"))
+                        .resumeSkills(extractSection(cv.getSections(), "skills"))
+                        .resumeEducation(extractSection(cv.getSections(), "education"))
+                        .build())
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    private CV pickCvForRecommendation(List<CV> cvs) {
+        java.util.Comparator<CV> byRecency = java.util.Comparator.comparing(
+                cv -> cv.getUpdatedAt() != null ? cv.getUpdatedAt() : cv.getCreatedAt());
+
+        return cvs.stream()
+                .filter(cv -> cv.getApplicationId() == null)
+                .max(byRecency)
+                .orElseGet(() -> cvs.stream().max(byRecency).orElse(null));
     }
 
     // ---------------- APPLICATION SNAPSHOT ----------------

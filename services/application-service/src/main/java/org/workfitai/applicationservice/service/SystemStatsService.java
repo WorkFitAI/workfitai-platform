@@ -26,7 +26,10 @@ import org.workfitai.applicationservice.util.ApplicationFunnelCalculator;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -402,6 +405,9 @@ public class SystemStatsService {
     /**
      * Platform-wide daily application volume for the last 30 days.
      * Provides the time-series data needed for admin volume line charts.
+     * Zero-fills days with no applications so callers always get one point per
+     * calendar day in the window — MongoDB's $group only emits keys that exist,
+     * so days without applications would otherwise be silently absent.
      */
     private List<SystemStatsResponse.DailyCount> calculateVolumeTrendWithAggregation() {
         Instant since = Instant.now().minus(VOLUME_TREND_DAYS, ChronoUnit.DAYS);
@@ -414,17 +420,26 @@ public class SystemStatsService {
             .and(DateOperators.dateOf("createdAt").toString("%Y-%m-%d")).as("dateStr");
 
         GroupOperation group = Aggregation.group("dateStr").count().as("count");
-        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
 
-        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
+        Aggregation aggregation = Aggregation.newAggregation(match, project, group);
 
-        return mongoTemplate.aggregate(aggregation, "applications", Map.class)
+        Map<String, Long> countsByDate = mongoTemplate.aggregate(aggregation, "applications", Map.class)
             .getMappedResults()
             .stream()
-            .map(r -> new SystemStatsResponse.DailyCount(
-                (String) r.get("_id"),
-                ((Number) r.get("count")).longValue()
-            ))
-            .toList();
+            .collect(Collectors.toMap(
+                r -> (String) r.get("_id"),
+                r -> ((Number) r.get("count")).longValue()
+            ));
+
+        // $dateToString defaults to UTC, so walk the same UTC calendar range to stay aligned.
+        LocalDate startDay = LocalDate.ofInstant(since, ZoneOffset.UTC);
+        LocalDate endDay = LocalDate.ofInstant(Instant.now(), ZoneOffset.UTC);
+
+        List<SystemStatsResponse.DailyCount> denseTrend = new ArrayList<>();
+        for (LocalDate day = startDay; !day.isAfter(endDay); day = day.plusDays(1)) {
+            String dateStr = day.toString();
+            denseTrend.add(new SystemStatsResponse.DailyCount(dateStr, countsByDate.getOrDefault(dateStr, 0L)));
+        }
+        return denseTrend;
     }
 }
