@@ -168,7 +168,10 @@ public class AuditSearchService {
 
     private void addTermFilter(List<Query> filters, String field, String value) {
         if (value != null && !value.isBlank()) {
-            filters.add(Query.of(q -> q.term(t -> t.field(field + ".keyword").value(value))));
+            // Audit fields are mapped as plain `keyword` in ElasticsearchIndexInitializer
+            // (no `.keyword` multi-field) — querying "<field>.keyword" hits a nonexistent
+            // field and silently matches zero documents.
+            filters.add(Query.of(q -> q.term(t -> t.field(field).value(value))));
         }
     }
 
@@ -265,6 +268,34 @@ public class AuditSearchService {
         }
     }
 
+    /**
+     * Returns the most recent failed audit events (success=false) for a single company,
+     * sorted by occurredAt DESC. Company-scoped counterpart of {@link #getRecentErrorLogs}.
+     */
+    public List<AuditEventResponse> getRecentErrorLogsForCompany(String companyId, int limit) {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(
+                    SearchRequest.of(s -> s
+                            .index(INDEX_PREFIX + "*")
+                            .query(q -> q.bool(b -> b
+                                    .filter(f -> f.term(t -> t.field("companyId").value(companyId)))
+                                    .filter(f -> f.term(t -> t.field("success").value(false)))))
+                            .sort(sort -> sort.field(f -> f.field("occurredAt").order(SortOrder.Desc)))
+                            .size(limit)),
+                    Map.class);
+
+            return response.hits().hits().stream()
+                    .map(Hit::source)
+                    .map(this::toResponse)
+                    .toList();
+
+        } catch (ElasticsearchException | IOException e) {
+            log.error("[AUDIT-ERRORS-COMPANY] Elasticsearch query failed for company {}: {}",
+                    companyId, e.getMessage());
+            return List.of();
+        }
+    }
+
     // ─── Stats ───────────────────────────────────────────────────────────────────
 
     /**
@@ -287,10 +318,10 @@ public class AuditSearchService {
                     .index(INDEX_PREFIX + "*")
                     .query(q -> q.bool(b -> b.filter(filters)))
                     .size(0)
-                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService.keyword").size(20)))
-                    .aggregations("byAction",        a -> a.terms(t -> t.field("action.keyword").size(50)))
-                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername.keyword").size(20)))
-                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername.keyword")))
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
                     .aggregations("failedEvents",    a -> a
                             .filter(f -> f.term(t -> t.field("success").value(false)))),
                     Void.class);
@@ -322,17 +353,17 @@ public class AuditSearchService {
      */
     public AuditStatsResponse getAuditStatsForCompany(String companyId) {
         List<Query> filters = new ArrayList<>();
-        filters.add(Query.of(q -> q.term(t -> t.field("companyId.keyword").value(companyId))));
+        filters.add(Query.of(q -> q.term(t -> t.field("companyId").value(companyId))));
 
         try {
             SearchResponse<Void> response = elasticsearchClient.search(s -> s
                     .index(INDEX_PREFIX + "*")
                     .query(q -> q.bool(b -> b.filter(filters)))
                     .size(0)
-                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService.keyword").size(20)))
-                    .aggregations("byAction",        a -> a.terms(t -> t.field("action.keyword").size(50)))
-                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername.keyword").size(20)))
-                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername.keyword")))
+                    .aggregations("byService",      a -> a.terms(t -> t.field("sourceService").size(20)))
+                    .aggregations("byAction",        a -> a.terms(t -> t.field("action").size(50)))
+                    .aggregations("byActor",         a -> a.terms(t -> t.field("actorUsername").size(20)))
+                    .aggregations("uniqueActors",    a -> a.cardinality(c -> c.field("actorUsername")))
                     .aggregations("failedEvents",    a -> a
                             .filter(f -> f.term(t -> t.field("success").value(false)))),
                     Void.class);

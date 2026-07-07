@@ -7,7 +7,6 @@ import java.util.Map;
 public record ManagerStatsSummary(
         Long totalApplications,
         Map<String, Long> byStatus,
-        List<TeamMember> teamPerformance,
         List<JobCount> topJobs,
         Long stuckApplicationsCount,
         Map<String, Double> conversionRates,
@@ -15,9 +14,6 @@ public record ManagerStatsSummary(
         Long offerAcceptedCount,
         Long offerRejectedCount
 ) {
-    public record TeamMember(String hrUsername, Long assigned, Long reviewed,
-                             Double avgTimeToReviewDays, Double conversionRate) {}
-
     public record JobCount(String jobId, String jobTitle, Long applicantCount) {}
 
     public record DailyCount(String date, long count) {}

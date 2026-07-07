@@ -21,6 +21,7 @@ public class ReindexJobResponse {
     private Long totalUsers;
     private Long processedUsers;
     private Long failedUsers;
+    private Long deletedOrphans;
     private Instant startTime;
     private Instant endTime;
     private Long durationMs;

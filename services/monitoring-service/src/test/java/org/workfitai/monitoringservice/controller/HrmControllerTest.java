@@ -61,7 +61,8 @@ class HrmControllerTest {
     void getDashboard_withCompanyId_returnsDashboard() throws Exception {
         when(hrmDashboardService.getDashboard("company-1")).thenReturn(
                 new HrmDashboardResponse(null, null,
-                        new AuditStatsResponse(5, 0, 100.0, 2, java.util.Map.of(), java.util.Map.of(), java.util.Map.of())));
+                        new AuditStatsResponse(5, 0, 100.0, 2, java.util.Map.of(), java.util.Map.of(), java.util.Map.of()),
+                        java.util.List.of()));
 
         mockMvc.perform(get("/hrm/dashboard").principal(hrmPrincipalWithCompany("company-1")))
                 .andExpect(status().isOk())

@@ -22,6 +22,8 @@ import org.workfitai.userservice.repository.UserRepository;
 
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -91,6 +93,7 @@ public class UserIndexManagementService {
             long processedUsers = 0;
             int batchSize = request.getBatchSize() != null ? request.getBatchSize() : BATCH_SIZE;
             int pageNumber = 0;
+            Set<String> validUserIds = new HashSet<>();
 
             while (processedUsers < totalUsers) {
                 // findAll will automatically load subclass fields (HREntity) due to JOINED
@@ -100,6 +103,7 @@ public class UserIndexManagementService {
                 for (UserEntity user : userPage.getContent()) {
                     try {
                         indexUser(user);
+                        validUserIds.add(user.getUserId().toString());
                         processedUsers++;
                     } catch (Exception e) {
                         log.error("Failed to index user: userId={}, error={}", user.getUserId(), e.getMessage(), e);
@@ -114,6 +118,13 @@ public class UserIndexManagementService {
                 }
             }
 
+            // Remove ES documents whose userId no longer exists in PostgreSQL.
+            // These orphans accumulate when a user row is deleted/replaced through a
+            // path that bypasses the USER_DELETED Kafka event (e.g. direct DB delete),
+            // and previously had no way to be cleaned up since triggerReindex only
+            // upserted current rows without pruning stale documents.
+            long deletedOrphans = deleteOrphanedDocuments(validUserIds);
+
             Instant endTime = Instant.now();
             long durationMs = endTime.toEpochMilli() - startTime.toEpochMilli();
 
@@ -123,13 +134,14 @@ public class UserIndexManagementService {
                     .totalUsers(totalUsers)
                     .processedUsers(processedUsers)
                     .failedUsers(totalUsers - processedUsers)
+                    .deletedOrphans(deletedOrphans)
                     .startTime(startTime)
                     .endTime(endTime)
                     .durationMs(durationMs)
                     .build();
 
-            log.info("Reindex job completed: jobId={}, processed={}/{}, duration={}ms",
-                    jobId, processedUsers, totalUsers, durationMs);
+            log.info("Reindex job completed: jobId={}, processed={}/{}, orphansDeleted={}, duration={}ms",
+                    jobId, processedUsers, totalUsers, deletedOrphans, durationMs);
 
             return CompletableFuture.completedFuture(response);
 
@@ -145,6 +157,32 @@ public class UserIndexManagementService {
                     .build();
 
             return CompletableFuture.completedFuture(response);
+        }
+    }
+
+    /**
+     * Delete any document in the index whose userId is not in the given set of
+     * currently valid PostgreSQL user IDs.
+     */
+    private long deleteOrphanedDocuments(Set<String> validUserIds) {
+        try {
+            var response = elasticsearchClient.deleteByQuery(d -> d
+                    .index(INDEX_NAME)
+                    .query(q -> q
+                            .bool(b -> b
+                                    .mustNot(mn -> mn
+                                            .ids(ids -> ids.values(validUserIds.stream().toList())))))
+                    .refresh(true));
+
+            long deleted = response.deleted() != null ? response.deleted() : 0;
+            if (deleted > 0) {
+                log.warn("Deleted {} orphaned document(s) from Elasticsearch index (no matching PostgreSQL row)",
+                        deleted);
+            }
+            return deleted;
+        } catch (Exception e) {
+            log.error("Failed to delete orphaned documents from Elasticsearch index: {}", e.getMessage(), e);
+            return 0;
         }
     }
 
