@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.Skill;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.enums.ExperienceLevel;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.enums.EmploymentType;
@@ -77,8 +78,8 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
         AND j.expiresAt <= :deadline
       """)
   long countExpiringByCompany(@Param("companyId") String companyId,
-                               @Param("now") Instant now,
-                               @Param("deadline") Instant deadline);
+      @Param("now") Instant now,
+      @Param("deadline") Instant deadline);
 
   // --- Platform-wide stats queries ---
 
@@ -107,4 +108,19 @@ public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificatio
 
   @Query("SELECT j FROM Job j LEFT JOIN FETCH j.company WHERE j.company.companyNo = :companyId AND j.status = 'PUBLISHED' AND j.isDeleted = false ORDER BY j.views DESC LIMIT 10")
   List<Job> findTop10PublishedByCompanyAndViewsDesc(@Param("companyId") String companyId);
+
+  @Query("""
+          SELECT new org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO(
+              c.jobCategoryId,
+              c.name,
+              COUNT(j)
+          )
+          FROM Job j
+          JOIN j.jobCategory c
+          WHERE j.status = org.workfitai.jobservice.model.enums.JobStatus.PUBLISHED
+            AND j.isDeleted = false
+          GROUP BY c.jobCategoryId, c.name
+          ORDER BY COUNT(j) DESC
+      """)
+  List<JobCategoryStatisticDTO> findTopJobCategories(Pageable pageable);
 }

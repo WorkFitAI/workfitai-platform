@@ -109,4 +109,8 @@ public class JobSpecifications {
         return Specification.where(isNoDeleted())
                 .and(isNotStatusDraft());
     }
+
+    public static Specification<Job> jobIdIn(List<UUID> ids) {
+        return (root, query, cb) -> root.get("jobId").in(ids);
+    }
 }

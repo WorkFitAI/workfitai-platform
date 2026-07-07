@@ -1,5 +1,6 @@
 package org.workfitai.jobservice.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,7 @@ import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
 
 public interface iJobCategoryService {
@@ -20,4 +22,6 @@ public interface iJobCategoryService {
   ResJobCategoryDTO update(ReqUpdateJobCategoryDTO dto);
 
   void delete(UUID id);
+
+  List<JobCategoryStatisticDTO> getTopJobCategories(int topN);
 }

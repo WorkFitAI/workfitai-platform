@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,6 +30,7 @@ import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
 import org.workfitai.jobservice.model.dto.response.Job.*;
+import org.workfitai.jobservice.model.dto.response.ElasticSearchResult;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.enums.JobStatus;
 import org.workfitai.jobservice.model.mapper.JobMapper;
@@ -38,6 +40,7 @@ import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
 import org.workfitai.jobservice.security.SecurityUtils;
 import org.workfitai.jobservice.service.CloudinaryService;
+import org.workfitai.jobservice.service.ElasticJobService;
 import org.workfitai.jobservice.service.JobEventProducer;
 import org.workfitai.jobservice.service.iJobService;
 import org.workfitai.jobservice.service.specifications.JobSpecifications;
@@ -48,6 +51,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_NOT_FOUND;
@@ -80,12 +84,15 @@ public class JobService implements iJobService {
 
     private final OutboxService outboxService;
 
+    private final ElasticJobService elasticJobService;
+
     public JobService(JobRepository jobRepository, JobMapper jobMapper,
             SkillRepository skillRepository, JobCategoryRepository jobCategoryRepository,
             CompanyRepository companyRepository,
             CloudinaryService cloudinaryService, JobEventProducer jobEventProducer,
             NotificationProducer notificationProducer, UserFeignClient userFeignClient,
-            NotificationService notificationService, OutboxService outboxService) {
+            NotificationService notificationService, OutboxService outboxService,
+            ElasticJobService elasticJobService) {
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.skillRepository = skillRepository;
@@ -96,6 +103,7 @@ public class JobService implements iJobService {
         this.notificationProducer = notificationProducer;
         this.userFeignClient = userFeignClient;
         this.outboxService = outboxService;
+        this.elasticJobService = elasticJobService;
     }
 
     @Override
@@ -114,6 +122,91 @@ public class JobService implements iJobService {
 
         // 4. Chuyển Page<Job> sang ResultPaginationDTO dùng PaginationUtils
         return PaginationUtils.toResultPaginationDTO(pageJob, jobMapper::toResJobDTO);
+    }
+
+    @Override
+    public ResultPaginationDTO fetchAll(
+            Specification<Job> spec,
+            String keyword,
+            Pageable pageable) {
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return fetchFromDatabase(spec, pageable);
+        }
+
+        try {
+            return searchByElastic(spec, keyword.trim(), pageable);
+        } catch (Exception ex) {
+            log.error("ElasticSearch unavailable, fallback to database", ex);
+            return fetchFromDatabase(spec, pageable);
+        }
+    }
+
+    private ResultPaginationDTO searchByElastic(
+            Specification<Job> spec,
+            String keyword,
+            Pageable pageable) throws IOException {
+
+        ElasticSearchResult searchResult = elasticJobService.search(keyword, pageable);
+
+        if (searchResult.getIds().isEmpty()) {
+
+            return ResultPaginationDTO.builder()
+                    .meta(ResultPaginationDTO.Meta.builder()
+                            .page(pageable.getPageNumber() + 1)
+                            .pageSize(pageable.getPageSize())
+                            .pages(0)
+                            .total(0)
+                            .build())
+                    .result(List.of())
+                    .build();
+        }
+
+        Specification<Job> baseSpec = spec != null ? spec : Specification.unrestricted();
+
+        Specification<Job> finalSpec = baseSpec
+                .and(JobSpecifications.jobIdIn(searchResult.getIds()))
+                .and(JobSpecifications.isNoDeleted())
+                .and(JobSpecifications.statusIn(
+                        List.of(JobStatus.PUBLISHED, JobStatus.CLOSED)));
+
+        List<Job> jobs = jobRepository.findAll(finalSpec);
+
+        Map<UUID, Job> jobMap = jobs.stream()
+                .collect(Collectors.toMap(Job::getJobId, Function.identity()));
+
+        List<Job> sortedJobs = searchResult.getIds().stream()
+                .map(jobMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        Page<Job> page = new PageImpl<>(
+                sortedJobs,
+                pageable,
+                searchResult.getTotal());
+
+        return PaginationUtils.toResultPaginationDTO(
+                page,
+                jobMapper::toResJobDTO);
+    }
+
+    private ResultPaginationDTO fetchFromDatabase(
+            Specification<Job> spec,
+            Pageable pageable) {
+
+        Specification<Job> baseSpec = spec != null ? spec : Specification.unrestricted();
+
+        Specification<Job> finalSpec = baseSpec
+                .and(JobSpecifications.isNoDeleted())
+                .and(JobSpecifications.statusIn(
+                        List.of(JobStatus.PUBLISHED,
+                                JobStatus.CLOSED)));
+
+        Page<Job> page = jobRepository.findAll(finalSpec, pageable);
+
+        return PaginationUtils.toResultPaginationDTO(
+                page,
+                jobMapper::toResJobDTO);
     }
 
     @Override
@@ -220,6 +313,12 @@ public class JobService implements iJobService {
             Job currentJob = this.jobRepository.save(job);
             log.debug("Job saved successfully with ID: {}", currentJob.getJobId());
 
+            try {
+                elasticJobService.saveToElastic(currentJob);
+            } catch (Exception e) {
+                log.error("Failed to index job to Elasticsearch", e);
+            }
+
             // Publish job created event to Kafka
             jobEventProducer.publishJobCreated(currentJob);
 
@@ -321,6 +420,12 @@ public class JobService implements iJobService {
         dbJob.setJobCategory(category);
 
         this.jobRepository.save(dbJob);
+
+        try {
+            elasticJobService.saveToElastic(dbJob);
+        } catch (Exception e) {
+            log.error("Failed to index job to Elasticsearch", e);
+        }
 
         // Publish job updated event with changes
         Map<String, Object> changes = detectChanges(oldJob, dbJob);

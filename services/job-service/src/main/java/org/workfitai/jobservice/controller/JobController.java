@@ -44,17 +44,17 @@ public class JobController {
     @ApiMessage(JOB_ALL_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO> getAllJob(
             @Filter Specification<Job> spec,
+            @RequestParam(required = false) String keyword,
             Pageable pageable) {
 
-        ResultPaginationDTO result = this.jobService.fetchAll(spec, pageable);
+        ResultPaginationDTO result = this.jobService.fetchAll(spec, keyword, pageable);
         return RestResponse.success(result);
     }
 
     @GetMapping("/featured")
     @ApiMessage(JOB_FEATURED_FETCHED_SUCCESSFULLY)
     public RestResponse<ResultPaginationDTO> getFeaturedJobs(
-            @RequestParam(defaultValue = "0") int page
-    ) {
+            @RequestParam(defaultValue = "0") int page) {
         ResultPaginationDTO result = jobService.getFeaturedJobs(page);
         return RestResponse.success(result);
     }
@@ -62,8 +62,7 @@ public class JobController {
     @GetMapping("/similar/{jobId}")
     @ApiMessage(JOB_SIMILAR_FETCHED_SUCCESSFULLY)
     public RestResponse<List<ResJobDTO>> getSimilarJobs(
-            @PathVariable UUID jobId
-    ) {
+            @PathVariable UUID jobId) {
         List<ResJobDTO> similarJobs = jobService.getSimilarJobs(jobId);
         return RestResponse.success(similarJobs);
     }

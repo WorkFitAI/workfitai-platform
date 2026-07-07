@@ -32,6 +32,7 @@ spring:
         prefer-ip-address: true
         deregister: true
         health-check-critical-timeout: 1m
+ 
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
     username: ${DATASOURCE_USERNAME:user}
@@ -60,6 +61,13 @@ spring:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
     api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:elasticsearch}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
 
 # Kafka topics configuration
 app:
@@ -159,6 +167,12 @@ spring:
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
     api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
 
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:elasticsearch}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
 # Service URLs for Docker environment
 service:
   recommendation:
@@ -226,6 +240,13 @@ spring:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:your_cloud_name}
     api-key: ${CLOUDINARY_API_KEY:your_api_key}
     api-secret: ${CLOUDINARY_API_SECRET:your_api_secret}
+    
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:elasticsearch}
+  port: ${ELASTICSEARCH_PORT:9200}
+  scheme: ${ELASTICSEARCH_SCHEME:http}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
 
 # Service URLs for Docker/local environment
 service:

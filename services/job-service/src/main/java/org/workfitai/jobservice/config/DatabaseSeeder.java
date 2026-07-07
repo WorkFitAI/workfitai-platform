@@ -19,6 +19,7 @@ import org.workfitai.jobservice.repository.JobReportSnapshotRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.ReportRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.service.ElasticJobService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -38,19 +39,23 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final JobCategoryRepository jobCategoryRepository;
         private final JobReportSnapshotRepository jobReportSnapshotRepository;
 
+        private final ElasticJobService elasticJobService;
+
         public DatabaseSeeder(
                         CompanyRepository companyRepository,
                         JobRepository jobRepository,
                         SkillRepository skillRepository,
                         ReportRepository reportRepository,
                         JobCategoryRepository jobCategoryRepository,
-                        JobReportSnapshotRepository jobReportSnapshotRepository) {
+                        JobReportSnapshotRepository jobReportSnapshotRepository,
+                        ElasticJobService elasticJobService) {
                 this.companyRepository = companyRepository;
                 this.jobRepository = jobRepository;
                 this.skillRepository = skillRepository;
                 this.reportRepository = reportRepository;
                 this.jobCategoryRepository = jobCategoryRepository;
                 this.jobReportSnapshotRepository = jobReportSnapshotRepository;
+                this.elasticJobService = elasticJobService;
         }
 
         @Override
@@ -247,7 +252,15 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 jobs.add(job);
                         }
 
-                        jobRepository.saveAll(jobs);
+                        var savedJobs = jobRepository.saveAll(jobs);
+
+                        for (Job savedJob : savedJobs) {
+                                try {
+                                        elasticJobService.saveToElastic(savedJob);
+                                } catch (Exception e) {
+                                        System.err.println("Error saving job to ElasticSearch: " + e.getMessage());
+                                }
+                        }
                 }
 
                 /* ===================== REPORT SEED ===================== */

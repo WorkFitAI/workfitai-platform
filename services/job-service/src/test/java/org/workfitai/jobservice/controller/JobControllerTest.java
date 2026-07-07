@@ -54,9 +54,9 @@ class JobControllerTest {
     @Test
     void getAllJob_delegatesToFetchAll() {
         ResultPaginationDTO result = new ResultPaginationDTO();
-        when(jobService.fetchAll(any(), any())).thenReturn(result);
+        when(jobService.fetchAll(any(), any(), any())).thenReturn(result);
 
-        RestResponse<ResultPaginationDTO> response = controller.getAllJob(null, PageRequest.of(0, 10));
+        RestResponse<ResultPaginationDTO> response = controller.getAllJob(null, null, PageRequest.of(0, 10));
 
         assertThat(response.getData()).isSameAs(result);
     }
