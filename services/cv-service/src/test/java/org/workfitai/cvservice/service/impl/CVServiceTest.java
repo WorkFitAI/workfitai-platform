@@ -379,7 +379,7 @@ class CVServiceTest {
         newer.setSummary("new");
         newer.setUpdatedAt(Instant.parse("2024-02-01T00:00:00Z"));
         newer.setSections(Map.of("experience", List.of("Did things"), "skills", "Java"));
-        when(repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(List.of("alice")))
+        when(repository.findByBelongToInAndIsExistTrue(List.of("alice")))
                 .thenReturn(List.of(older, newer));
 
         List<CvDataResponse> result = cvService.getCvDataBatch(List.of("alice"));
@@ -397,12 +397,54 @@ class CVServiceTest {
         cv.setBelongTo("bob");
         cv.setCreatedAt(Instant.parse("2024-01-01T00:00:00Z"));
         cv.setSummary(null);
-        when(repository.findByBelongToInAndIsExistTrueAndApplicationIdIsNull(List.of("bob"))).thenReturn(List.of(cv));
+        when(repository.findByBelongToInAndIsExistTrue(List.of("bob"))).thenReturn(List.of(cv));
 
         List<CvDataResponse> result = cvService.getCvDataBatch(List.of("bob"));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getResumeSummary()).isEmpty();
+    }
+
+    @Test
+    void getCvDataBatch_prefersRegularCvOverNewerSnapshot() {
+        CV regular = new CV();
+        regular.setBelongTo("alice");
+        regular.setSummary("regular-cv");
+        regular.setApplicationId(null);
+        regular.setUpdatedAt(Instant.parse("2024-01-01T00:00:00Z"));
+        CV snapshot = new CV();
+        snapshot.setBelongTo("alice");
+        snapshot.setSummary("snapshot-cv");
+        snapshot.setApplicationId("app-1");
+        snapshot.setUpdatedAt(Instant.parse("2024-06-01T00:00:00Z"));
+        when(repository.findByBelongToInAndIsExistTrue(List.of("alice")))
+                .thenReturn(List.of(regular, snapshot));
+
+        List<CvDataResponse> result = cvService.getCvDataBatch(List.of("alice"));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getResumeSummary()).isEqualTo("regular-cv");
+    }
+
+    @Test
+    void getCvDataBatch_fallsBackToSnapshot_whenNoRegularCvExists() {
+        CV snapshot1 = new CV();
+        snapshot1.setBelongTo("candidate1");
+        snapshot1.setSummary("older-snapshot");
+        snapshot1.setApplicationId("app-1");
+        snapshot1.setUpdatedAt(Instant.parse("2024-01-01T00:00:00Z"));
+        CV snapshot2 = new CV();
+        snapshot2.setBelongTo("candidate1");
+        snapshot2.setSummary("newer-snapshot");
+        snapshot2.setApplicationId("app-2");
+        snapshot2.setUpdatedAt(Instant.parse("2024-06-01T00:00:00Z"));
+        when(repository.findByBelongToInAndIsExistTrue(List.of("candidate1")))
+                .thenReturn(List.of(snapshot1, snapshot2));
+
+        List<CvDataResponse> result = cvService.getCvDataBatch(List.of("candidate1"));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getResumeSummary()).isEqualTo("newer-snapshot");
     }
 
     // ─── getCvSnapshotsByApplicationIds ──────────────────────────────────────────
