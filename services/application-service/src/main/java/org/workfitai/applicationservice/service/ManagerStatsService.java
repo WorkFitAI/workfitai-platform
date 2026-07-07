@@ -2,6 +2,8 @@ package org.workfitai.applicationservice.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +12,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -18,7 +19,6 @@ import org.springframework.data.mongodb.core.aggregation.DateOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
-import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.workfitai.applicationservice.dto.response.ManagerStatsResponse;
@@ -137,6 +137,13 @@ public class ManagerStatsService {
         return ApplicationFunnelCalculator.calculateFunnelRates(byStatus);
     }
 
+    /**
+     * Company-scoped daily application volume for the last 30 days.
+     * Zero-fills days with no applications so callers always get one point per
+     * calendar day in the window, mirroring SystemStatsService's platform-wide
+     * volume trend — MongoDB's $group only emits keys that exist, so days
+     * without applications would otherwise be silently absent.
+     */
     private List<DailyApplicationCount> calculateVolumeTrend(String companyId) {
         Instant since = Instant.now().minus(VOLUME_TREND_DAYS, ChronoUnit.DAYS);
 
@@ -150,18 +157,27 @@ public class ManagerStatsService {
                 .and(DateOperators.dateOf("createdAt").toString("%Y-%m-%d")).as("dateStr");
 
         GroupOperation group = Aggregation.group("dateStr").count().as("count");
-        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
 
-        Aggregation aggregation = Aggregation.newAggregation(match, project, group, sort);
+        Aggregation aggregation = Aggregation.newAggregation(match, project, group);
 
-        return mongoTemplate.aggregate(aggregation, "applications", Map.class)
+        Map<String, Long> countsByDate = mongoTemplate.aggregate(aggregation, "applications", Map.class)
                 .getMappedResults()
                 .stream()
-                .map(r -> new DailyApplicationCount(
-                        (String) r.get("_id"),
-                        ((Number) r.get("count")).longValue()
-                ))
-                .toList();
+                .collect(Collectors.toMap(
+                        r -> (String) r.get("_id"),
+                        r -> ((Number) r.get("count")).longValue()
+                ));
+
+        // $dateToString defaults to UTC, so walk the same UTC calendar range to stay aligned.
+        LocalDate startDay = LocalDate.ofInstant(since, ZoneOffset.UTC);
+        LocalDate endDay = LocalDate.ofInstant(Instant.now(), ZoneOffset.UTC);
+
+        List<DailyApplicationCount> denseTrend = new ArrayList<>();
+        for (LocalDate day = startDay; !day.isAfter(endDay); day = day.plusDays(1)) {
+            String dateStr = day.toString();
+            denseTrend.add(new DailyApplicationCount(dateStr, countsByDate.getOrDefault(dateStr, 0L)));
+        }
+        return denseTrend;
     }
 
     /**

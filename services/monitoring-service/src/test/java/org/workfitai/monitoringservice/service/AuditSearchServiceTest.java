@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -13,6 +14,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -321,6 +323,48 @@ class AuditSearchServiceTest {
     }
 
     @Test
+    void getRecentErrorLogsForCompany_returnsEmptyList_onElasticsearchFailure() throws IOException {
+        init();
+        when(elasticsearchClient.search(any(SearchRequest.class), eq(Map.class))).thenThrow(new IOException("down"));
+
+        List<AuditEventResponse> result = auditSearchService.getRecentErrorLogsForCompany("company-1", 10);
+
+        assertThat(result).isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getRecentErrorLogsForCompany_returnsMappedResults_onSuccess() throws IOException {
+        init();
+        Hit<Map> hit = mock(Hit.class);
+        Map<String, Object> source = Map.of(
+                "eventId", "err-2",
+                "actorRole", "HR_MANAGER",
+                "companyId", "company-1",
+                "action", "LOGIN_FAILED",
+                "occurredAt", "2024-01-01T00:00:00Z",
+                "success", false);
+        when(hit.source()).thenReturn(source);
+
+        SearchResponse<Map> response = deepStubSearchResponse();
+        when(response.hits().hits()).thenReturn(List.of(hit));
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        when(elasticsearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+        when(auditPatternService.resolveMessage("LOGIN_FAILED")).thenReturn(Optional.empty());
+
+        List<AuditEventResponse> result = auditSearchService.getRecentErrorLogsForCompany("company-1", 5);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).eventId()).isEqualTo("err-2");
+
+        // Regression: companyId filter must use the plain `keyword` field, not "companyId.keyword".
+        List<Query> filters = captor.getValue().query().bool().filter();
+        boolean hasPlainCompanyIdFilter = filters.stream()
+                .anyMatch(q -> q.isTerm() && q.term().field().equals("companyId"));
+        assertThat(hasPlainCompanyIdFilter).isTrue();
+    }
+
+    @Test
     void getAuditStats_withTimeRange_doesNotThrow() throws IOException {
         init();
         when(elasticsearchClient.search(any(java.util.function.Function.class), eq(Void.class)))
@@ -331,6 +375,32 @@ class AuditSearchServiceTest {
                 Instant.parse("2024-01-31T00:00:00Z"));
 
         assertThat(result.totalEvents()).isZero();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void searchHrm_queriesCompanyIdAsPlainKeywordField_notDotKeyword() throws IOException {
+        // Regression test: companyId (and other audit fields) are mapped as plain
+        // `keyword` in ElasticsearchIndexInitializer — no `.keyword` multi-field.
+        // Querying "companyId.keyword" hits a nonexistent field and silently matches
+        // zero documents, which made GET /hrm/audit always return an empty page.
+        init();
+        SearchResponse<Map> response = deepStubSearchResponse();
+        when(response.hits().hits()).thenReturn(List.of());
+        when(response.hits().total().value()).thenReturn(0L);
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        when(elasticsearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+        auditSearchService.searchHrm("company-1", emptyRequest(), PageRequest.of(0, 10));
+
+        List<Query> filters = captor.getValue().query().bool().filter();
+        boolean hasPlainCompanyIdFilter = filters.stream()
+                .anyMatch(q -> q.isTerm() && q.term().field().equals("companyId"));
+        boolean hasDotKeywordFilter = filters.stream()
+                .anyMatch(q -> q.isTerm() && q.term().field().equals("companyId.keyword"));
+
+        assertThat(hasPlainCompanyIdFilter).isTrue();
+        assertThat(hasDotKeywordFilter).isFalse();
     }
 
     @Test

@@ -46,7 +46,7 @@ public class HrmController {
         String companyId = extractCompanyId(authentication);
         if (companyId == null) {
             log.warn("[HRM-DASH] HR_MANAGER {} has no companyId claim", authentication.getName());
-            return ResponseEntity.ok(new HrmDashboardResponse(null, null, null));
+            return ResponseEntity.ok(new HrmDashboardResponse(null, null, null, null));
         }
         return ResponseEntity.ok(hrmDashboardService.getDashboard(companyId));
     }

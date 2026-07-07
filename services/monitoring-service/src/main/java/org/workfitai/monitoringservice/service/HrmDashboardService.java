@@ -6,16 +6,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.workfitai.monitoringservice.client.ApplicationServiceClient;
 import org.workfitai.monitoringservice.client.JobStatsServiceClient;
+import org.workfitai.monitoringservice.dto.AuditEventResponse;
 import org.workfitai.monitoringservice.dto.AuditStatsResponse;
 import org.workfitai.monitoringservice.dto.HrmDashboardResponse;
 import org.workfitai.monitoringservice.dto.downstream.DownstreamApiResponse;
 import org.workfitai.monitoringservice.dto.downstream.HrmJobStatsSummary;
 import org.workfitai.monitoringservice.dto.downstream.ManagerStatsSummary;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class HrmDashboardService {
+
+    private static final int RECENT_AUDIT_ERRORS_LIMIT = 10;
 
     private final ApplicationServiceClient applicationServiceClient;
     private final JobStatsServiceClient jobStatsServiceClient;
@@ -25,7 +30,9 @@ public class HrmDashboardService {
         ManagerStatsSummary managerStats = fetchManagerStats(companyId);
         HrmJobStatsSummary jobStats      = fetchCompanyJobStats(companyId);
         AuditStatsResponse auditStats    = auditSearchService.getAuditStatsForCompany(companyId);
-        return new HrmDashboardResponse(managerStats, jobStats, auditStats);
+        List<AuditEventResponse> recentAuditErrors =
+                auditSearchService.getRecentErrorLogsForCompany(companyId, RECENT_AUDIT_ERRORS_LIMIT);
+        return new HrmDashboardResponse(managerStats, jobStats, auditStats, recentAuditErrors);
     }
 
     private ManagerStatsSummary fetchManagerStats(String companyId) {
