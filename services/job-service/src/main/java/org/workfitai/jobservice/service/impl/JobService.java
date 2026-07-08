@@ -130,15 +130,25 @@ public class JobService implements iJobService {
             String keyword,
             Pageable pageable) {
 
-        if (keyword == null || keyword.trim().isEmpty()) {
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasFilter = hasFilter(spec);
+
+        // Không keyword -> Database
+        if (!hasKeyword) {
             return fetchFromDatabase(spec, pageable);
         }
 
+        // Có keyword + có filter -> Database
+        if (hasFilter) {
+            return fetchKeywordFromDatabase(spec, keyword.trim(), pageable);
+        }
+
+        // Chỉ có keyword -> Elasticsearch
         try {
             return searchByElastic(spec, keyword.trim(), pageable);
         } catch (Exception ex) {
             log.error("ElasticSearch unavailable, fallback to database", ex);
-            return fetchFromDatabase(spec, pageable);
+            return fetchKeywordFromDatabase(spec, keyword.trim(), pageable);
         }
     }
 
@@ -146,7 +156,7 @@ public class JobService implements iJobService {
             Specification<Job> spec,
             String keyword,
             Pageable pageable) throws IOException {
-
+        log.info("Searching jobs in Elasticsearch with keyword: {}", keyword);
         ElasticSearchResult searchResult = elasticJobService.search(keyword, pageable);
 
         if (searchResult.getIds().isEmpty()) {
@@ -172,18 +182,30 @@ public class JobService implements iJobService {
 
         List<Job> jobs = jobRepository.findAll(finalSpec);
 
+        log.info("DB jobs after elastic ids: {}", jobs.size());
+
         Map<UUID, Job> jobMap = jobs.stream()
                 .collect(Collectors.toMap(Job::getJobId, Function.identity()));
 
-        List<Job> sortedJobs = searchResult.getIds().stream()
+        List<Job> allJobs = searchResult.getIds().stream()
                 .map(jobMap::get)
                 .filter(Objects::nonNull)
                 .toList();
 
+        int start = (int) pageable.getOffset();
+
+        int end = Math.min(
+                start + pageable.getPageSize(),
+                allJobs.size());
+
+        List<Job> pageContent = start >= allJobs.size()
+                ? List.of()
+                : allJobs.subList(start, end);
+
         Page<Job> page = new PageImpl<>(
-                sortedJobs,
+                pageContent,
                 pageable,
-                searchResult.getTotal());
+                allJobs.size());
 
         return PaginationUtils.toResultPaginationDTO(
                 page,
@@ -193,7 +215,7 @@ public class JobService implements iJobService {
     private ResultPaginationDTO fetchFromDatabase(
             Specification<Job> spec,
             Pageable pageable) {
-
+        log.info("Fetching jobs from database with spec: {}", spec);
         Specification<Job> baseSpec = spec != null ? spec : Specification.unrestricted();
 
         Specification<Job> finalSpec = baseSpec
@@ -201,6 +223,27 @@ public class JobService implements iJobService {
                 .and(JobSpecifications.statusIn(
                         List.of(JobStatus.PUBLISHED,
                                 JobStatus.CLOSED)));
+
+        Page<Job> page = jobRepository.findAll(finalSpec, pageable);
+
+        return PaginationUtils.toResultPaginationDTO(
+                page,
+                jobMapper::toResJobDTO);
+    }
+
+    private ResultPaginationDTO fetchKeywordFromDatabase(
+            Specification<Job> spec,
+            String keyword,
+            Pageable pageable) {
+
+        log.info("Fetching jobs from database with keyword: {}", keyword);
+
+        Specification<Job> finalSpec = Specification
+                .where(spec)
+                .and(JobSpecifications.keyword(keyword))
+                .and(JobSpecifications.isNoDeleted())
+                .and(JobSpecifications.statusIn(
+                        List.of(JobStatus.PUBLISHED, JobStatus.CLOSED)));
 
         Page<Job> page = jobRepository.findAll(finalSpec, pageable);
 
@@ -752,5 +795,14 @@ public class JobService implements iJobService {
                 hrEmail,
                 job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "");
+    }
+
+    private boolean hasFilter(Specification<Job> spec) {
+        if (spec == null) {
+            return false;
+        }
+
+        return spec.toString() != null
+                && !spec.toString().contains("FilterSpecificationArgumentResolver");
     }
 }
