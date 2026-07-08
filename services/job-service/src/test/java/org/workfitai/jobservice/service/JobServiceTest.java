@@ -26,6 +26,7 @@ import org.workfitai.jobservice.model.Job;
 import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.Skill;
 import org.workfitai.jobservice.model.dto.HrNotificationSettingsDTO;
+import org.workfitai.jobservice.model.dto.response.ElasticSearchResult;
 import org.workfitai.jobservice.model.dto.kafka.UserInfoServeForJobResponse;
 import org.workfitai.jobservice.model.dto.request.Job.ReqJobDTO;
 import org.workfitai.jobservice.model.dto.request.Job.ReqUpdateJobDTO;
@@ -40,6 +41,7 @@ import org.workfitai.jobservice.repository.CompanyRepository;
 import org.workfitai.jobservice.repository.JobCategoryRepository;
 import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.repository.SkillRepository;
+import org.workfitai.jobservice.service.ElasticJobService;
 import org.workfitai.jobservice.service.impl.JobService;
 import org.workfitai.jobservice.service.impl.NotificationService;
 import org.workfitai.jobservice.service.impl.OutboxService;
@@ -72,6 +74,8 @@ class JobServiceTest {
     private JobRepository jobRepository;
     @Mock
     private JobCategoryRepository jobCategoryRepository;
+    @Mock
+    private ElasticJobService elasticJobService;
     @Mock
     private JobEventProducer jobEventProducer;
     @Mock
@@ -116,7 +120,8 @@ class JobServiceTest {
         return job;
     }
 
-    // ---------------- fetchAll / fetchAllForHr / fetchAllForAdmin / fetchJobsByCompany ----------------
+    // ---------------- fetchAll / fetchAllForHr / fetchAllForAdmin /
+    // fetchJobsByCompany ----------------
 
     @Test
     void fetchAll_returnsPaginatedResult() {
@@ -129,6 +134,24 @@ class JobServiceTest {
 
         assertThat(result).isNotNull();
         assertThat((List<?>) result.getResult()).hasSize(1);
+    }
+
+    @Test
+    void fetchAll_withKeyword_usesElasticSearchWhenNoFilter() throws Exception {
+        UUID jobId = UUID.randomUUID();
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        job.setJobId(jobId);
+
+        when(elasticJobService.search("java", PageRequest.of(0, 10)))
+                .thenReturn(ElasticSearchResult.builder().ids(List.of(jobId)).total(1).build());
+        when(jobRepository.findAll(Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any()))
+                .thenReturn(List.of(job));
+
+        ResultPaginationDTO result = jobService.fetchAll(null, "java", PageRequest.of(0, 10));
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+        verify(elasticJobService).search("java", PageRequest.of(0, 10));
     }
 
     @Test
@@ -397,7 +420,8 @@ class JobServiceTest {
 
         when(companyRepository.findById("FPT#25")).thenReturn(Optional.of(company("FPT#25")));
         when(jobCategoryRepository.findById(dto.getJobCategoryId()))
-                .thenReturn(Optional.of(JobCategory.builder().jobCategoryId(dto.getJobCategoryId()).name("Backend").build()));
+                .thenReturn(Optional
+                        .of(JobCategory.builder().jobCategoryId(dto.getJobCategoryId()).name("Backend").build()));
         when(jobRepository.save(dbJob)).thenReturn(dbJob);
 
         ResUpdateJobDTO result = jobService.updateJob(dto, dbJob);
@@ -421,7 +445,8 @@ class JobServiceTest {
 
         when(companyRepository.findById("FPT#25")).thenReturn(Optional.of(company("FPT#25")));
         when(jobCategoryRepository.findById(dto.getJobCategoryId()))
-                .thenReturn(Optional.of(JobCategory.builder().jobCategoryId(dto.getJobCategoryId()).name("Backend").build()));
+                .thenReturn(Optional
+                        .of(JobCategory.builder().jobCategoryId(dto.getJobCategoryId()).name("Backend").build()));
         when(jobRepository.save(dbJob)).thenReturn(dbJob);
 
         jobService.updateJob(dto, dbJob);
@@ -430,10 +455,14 @@ class JobServiceTest {
     }
 
     /**
-     * JobService.updateJob() has an explicit {@code ResourceNotFoundException(JOB_CATEGORY_NOT_FOUND)}
-     * check after jobMapper.toEntity(), but JobMapper's own {@code map(UUID, JobCategoryRepository)}
-     * already looks up the category and throws a plain RuntimeException first - the service-level
-     * check is dead code for this path. Asserting actual behavior, not the unreachable intent.
+     * JobService.updateJob() has an explicit
+     * {@code ResourceNotFoundException(JOB_CATEGORY_NOT_FOUND)}
+     * check after jobMapper.toEntity(), but JobMapper's own
+     * {@code map(UUID, JobCategoryRepository)}
+     * already looks up the category and throws a plain RuntimeException first - the
+     * service-level
+     * check is dead code for this path. Asserting actual behavior, not the
+     * unreachable intent.
      */
     @Test
     void updateJob_throwsRuntimeException_whenCategoryMissing() {
@@ -650,7 +679,8 @@ class JobServiceTest {
         UUID jobId = UUID.randomUUID();
         when(jobRepository.findById(jobId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> jobService.uploadJobBanner(jobId, mock(org.springframework.web.multipart.MultipartFile.class)))
+        assertThatThrownBy(
+                () -> jobService.uploadJobBanner(jobId, mock(org.springframework.web.multipart.MultipartFile.class)))
                 .isInstanceOf(InvalidDataException.class);
     }
 
@@ -673,7 +703,8 @@ class JobServiceTest {
         job.setCreatedBy("alice");
 
         when(userFeignClient.getUsersByUsernames(List.of("alice"))).thenReturn(
-                ResponseEntity.ok(List.of(UserInfoServeForJobResponse.builder().username("alice").email("alice@test.com").build())));
+                ResponseEntity.ok(List
+                        .of(UserInfoServeForJobResponse.builder().username("alice").email("alice@test.com").build())));
 
         var result = jobService.fetchEmailMap(List.of(job));
 
@@ -713,7 +744,8 @@ class JobServiceTest {
         assertThat(result).containsEntry("hr@test.com", true);
     }
 
-    // ---------------- buildDTO / findExpiredJobsToClose / updateJobsAndEvents ----------------
+    // ---------------- buildDTO / findExpiredJobsToClose / updateJobsAndEvents
+    // ----------------
 
     @Test
     void buildDTO_mapsJobFieldsToEventDTO() {

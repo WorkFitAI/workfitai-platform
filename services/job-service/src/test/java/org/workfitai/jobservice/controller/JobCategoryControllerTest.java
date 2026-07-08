@@ -8,11 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.service.iJobCategoryService;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +49,16 @@ class JobCategoryControllerTest {
         RestResponse<ResultPaginationDTO> response = controller.getAll(null, PageRequest.of(0, 10));
 
         assertThat(response.getData()).isSameAs(result);
+    }
+
+    @Test
+    void getTopJobCategories_delegatesToService() {
+        List<JobCategoryStatisticDTO> topCategories = List.of(new JobCategoryStatisticDTO());
+        when(jobCategoryService.getTopJobCategories(10)).thenReturn(topCategories);
+
+        RestResponse<List<JobCategoryStatisticDTO>> response = controller.getTopJobCategories(10);
+
+        assertThat(response.getData()).isSameAs(topCategories);
     }
 
     @Test
