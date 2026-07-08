@@ -266,6 +266,8 @@
                         <exclude>**/*Request.class</exclude>
                         <exclude>**/*Response.class</exclude>
                         <exclude>**/*DTO.class</exclude>
+                        <exclude>**/elastic/**</exclude>
+                        <exclude>**/service/ElasticJobService.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>

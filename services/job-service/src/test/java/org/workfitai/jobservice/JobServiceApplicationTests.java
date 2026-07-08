@@ -3,6 +3,7 @@ package org.workfitai.jobservice;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.workfitai.jobservice.client.AuthFeignClient;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class JobServiceApplicationTests {
 
     @TestBean

@@ -7,15 +7,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.workfitai.jobservice.model.JobCategory;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.mapper.JobCategoryMapper;
 import org.workfitai.jobservice.repository.JobCategoryRepository;
+import org.workfitai.jobservice.repository.JobRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,8 @@ class JobCategoryServiceTest {
     private JobCategoryRepository jobCategoryRepository;
     @Mock
     private JobCategoryMapper jobCategoryMapper;
+    @Mock
+    private JobRepository jobRepository;
     @InjectMocks
     private JobCategoryService jobCategoryService;
 
@@ -136,5 +141,17 @@ class JobCategoryServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Job category not found");
         verify(jobCategoryRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void getTopJobCategories_delegatesToRepository() {
+        int topN = 5;
+        List<JobCategoryStatisticDTO> stats = List.of(
+                new JobCategoryStatisticDTO(UUID.randomUUID(), "Backend", 3L));
+
+        when(jobRepository.findTopJobCategories(PageRequest.of(0, topN))).thenReturn(stats);
+
+        assertThat(jobCategoryService.getTopJobCategories(topN)).isEqualTo(stats);
+        verify(jobRepository).findTopJobCategories(PageRequest.of(0, topN));
     }
 }

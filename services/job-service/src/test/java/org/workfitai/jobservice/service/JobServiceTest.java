@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -46,6 +47,7 @@ import org.workfitai.jobservice.service.impl.JobService;
 import org.workfitai.jobservice.service.impl.NotificationService;
 import org.workfitai.jobservice.service.impl.OutboxService;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -152,6 +154,28 @@ class JobServiceTest {
         assertThat(result).isNotNull();
         assertThat((List<?>) result.getResult()).hasSize(1);
         verify(elasticJobService).search("java", PageRequest.of(0, 10));
+    }
+
+    @Test
+    void fetchAll_withKeywordAndFilter_usesDatabasePath() {
+        Job job = existingJob(company("FPT#25"), JobStatus.PUBLISHED, 0);
+        Page<Job> page = new PageImpl<>(List.of(job));
+        Pageable pageable = PageRequest.of(0, 10);
+        Specification<Job> spec = (root, query, cb) -> cb.conjunction();
+
+        when(jobRepository.findAll(Mockito.<org.springframework.data.jpa.domain.Specification<Job>>any(), eq(pageable)))
+                .thenReturn(page);
+
+        ResultPaginationDTO result = jobService.fetchAll(spec, "java", pageable);
+
+        assertThat(result).isNotNull();
+        assertThat((List<?>) result.getResult()).hasSize(1);
+        try {
+            verify(elasticJobService, never()).search(any(), any());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     @Test

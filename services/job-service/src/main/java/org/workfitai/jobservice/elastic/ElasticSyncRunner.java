@@ -3,6 +3,7 @@ package org.workfitai.jobservice.elastic;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.workfitai.jobservice.model.Job;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 public class ElasticSyncRunner implements CommandLineRunner {
