@@ -28,6 +28,7 @@ public class MessageConstant {
     public static final String JOB_CATEGORY_ALL_FETCHED_SUCCESSFULLY = "Job categories fetched successfully";
     public static final String JOB_CATEGORY_FETCHED_SUCCESSFULLY = "Job category fetched successfully";
     public static final String JOB_CATEGORY_STATISTICS_FETCHED_SUCCESSFULLY = "Job category statistics fetched successfully";
+    public static final String JOB_REBUILD_SUCCESSFULLY = "Job index rebuilt successfully";
 
     public static final String COMPANY_CREATED_SUCCESSFULLY = "Company created successfully";
     public static final String COMPANY_DETAIL_FETCHED_SUCCESSFULLY = "Company fetched successfully";

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.workfitai.jobservice.config.errors.InvalidDataException;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
+import org.workfitai.jobservice.service.ElasticJobService;
 import org.workfitai.jobservice.service.iJobService;
 
 import java.util.UUID;
@@ -22,6 +23,8 @@ class JobControllerTest {
 
     @Mock
     private iJobService jobService;
+    @Mock
+    private ElasticJobService elasticJobService;
     @InjectMocks
     private JobController controller;
 
