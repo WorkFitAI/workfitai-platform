@@ -40,13 +40,13 @@ public class ElasticsearchConfig {
 
     @Bean
     public RestClient restClient() {
-        log.info("Connecting to Elasticsearch at {}://{}:{}", scheme, host, port);
+        log.debug("Connecting to Elasticsearch at {}://{}:{}", scheme, host, port);
 
         var builder = RestClient.builder(new HttpHost(host, port, scheme));
 
         // Add authentication if password is provided
         if (password != null && !password.isBlank()) {
-            log.info("Using authenticated connection to Elasticsearch with user: {}", username);
+            log.debug("Using authenticated connection to Elasticsearch with user: {}", username);
             BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
                     AuthScope.ANY,

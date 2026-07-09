@@ -35,8 +35,8 @@ spring:
  
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${DATASOURCE_USERNAME:user}
-    password: ${DATASOURCE_PASSWORD:job@123}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -66,8 +66,8 @@ elasticsearch:
   host: ${ELASTICSEARCH_HOST:elasticsearch}
   port: ${ELASTICSEARCH_PORT:9200}
   scheme: ${ELASTICSEARCH_SCHEME:http}
-  username: ${ELASTICSEARCH_USERNAME:elastic}
-  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
+  username: ${ELASTICSEARCH_USERNAME}
+  password: ${ELASTICSEARCH_PASSWORD}
 
 # Kafka topics configuration
 app:
@@ -136,8 +136,8 @@ spring:
         prefer-ip-address: true
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://job-postgres:5432/job_db}
-    username: ${DATASOURCE_USERNAME:user}
-    password: ${DATASOURCE_PASSWORD:job@123}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -171,8 +171,8 @@ elasticsearch:
   host: ${ELASTICSEARCH_HOST:elasticsearch}
   port: ${ELASTICSEARCH_PORT:9200}
   scheme: ${ELASTICSEARCH_SCHEME:http}
-  username: ${ELASTICSEARCH_USERNAME:elastic}
-  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
+  username: ${ELASTICSEARCH_USERNAME}
+  password: ${ELASTICSEARCH_PASSWORD}
 # Service URLs for Docker environment
 service:
   recommendation:
@@ -214,8 +214,8 @@ spring:
         health-check-path: /actuator/health
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5433/job_db}
-    username: ${DATASOURCE_USERNAME:user}
-    password: ${DATASOURCE_PASSWORD:job@123}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -245,8 +245,8 @@ elasticsearch:
   host: ${ELASTICSEARCH_HOST:elasticsearch}
   port: ${ELASTICSEARCH_PORT:9200}
   scheme: ${ELASTICSEARCH_SCHEME:http}
-  username: ${ELASTICSEARCH_USERNAME:elastic}
-  password: ${ELASTICSEARCH_PASSWORD:workfitai123}
+  username: ${ELASTICSEARCH_USERNAME}
+  password: ${ELASTICSEARCH_PASSWORD}
 
 # Service URLs for Docker/local environment
 service:

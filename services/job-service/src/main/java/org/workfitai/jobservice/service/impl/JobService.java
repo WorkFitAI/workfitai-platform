@@ -156,7 +156,7 @@ public class JobService implements iJobService {
             Specification<Job> spec,
             String keyword,
             Pageable pageable) throws IOException {
-        log.info("Searching jobs in Elasticsearch with keyword: {}", keyword);
+        log.debug("Searching jobs in Elasticsearch with keyword: {}", keyword);
         ElasticSearchResult searchResult = elasticJobService.search(keyword, pageable);
 
         if (searchResult.getIds().isEmpty()) {
@@ -215,7 +215,7 @@ public class JobService implements iJobService {
     private ResultPaginationDTO fetchFromDatabase(
             Specification<Job> spec,
             Pageable pageable) {
-        log.info("Fetching jobs from database with spec: {}", spec);
+        log.debug("Fetching jobs from database with spec: {}", spec);
         Specification<Job> baseSpec = spec != null ? spec : Specification.unrestricted();
 
         Specification<Job> finalSpec = baseSpec
@@ -411,7 +411,7 @@ public class JobService implements iJobService {
                     .build();
 
             notificationProducer.send(event);
-            log.info("Sent job created notification for job: {} to {}", job.getJobId(), hrEmail);
+            log.debug("Sent job created notification for job: {} to {}", job.getJobId(), hrEmail);
         } catch (Exception e) {
             log.error("Failed to send job created notification for job: {}", job.getJobId(), e);
         }
@@ -595,7 +595,7 @@ public class JobService implements iJobService {
 
         jobRepository.save(job);
 
-        log.info("Updated totalApplications for jobId {} ({}): {}", jobId, operation, job.getTotalApplications());
+        log.debug("Updated totalApplications for jobId {} ({}): {}", jobId, operation, job.getTotalApplications());
     }
 
     @Transactional
