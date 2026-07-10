@@ -4,8 +4,10 @@ Embedding generation using Sentence Transformers (E5-Large)
 
 import logging
 import numpy as np
-from typing import List, Union
+from typing import Dict, List, Optional, Tuple, Union
 from sentence_transformers import SentenceTransformer
+
+from app.services.field_format import field_present
 
 logger = logging.getLogger(__name__)
 
@@ -124,3 +126,69 @@ class EmbeddingGenerator:
     def get_dimension(self) -> int:
         """Get embedding dimension"""
         return self.dimension
+
+    # ------------------------------------------------------------------ #
+    # Multi-field encoding (bi-encoder-e5-large-multifield)               #
+    # ------------------------------------------------------------------ #
+    #
+    # Encodes each present field separately, then masked-mean-pools the RAW
+    # (non-normalized) per-field embeddings and L2-normalizes only the final
+    # pooled vector -- this matches how the model was trained
+    # (job-recomendation/source/multifield_encoder.py's MultiFieldEncoder:
+    # per-field pooling happens on raw sentence embeddings, normalization is
+    # applied once, only when comparing the final pooled vectors). Encoding
+    # per field first and normalizing first would silently produce a
+    # different vector than what the model was trained/evaluated with.
+
+    def encode_job_fields(
+        self, fields: Dict[str, Optional[str]], field_order: List[str]
+    ) -> Tuple[np.ndarray, Dict[str, np.ndarray], List[bool]]:
+        """Encode job-side structured fields. Returns (pooled_embedding,
+        per_field_embeddings, presence_mask) -- presence_mask is aligned to
+        field_order; per_field_embeddings is keyed by field name and holds
+        RAW (non-normalized) embeddings for present fields only."""
+        return self._encode_fields(fields, field_order, prefix="passage: ")
+
+    def encode_resume_fields(
+        self, fields: Dict[str, Optional[str]], field_order: List[str]
+    ) -> Tuple[np.ndarray, Dict[str, np.ndarray], List[bool]]:
+        """Encode resume-side structured fields. Same contract as
+        encode_job_fields, using the "query: " e5 prefix."""
+        return self._encode_fields(fields, field_order, prefix="query: ")
+
+    def _encode_fields(
+        self, fields: Dict[str, Optional[str]], field_order: List[str], prefix: str
+    ) -> Tuple[np.ndarray, Dict[str, np.ndarray], List[bool]]:
+        present_texts: List[str] = []
+        present_names: List[str] = []
+        mask: List[bool] = []
+
+        for name in field_order:
+            value = fields.get(name)
+            if field_present(value):
+                present_texts.append(f"{prefix}{value}")
+                present_names.append(name)
+                mask.append(True)
+            else:
+                mask.append(False)
+
+        if not present_texts:
+            logger.warning("No present fields to encode (field_order=%s) -- returning zero vector", field_order)
+            return np.zeros(self.dimension, dtype=np.float32), {}, mask
+
+        raw_embeddings = self.model.encode(
+            present_texts,
+            normalize_embeddings=False,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        ).astype(np.float32)
+        if raw_embeddings.ndim == 1:
+            raw_embeddings = raw_embeddings.reshape(1, -1)
+
+        per_field_embeddings = {name: emb for name, emb in zip(present_names, raw_embeddings)}
+
+        pooled_raw = raw_embeddings.mean(axis=0)
+        norm = np.linalg.norm(pooled_raw) + 1e-8
+        pooled = (pooled_raw / norm).astype(np.float32)
+
+        return pooled, per_field_embeddings, mask

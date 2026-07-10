@@ -70,14 +70,23 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, env="PORT")
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
     
-    # Model Configuration (job-recommend)
-    MODEL_PATH: str = Field(default="/app/models/job-recommend/bi-encoder-e5-large", env="MODEL_PATH")
+    # Model Configuration (job-recommend) — multi-field bi-encoder: encodes
+    # resume_text/resume_summary/resume_experience/resume_skills/resume_education
+    # (and the job-side equivalents) as separate fields, masked-mean-pooled.
+    # Same 1024-dim output as the old single-flat-text model.
+    MODEL_PATH: str = Field(
+        default="/app/models/job-recommend/bi-encoder-e5-large-multifield/best", env="MODEL_PATH"
+    )
     MODEL_DIMENSION: int = Field(default=1024, env="MODEL_DIMENSION")
     BATCH_SIZE: int = Field(default=32, env="BATCH_SIZE")
 
-    # Cross-Encoder Reranking (job-recommend)
+    # Cross-Encoder Reranking (job-recommend) — trained on the same
+    # "[FIELD]" / "[FIELD: MISSING]" section-header text format as the
+    # multi-field bi-encoder (see job_reranker.py).
     ENABLE_RERANKING: bool = Field(default=True, env="ENABLE_RERANKING")
-    CROSS_ENCODER_PATH: str = Field(default="/app/models/job-recommend/cross-encoder", env="CROSS_ENCODER_PATH")
+    CROSS_ENCODER_PATH: str = Field(
+        default="/app/models/job-recommend/cross-encoder-structured", env="CROSS_ENCODER_PATH"
+    )
     RERANK_TOP_K: int = Field(default=50, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
     RERANK_TOP_N: int = Field(default=20, env="RERANK_TOP_N")  # Return top-N after reranking
     

@@ -5,8 +5,10 @@ Uses trained cross-encoder model to rerank bi-encoder results
 
 import logging
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict, Optional, Tuple
 from sentence_transformers import CrossEncoder
+
+from app.services.field_format import JOB_FIELDS, RESUME_FIELDS, build_fallback_text
 
 logger = logging.getLogger(__name__)
 
@@ -42,33 +44,46 @@ class JobReranker:
         self,
         resume_text: str,
         candidates: List[Dict],
-        top_n: int = 20
+        top_n: int = 20,
+        resume_fields: Optional[Dict[str, str]] = None,
     ) -> List[Dict]:
         """
         Rerank candidate jobs using cross-encoder
-        
+
         Args:
-            resume_text: Resume/profile text
-            candidates: List of candidate jobs from bi-encoder
-                       Each dict should have: {jobId, title, description, score, ...}
+            resume_text: Resume/profile text (raw fallback field; always used
+                as the resume_text field, see _format_resume_text)
+            candidates: List of candidate jobs from bi-encoder. Each dict
+                should have {jobId, title, score, ...} plus, when available,
+                the raw job text fields (description, shortDescription,
+                requirements, responsibilities, benefits) -- the caller is
+                expected to merge these in from the FAISS search result
+                metadata, since the trimmed JobRecommendation API shape alone
+                doesn't carry them.
             top_n: Number of top results to return
-            
+            resume_fields: Optional structured CV fields (resume_summary/
+                experience/skills/education) -- when supplied, used together
+                with resume_text to build the same "[FIELD]"/"[FIELD: MISSING]"
+                format the multi-field cross-encoder was trained on.
+
         Returns:
             Reranked list of jobs with updated scores
         """
         if not candidates:
             logger.warning("No candidates to rerank")
             return []
-        
+
         logger.info(f"Reranking {len(candidates)} candidates to top-{top_n}")
-        
+
+        resume_ce_text = self._format_resume_text(resume_text, resume_fields)
+
         # Prepare pairs for cross-encoder
         pairs = []
         for candidate in candidates:
-            # Format job text (same as bi-encoder)
+            # Format job text (same "[FIELD]" format the model was trained on)
             job_text = self._format_job_text(candidate)
-            pairs.append([resume_text, job_text])
-        
+            pairs.append([resume_ce_text, job_text])
+
         # Get cross-encoder scores (logits)
         try:
             scores = self.model.predict(pairs, convert_to_numpy=True, show_progress_bar=False)
@@ -102,50 +117,60 @@ class JobReranker:
         
         return reranked
     
+    def _format_resume_text(self, resume_text: str, resume_fields: Optional[Dict[str, str]]) -> str:
+        """
+        Build resume-side cross-encoder input using the same "[FIELD]" /
+        "[FIELD: MISSING]" section-header format cross-encoder-structured was
+        trained on (job-recomendation/source/data_utils.py's build_fallback_text()).
+
+        Falls back to the raw flat resume_text as the sole present field when
+        no structured fields were supplied -- still correctly formatted (every
+        structured section explicitly marked missing), not the old bare
+        flat-string input.
+        """
+        fields = dict(resume_fields) if resume_fields else {}
+        fields.setdefault("resume_text", resume_text)
+        return build_fallback_text(fields, RESUME_FIELDS)
+
     def _format_job_text(self, job: Dict) -> str:
         """
-        Format job for cross-encoder input (same format as training)
-        
+        Build job-side cross-encoder input using the same "[FIELD]"/
+        "[FIELD: MISSING]" format. `job` is the trimmed candidate dict
+        (title/company-as-string/location/skills/score/...) with the raw text
+        fields (description, shortDescription, requirements, responsibilities,
+        benefits) merged in by the caller from the FAISS search result
+        metadata -- built directly from this flat shape (not
+        job_formatter.format_job_as_fields(), which expects the raw nested
+        company dict job_metadata stores, not the flattened API shape here).
+
         Args:
             job: Job dictionary with metadata
-            
+
         Returns:
             Formatted job text
         """
-        parts = []
-        
-        # Title (most important)
+        overview_parts = []
         if job.get('title'):
-            parts.append(f"Job Title: {job['title']}")
-        
-        # Description
-        if job.get('description'):
-            desc = job['description'][:500]  # Limit length
-            parts.append(f"Description: {desc}")
-        
-        # Company
+            overview_parts.append(f"Job Title: {job['title']}")
         if job.get('company'):
-            parts.append(f"Company: {job['company']}")
-        
-        # Location
+            overview_parts.append(f"Company: {job['company']}")
         if job.get('location'):
-            parts.append(f"Location: {job['location']}")
-        
-        # Experience level
-        if job.get('experienceLevel'):
-            parts.append(f"Experience: {job['experienceLevel']}")
-        
-        # Skills
+            overview_parts.append(f"Location: {job['location']}")
         if job.get('skills') and isinstance(job['skills'], list):
-            skills_str = ', '.join(job['skills'][:10])  # Top 10 skills
-            parts.append(f"Required Skills: {skills_str}")
-        
-        # Salary
-        if job.get('salary'):
-            parts.append(f"Salary: {job['salary']}")
-        
-        return '\n'.join(parts)
-    
+            overview_parts.append(f"Skills: {', '.join(job['skills'][:10])}")
+        full_text = job.get('description') or job.get('shortDescription') or ''
+        if full_text:
+            overview_parts.append(full_text[:1000])
+
+        job_fields = {
+            "job_description_text": "\n".join(overview_parts),
+            "jd_overview": job.get('shortDescription', ''),
+            "jd_requirements": job.get('requirements', ''),
+            "jd_responsibilities": job.get('responsibilities', ''),
+            "jd_preferred": job.get('benefits', ''),
+        }
+        return build_fallback_text(job_fields, JOB_FIELDS)
+
     def get_model_info(self) -> Dict:
         """Get reranker model information"""
         return {

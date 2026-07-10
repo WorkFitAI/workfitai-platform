@@ -30,6 +30,24 @@ class JobRecommendation(BaseModel):
     matchedSkills: Optional[List[str]] = Field(default=None, description="Skills that matched")
     matchReasons: Optional[List[str]] = Field(default=None, description="Reasons for the match")
 
+    # Multi-field transparency payload -- only populated when the request
+    # supplied structured CV fields (resumeSummary/Experience/Skills/Education)
+    # and the multi-field bi-encoder path was used; None/omitted otherwise
+    # (fully backward compatible with plain profileText-only requests).
+    resumeFieldsPresent: Optional[List[str]] = Field(
+        default=None, description="Which structured resume fields were present for this match."
+    )
+    jobFieldsPresent: Optional[List[str]] = Field(
+        default=None, description="Which structured job fields were present for this match."
+    )
+    perFieldSimilarity: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Cosine similarity per present field, keyed 'resume:<field>' / 'job:<field>'.",
+    )
+    fieldsUnavailable: Optional[Dict[str, List[str]]] = Field(
+        default=None, description="Missing fields per side, e.g. {'resume': ['resume_education'], 'job': []}."
+    )
+
 
 class ResumeAnalysis(BaseModel):
     """Analysis of resume content"""
