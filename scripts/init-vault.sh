@@ -177,7 +177,7 @@ create_service_secrets "notification-service" '{
 # Create secrets for recommendation-engine
 create_service_secrets "recommendation-engine" '{
   "data": {
-    "model.path": "'"${RECOMMENDATION_MODEL_PATH:-/app/models/bi-encoder-e5-large}"'",
+    "model.path": "'"${RECOMMENDATION_MODEL_PATH:-/app/models/job-recommend/bi-encoder-e5-large-multifield/best}"'",
     "model.dimension": "'"${RECOMMENDATION_MODEL_DIMENSION:-1024}"'",
     "batch.size": "'"${RECOMMENDATION_BATCH_SIZE:-32}"'",
     "faiss.index.path": "/app/data/faiss_index",

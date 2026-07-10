@@ -682,7 +682,7 @@ services:
       - DELETION_GRACE_PERIOD_DAYS=${DELETION_GRACE_PERIOD_DAYS:-7}
       - MAX_SESSIONS_PER_USER=${MAX_SESSIONS_PER_USER:-5}
       # Recommendation Engine Settings
-      - RECOMMENDATION_MODEL_PATH=${RECOMMENDATION_MODEL_PATH:-/app/models/bi-encoder-e5-large}
+      - RECOMMENDATION_MODEL_PATH=${RECOMMENDATION_MODEL_PATH:-/app/models/job-recommend/bi-encoder-e5-large-multifield/best}
       - RECOMMENDATION_MODEL_DIMENSION=${RECOMMENDATION_MODEL_DIMENSION:-1024}
       - RECOMMENDATION_BATCH_SIZE=${RECOMMENDATION_BATCH_SIZE:-32}
       - RECOMMENDATION_DEFAULT_TOP_K=${RECOMMENDATION_DEFAULT_TOP_K:-20}
@@ -920,8 +920,9 @@ services:
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       # ── job-recommend model paths ──────────────────────────────────
-      - MODEL_PATH=/app/models/job-recommend/bi-encoder-e5-large
-      - CROSS_ENCODER_PATH=/app/models/job-recommend/cross-encoder
+      - MODEL_PATH=/app/models/job-recommend/bi-encoder-e5-large-multifield/best
+      - MODEL_DIMENSION=1024
+      - CROSS_ENCODER_PATH=/app/models/job-recommend/cross-encoder-structured
       - FAISS_INDEX_PATH=/app/data/faiss_index
       # ── cv-refer model paths ───────────────────────────────────────
       - CV_RANKING_BI_ENCODER_PATH=/app/models/cv-refer/bi-encoder
