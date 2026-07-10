@@ -34,7 +34,7 @@ class TestNormalizeJobData:
         }
         normalized = _normalize_job_data(job)
         assert normalized["id"] == "job-1"
-        assert normalized["description"] == "Great role"
+        assert normalized["shortDescription"] == "Great role"
         assert normalized["location"] == "Remote"
         assert normalized["company"]["companyId"] == "co-1"
         assert normalized["company"]["companyName"] == "Acme"

@@ -23,14 +23,20 @@ def _normalize_job_data(job: Dict) -> Dict:
 
     Maps API fields to expected format:
     - postId -> id
-    - shortDescription -> description
     - skillNames -> skills
     - company.name -> company.companyName
+
+    shortDescription is kept under its own key (not renamed to description) --
+    job_formatter.format_job_as_fields()/format_job_as_text() treat
+    shortDescription and description as two distinct sections (jd_overview vs.
+    the full-text field), and _fetch_job_detail_fields separately supplies the
+    real description below. Collapsing them here previously caused every
+    initial-synced job to silently lose its jd_overview field.
     """
     return {
         "id": job.get("postId"),
         "title": job.get("title"),
-        "description": job.get("shortDescription"),
+        "shortDescription": job.get("shortDescription"),
         "location": job.get("company", {}).get("address", ""),
         "employmentType": job.get("employmentType"),
         "experienceLevel": job.get("experienceLevel"),
