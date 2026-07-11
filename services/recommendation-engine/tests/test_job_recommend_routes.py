@@ -8,6 +8,7 @@ mocked; feature_toggle_store/cv_refer_store are real in-memory instances.
 
 import base64
 
+import numpy as np
 import pytest
 
 
@@ -171,6 +172,100 @@ class TestByProfile:
         }
         resp = client.post("/api/v1/recommendations/by-profile", json=payload)
         assert resp.status_code == 200
+
+
+class TestByProfileMultiField:
+    """profileText-only requests are covered by TestByProfile above and must
+    stay byte-for-byte unaffected; these tests cover the new structured-field
+    path (resumeSummary/Experience/Skills/Education -> transparency payload)."""
+
+    def test_plain_request_leaves_transparency_fields_none(self, client, app_state):
+        app_state["reranker"] = None
+        app_state["faiss_manager"].search.return_value = [_faiss_result()]
+        payload = {"profileText": "Experienced backend engineer", "topK": 5}
+        resp = client.post("/api/v1/recommendations/by-profile", json=payload)
+        rec = resp.json()["data"]["recommendations"][0]
+        assert rec["resumeFieldsPresent"] is None
+        assert rec["perFieldSimilarity"] is None
+        assert not app_state["model"].encode_resume_fields.called
+
+    def test_structured_field_activates_multi_field_encode(self, client, app_state):
+        app_state["reranker"] = None
+        app_state["faiss_manager"].search.return_value = [_faiss_result()]
+        payload = {
+            "profileText": "Experienced backend engineer",
+            "resumeSkills": "Python, SQL",
+            "topK": 5,
+        }
+        resp = client.post("/api/v1/recommendations/by-profile", json=payload)
+        assert resp.status_code == 200
+        assert app_state["model"].encode_resume_fields.called
+        assert not app_state["model"].encode_resume.called
+
+    def test_transparency_payload_populated(self, client, app_state):
+        app_state["reranker"] = None
+        dim = 4
+        app_state["model"].encode_resume_fields.return_value = (
+            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32),
+            {
+                "resume_text": np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32),
+                "resume_skills": np.array([0.0, 1.0, 0.0, 0.0], dtype=np.float32),
+            },
+            [True, False, False, True, False],  # resume_text, resume_summary, resume_experience, resume_skills, resume_education
+        )
+        app_state["faiss_manager"].search.return_value = [_faiss_result()]
+        app_state["faiss_manager"].get_job_field_embeddings.return_value = {
+            "job_description_text": np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32),
+            "jd_requirements": np.array([0.0, 1.0, 0.0, 0.0], dtype=np.float32),
+        }
+        payload = {
+            "profileText": "Experienced backend engineer",
+            "resumeSkills": "Python, SQL",
+            "topK": 5,
+        }
+        resp = client.post("/api/v1/recommendations/by-profile", json=payload)
+        rec = resp.json()["data"]["recommendations"][0]
+
+        assert set(rec["resumeFieldsPresent"]) == {"resume_text", "resume_skills"}
+        assert set(rec["jobFieldsPresent"]) == {"job_description_text", "jd_requirements"}
+        assert rec["fieldsUnavailable"]["resume"] == ["resume_summary", "resume_experience", "resume_education"]
+        assert "jd_overview" in rec["fieldsUnavailable"]["job"]
+        assert "resume:resume_text" in rec["perFieldSimilarity"]
+        assert "job:jd_requirements" in rec["perFieldSimilarity"]
+        assert rec["matchReasons"] is not None
+        assert "Top contributing fields" in rec["matchReasons"][0]
+
+    def test_no_job_field_data_leaves_similarity_empty_but_no_crash(self, client, app_state):
+        app_state["reranker"] = None
+        app_state["faiss_manager"].search.return_value = [_faiss_result()]
+        app_state["faiss_manager"].get_job_field_embeddings.return_value = {}
+        payload = {
+            "profileText": "Experienced backend engineer",
+            "resumeSkills": "Python, SQL",
+            "topK": 5,
+        }
+        resp = client.post("/api/v1/recommendations/by-profile", json=payload)
+        assert resp.status_code == 200
+        rec = resp.json()["data"]["recommendations"][0]
+        assert rec["perFieldSimilarity"] == {}
+        assert rec["jobFieldsPresent"] == []
+
+    def test_transparency_survives_reranking(self, client, app_state):
+        """candidates round-trip through model_dump() -> reranker.rerank() ->
+        JobRecommendation(**r) -- the new fields must not get dropped."""
+        app_state["faiss_manager"].search.return_value = [_faiss_result()]
+        app_state["faiss_manager"].get_job_field_embeddings.return_value = {
+            "job_description_text": np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32),
+        }
+        payload = {
+            "profileText": "Experienced backend engineer",
+            "resumeSkills": "Python, SQL",
+            "topK": 5,
+        }
+        resp = client.post("/api/v1/recommendations/by-profile", json=payload)
+        assert resp.status_code == 200
+        rec = resp.json()["data"]["recommendations"][0]
+        assert rec["resumeFieldsPresent"] is not None
 
 
 class TestSimilarJobs:

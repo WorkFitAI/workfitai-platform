@@ -37,6 +37,15 @@ class FAISSIndexManager:
         self.job_id_to_id: Dict[str, int] = {}  # job_id -> internal_id
         self.job_metadata: Dict[str, Dict] = {}  # job_id -> metadata
         self.next_id = 0
+
+        # Per-field embeddings for the multi-field bi-encoder (e.g. jd_overview,
+        # jd_requirements, ...), keyed by field name -> list aligned to
+        # internal_id (same append-only, never-compacted-on-delete convention
+        # as self.index / job_metadata). Empty when no caller has ever passed
+        # field_embeddings/field_mask -- fully backward compatible with the
+        # single flat-text embedding flow.
+        self.field_presence: Dict[str, List[bool]] = {}
+        self.field_embeddings: Dict[str, List[np.ndarray]] = {}
         
         logger.info(f"✓ FAISSIndexManager initialized")
         logger.info(f"  - Dimension: {dimension}")
@@ -50,116 +59,110 @@ class FAISSIndexManager:
                 logger.warning(f"Failed to load index from {index_path}: {e}")
                 logger.info("Starting with empty index")
     
-    def add_job(self, job_id: str, job_text: str, job_data: Dict):
+    def add_job_with_embedding(
+        self,
+        job_id: str,
+        embedding: np.ndarray,
+        job_data: Dict,
+        field_embeddings: Optional[Dict[str, np.ndarray]] = None,
+        field_mask: Optional[Dict[str, bool]] = None,
+    ):
         """
-        Add a new job to the index
-        
+        Add job with pre-computed embedding.
+
         Args:
             job_id: Unique job ID
-            job_text: Formatted job text for embedding
+            embedding: Pre-computed pooled embedding vector
             job_data: Job metadata
-        """
-        try:
-            # Check if already exists
-            if job_id in self.job_id_to_id:
-                logger.warning(f"Job {job_id} already exists, updating instead")
-                self.update_job(job_id, job_text, job_data)
-                return
-            
-            # Generate embedding (done by consumer before calling)
-            # For now, store text in metadata for later embedding
-            internal_id = self.next_id
-            self.next_id += 1
-            
-            # Store mappings and metadata
-            self.id_to_job_id[internal_id] = job_id
-            self.job_id_to_id[job_id] = internal_id
-            self.job_metadata[job_id] = {
-                "job_text": job_text,
-                "job_data": job_data
-            }
-            
-            logger.info(f"✓ Added job {job_id} (internal_id={internal_id})")
-            logger.info(f"  Total jobs in index: {len(self.job_id_to_id)}")
-            
-        except Exception as e:
-            logger.error(f"Error adding job {job_id}: {e}", exc_info=True)
-            raise
-    
-    def add_job_with_embedding(self, job_id: str, embedding: np.ndarray, job_data: Dict):
-        """
-        Add job with pre-computed embedding
-        
-        Args:
-            job_id: Unique job ID
-            embedding: Pre-computed embedding vector
-            job_data: Job metadata
+            field_embeddings: Optional per-field embeddings (present fields
+                only), e.g. from EmbeddingGenerator.encode_job_fields(). Keyed
+                by field name (jd_overview, jd_requirements, ...).
+            field_mask: Optional per-field presence dict (True/False for
+                every field name, including absent ones) -- required
+                alongside field_embeddings to keep per-field storage row-
+                aligned with the FAISS index across all jobs.
         """
         try:
             if job_id in self.job_id_to_id:
                 logger.warning(f"Job {job_id} already exists, updating instead")
-                self.update_job_with_embedding(job_id, embedding, job_data)
+                self.update_job_with_embedding(job_id, embedding, job_data, field_embeddings, field_mask)
                 return
-            
+
             # Ensure embedding is 2D
             if embedding.ndim == 1:
                 embedding = embedding.reshape(1, -1)
-            
+
             # Add to FAISS index
             internal_id = self.next_id
             self.index.add(embedding)
             self.next_id += 1
-            
+
             # Store mappings and metadata
             self.id_to_job_id[internal_id] = job_id
             self.job_id_to_id[job_id] = internal_id
             self.job_metadata[job_id] = job_data
-            
+
+            self._append_field_row(field_embeddings, field_mask)
+
             logger.debug(f"✓ Added job {job_id} with embedding (internal_id={internal_id})")
-            
+
         except Exception as e:
             logger.error(f"Error adding job with embedding {job_id}: {e}", exc_info=True)
             raise
-    
-    def update_job(self, job_id: str, job_text: str, job_data: Dict):
+
+    def _append_field_row(
+        self,
+        field_embeddings: Optional[Dict[str, np.ndarray]],
+        field_mask: Optional[Dict[str, bool]],
+    ) -> None:
         """
-        Update an existing job (remove old, add new)
-        
-        Args:
-            job_id: Job ID to update
-            job_text: Updated job text
-            job_data: Updated job metadata
+        Append one row -- matching the job just added at internal_id
+        (self.next_id - 1) -- to every tracked per-field array.
+
+        Keeps every self.field_presence[name]/self.field_embeddings[name]
+        list exactly self.next_id long, so they stay row-aligned with
+        self.index no matter which individual calls did or didn't supply
+        field data: a field name seen for the first time gets backfilled
+        with False/zero rows for every job added before it, and any field
+        this particular call didn't mention gets a False/zero row too.
         """
+        field_mask = field_mask or {}
+        field_embeddings = field_embeddings or {}
+
+        for name in field_mask:
+            if name not in self.field_presence:
+                backfill_len = self.next_id - 1  # rows already added, before this one
+                self.field_presence[name] = [False] * backfill_len
+                self.field_embeddings[name] = [np.zeros(self.dimension, dtype=np.float32)] * backfill_len
+
+        for name in self.field_presence:
+            present = bool(field_mask.get(name, False))
+            self.field_presence[name].append(present)
+            emb = field_embeddings.get(name) if present else None
+            if emb is None:
+                emb = np.zeros(self.dimension, dtype=np.float32)
+            self.field_embeddings[name].append(np.asarray(emb, dtype=np.float32))
+
+    def update_job_with_embedding(
+        self,
+        job_id: str,
+        embedding: np.ndarray,
+        job_data: Dict,
+        field_embeddings: Optional[Dict[str, np.ndarray]] = None,
+        field_mask: Optional[Dict[str, bool]] = None,
+    ):
+        """Update job with pre-computed embedding (same field_embeddings/
+        field_mask contract as add_job_with_embedding)."""
         try:
             if job_id not in self.job_id_to_id:
-                logger.warning(f"Job {job_id} not found, adding as new")
-                self.add_job(job_id, job_text, job_data)
+                self.add_job_with_embedding(job_id, embedding, job_data, field_embeddings, field_mask)
                 return
-            
-            # Remove old version
+
             self.remove_job(job_id)
-            
-            # Add updated version
-            self.add_job(job_id, job_text, job_data)
-            
-            logger.info(f"✓ Updated job {job_id}")
-            
-        except Exception as e:
-            logger.error(f"Error updating job {job_id}: {e}", exc_info=True)
-            raise
-    
-    def update_job_with_embedding(self, job_id: str, embedding: np.ndarray, job_data: Dict):
-        """Update job with pre-computed embedding"""
-        try:
-            if job_id not in self.job_id_to_id:
-                self.add_job_with_embedding(job_id, embedding, job_data)
-                return
-            
-            self.remove_job(job_id)
-            self.add_job_with_embedding(job_id, embedding, job_data)
-            
+            self.add_job_with_embedding(job_id, embedding, job_data, field_embeddings, field_mask)
+
             logger.debug(f"✓ Updated job {job_id} with embedding")
-            
+
         except Exception as e:
             logger.error(f"Error updating job with embedding {job_id}: {e}", exc_info=True)
             raise
@@ -325,7 +328,28 @@ class FAISSIndexManager:
         except Exception as e:
             logger.error(f"Error getting job {job_id}: {e}", exc_info=True)
             return None
-    
+
+    def get_job_field_embeddings(self, job_id: str) -> Optional[Dict[str, np.ndarray]]:
+        """
+        Per-field embeddings for a job's PRESENT fields only (fields with a
+        False presence mask are omitted, not returned as zero vectors) --
+        used by the API layer to compute a per-field similarity breakdown
+        against a query's per-field embeddings.
+
+        Returns None if the job isn't indexed, or {} if it's indexed but no
+        field data was ever stored for it (e.g. added via the flat-embedding
+        path only).
+        """
+        if job_id not in self.job_id_to_id:
+            return None
+
+        internal_id = self.job_id_to_id[job_id]
+        result: Dict[str, np.ndarray] = {}
+        for name, presence in self.field_presence.items():
+            if internal_id < len(presence) and presence[internal_id]:
+                result[name] = self.field_embeddings[name][internal_id]
+        return result
+
     def save_index(self, path: Optional[str] = None):
         """
         Save FAISS index and metadata to disk
@@ -354,10 +378,24 @@ class FAISSIndexManager:
                     "job_metadata": self.job_metadata,
                     "next_id": self.next_id
                 }, f)
-            
+
+            # Save per-field embedding sidecar (multi-field bi-encoder), same
+            # naming convention as the .metadata pickle above.
+            fields_path = save_path + ".fields.npz"
+            if self.field_presence:
+                npz_payload = {}
+                for name, presence in self.field_presence.items():
+                    npz_payload[f"{name}__presence"] = np.array(presence, dtype=bool)
+                    embeddings = self.field_embeddings[name]
+                    npz_payload[f"{name}__embeddings"] = (
+                        np.stack(embeddings) if embeddings else np.zeros((0, self.dimension), dtype=np.float32)
+                    )
+                np.savez(fields_path, **npz_payload)
+                logger.info(f"✓ Saved per-field embeddings to {fields_path} ({len(self.field_presence)} fields)")
+
             logger.info(f"✓ Saved index to {save_path}")
             logger.info(f"  - Total jobs: {len(self.job_id_to_id)}")
-            
+
         except Exception as e:
             logger.error(f"Error saving index: {e}", exc_info=True)
             raise
@@ -381,11 +419,24 @@ class FAISSIndexManager:
                 self.job_id_to_id = data["job_id_to_id"]
                 self.job_metadata = data["job_metadata"]
                 self.next_id = data["next_id"]
-            
+
+            # Load per-field embedding sidecar, if present (older indexes
+            # saved before multi-field support won't have one).
+            self.field_presence = {}
+            self.field_embeddings = {}
+            fields_path = path + ".fields.npz"
+            if os.path.exists(fields_path):
+                field_data = np.load(fields_path)
+                field_names = sorted({key.rsplit("__", 1)[0] for key in field_data.files})
+                for name in field_names:
+                    self.field_presence[name] = field_data[f"{name}__presence"].tolist()
+                    self.field_embeddings[name] = list(field_data[f"{name}__embeddings"])
+                logger.info(f"✓ Loaded per-field embeddings from {fields_path} ({len(field_names)} fields)")
+
             logger.info(f"✓ Loaded index from {path}")
             logger.info(f"  - Total jobs: {len(self.job_id_to_id)}")
             logger.info(f"  - Vectors in index: {self.index.ntotal}")
-            
+
         except Exception as e:
             logger.error(f"Error loading index: {e}", exc_info=True)
             raise

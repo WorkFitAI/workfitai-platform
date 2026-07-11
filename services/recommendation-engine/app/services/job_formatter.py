@@ -113,6 +113,31 @@ def format_job_as_text(job_data: Dict) -> str:
     return formatted_text
 
 
+def format_job_as_fields(job_data: Dict) -> Dict[str, str]:
+    """
+    Split a job into the 5 structured fields the multi-field bi-encoder
+    expects (see app/services/field_format.py's JOB_FIELDS), instead of
+    flattening everything into one string.
+
+    Mapping decisions (no job-service schema change -- derived entirely from
+    fields already on the Kafka payload / job-service API response):
+      - job_description_text: same full formatted text as format_job_as_text()
+      - jd_overview:           shortDescription
+      - jd_requirements:       requirements
+      - jd_responsibilities:   responsibilities
+      - jd_preferred:          benefits (same mapping app/services/cv_rank_assembly.py
+                                already uses for the CV-ranking feature -- kept
+                                consistent rather than inventing a second rule)
+    """
+    return {
+        "job_description_text": format_job_as_text(job_data),
+        "jd_overview": _clean_html(job_data.get("shortDescription", "")),
+        "jd_requirements": _clean_html(job_data.get("requirements", "")),
+        "jd_responsibilities": _clean_html(job_data.get("responsibilities", "")),
+        "jd_preferred": _clean_html(job_data.get("benefits", "")),
+    }
+
+
 def _clean_html(text: str) -> str:
     """
     Remove HTML tags and clean up text
@@ -167,5 +192,30 @@ def format_resume_as_text(resume_data: Dict) -> str:
     
     if "education" in resume_data:
         sections.append(f"Education: {resume_data['education']}")
-    
+
     return "\n".join(sections)
+
+
+def format_resume_as_fields(resume_data: Dict) -> Dict[str, str]:
+    """
+    Split resume/CV data into the 5 structured fields the multi-field
+    bi-encoder expects (see app/services/field_format.py's RESUME_FIELDS).
+
+    Accepts either already-structured keys (resume_text/resume_summary/
+    resume_experience/resume_skills/resume_education -- e.g. from a future
+    CV-service integration with real structured CV data) or the crude shape
+    resume_parser.py's parse_resume() produces (raw_text/summary/skills/
+    experience/education), normalizing either into the same output shape.
+    """
+    def _skills_text(value) -> str:
+        if isinstance(value, list):
+            return ", ".join(value)
+        return str(value) if value else ""
+
+    return {
+        "resume_text": resume_data.get("resume_text") or resume_data.get("raw_text", ""),
+        "resume_summary": resume_data.get("resume_summary") or resume_data.get("summary", ""),
+        "resume_experience": resume_data.get("resume_experience") or resume_data.get("experience", ""),
+        "resume_skills": resume_data.get("resume_skills") or _skills_text(resume_data.get("skills")),
+        "resume_education": resume_data.get("resume_education") or resume_data.get("education", ""),
+    }

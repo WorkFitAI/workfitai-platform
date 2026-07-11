@@ -1,5 +1,5 @@
 """
-Kafka consumer for job events (created/updated/deleted).
+Kafka consumer for job events (created/updated/expired/deleted).
 
 Each FAISS mutation also bumps the recommendation cache index_version (Phase 2)
 so stale recommendation entries are served-then-refreshed on next request.
@@ -12,6 +12,8 @@ from typing import Dict
 
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
+
+from app.services.field_format import JOB_FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,8 @@ class JobEventConsumer:
         self.topics = [
             kafka_config.get("topic_job_created", "job.created"),
             kafka_config.get("topic_job_updated", "job.updated"),
-            kafka_config.get("topic_job_deleted", "job.deleted")
+            kafka_config.get("topic_job_deleted", "job.deleted"),
+            kafka_config.get("topic_job_expired", "job.expired"),
         ]
 
         logger.info("JobEventConsumer initialized for topics: %s", self.topics)
@@ -97,6 +100,8 @@ class JobEventConsumer:
             self.handle_job_created(event)
         elif "updated" in topic or event_type == "JOB_UPDATED":
             self.handle_job_updated(event)
+        elif "expired" in topic or event_type == "JOB_EXPIRED":
+            self.handle_job_expired(event)
         elif "deleted" in topic or event_type == "JOB_DELETED":
             self.handle_job_deleted(event)
         else:
@@ -106,15 +111,25 @@ class JobEventConsumer:
     # Event handlers                                                       #
     # ------------------------------------------------------------------ #
 
+    def _encode_and_store(self, job_id: str, job_data: Dict, store) -> None:
+        """Shared multi-field encode + FAISS store logic for create/update.
+
+        `store` is faiss_manager.add_job_with_embedding or
+        .update_job_with_embedding (same field_embeddings/field_mask contract)."""
+        fields = self.job_formatter.format_job_as_fields(job_data)
+        pooled_embedding, per_field_embeddings, mask = self.embedding_generator.encode_job_fields(
+            fields, JOB_FIELDS
+        )
+        field_mask = dict(zip(JOB_FIELDS, mask))
+        store(job_id, pooled_embedding, job_data, field_embeddings=per_field_embeddings, field_mask=field_mask)
+
     def handle_job_created(self, event: Dict) -> None:
         try:
             job_id = event.get("jobId")
             job_data = event.get("data", {})
             logger.info("Processing JOB_CREATED for jobId: %s", job_id)
 
-            job_text = self.job_formatter.format_job_as_text(job_data)
-            embedding = self.embedding_generator.encode_job(job_text)
-            self.faiss_manager.add_job_with_embedding(job_id, embedding, job_data)
+            self._encode_and_store(job_id, job_data, self.faiss_manager.add_job_with_embedding)
 
             logger.info("✓ Added job %s to FAISS index", job_id)
             self._bump_recommendation_cache()
@@ -127,14 +142,26 @@ class JobEventConsumer:
             job_data = event.get("data", {})
             logger.info("Processing JOB_UPDATED for jobId: %s", job_id)
 
-            job_text = self.job_formatter.format_job_as_text(job_data)
-            embedding = self.embedding_generator.encode_job(job_text)
-            self.faiss_manager.update_job_with_embedding(job_id, embedding, job_data)
+            self._encode_and_store(job_id, job_data, self.faiss_manager.update_job_with_embedding)
 
             logger.info("✓ Updated job %s in FAISS index", job_id)
             self._bump_recommendation_cache()
         except Exception as exc:
             logger.error("Error handling job updated event: %s", exc, exc_info=True)
+
+    def handle_job_expired(self, event: Dict) -> None:
+        """Treated the same as deletion -- an expired job should no longer
+        appear in recommendations, and FAISS has no "soft remove" concept."""
+        try:
+            job_id = event.get("jobId")
+            logger.info("Processing JOB_EXPIRED for jobId: %s", job_id)
+
+            self.faiss_manager.remove_job(job_id)
+
+            logger.info("✓ Removed expired job %s from FAISS index", job_id)
+            self._bump_recommendation_cache()
+        except Exception as exc:
+            logger.error("Error handling job expired event: %s", exc, exc_info=True)
 
     def handle_job_deleted(self, event: Dict) -> None:
         try:
