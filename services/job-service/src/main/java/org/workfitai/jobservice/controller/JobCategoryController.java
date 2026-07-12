@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.RestResponse;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
@@ -17,13 +18,14 @@ import org.workfitai.jobservice.util.ApiMessage;
 
 import jakarta.validation.Valid;
 
-import static org.workfitai.jobservice.util.MessageConstant.JOB_ALL_FETCHED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_ALL_FETCHED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_CREATED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_DELETED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_FETCHED_SUCCESSFULLY;
+import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_STATISTICS_FETCHED_SUCCESSFULLY;
 import static org.workfitai.jobservice.util.MessageConstant.JOB_CATEGORY_UPDATED_SUCCESSFULLY;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -51,6 +53,15 @@ public class JobCategoryController {
 
     return RestResponse.success(
         jobCategoryService.fetchAll(spec, pageable));
+  }
+
+  @GetMapping("/statistics/top")
+  @ApiMessage(JOB_CATEGORY_STATISTICS_FETCHED_SUCCESSFULLY)
+  public RestResponse<List<JobCategoryStatisticDTO>> getTopJobCategories(
+      @RequestParam(defaultValue = "10") int topN) {
+
+    return RestResponse.success(
+        jobCategoryService.getTopJobCategories(topN));
   }
 
   @PostMapping

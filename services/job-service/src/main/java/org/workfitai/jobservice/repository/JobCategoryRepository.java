@@ -9,5 +9,4 @@ import org.workfitai.jobservice.model.JobCategory;
 
 @Repository
 public interface JobCategoryRepository extends JpaRepository<JobCategory, UUID>, JpaSpecificationExecutor<JobCategory> {
-
 }

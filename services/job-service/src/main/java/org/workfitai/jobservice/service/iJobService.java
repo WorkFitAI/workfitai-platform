@@ -19,6 +19,8 @@ import java.util.UUID;
 public interface iJobService {
     ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable);
 
+    public ResultPaginationDTO fetchAll(Specification<Job> spec, String keyword, Pageable pageable);
+
     ResultPaginationDTO fetchAllForHr(Specification<Job> spec, Pageable pageable);
 
     ResultPaginationDTO fetchAllForAdmin(Specification<Job> spec, Pageable pageable);

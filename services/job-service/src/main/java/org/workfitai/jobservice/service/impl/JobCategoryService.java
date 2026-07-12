@@ -3,19 +3,23 @@ package org.workfitai.jobservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.workfitai.jobservice.model.JobCategory;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqCreateJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.request.JobCategory.ReqUpdateJobCategoryDTO;
+import org.workfitai.jobservice.model.dto.response.JobCategory.JobCategoryStatisticDTO;
 import org.workfitai.jobservice.model.dto.response.JobCategory.ResJobCategoryDTO;
 import org.workfitai.jobservice.model.dto.response.ResultPaginationDTO;
 import org.workfitai.jobservice.model.mapper.JobCategoryMapper;
 import org.workfitai.jobservice.repository.JobCategoryRepository;
+import org.workfitai.jobservice.repository.JobRepository;
 import org.workfitai.jobservice.service.iJobCategoryService;
 import org.workfitai.jobservice.util.PaginationUtils;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,6 +29,7 @@ public class JobCategoryService implements iJobCategoryService {
 
   private final JobCategoryRepository jobCategoryRepository;
   private final JobCategoryMapper jobCategoryMapper;
+  private final JobRepository jobRepository;
 
   @Override
   public ResJobCategoryDTO getById(UUID id) {
@@ -76,5 +81,10 @@ public class JobCategoryService implements iJobCategoryService {
     }
 
     jobCategoryRepository.deleteById(id);
+  }
+
+  @Override
+  public List<JobCategoryStatisticDTO> getTopJobCategories(int topN) {
+    return jobRepository.findTopJobCategories(PageRequest.of(0, topN));
   }
 }
