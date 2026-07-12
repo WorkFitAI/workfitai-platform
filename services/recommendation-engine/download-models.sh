@@ -23,13 +23,23 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-FORCE="${1:-}"
+FORCE=""
+CV_BRANCH="main"
+
+for arg in "$@"; do
+    case "$arg" in
+        --force) FORCE="--force" ;;
+        --branch=*) CV_BRANCH="${arg#--branch=}" ;;
+    esac
+done
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_DIR="$SCRIPT_DIR/models"
 
 echo -e "${BLUE}🤗 WorkFitAI Model Downloader${NC}"
 echo "======================================="
-echo -e "Models dir: ${YELLOW}$MODELS_DIR${NC}"
+echo -e "Models dir : ${YELLOW}$MODELS_DIR${NC}"
+echo -e "CV branch  : ${YELLOW}$CV_BRANCH${NC}"
 
 # ---------------------------------------------------------------------------
 # Load tokens: prefer env vars already set (container mode), fall back to
@@ -107,6 +117,7 @@ python3 -c "import huggingface_hub" 2>/dev/null || {
 
 export HF_TOKEN
 export HF_TOKEN_VP
+export CV_BRANCH
 
 # ---------------------------------------------------------------------------
 # Python download script
@@ -118,19 +129,22 @@ from pathlib import Path
 from huggingface_hub import snapshot_download, HfApi
 
 models_dir = Path("$MODELS_DIR")
+cv_branch  = os.environ.get("CV_BRANCH", "main")
 
 repos = [
     {
-        "repo_id": "thanhdi3110/workfitai-jobrecomendation",
-        "token":   os.environ.get("HF_TOKEN"),
-        "label":   "cv-refer",
-        "dest":    models_dir / "cv-refer",
+        "repo_id":  "thanhdi3110/workfitai-jobrecomendation",
+        "token":    os.environ.get("HF_TOKEN"),
+        "label":    "cv-refer",
+        "dest":     models_dir / "cv-refer",
+        "revision": cv_branch,          # branch / tag / commit hash
     },
     {
-        "repo_id": "vanphat15it/job-recommendation",
-        "token":   os.environ.get("HF_TOKEN_VP"),
-        "label":   "job-recommend",
-        "dest":    models_dir / "job-recommend",
+        "repo_id":  "vanphat15it/job-recommendation",
+        "token":    os.environ.get("HF_TOKEN_VP"),
+        "label":    "job-recommend",
+        "dest":     models_dir / "job-recommend",
+        "revision": "main",
     },
 ]
 
@@ -146,10 +160,11 @@ for repo in repos:
 
     dest: Path = repo["dest"]
     dest.mkdir(parents=True, exist_ok=True)
-    print(f"\n📥 Downloading {repo['repo_id']} → {dest.relative_to(models_dir.parent)}/")
+    print(f"\n📥 Downloading {repo['repo_id']}@{repo['revision']} → {dest.relative_to(models_dir.parent)}/")
     try:
         snapshot_download(
             repo_id=repo["repo_id"],
+            revision=repo["revision"],
             local_dir=str(dest),
             token=repo["token"],
             ignore_patterns=["*.msgpack", "flax_model*", "tf_model*", "rust_model*"],
@@ -161,6 +176,7 @@ for repo in repos:
         sys.exit(1)
 
 print("\n✅ All downloads complete!")
+print(f"\nCV-refer branch used: {cv_branch}")
 print("\nModel structure:")
 for d in sorted(models_dir.rglob("*")):
     depth = len(d.relative_to(models_dir).parts)

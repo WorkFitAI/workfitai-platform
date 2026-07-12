@@ -72,6 +72,18 @@ class RankedResume:
     cross_score: float
     label: str            # "Good Fit" | "No Fit"
     explanation: str
+    match_points: List[str] = None   # parsed from T5 output "match: X; Y."
+    miss_points: List[str] = None    # parsed from T5 output "miss: A; B."
+    input_coverage: float = 1.0      # fraction of CV fields that are non-empty
+    fields_used: Dict[str, bool] = None  # per-field presence mask
+
+    def __post_init__(self):
+        if self.match_points is None:
+            self.match_points = []
+        if self.miss_points is None:
+            self.miss_points = []
+        if self.fields_used is None:
+            self.fields_used = {}
 
 
 @dataclass
@@ -162,6 +174,28 @@ def _rule_explanation(score: float) -> str:
     if score >= 35:
         return "Partial match; has some relevant skills but may lack key qualifications."
     return "Limited alignment with the job requirements based on profile analysis."
+
+
+def _parse_match_miss(text: str) -> tuple:
+    """Parse T5 output 'match: X; Y. miss: A; B.' into two lists."""
+    import re
+    m = re.search(r'match:\s*([^.]+)', text, re.IGNORECASE)
+    x = re.search(r'miss:\s*([^.]+)',  text, re.IGNORECASE)
+    match_points = [s.strip() for s in m.group(1).split(';') if s.strip()] if m else []
+    miss_points  = [s.strip() for s in x.group(1).split(';') if s.strip()] if x else []
+    return match_points, miss_points
+
+
+def _field_coverage(resume: ResumeInput) -> tuple:
+    """Return (coverage_ratio, fields_dict) for the 4 CV structured fields."""
+    fields = {
+        "resume_summary":    bool((resume.resume_summary    or "").strip()),
+        "resume_experience": bool((resume.resume_experience or "").strip()),
+        "resume_skills":     bool((resume.resume_skills     or "").strip()),
+        "resume_education":  bool((resume.resume_education  or "").strip()),
+    }
+    coverage = sum(fields.values()) / len(fields)
+    return round(coverage, 3), fields
 
 
 def _is_valid_t5_explanation(text: str) -> bool:
@@ -310,12 +344,16 @@ class CVRankingPipeline:
             "processing_time_ms": result.processing_time_ms,
             "ranked_resumes": [
                 {
-                    "resume_index": r.resume_index,
-                    "score": r.score,
-                    "similarity_score": r.similarity_score,
-                    "cross_score": r.cross_score,
-                    "label": r.label,
-                    "explanation": r.explanation,
+                    "resume_index":    r.resume_index,
+                    "score":           r.score,
+                    "similarity_score":r.similarity_score,
+                    "cross_score":     r.cross_score,
+                    "label":           r.label,
+                    "explanation":     r.explanation,
+                    "match_points":    r.match_points,
+                    "miss_points":     r.miss_points,
+                    "input_coverage":  r.input_coverage,
+                    "fields_used":     r.fields_used,
                 }
                 for r in result.ranked_resumes
             ],
@@ -430,7 +468,14 @@ class CVRankingPipeline:
 
         try:
             raw = self._cross_encoder.predict(pairs, convert_to_numpy=True, show_progress_bar=False)
-            cross_scores = (1.0 / (1.0 + np.exp(-raw))) * 100.0
+            raw = np.array(raw, dtype=np.float32)
+            r_min, r_max = raw.min(), raw.max()
+            if r_max - r_min > 0.5:
+                # Enough variance in batch → min-max normalize to [5, 95]
+                cross_scores = 5.0 + (raw - r_min) / (r_max - r_min) * 90.0
+            else:
+                # Batch too uniform → fallback to sigmoid
+                cross_scores = (1.0 / (1.0 + np.exp(-raw))) * 100.0
 
             for c, cs in zip(candidates, cross_scores):
                 c["cross_score"] = round(float(cs), 2)
@@ -455,20 +500,30 @@ class CVRankingPipeline:
             good_fit_threshold: float,
             min_score: float,
     ) -> List[RankedResume]:
-        """Assign label, generate explanation, filter score < min_score."""
+        """Assign label, generate explanation + match/miss, filter score < min_score."""
         results = []
         for c in ranked:
             score = c["score"]
             if score < min_score:
                 continue
             label = "Good Fit" if score >= good_fit_threshold else "No Fit"
+            explanation = self._explain(c, label)
+
+            match_points, miss_points = _parse_match_miss(explanation)
+            resume = c.get("_resume", {})
+            coverage, fields_used = _field_coverage(resume)
+
             results.append(RankedResume(
                 resume_index=c["resume_index"],
                 score=round(score, 2),
                 similarity_score=c["similarity_score"],
                 cross_score=c.get("cross_score", c["similarity_score"]),
                 label=label,
-                explanation=self._explain(c, label),
+                explanation=explanation,
+                match_points=match_points,
+                miss_points=miss_points,
+                input_coverage=coverage,
+                fields_used=fields_used,
             ))
         logger.debug("Stage 3: %d resumes after min_score filter (%.1f)", len(results), min_score)
         return results

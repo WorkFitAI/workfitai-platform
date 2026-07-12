@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * A single item in the CV ranking result.
  * Combines full application data with optional AI-generated ranking metadata.
@@ -31,4 +33,7 @@ public class RankedApplicationItem {
     private String explanation;
     private Double similarityScore;
     private Double crossScore;
+    private List<String> matchPoints;
+    private List<String> missPoints;
+    private Double inputCoverage;
 }

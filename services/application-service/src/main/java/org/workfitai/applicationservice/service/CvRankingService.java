@@ -82,6 +82,9 @@ public class CvRankingService {
                         .explanation(ra.getExplanation())
                         .similarityScore(ra.getSimilarityScore())
                         .crossScore(ra.getCrossScore())
+                        .matchPoints(ra.getMatchPoints())
+                        .missPoints(ra.getMissPoints())
+                        .inputCoverage(ra.getInputCoverage())
                         .build());
                 rankedUsernames.add(ra.getUsername());
             }

@@ -2,7 +2,7 @@
 Pydantic response models for CV ranking endpoint (api_contract.md)
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -12,7 +12,11 @@ class RankedResumeResponse(BaseModel):
     similarity_score: float = Field(..., description="Bi-encoder cosine similarity score (0-100)")
     cross_score: float = Field(..., description="Cross-encoder contextual score (0-100)")
     label: str = Field(..., description='"Good Fit" or "No Fit"')
-    explanation: str = Field(..., description="T5-generated natural language rationale")
+    explanation: str = Field(..., description='T5-generated rationale ("match: X; Y. miss: A; B.")')
+    match_points: List[str] = Field(default_factory=list, description="JD requirements the CV satisfies")
+    miss_points: List[str] = Field(default_factory=list, description="JD requirements the CV is missing")
+    input_coverage: float = Field(default=1.0, description="Fraction of CV structured fields that are non-empty (0–1)")
+    fields_used: Dict[str, bool] = Field(default_factory=dict, description="Per-field presence mask for the 4 CV fields")
 
 
 class CvRankResponse(BaseModel):
@@ -32,7 +36,11 @@ class RankedApplicantResponse(BaseModel):
     similarity_score: float = Field(..., description="Bi-encoder cosine similarity score (0-100)")
     cross_score: float = Field(..., description="Cross-encoder contextual score (0-100)")
     label: str = Field(..., description='"Good Fit" or "No Fit"')
-    explanation: str = Field(..., description="T5-generated natural language rationale")
+    explanation: str = Field(..., description='T5-generated rationale ("match: X; Y. miss: A; B.")')
+    match_points: List[str] = Field(default_factory=list, description="JD requirements the CV satisfies")
+    miss_points: List[str] = Field(default_factory=list, description="JD requirements the CV is missing")
+    input_coverage: float = Field(default=1.0, description="Fraction of CV structured fields that are non-empty (0–1)")
+    fields_used: Dict[str, bool] = Field(default_factory=dict, description="Per-field presence mask for the 4 CV fields")
 
 
 class CvRankByJobResponse(BaseModel):

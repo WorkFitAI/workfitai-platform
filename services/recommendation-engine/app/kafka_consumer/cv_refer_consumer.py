@@ -4,10 +4,13 @@ Kafka consumer for cv-refer feature.
 Subscribed topics:
   application-events  — APPLICATION_CREATED, APPLICATION_WITHDRAWN
   application-status  — STATUS_CHANGED
+  cv.updated          — CV_UPDATED (optional, wired when topic_cv_updated is set)
 
 CV structured fields (summary, experience, skills, education) are now embedded
 directly in APPLICATION_CREATED events by application-service (which calls cv-service
 during the SNAPSHOT_CV saga step). No additional HTTP call is needed at ranking time.
+When a candidate later edits their CV, cv-service publishes CV_UPDATED on cv.updated
+so the store and cached embeddings stay in sync.
 """
 
 import json
@@ -49,6 +52,8 @@ class CvReferConsumer:
             kafka_config["topic_application_events"],
             kafka_config["topic_application_status"],
         ]
+        if kafka_config.get("topic_cv_updated"):
+            self._topics.append(kafka_config["topic_cv_updated"])
         logger.info("CvReferConsumer initialised for topics: %s", self._topics)
 
     # ------------------------------------------------------------------ #
@@ -121,6 +126,8 @@ class CvReferConsumer:
             self._on_application_withdrawn(event)
         elif event_type == "STATUS_CHANGED":
             self._on_status_changed(event)
+        elif event_type == "CV_UPDATED":
+            self._on_cv_updated(event)
         else:
             logger.debug("CvReferConsumer: ignored event_type=%s topic=%s", event_type, topic)
 
@@ -187,6 +194,41 @@ class CvReferConsumer:
             self._store.remove_applicant(job_id, username)
             logger.info("cv-refer: application withdrawn — jobId=%s username=%s", job_id, username)
             self._mark_ranking_dirty(job_id)
+
+    def _on_cv_updated(self, event: Dict) -> None:
+        """
+        Handle CV_UPDATED from cv-service (topic: cv.updated).
+
+        A candidate edited their CV after applying — update the stored snapshot
+        and invalidate the precomputed embedding for every active application of
+        this user, then mark all affected job rankings as dirty.
+        """
+        data = event.get("data", {})
+        username = data.get("username")
+        if not username:
+            return
+
+        snapshot = {
+            "summary":    data.get("resumeSummary", ""),
+            "experience": data.get("resumeExperience", ""),
+            "skills":     data.get("resumeSkills", ""),
+            "education":  data.get("resumeEducation", ""),
+        }
+
+        job_ids = self._store.get_jobs_for_username(username)
+        if not job_ids:
+            logger.debug("cv-refer: CV_UPDATED for %s — no active applications, ignoring", username)
+            return
+
+        for job_id in job_ids:
+            self._store.set_cv_snapshot(job_id, username, snapshot)
+            self._try_cache_embedding(job_id, username, snapshot)
+            self._mark_ranking_dirty(job_id)
+
+        logger.info(
+            "cv-refer: CV_UPDATED — username=%s, refreshed %d application(s)",
+            username, len(job_ids),
+        )
 
     def _on_status_changed(self, event: Dict) -> None:
         data = event.get("data", {})

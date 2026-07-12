@@ -80,8 +80,6 @@ class TestCvRankingRefresherTick:
             cache._entries["job-1"].computed_at -= 10.0
         computed_at_before = cache._entries["job-1"].computed_at
 
-        payload_after = {"job_overview": "new", "total_candidates": 2, "ranked_applicants": ["new"]}
-
         store = MagicMock()
         store.get_applicant_usernames.return_value = ["user1"]
         store.get_cv_data.return_value = {
@@ -105,6 +103,66 @@ class TestCvRankingRefresherTick:
             entry = cache._entries["job-1"]
         assert entry.dirty is False
         assert entry.computed_at > computed_at_before
+
+    @pytest.mark.asyncio
+    async def test_tick_new_fields_propagated_into_cache(self):
+        """
+        match_points / miss_points / input_coverage / fields_used from rank_resumes
+        must survive the refresher's _compute closure and land in the cache payload.
+        """
+        cache = CvRankingCache()
+        cache.get_or_compute("job-new-fields", lambda: {}, cooldown=5.0)
+        cache.mark_dirty("job-new-fields")
+        with cache._global_lock:
+            cache._entries["job-new-fields"].computed_at -= 10.0
+
+        store = MagicMock()
+        store.get_applicant_usernames.return_value = ["alice"]
+        store.get_cv_data.return_value = {
+            "summary": "Python dev", "experience": "5yr", "skills": "Python", "education": "BSc"
+        }
+        pipeline = _make_pipeline(ready=True)
+
+        fake_ranked_resume = {
+            "resume_index": 0,
+            "score": 80.0,
+            "similarity_score": 78.0,
+            "cross_score": 81.0,
+            "label": "Good Fit",
+            "explanation": "match: Python; FastAPI. miss: Kubernetes.",
+            "match_points": ["Python", "FastAPI"],
+            "miss_points": ["Kubernetes"],
+            "input_coverage": 0.75,
+            "fields_used": {
+                "resume_summary": True,
+                "resume_experience": True,
+                "resume_skills": True,
+                "resume_education": False,
+            },
+        }
+
+        with patch("app.services.cv_ranking_refresher.fetch_job_data", new=AsyncMock(return_value={
+            "title": "SWE", "requirements": "Python", "responsibilities": "", "benefits": "", "description": ""
+        })), \
+             patch("app.services.cv_ranking_refresher.rank_resumes", return_value={
+                 "job_overview": "Backend",
+                 "total_candidates": 1,
+                 "ranked_resumes": [fake_ranked_resume],
+             }):
+            refresher = _make_refresher(cache, store=store, pipeline=pipeline)
+            await refresher._tick(cooldown=5.0)
+
+        # The refresher calls force_refresh which calls _compute and stores its result.
+        # Retrieve what was stored to verify new fields are present.
+        with cache._global_lock:
+            entry = cache._entries["job-new-fields"]
+        stored = entry.result  # CacheEntry stores payload under .result
+        assert stored is not None
+        applicant = stored["ranked_applicants"][0]
+        assert applicant.match_points == ["Python", "FastAPI"]
+        assert applicant.miss_points == ["Kubernetes"]
+        assert applicant.input_coverage == 0.75
+        assert applicant.fields_used["resume_education"] is False
 
     @pytest.mark.asyncio
     async def test_tick_skips_entry_within_cooldown(self):
