@@ -187,7 +187,19 @@ class Settings(BaseSettings):
     CV_RANKING_EXPLANATION_T5_PATH: str = Field(
         default="/app/models/cv-refer/explanation-t5", env="CV_RANKING_EXPLANATION_T5_PATH"
     )
-    
+
+    # Ollama Cloud — CV section extraction (summary/experience/skills/education).
+    # OLLAMA_API_KEYS is a comma-separated list; keys are rotated on rate limits
+    # (429/409) just like workfitai-nckh/runners/extract_sections.py. Empty keys
+    # or the disabled flag turn the feature off (callers keep heuristic sections).
+    OLLAMA_API_KEYS: str = Field(default="", env="OLLAMA_API_KEYS")
+    OLLAMA_MODEL: str = Field(default="gpt-oss:120b", env="OLLAMA_MODEL")
+    CV_OLLAMA_EXTRACTION_ENABLED: bool = Field(default=True, env="CV_OLLAMA_EXTRACTION_ENABLED")
+
+    def get_ollama_api_keys(self) -> list[str]:
+        """Split OLLAMA_API_KEYS into a clean list (drops blanks/whitespace)."""
+        return [k.strip() for k in self.OLLAMA_API_KEYS.split(",") if k.strip()]
+
     def get_kafka_topics(self) -> list[str]:
         """Get list of Kafka topics to subscribe to"""
         return [

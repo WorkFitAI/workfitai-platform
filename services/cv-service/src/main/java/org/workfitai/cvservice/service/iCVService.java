@@ -62,11 +62,13 @@ public interface iCVService {
      *
      * @param username      the candidate's username
      * @param applicationId the application's temporary UUID (assigned by application-service before save)
+     * @param jobId         the job's postId — used to re-push Ollama-corrected sections into
+     *                      recommendation-engine's CvReferStore for HR ranking
      * @param jobName       title of the job applied to — used to name the stored PDF object
      * @param file          the uploaded CV PDF file bytes
      * @return {@link CvSnapshotResponse} containing cvId and structured extracted fields
      */
-    CvSnapshotResponse createApplicationSnapshot(String username, String applicationId, String jobName,
+    CvSnapshotResponse createApplicationSnapshot(String username, String applicationId, String jobId, String jobName,
                                                   org.springframework.web.multipart.MultipartFile file);
 
     /**

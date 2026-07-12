@@ -156,7 +156,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_saveFails_afterUpload_compensatesDeletesFile() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenThrow(new RuntimeException("MongoDB down"));
 
@@ -198,7 +198,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_snapshotCvFails_sagaCompletesSuccessfully() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenThrow(new RuntimeException("cv-service timeout"));
         when(applicationRepository.save(any())).thenReturn(savedApplication);
         when(userServiceClient.getUsersByUsernames(anyList())).thenReturn(usersResponse);
@@ -216,7 +216,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_snapshotCvFails_cvSnapshotIdIsNullInSavedEntity() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenThrow(new RuntimeException("cv-service down"));
         when(applicationRepository.save(any())).thenAnswer(inv -> {
             Application app = inv.getArgument(0);
@@ -236,7 +236,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_publishEventsFails_sagaReturnsSuccessfully() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenReturn(savedApplication);
         doThrow(new RuntimeException("Kafka down")).when(eventPublisher).publishApplicationCreated(any());
@@ -317,7 +317,7 @@ class ApplicationSagaOrchestratorTest {
 
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(systemJob);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenReturn(savedApplication);
 
@@ -338,7 +338,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_nullUsersResponse_noNotificationsCrash() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenReturn(savedApplication);
         when(userServiceClient.getUsersByUsernames(anyList())).thenReturn(null);
@@ -356,7 +356,7 @@ class ApplicationSagaOrchestratorTest {
     void createApplication_snapshotAvailable_cvSnapshotIdSetOnEntity() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenAnswer(inv -> {
             Application app = inv.getArgument(0);
@@ -391,7 +391,7 @@ class ApplicationSagaOrchestratorTest {
     private void stubHappyPath() {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(jobInfo);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenReturn(savedApplication);
         when(userServiceClient.getUsersByUsernames(anyList())).thenReturn(usersResponse);
@@ -401,7 +401,7 @@ class ApplicationSagaOrchestratorTest {
     private void stubWithJobInfo(JobInfo job) {
         when(jobServicePort.validateAndGetJob(anyString())).thenReturn(job);
         when(fileStoragePort.uploadFile(any(), anyString(), anyString())).thenReturn(uploadResult);
-        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), any()))
+        when(cvServiceClient.createApplicationSnapshot(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(snapshot);
         when(applicationRepository.save(any())).thenReturn(savedApplication);
         when(userServiceClient.getUsersByUsernames(anyList())).thenReturn(usersResponse);

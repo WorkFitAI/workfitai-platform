@@ -176,6 +176,7 @@ public class ApplicationSagaOrchestrator {
                 CvSnapshotResponse snapshot = cvServiceClient.createApplicationSnapshot(
                         context.getUsername(),
                         context.getApplicationId(),
+                        context.getJobInfo().getPostId(),
                         context.getJobInfo().getTitle(),
                         request.getCvPdfFile()
                 );

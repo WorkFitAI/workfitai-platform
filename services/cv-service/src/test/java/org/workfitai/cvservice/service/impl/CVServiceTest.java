@@ -69,6 +69,8 @@ class CVServiceTest {
     private CvEventProducer cvEventProducer;
     @Mock
     private UploadCvStrategy uploadCvStrategy;
+    @Mock
+    private org.workfitai.cvservice.service.enrichment.CvSectionEnrichmentService cvSectionEnrichmentService;
 
     @InjectMocks
     private CVService cvService;
@@ -128,6 +130,31 @@ class CVServiceTest {
 
         assertThat(result).isNotNull();
         verify(strategy).createCv(dto);
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
+    void createCv_upload_triggersAsyncEnrichmentWithRawText() {
+        mockAuthenticatedUser("bob");
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", new byte[] { 1 });
+        ReqCvUploadDTO dto = new ReqCvUploadDTO();
+        dto.setFile(file);
+        dto.setTemplateType(TemplateType.UPLOAD);
+
+        CvCreationStrategy strategy = mock(CvCreationStrategy.class);
+        when(cvCreationFactory.getStrategy("upload")).thenReturn(strategy);
+        CV builtCv = new CV();
+        builtCv.setRawText("raw pdf text");
+        when(strategy.createCv(dto)).thenReturn(builtCv);
+        when(repository.save(any(CV.class))).thenAnswer(inv -> {
+            CV cv = inv.getArgument(0);
+            cv.setCvId("cv-generated");
+            return cv;
+        });
+
+        cvService.createCv("upload", dto);
+
+        verify(cvSectionEnrichmentService).enrichAsync("cv-generated", "raw pdf text");
     }
 
     @Test

@@ -64,6 +64,7 @@ public class CVService implements iCVService {
     private final CvEventProducer cvEventProducer;
     private final UploadCvStrategy uploadCvStrategy;
     private final org.springframework.web.reactive.function.client.WebClient webClient;
+    private final org.workfitai.cvservice.service.enrichment.CvSectionEnrichmentService cvSectionEnrichmentService;
 
     // ---------------- CREATE ----------------
     @Override
@@ -84,6 +85,11 @@ public class CVService implements iCVService {
 
         // Send notification after CV upload/creation
         sendCvUploadNotification(saved, type);
+
+        // Fire-and-forget: re-extract sections via Ollama on a background thread and
+        // override the heuristic-parsed ones. rawText is only present for PDF uploads
+        // (null for template CVs → no-op). Response above is already returned to caller.
+        cvSectionEnrichmentService.enrichAsync(saved.getCvId(), cv.getRawText());
 
         return created;
     }
@@ -297,6 +303,7 @@ public class CVService implements iCVService {
     public CvSnapshotResponse createApplicationSnapshot(
             String username,
             String applicationId,
+            String jobId,
             String jobName,
             org.springframework.web.multipart.MultipartFile file) {
 
@@ -306,8 +313,10 @@ public class CVService implements iCVService {
             String objectName = fileService.uploadCV(file, jobName);
             String fileUrl = fileService.generateFileUrl(objectName);
 
-            // Reuse existing PDF → sections logic from UploadCvStrategy
-            var parsed = uploadCvStrategy.parsePdfFile(file);
+            // Reuse existing PDF → sections logic from UploadCvStrategy, keeping the raw
+            // text for the async Ollama re-extraction step below.
+            var parseResult = uploadCvStrategy.parsePdfFileWithText(file);
+            var parsed = parseResult.parsed();
 
             // Build sections map
             Map<String, Object> sections = new HashMap<>();
@@ -328,6 +337,7 @@ public class CVService implements iCVService {
             CV snapshot = new CV();
             snapshot.setBelongTo(username);
             snapshot.setApplicationId(applicationId);
+            snapshot.setJobId(jobId);
             snapshot.setTemplateType(TemplateType.UPLOAD);   // reuse existing enum value
             snapshot.setObjectName(objectName);
             snapshot.setPdfUrl(fileUrl);
@@ -340,6 +350,13 @@ public class CVService implements iCVService {
 
             log.info("CV snapshot created: cvId={} applicationId={} username={}",
                     saved.getCvId(), applicationId, username);
+
+            // Fire-and-forget: re-extract sections via Ollama and, on success, override the
+            // snapshot's Mongo sections AND re-push them into recommendation-engine's
+            // CvReferStore so HR ranking for this job reflects them. The heuristic fields in
+            // this response (and the APPLICATION_CREATED event) are returned unchanged.
+            cvSectionEnrichmentService.enrichSnapshotAsync(
+                    saved.getCvId(), jobId, username, parseResult.rawText());
 
             return CvSnapshotResponse.builder()
                     .cvId(saved.getCvId())

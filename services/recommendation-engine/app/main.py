@@ -18,6 +18,7 @@ from app.config import get_settings
 from app.api.job_recommend_routes import router
 from app.api.cv_rank_routes import router as cv_rank_router
 from app.api.cv_refer_internal_routes import router as cv_refer_internal_router
+from app.api.cv_section_routes import router as cv_section_router
 
 # Configure logging
 logging.basicConfig(
@@ -347,6 +348,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(router)
 app.include_router(cv_rank_router)
 app.include_router(cv_refer_internal_router)
+app.include_router(cv_section_router)
 
 
 # Health check endpoint

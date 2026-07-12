@@ -62,6 +62,8 @@ class CVServiceApplicationSnapshotTest {
     private UploadCvStrategy uploadCvStrategy;
     @Mock
     private WebClient webClient;
+    @Mock
+    private org.workfitai.cvservice.service.enrichment.CvSectionEnrichmentService cvSectionEnrichmentService;
 
     @InjectMocks
     private CVService cvService;
@@ -73,14 +75,16 @@ class CVServiceApplicationSnapshotTest {
         when(fileService.uploadCV(any(), anyString())).thenReturn("uuid-Senior_Backend_Developer.pdf");
         when(fileService.generateFileUrl("uuid-Senior_Backend_Developer.pdf"))
                 .thenReturn("http://minio/cvs-files/uuid-Senior_Backend_Developer.pdf");
-        when(uploadCvStrategy.parsePdfFile(file)).thenReturn(ParsedCvData.builder()
-                .headline("Backend Engineer")
-                .summary(java.util.List.of("Experienced engineer"))
-                .build());
+        when(uploadCvStrategy.parsePdfFileWithText(file)).thenReturn(new UploadCvStrategy.ParsedCvResult(
+                "raw cv text",
+                ParsedCvData.builder()
+                        .headline("Backend Engineer")
+                        .summary(java.util.List.of("Experienced engineer"))
+                        .build()));
         when(repository.save(any(CV.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CvSnapshotResponse response = cvService.createApplicationSnapshot(
-                "vanphat15it", "app-123", "Senior Backend Developer", file);
+                "vanphat15it", "app-123", "job-1", "Senior Backend Developer", file);
 
         ArgumentCaptor<CV> savedCv = ArgumentCaptor.forClass(CV.class);
         verify(repository).save(savedCv.capture());
@@ -88,6 +92,7 @@ class CVServiceApplicationSnapshotTest {
         assertThat(savedCv.getValue().getObjectName()).isEqualTo("uuid-Senior_Backend_Developer.pdf");
         assertThat(savedCv.getValue().getObjectName()).matches(CVConst.PDF_FILE_PATTERN);
         assertThat(savedCv.getValue().getPdfUrl()).isEqualTo("http://minio/cvs-files/uuid-Senior_Backend_Developer.pdf");
+        assertThat(savedCv.getValue().getJobId()).isEqualTo("job-1");
         assertThat(savedCv.getValue().getApplicationId()).isEqualTo("app-123");
         assertThat(response.getCvId()).isNull(); // CV entity has no id assigned by the mock save
     }
@@ -98,10 +103,11 @@ class CVServiceApplicationSnapshotTest {
 
         when(fileService.uploadCV(any(), anyString())).thenReturn("uuid-Data_Scientist.pdf");
         when(fileService.generateFileUrl(anyString())).thenReturn("http://minio/cvs-files/uuid-Data_Scientist.pdf");
-        when(uploadCvStrategy.parsePdfFile(file)).thenReturn(ParsedCvData.builder().summary(java.util.List.of()).build());
+        when(uploadCvStrategy.parsePdfFileWithText(file)).thenReturn(new UploadCvStrategy.ParsedCvResult(
+                "raw cv text", ParsedCvData.builder().summary(java.util.List.of()).build()));
         when(repository.save(any(CV.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        cvService.createApplicationSnapshot("vanphat15it", "app-456", "Data Scientist", file);
+        cvService.createApplicationSnapshot("vanphat15it", "app-456", "job-2", "Data Scientist", file);
 
         verify(fileService).uploadCV(file, "Data Scientist");
     }
@@ -138,7 +144,8 @@ class CVServiceApplicationSnapshotTest {
     /** CVService wired with a REAL UploadCvStrategy (everything else still mocked) — proves the real Phase 03/04/05 pipeline runs end-to-end through this call site, not just CVService's own orchestration. */
     private CVService buildCvServiceWithRealPipeline(FileService realPathFileService, WebClient realPathWebClient) {
         return new CVService(repository, mongoTemplate, cvCreationFactory, realPathFileService,
-                notificationProducer, cvEventProducer, buildRealUploadCvStrategy(), realPathWebClient);
+                notificationProducer, cvEventProducer, buildRealUploadCvStrategy(), realPathWebClient,
+                cvSectionEnrichmentService);
     }
 
     private byte[] readFixture(String category) throws Exception {
@@ -156,7 +163,7 @@ class CVServiceApplicationSnapshotTest {
         when(repository.save(any(CV.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CvSnapshotResponse response = realPipelineService.createApplicationSnapshot(
-                "vanphat15it", "app-real-1", "Backend Engineer", file);
+                "vanphat15it", "app-real-1", "job-real-1", "Backend Engineer", file);
 
         assertThat(response.getExperience()).contains("Designed and implemented microservices");
         assertThat(response.getEducation()).contains("Bachelor of Science");
@@ -175,7 +182,7 @@ class CVServiceApplicationSnapshotTest {
         when(fileService.generateFileUrl("uuid-scanned.pdf")).thenReturn("http://minio/uuid-scanned.pdf");
 
         assertThatThrownBy(() -> realPipelineService.createApplicationSnapshot(
-                "vanphat15it", "app-real-2", "Backend Engineer", file))
+                "vanphat15it", "app-real-2", "job-real-2", "Backend Engineer", file))
                 .isInstanceOf(InvalidDataException.class);
     }
 
@@ -209,7 +216,7 @@ class CVServiceApplicationSnapshotTest {
         when(fileService.uploadCV(any(), anyString())).thenThrow(new java.io.IOException("minio unreachable"));
 
         assertThatThrownBy(() -> cvService.createApplicationSnapshot(
-                "vanphat15it", "app-789", "Backend Engineer", file))
+                "vanphat15it", "app-789", "job-789", "Backend Engineer", file))
                 .isInstanceOf(RuntimeException.class)
                 .isNotInstanceOf(InvalidDataException.class)
                 .hasMessage("CV snapshot creation failed");
