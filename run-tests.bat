@@ -74,12 +74,17 @@ if not exist "%PY_EXE%" (
             exit /b 1
         )
     )
-    call "%PY_SVC%\venv\Scripts\pip.exe" install --quiet -r "%PY_SVC%\requirements.txt"
-    if !ERRORLEVEL! neq 0 (
-        echo [ERROR] Failed to install dependencies for recommendation-engine
-        exit /b 1
-    )
     echo [INFO] venv initialized
+)
+
+:: Re-sync every run (not just on first creation) -- otherwise an existing venv
+:: silently drifts from requirements.txt as dependencies are added/pinned later,
+:: e.g. the httpx pin only came in via ollama==0.3.3 and a pre-existing venv would
+:: never pick it up, leaving an incompatible httpx that breaks starlette's TestClient.
+call "%PY_SVC%\venv\Scripts\pip.exe" install --quiet -r "%PY_SVC%\requirements.txt"
+if !ERRORLEVEL! neq 0 (
+    echo [ERROR] Failed to install dependencies for recommendation-engine
+    exit /b 1
 )
 
 mkdir "%PY_SVC%\target\surefire-reports" 2>nul
