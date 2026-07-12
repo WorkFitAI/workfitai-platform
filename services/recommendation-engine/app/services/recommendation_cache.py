@@ -163,13 +163,27 @@ class RecommendationCache(SingleFlightCache):
         })
 
     @staticmethod
-    def key_for_profile(text: str, filters: Dict, top_k: int) -> str:
-        return RecommendationCache._hash({
+    def key_for_profile(
+        text: str, filters: Dict, top_k: int, structured_fields: Optional[Dict[str, str]] = None
+    ) -> str:
+        """
+        structured_fields (resumeSummary/resumeExperience/resumeSkills/
+        resumeEducation, when supplied) must be part of the key -- two
+        requests with the same profileText but different structured fields
+        produce different multi-field embeddings and a different transparency
+        payload, so they must never collide on the same cache entry.
+        Omitting it (None/empty) reproduces the exact pre-existing key, so
+        callers that never send structured fields are unaffected.
+        """
+        payload = {
             "endpoint": "by-profile",
             "text": text.lower().strip(),
             "filters": dict(sorted(filters.items())),
             "top_k": top_k,
-        })
+        }
+        if structured_fields:
+            payload["structured_fields"] = dict(sorted(structured_fields.items()))
+        return RecommendationCache._hash(payload)
 
     @staticmethod
     def key_for_search(query: str, filters: Dict, top_k: int) -> str:

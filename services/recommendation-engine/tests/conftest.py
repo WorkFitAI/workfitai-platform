@@ -78,6 +78,9 @@ def mock_faiss_manager():
     mock.index.ntotal = 1
     mock.search.return_value = []
     mock.get_job_by_id.return_value = None
+    # {} (not MagicMock's default empty-iterating auto-mock) so callers doing
+    # `get_job_field_embeddings(...) or {}` get a real, safely-iterable dict.
+    mock.get_job_field_embeddings.return_value = {}
     return mock
 
 
@@ -86,6 +89,19 @@ def mock_embedding_generator():
     mock = MagicMock(name="embedding_generator")
     mock.encode_resume.return_value = np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32)
     mock.encode_job.return_value = np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32)
+    # Multi-field methods: (pooled, per_field_embeddings, presence_mask).
+    # Only "resume_text" present by default -- individual tests override this
+    # when they need specific fields marked present/absent.
+    mock.encode_job_fields.return_value = (
+        np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32),
+        {"job_description_text": np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32)},
+        [True, False, False, False, False],
+    )
+    mock.encode_resume_fields.return_value = (
+        np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32),
+        {"resume_text": np.zeros(FAKE_EMBEDDING_DIM, dtype=np.float32)},
+        [True, False, False, False, False],
+    )
     return mock
 
 
@@ -106,7 +122,7 @@ def mock_resume_parser():
 @pytest.fixture
 def mock_reranker():
     mock = MagicMock(name="reranker")
-    mock.rerank.side_effect = lambda resume_text, candidates, top_n: candidates[:top_n]
+    mock.rerank.side_effect = lambda resume_text, candidates, top_n, resume_fields=None: candidates[:top_n]
     return mock
 
 

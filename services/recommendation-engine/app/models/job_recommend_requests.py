@@ -46,6 +46,18 @@ class RecommendByProfileRequest(BaseModel):
             "enforced in addition to the admin-controlled platform toggle."
         ),
     )
+    resumeSummary: Optional[str] = Field(
+        default=None, description="Structured CV summary section (multi-field bi-encoder input)."
+    )
+    resumeExperience: Optional[str] = Field(
+        default=None, description="Structured CV work-experience section (multi-field bi-encoder input)."
+    )
+    resumeSkills: Optional[str] = Field(
+        default=None, description="Structured CV skills section (multi-field bi-encoder input)."
+    )
+    resumeEducation: Optional[str] = Field(
+        default=None, description="Structured CV education section (multi-field bi-encoder input)."
+    )
 
 
 class SimilarJobsRequest(BaseModel):

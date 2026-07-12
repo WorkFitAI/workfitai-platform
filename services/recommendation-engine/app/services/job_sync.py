@@ -9,6 +9,7 @@ from typing import Dict
 
 from app.config import get_settings
 from app.services import job_formatter
+from app.services.field_format import JOB_FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +23,20 @@ def _normalize_job_data(job: Dict) -> Dict:
 
     Maps API fields to expected format:
     - postId -> id
-    - shortDescription -> description
     - skillNames -> skills
     - company.name -> company.companyName
+
+    shortDescription is kept under its own key (not renamed to description) --
+    job_formatter.format_job_as_fields()/format_job_as_text() treat
+    shortDescription and description as two distinct sections (jd_overview vs.
+    the full-text field), and _fetch_job_detail_fields separately supplies the
+    real description below. Collapsing them here previously caused every
+    initial-synced job to silently lose its jd_overview field.
     """
     return {
         "id": job.get("postId"),
         "title": job.get("title"),
-        "description": job.get("shortDescription"),
+        "shortDescription": job.get("shortDescription"),
         "location": job.get("company", {}).get("address", ""),
         "employmentType": job.get("employmentType"),
         "experienceLevel": job.get("experienceLevel"),
@@ -44,6 +51,40 @@ def _normalize_job_data(job: Dict) -> Dict:
         "expiresAt": job.get("expiresAt"),
         "createdDate": job.get("createdDate"),
     }
+
+
+async def _fetch_job_detail_fields(client: httpx.AsyncClient, job_service_url: str, job_id: str) -> Dict:
+    """
+    Fetch requirements/responsibilities/benefits/description from the
+    per-job detail endpoint.
+
+    The paginated /public/jobs list response (used for everything else
+    _normalize_job_data maps) doesn't carry these fields -- only the fuller
+    single-job detail response does (same endpoint app/services/cv_rank_assembly.py's
+    fetch_job_data already relies on for the same fields). Without this, a
+    job indexed during initial sync would get a degraded (1-of-5-field)
+    multi-field embedding while the same job re-synced later via a Kafka
+    job.updated event -- whose payload DOES carry these fields -- would not,
+    an inconsistency between "just started" and "steady state" index quality.
+
+    Failure is non-fatal: returns {} and the job still gets embedded from
+    whatever fields normalization already provided (the multi-field encoder
+    already tolerates missing fields).
+    """
+    try:
+        resp = await client.get(f"{job_service_url}/public/jobs/{job_id}")
+        resp.raise_for_status()
+        body = resp.json()
+        detail = body.get("data", body)
+        return {
+            "description": detail.get("description", ""),
+            "requirements": detail.get("requirements", ""),
+            "responsibilities": detail.get("responsibilities", ""),
+            "benefits": detail.get("benefits", ""),
+        }
+    except Exception as e:
+        logger.warning(f"Failed to fetch job detail for {job_id}: {e}")
+        return {}
 
 
 async def sync_jobs_from_service(faiss_manager, embedding_generator) -> int:
@@ -114,9 +155,18 @@ async def _run_sync(settings, faiss_manager, embedding_generator) -> int:
                             continue
 
                         normalized_job = _normalize_job_data(job)
-                        job_text = job_formatter.format_job_as_text(normalized_job)
-                        embedding = embedding_generator.encode_job(job_text)
-                        faiss_manager.add_job_with_embedding(job_id, embedding, normalized_job)
+                        detail_fields = await _fetch_job_detail_fields(client, settings.JOB_SERVICE_URL, job_id)
+                        normalized_job.update(detail_fields)
+
+                        fields = job_formatter.format_job_as_fields(normalized_job)
+                        pooled_embedding, per_field_embeddings, mask = embedding_generator.encode_job_fields(
+                            fields, JOB_FIELDS
+                        )
+                        field_mask = dict(zip(JOB_FIELDS, mask))
+                        faiss_manager.add_job_with_embedding(
+                            job_id, pooled_embedding, normalized_job,
+                            field_embeddings=per_field_embeddings, field_mask=field_mask,
+                        )
                         synced_count += 1
 
                     except Exception as e:

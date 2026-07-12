@@ -369,6 +369,9 @@ services:
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       - VAULT_HOST=vault
       - VAULT_PORT=8200
+      # Async Ollama CV section re-extraction (calls recommendation-engine; best-effort)
+      - RECOMMENDATION_ENGINE_URL=${RECOMMENDATION_ENGINE_URL:-http://recommendation-engine:8000}
+      - CV_OLLAMA_EXTRACTION_ENABLED=${CV_OLLAMA_EXTRACTION_ENABLED:-true}
     depends_on:
       consul:
         condition: service_started
@@ -920,9 +923,13 @@ services:
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=${VAULT_TOKEN:-dev-token}
       # ── job-recommend model paths ──────────────────────────────────
-      - MODEL_PATH=/app/models/job-recommend/bi-encoder-e5-large
-      - CROSS_ENCODER_PATH=/app/models/job-recommend/cross-encoder
+      - MODEL_PATH=/app/models/job-recommend/bi-encoder-e5-large-multifield
+      - CROSS_ENCODER_PATH=/app/models/job-recommend/cross-encoder-structured
       - FAISS_INDEX_PATH=/app/data/faiss_index
+      # ── Ollama Cloud (CV section extraction) ───────────────────────
+      - OLLAMA_API_KEYS=${OLLAMA_API_KEYS:-}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gpt-oss:120b}
+      - CV_OLLAMA_EXTRACTION_ENABLED=${CV_OLLAMA_EXTRACTION_ENABLED:-true}
       # ── cv-refer model paths ───────────────────────────────────────
       - CV_RANKING_BI_ENCODER_PATH=/app/models/cv-refer/bi-encoder
       - CV_RANKING_CROSS_ENCODER_PATH=/app/models/cv-refer/cross-encoder

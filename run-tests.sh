@@ -43,13 +43,21 @@ run_recommendation_engine() {
       echo "[ERROR] python3 not found — cannot initialize venv"
       return 1
     fi
-    "$py" -m venv "${svc_dir}/venv" && \
-      "${svc_dir}/venv/bin/pip" install --quiet -r "${svc_dir}/requirements.txt" || {
-        echo "[ERROR] Failed to initialize venv for recommendation-engine"
-        return 1
-      }
+    "$py" -m venv "${svc_dir}/venv" || {
+      echo "[ERROR] Failed to initialize venv for recommendation-engine"
+      return 1
+    }
     echo "[INFO] venv initialized"
   fi
+
+  # Re-sync every run (not just on first creation) — otherwise an existing venv
+  # silently drifts from requirements.txt as dependencies are added/pinned later,
+  # e.g. the httpx pin only came in via ollama==0.3.3 and a pre-existing venv would
+  # never pick it up, leaving an incompatible httpx that breaks starlette's TestClient.
+  "${svc_dir}/venv/bin/pip" install --quiet -r "${svc_dir}/requirements.txt" || {
+    echo "[ERROR] Failed to install dependencies for recommendation-engine"
+    return 1
+  }
 
   (cd "$svc_dir" && mkdir -p target/surefire-reports target/site && venv/bin/python -m pytest)
 }

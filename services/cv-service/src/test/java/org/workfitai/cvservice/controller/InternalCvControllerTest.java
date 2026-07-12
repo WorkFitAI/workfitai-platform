@@ -49,7 +49,7 @@ class InternalCvControllerTest {
     @Test
     void createApplicationSnapshot_returnsSnapshotResponse() throws Exception {
         CvSnapshotResponse response = CvSnapshotResponse.builder().cvId("cv1").summary("sum").build();
-        when(cvService.createApplicationSnapshot(eq("alice"), eq("app-1"), eq("Backend Engineer"), any()))
+        when(cvService.createApplicationSnapshot(eq("alice"), eq("app-1"), eq("job-1"), eq("Backend Engineer"), any()))
                 .thenReturn(response);
 
         MockMultipartFile file = new MockMultipartFile("cvPdfFile", "resume.pdf", "application/pdf", new byte[]{1});
@@ -58,6 +58,7 @@ class InternalCvControllerTest {
                         .file(file)
                         .part(new org.springframework.mock.web.MockPart("username", "alice".getBytes()))
                         .part(new org.springframework.mock.web.MockPart("applicationId", "app-1".getBytes()))
+                        .part(new org.springframework.mock.web.MockPart("jobId", "job-1".getBytes()))
                         .part(new org.springframework.mock.web.MockPart("jobName", "Backend Engineer".getBytes())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cvId").value("cv1"));

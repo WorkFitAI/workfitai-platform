@@ -121,6 +121,9 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
             cv.setSections(sections);
             cv.setSummary(buildSummaryText(parsedData));
+            // Carry raw text (in-memory, @Transient) for the async Ollama section
+            // re-extraction step triggered after the CV is saved.
+            cv.setRawText(text);
             return cv;
 
         } catch (BusinessException e) {
@@ -146,11 +149,28 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
     }
 
     /**
+     * Raw extracted PDF text plus the structured parse of it — lets snapshot
+     * creation keep the raw text (for async Ollama re-extraction) without
+     * re-reading the PDF stream a second time.
+     */
+    public record ParsedCvResult(String rawText, ParsedCvData parsed) {
+    }
+
+    /**
      * Parse a PDF MultipartFile into structured CV sections. Used by snapshot
      * creation.
      */
     public ParsedCvData parsePdfFile(MultipartFile file) throws IOException {
         return parsePdfFile(file.getInputStream());
+    }
+
+    /**
+     * Like {@link #parsePdfFile(MultipartFile)} but also returns the raw extracted
+     * text, so the caller can hand it to the async Ollama section-enrichment step.
+     */
+    public ParsedCvResult parsePdfFileWithText(MultipartFile file) throws IOException {
+        String rawText = extractPdfText(file.getInputStream());
+        return new ParsedCvResult(rawText, parseCvText(rawText));
     }
 
     /**
@@ -161,6 +181,16 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
     public ParsedCvData parsePdfFile(InputStream pdfStream) throws IOException {
         String rawText = extractPdfText(pdfStream);
         return parseCvText(rawText);
+    }
+
+    /**
+     * Extracts raw text only (no section parsing) from a PDF stream. Used by the
+     * startup Ollama backfill runner: it only needs the raw text to send to
+     * recommendation-engine — the CV's existing (heuristic) sections are already
+     * stored, so re-running heuristic parsing here would be wasted work.
+     */
+    public String extractRawText(InputStream pdfStream) throws IOException {
+        return extractPdfText(pdfStream);
     }
 
     private String extractPdfText(MultipartFile file) throws IOException {

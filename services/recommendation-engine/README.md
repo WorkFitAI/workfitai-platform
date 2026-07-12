@@ -455,6 +455,38 @@ class SemanticSearchRequest(BaseModel):
 
 ---
 
+### 6. CV Section Extraction (Internal — Ollama)
+
+**Endpoint**: `POST /internal/cv/extract-sections` (Docker-network only, not via API Gateway)
+
+**Description**: Re-extracts the 4 structured resume sections from raw CV text using
+Ollama Cloud (`gpt-oss:120b`). Called asynchronously by **cv-service** after a CV
+upload/create/apply completes, to override the heuristic PDFBox-parsed sections.
+Best-effort: on any failure returns `extracted=false` so cv-service keeps its
+heuristic sections.
+
+**Request Body**:
+```json
+{ "text": "<raw CV text>", "doc_type": "RESUME" }
+```
+
+**Response**:
+```json
+{ "extracted": true, "summary": "...", "experience": "...", "skills": "...", "education": "..." }
+```
+`extracted=false` (with empty fields) is returned when extraction is disabled, no
+API keys are configured, the model fails, or all keys are rate-limited.
+
+**Config** (env / `.env.local`):
+- `OLLAMA_API_KEYS` — comma-separated Ollama Cloud keys; rotated on 429/409 rate limits.
+- `OLLAMA_MODEL` — default `gpt-oss:120b`.
+- `CV_OLLAMA_EXTRACTION_ENABLED` — master on/off (default `true`).
+
+Bounded to a 45s server-side wall-clock budget so it stays under cv-service's client
+timeout and doesn't exhaust the anyio threadpool during rate-limit incidents.
+
+---
+
 ## 🛠️ Setup & Installation
 
 ### Prerequisites

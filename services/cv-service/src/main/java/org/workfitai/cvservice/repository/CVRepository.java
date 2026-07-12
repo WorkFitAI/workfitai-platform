@@ -29,4 +29,17 @@ public interface CVRepository extends MongoRepository<CV, String> {
 
     /** Batch lookup of snapshot CVs by applicationId — used for active-pool enrichment. */
     List<CV> findByApplicationIdIn(List<String> applicationIds);
+
+    /**
+     * Fetches active, PDF-backed CVs that have never had an Ollama section-extraction
+     * attempt (ollamaExtractedAt is null) — used by the startup backfill runner to
+     * catch up CVs created before the Ollama feature existed, or whose enrichment
+     * attempt was dropped on a previous run (executor saturation). Bounded via
+     * Pageable so a single startup pass never scans/loads the whole collection.
+     *
+     * objectName IS NOT NULL excludes template CVs (form-built, no PDF, ollamaExtractedAt
+     * never gets set for them since there's no rawText to extract) — without this filter
+     * they'd permanently re-populate every batch and could starve out real candidates.
+     */
+    List<CV> findByOllamaExtractedAtIsNullAndIsExistTrueAndObjectNameIsNotNull(Pageable pageable);
 }

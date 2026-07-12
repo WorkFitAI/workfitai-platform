@@ -8,10 +8,12 @@ class imported into this module so no real network connection is attempted.
 
 from unittest.mock import MagicMock
 
+import numpy as np
 import pytest
 from kafka.errors import KafkaError
 
 from app.kafka_consumer.consumer import JobEventConsumer
+from app.services.field_format import JOB_FIELDS
 
 
 def _kafka_config(**overrides):
@@ -31,9 +33,13 @@ def _kafka_config(**overrides):
 def consumer():
     faiss_manager = MagicMock(name="faiss_manager")
     job_formatter = MagicMock(name="job_formatter")
-    job_formatter.format_job_as_text.return_value = "formatted job text"
+    job_formatter.format_job_as_fields.return_value = {f: "text" for f in JOB_FIELDS}
     embedding_generator = MagicMock(name="embedding_generator")
-    embedding_generator.encode_job.return_value = [0.1, 0.2]
+    embedding_generator.encode_job_fields.return_value = (
+        np.array([0.1, 0.2]),
+        {"job_description_text": np.array([0.1, 0.2])},
+        [True, False, False, False, False],
+    )
     return JobEventConsumer(_kafka_config(), faiss_manager, job_formatter, embedding_generator)
 
 
@@ -41,8 +47,19 @@ class TestEventHandlers:
     def test_handle_job_created_adds_to_faiss(self, consumer):
         event = {"jobId": "job-1", "data": {"title": "Backend Engineer"}}
         consumer.handle_job_created(event)
-        consumer.faiss_manager.add_job_with_embedding.assert_called_once_with(
-            "job-1", [0.1, 0.2], {"title": "Backend Engineer"}
+        consumer.faiss_manager.add_job_with_embedding.assert_called_once()
+        call = consumer.faiss_manager.add_job_with_embedding.call_args
+        assert call.args[0] == "job-1"
+        np.testing.assert_array_equal(call.args[1], [0.1, 0.2])
+        assert call.args[2] == {"title": "Backend Engineer"}
+        assert call.kwargs["field_mask"] == dict(zip(JOB_FIELDS, [True, False, False, False, False]))
+
+    def test_handle_job_created_uses_multi_field_formatter(self, consumer):
+        job_data = {"title": "Backend Engineer"}
+        consumer.handle_job_created({"jobId": "job-1", "data": job_data})
+        consumer.job_formatter.format_job_as_fields.assert_called_once_with(job_data)
+        consumer.embedding_generator.encode_job_fields.assert_called_once_with(
+            consumer.job_formatter.format_job_as_fields.return_value, JOB_FIELDS
         )
 
     def test_handle_job_created_error_is_caught(self, consumer):
@@ -53,13 +70,23 @@ class TestEventHandlers:
     def test_handle_job_updated_updates_faiss(self, consumer):
         event = {"jobId": "job-2", "data": {"title": "Updated"}}
         consumer.handle_job_updated(event)
-        consumer.faiss_manager.update_job_with_embedding.assert_called_once_with(
-            "job-2", [0.1, 0.2], {"title": "Updated"}
-        )
+        consumer.faiss_manager.update_job_with_embedding.assert_called_once()
+        call = consumer.faiss_manager.update_job_with_embedding.call_args
+        assert call.args[0] == "job-2"
+        assert call.args[2] == {"title": "Updated"}
 
     def test_handle_job_updated_error_is_caught(self, consumer):
         consumer.faiss_manager.update_job_with_embedding.side_effect = RuntimeError("boom")
         consumer.handle_job_updated({"jobId": "job-2", "data": {}})
+
+    def test_handle_job_expired_removes_from_faiss(self, consumer):
+        event = {"jobId": "job-4"}
+        consumer.handle_job_expired(event)
+        consumer.faiss_manager.remove_job.assert_called_once_with("job-4")
+
+    def test_handle_job_expired_error_is_caught(self, consumer):
+        consumer.faiss_manager.remove_job.side_effect = RuntimeError("boom")
+        consumer.handle_job_expired({"jobId": "job-4"})
 
     def test_handle_job_deleted_removes_from_faiss(self, consumer):
         event = {"jobId": "job-3", "reason": "expired"}
@@ -110,6 +137,11 @@ class TestDispatch:
         consumer._handle_message("job.updated", {"eventType": "JOB_UPDATED"})
         consumer.handle_job_updated.assert_called_once()
 
+    def test_dispatch_expired(self, consumer):
+        consumer.handle_job_expired = MagicMock()
+        consumer._handle_message("job.expired", {"eventType": "JOB_EXPIRED"})
+        consumer.handle_job_expired.assert_called_once()
+
     def test_dispatch_deleted(self, consumer):
         consumer.handle_job_deleted = MagicMock()
         consumer._handle_message("job.deleted", {"eventType": "JOB_DELETED"})
@@ -118,10 +150,12 @@ class TestDispatch:
     def test_dispatch_unknown_event_type_logs_warning(self, consumer):
         consumer.handle_job_created = MagicMock()
         consumer.handle_job_updated = MagicMock()
+        consumer.handle_job_expired = MagicMock()
         consumer.handle_job_deleted = MagicMock()
         consumer._handle_message("some-other-topic", {"eventType": "MYSTERY"})
         consumer.handle_job_created.assert_not_called()
         consumer.handle_job_updated.assert_not_called()
+        consumer.handle_job_expired.assert_not_called()
         consumer.handle_job_deleted.assert_not_called()
 
 
@@ -170,4 +204,4 @@ class TestLifecycle:
         stats = consumer.get_stats()
         assert stats["group_id"] == "recommendation-engine"
         assert stats["running"] is False
-        assert set(stats["topics"]) == {"job.created", "job.updated", "job.deleted"}
+        assert set(stats["topics"]) == {"job.created", "job.updated", "job.deleted", "job.expired"}

@@ -55,6 +55,39 @@ public class CV {
 
     private Map<String, Object> sections = new HashMap<>();
 
+    /**
+     * Raw extracted PDF text, carried in-memory from the upload strategy to the
+     * async Ollama section-enrichment step. {@link Transient} so it is never
+     * persisted to Mongo — it only lives on the entity long enough to hand off
+     * to {@code CvSectionEnrichmentService}.
+     */
+    @Transient
+    private String rawText;
+
+    /**
+     * Timestamp of the last Ollama section-extraction ATTEMPT for this CV.
+     *
+     * null means the CV has never had an extraction attempt made — NOT that the
+     * resulting sections happen to be blank. Set unconditionally whenever the
+     * async enrichment step gets a completed response from recommendation-engine's
+     * extract-sections call, regardless of whether that response was usable
+     * (extracted=true/false) or whether any individual section field ended up
+     * blank and was left as heuristic (see CvSectionEnrichmentService.applyOverride's
+     * per-field non-blank rule). Used by {@code CvOllamaBackfillRunner} (startup,
+     * one-shot per process restart/rebuild) to find CVs still needing an attempt.
+     */
+    @Indexed
+    private Instant ollamaExtractedAt;
+
+    /**
+     * The job's postId, persisted only for application-snapshot CVs (applicationId
+     * != null). Lets the startup backfill runner re-push corrected sections into
+     * recommendation-engine's CvReferStore (keyed by jobId+username) without a
+     * cross-service call to application-service to look it up. null for regular
+     * (non-snapshot) CVs and for snapshots created before this field existed.
+     */
+    private String jobId;
+
     private boolean isExist = true;
 
     @CreatedDate

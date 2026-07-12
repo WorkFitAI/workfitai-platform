@@ -1,6 +1,12 @@
 """Tests for app/services/job_formatter.py (pure text-formatting logic, no I/O)."""
 
-from app.services.job_formatter import _clean_html, format_job_as_text, format_resume_as_text
+from app.services.job_formatter import (
+    _clean_html,
+    format_job_as_fields,
+    format_job_as_text,
+    format_resume_as_fields,
+    format_resume_as_text,
+)
 
 
 class TestFormatJobAsText:
@@ -62,6 +68,93 @@ class TestFormatJobAsText:
     def test_employment_type_only_no_location(self):
         text = format_job_as_text({"employmentType": "PART_TIME"})
         assert "Type: Part Time" in text
+
+
+class TestFormatJobAsFields:
+    def test_maps_shortDescription_to_jd_overview(self):
+        fields = format_job_as_fields({"shortDescription": "<p>Great role</p>"})
+        assert fields["jd_overview"] == "Great role"
+
+    def test_maps_benefits_to_jd_preferred(self):
+        """Matches app/services/cv_rank_assembly.py's existing benefits -> jd_preferred
+        convention -- no job-service schema change, see field_format.py docstring."""
+        fields = format_job_as_fields({"benefits": "Remote work, health insurance"})
+        assert fields["jd_preferred"] == "Remote work, health insurance"
+
+    def test_maps_requirements_and_responsibilities_directly(self):
+        fields = format_job_as_fields({"requirements": "Python required", "responsibilities": "Build APIs"})
+        assert fields["jd_requirements"] == "Python required"
+        assert fields["jd_responsibilities"] == "Build APIs"
+
+    def test_job_description_text_reuses_format_job_as_text(self):
+        job = {"title": "Backend Engineer", "shortDescription": "Great role"}
+        fields = format_job_as_fields(job)
+        assert fields["job_description_text"] == format_job_as_text(job)
+
+    def test_empty_job_returns_all_empty_fields(self):
+        fields = format_job_as_fields({})
+        assert fields == {
+            "job_description_text": "",
+            "jd_overview": "",
+            "jd_requirements": "",
+            "jd_responsibilities": "",
+            "jd_preferred": "",
+        }
+
+    def test_returns_exactly_five_job_fields(self):
+        fields = format_job_as_fields({"title": "X"})
+        assert set(fields.keys()) == {
+            "job_description_text", "jd_overview", "jd_requirements", "jd_responsibilities", "jd_preferred",
+        }
+
+
+class TestFormatResumeAsFields:
+    def test_structured_keys_used_directly(self):
+        resume = {
+            "resume_text": "Full CV",
+            "resume_summary": "Backend dev",
+            "resume_experience": "5 years",
+            "resume_skills": "Python, SQL",
+            "resume_education": "BSc CS",
+        }
+        assert format_resume_as_fields(resume) == resume
+
+    def test_falls_back_to_resume_parser_shape(self):
+        parsed = {
+            "raw_text": "Full CV text",
+            "summary": "Backend dev",
+            "experience": "5 years at Acme",
+            "skills": ["Python", "SQL"],
+            "education": "BSc CS",
+        }
+        fields = format_resume_as_fields(parsed)
+        assert fields["resume_text"] == "Full CV text"
+        assert fields["resume_summary"] == "Backend dev"
+        assert fields["resume_experience"] == "5 years at Acme"
+        assert fields["resume_skills"] == "Python, SQL"
+        assert fields["resume_education"] == "BSc CS"
+
+    def test_skills_list_joined_with_comma(self):
+        fields = format_resume_as_fields({"skills": ["Python", "SQL", "Docker"]})
+        assert fields["resume_skills"] == "Python, SQL, Docker"
+
+    def test_skills_string_passed_through(self):
+        fields = format_resume_as_fields({"skills": "Python, SQL"})
+        assert fields["resume_skills"] == "Python, SQL"
+
+    def test_empty_resume_returns_all_empty_fields(self):
+        fields = format_resume_as_fields({})
+        assert fields == {
+            "resume_text": "",
+            "resume_summary": "",
+            "resume_experience": "",
+            "resume_skills": "",
+            "resume_education": "",
+        }
+
+    def test_structured_key_takes_priority_over_legacy_key(self):
+        fields = format_resume_as_fields({"resume_summary": "New summary", "summary": "Old summary"})
+        assert fields["resume_summary"] == "New summary"
 
 
 class TestCleanHtml:
