@@ -84,13 +84,17 @@ class JobReranker:
             job_text = self._format_job_text(candidate)
             pairs.append([resume_ce_text, job_text])
 
-        # Get cross-encoder scores (logits)
+        # Get cross-encoder scores (logits → sigmoid with temperature scaling)
         try:
             scores = self.model.predict(pairs, convert_to_numpy=True, show_progress_bar=False)
-            
-            # Apply sigmoid to convert logits to probabilities
-            scores = 1 / (1 + np.exp(-scores))  # Sigmoid
-            
+
+            # Temperature scaling before sigmoid: prevents score compression at ~0.99+
+            # when all candidates are in-domain (IT CV vs IT jobs → logits 6-9).
+            # T=4 keeps sigmoid semantics (probability of relevance) while spreading
+            # scores to a meaningful range. Ranking order is fully preserved.
+            temperature = 4.0
+            scores = 1 / (1 + np.exp(-scores / temperature))
+
         except Exception as e:
             logger.error(f"Cross-encoder prediction failed: {e}")
             # Fallback to bi-encoder scores
