@@ -27,6 +27,7 @@ Labels (configurable via good_fit_threshold; calibrated optimum ~27):
 from __future__ import annotations
 
 import os
+import re
 import time
 import yaml
 import logging
@@ -178,11 +179,64 @@ def _rule_explanation(score: float) -> str:
 
 def _parse_match_miss(text: str) -> tuple:
     """Parse T5 output 'match: X; Y. miss: A; B.' into two lists."""
-    import re
     m = re.search(r'match:\s*([^.]+)', text, re.IGNORECASE)
     x = re.search(r'miss:\s*([^.]+)',  text, re.IGNORECASE)
     match_points = [s.strip() for s in m.group(1).split(';') if s.strip()] if m else []
     miss_points  = [s.strip() for s in x.group(1).split(';') if s.strip()] if x else []
+    return match_points, miss_points
+
+
+# Skill/tech token patterns — ordered longest-first to avoid substring shadowing
+_SKILL_RE = re.compile(
+    r'\b('
+    r'next\.?js|nest\.?js|node\.?js|vue\.?js|react\.?js|react|angular|svelte|'
+    r'typescript|javascript|python|java\b|golang|rust\b|kotlin|swift|dart|php|ruby|scala|'
+    r'spring\s*boot|spring|django|flask|fastapi|express\.?js|laravel|rails|'
+    r'postgresql|mysql|mongodb|redis|elasticsearch|cassandra|dynamodb|sqlite|'
+    r'docker|kubernetes|k8s|terraform|ansible|jenkins|github\s*actions|gitlab\s*ci|'
+    r'aws|gcp|azure|cloud|devops|ci/?cd|'
+    r'graphql|rest\s*api|grpc|kafka|rabbitmq|celery|'
+    r'pytorch|tensorflow|keras|scikit.learn|pandas|numpy|'
+    r'git|linux|bash|sql|html|css|'
+    r'microservices|monorepo|agile|scrum|'
+    r'\d+\+?\s*(?:years?|yrs?)\s+(?:\w+\s+){0,3}experience'
+    r')\b',
+    re.IGNORECASE,
+)
+
+
+def _rule_match_miss(
+    job_text: str,
+    resume: "ResumeInput",
+    max_match: int = 4,
+    max_miss: int = 3,
+) -> tuple:
+    """
+    Rule-based match/miss fallback — active before T5 is retrained for structured output.
+    Extracts skill tokens from JD text and checks presence in CV text.
+    """
+    cv_text = " ".join(filter(None, [
+        getattr(resume, "resume_skills", ""),
+        getattr(resume, "resume_experience", ""),
+        getattr(resume, "resume_summary", ""),
+        getattr(resume, "resume_education", ""),
+        getattr(resume, "resume_text", ""),
+    ])).lower()
+
+    jd_tokens = list(dict.fromkeys(
+        m.group(0).strip() for m in _SKILL_RE.finditer(job_text)
+    ))
+
+    match_points, miss_points = [], []
+    for tok in jd_tokens:
+        needle = re.sub(r'[\s.]+', r'\\s*\\.?', re.escape(tok))
+        if re.search(needle, cv_text, re.IGNORECASE):
+            if len(match_points) < max_match:
+                match_points.append(tok)
+        else:
+            if len(miss_points) < max_miss:
+                miss_points.append(tok)
+
     return match_points, miss_points
 
 
@@ -510,6 +564,10 @@ class CVRankingPipeline:
             explanation = self._explain(c, label)
 
             match_points, miss_points = _parse_match_miss(explanation)
+            if not match_points and not miss_points:
+                match_points, miss_points = _rule_match_miss(
+                    c.get("_job_text", ""), c.get("_resume"),
+                )
             resume = c.get("_resume", {})
             coverage, fields_used = _field_coverage(resume)
 
