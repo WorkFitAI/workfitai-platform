@@ -266,6 +266,23 @@ _STOP_WORDS = frozenset({
     'also', 'some', 'all', 'any', 'each', 'which', 'they', 'them',
 })
 
+_SKILL_RE = re.compile(
+    r'\b('
+    r'next\.?js|nest\.?js|node\.?js|vue\.?js|react\.?js|react|angular|svelte|'
+    r'typescript|javascript|python|java\b|golang|rust\b|kotlin|swift|dart|php|ruby|scala|'
+    r'spring\s*boot|spring|django|flask|fastapi|express\.?js|laravel|rails|'
+    r'postgresql|mysql|mongodb|redis|elasticsearch|cassandra|dynamodb|sqlite|'
+    r'docker|kubernetes|k8s|terraform|ansible|jenkins|github\s*actions|gitlab\s*ci|'
+    r'aws|gcp|azure|cloud|devops|ci/?cd|'
+    r'graphql|rest\s*api|grpc|kafka|rabbitmq|celery|'
+    r'pytorch|tensorflow|keras|scikit.learn|pandas|numpy|'
+    r'git|linux|bash|sql|html|css|'
+    r'microservices|monorepo|agile|scrum|'
+    r'\d+\+?\s*(?:years?|yrs?)\s+(?:\w+\s+){0,3}experience'
+    r')\b',
+    re.IGNORECASE,
+)
+
 
 _SECTION_HEADER_RE = re.compile(
     r'^(what you\'?ll do|responsibilities|requirements|qualifications|about|overview'
@@ -288,6 +305,8 @@ def _extract_jd_phrases(job_text: str) -> list:
         # Strip leading bullet-style hyphens only
         p = re.sub(r'^[\-–]+\s*', '', p).strip()
         if not (8 <= len(p) <= 100):
+            continue
+        if re.match(r'^(and|or|to|but|with|also)\s', p, re.IGNORECASE):
             continue
         if p.endswith(':') or _SECTION_HEADER_RE.match(p):
             continue
@@ -332,8 +351,9 @@ def _rule_match_miss(
 ) -> tuple:
     """
     Match/miss extraction:
-    - matchPoints: natural language phrases FROM CV text covering all 4 fields
-    - missPoints:  JD requirement phrases not found in CV
+    - Step 1: tech skill matching via _SKILL_RE → clean skill name tokens
+    - Step 2: phrase-level matching for remaining slots (non-tech requirements)
+    matchPoints show concrete skills/phrases from CV; missPoints show JD gaps.
     """
     cv_fields = {
         "skills":     getattr(resume, "resume_skills",     "") or "",
@@ -343,28 +363,43 @@ def _rule_match_miss(
     }
     cv_full = " ".join(cv_fields.values()).lower()
 
-    jd_phrases = _extract_jd_phrases(job_text)
-
     match_points, miss_points = [], []
-    used_cv_sentences = set()
 
-    for phrase in jd_phrases:
-        keywords = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', phrase.lower())
-                    if w not in _STOP_WORDS]
-        if not keywords:
-            continue
-        found = sum(1 for kw in keywords if kw in cv_full)
-        # Shorter phrases (≤3 keywords) need 1 match; longer phrases need ≥30%
-        threshold = 1 if len(keywords) <= 3 else max(1, len(keywords) * 0.3)
-        if found >= threshold:
+    # Step 1: tech skill matching — precise, returns clean skill tokens
+    jd_skills = list(dict.fromkeys(
+        m.group(0).strip() for m in _SKILL_RE.finditer(job_text)
+    ))
+    for skill in jd_skills:
+        needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(skill))
+        if re.search(needle, cv_full, re.IGNORECASE):
             if len(match_points) < max_match:
-                cv_phrase = _find_cv_phrase(keywords, cv_fields)
-                if cv_phrase and cv_phrase not in used_cv_sentences:
-                    used_cv_sentences.add(cv_phrase)
-                    match_points.append(cv_phrase)
+                match_points.append(skill)
         else:
             if len(miss_points) < max_miss:
-                miss_points.append(phrase)
+                miss_points.append(skill)
+        if len(match_points) >= max_match and len(miss_points) >= max_miss:
+            break
+
+    # Step 2: phrase-level matching for remaining slots
+    if len(match_points) < max_match or len(miss_points) < max_miss:
+        jd_phrases = _extract_jd_phrases(job_text)
+        used_cv_sentences = set()
+        for phrase in jd_phrases:
+            keywords = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', phrase.lower())
+                        if w not in _STOP_WORDS]
+            if not keywords:
+                continue
+            found = sum(1 for kw in keywords if kw in cv_full)
+            threshold = 1 if len(keywords) <= 3 else max(2, int(len(keywords) * 0.5))
+            if found >= threshold:
+                if len(match_points) < max_match:
+                    cv_phrase = _find_cv_phrase(keywords, cv_fields)
+                    if cv_phrase and cv_phrase not in used_cv_sentences:
+                        used_cv_sentences.add(cv_phrase)
+                        match_points.append(cv_phrase)
+            else:
+                if len(miss_points) < max_miss:
+                    miss_points.append(phrase)
 
     return match_points, miss_points
 
