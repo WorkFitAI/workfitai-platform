@@ -258,26 +258,70 @@ _SOFT_RE = re.compile(
 )
 
 
-def _extract_jd_candidates(job_text: str) -> list:
-    """
-    Extract all checkable requirement phrases from JD text.
-    Priority order: tech skills → experience years → education → soft skills.
-    Uses regex for precision; deduplicates while preserving order.
-    """
-    found = []
-    seen = set()
+_STOP_WORDS = frozenset({
+    'with', 'the', 'and', 'for', 'that', 'this', 'from', 'have', 'has',
+    'are', 'was', 'will', 'can', 'may', 'must', 'not', 'but', 'its',
+    'our', 'you', 'your', 'their', 'such', 'than', 'into', 'over',
+    'able', 'well', 'good', 'high', 'new', 'use', 'used', 'using',
+    'also', 'some', 'all', 'any', 'each', 'which', 'they', 'them',
+})
 
-    def _add(tok: str):
-        key = tok.lower().strip()
+
+_SECTION_HEADER_RE = re.compile(
+    r'^(what you\'?ll do|responsibilities|requirements|qualifications|about|overview'
+    r'|preferred|benefits|nice to have|you will|your role|the role|join us)',
+    re.IGNORECASE,
+)
+
+
+def _extract_jd_phrases(job_text: str) -> list:
+    """
+    Split JD text into natural language requirement phrases.
+    Filters out section headers and short/empty fragments.
+    """
+    # Split on bullet chars and newlines only — NOT on hyphens (would break "stand-ups", "back-end" etc.)
+    parts = re.split(r'[•\*\n;]|(?<!\d),(?!\d)', job_text)
+    phrases = []
+    seen = set()
+    for p in parts:
+        p = re.sub(r'\s+', ' ', p).strip(' .,|')
+        # Strip leading bullet-style hyphens only
+        p = re.sub(r'^[\-–]+\s*', '', p).strip()
+        if not (8 <= len(p) <= 100):
+            continue
+        if p.endswith(':') or _SECTION_HEADER_RE.match(p):
+            continue
+        words = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', p.lower())
+                 if w not in _STOP_WORDS]
+        if len(words) < 2:
+            continue
+        key = p.lower()
         if key not in seen:
             seen.add(key)
-            found.append(tok.strip())
+            phrases.append(p)
+    return phrases[:25]
 
-    for pattern in (_SKILL_RE, _EXP_RE, _EDU_RE, _SOFT_RE):
-        for m in pattern.finditer(job_text):
-            _add(m.group(0))
 
-    return found
+def _split_cv_sentences(text: str) -> list:
+    """Split CV field text into individual sentences/clauses."""
+    parts = re.split(r'[.\n;]', text or "")
+    return [p.strip() for p in parts if len(p.strip()) >= 12]
+
+
+def _find_cv_phrase(keywords: list, cv_fields: dict, max_len: int = 100) -> str:
+    """
+    Find the CV sentence that best demonstrates the given keywords.
+    Searches all 4 CV fields. Returns the best matching sentence truncated.
+    """
+    best_sent, best_score = "", 0
+    for field_text in cv_fields.values():
+        for sent in _split_cv_sentences(field_text):
+            sent_lower = sent.lower()
+            score = sum(1 for kw in keywords if kw in sent_lower)
+            if score > best_score:
+                best_score = score
+                best_sent = sent
+    return best_sent[:max_len].strip() if best_score > 0 else ""
 
 
 def _rule_match_miss(
@@ -287,29 +331,40 @@ def _rule_match_miss(
     max_miss: int = 3,
 ) -> tuple:
     """
-    Rule-based match/miss fallback covering tech skills, experience, education,
-    and soft skills. Active when T5 output is missing or invalid.
+    Match/miss extraction:
+    - matchPoints: natural language phrases FROM CV text covering all 4 fields
+    - missPoints:  JD requirement phrases not found in CV
     """
-    cv_text = " ".join(filter(None, [
-        getattr(resume, "resume_skills", ""),
-        getattr(resume, "resume_experience", ""),
-        getattr(resume, "resume_summary", ""),
-        getattr(resume, "resume_education", ""),
-        getattr(resume, "resume_text", ""),
-    ])).lower()
+    cv_fields = {
+        "skills":     getattr(resume, "resume_skills",     "") or "",
+        "experience": getattr(resume, "resume_experience", "") or "",
+        "summary":    getattr(resume, "resume_summary",    "") or "",
+        "education":  getattr(resume, "resume_education",  "") or "",
+    }
+    cv_full = " ".join(cv_fields.values()).lower()
 
-    candidates = _extract_jd_candidates(job_text)
+    jd_phrases = _extract_jd_phrases(job_text)
 
     match_points, miss_points = [], []
-    for tok in candidates:
-        # Build a flexible needle: collapse spaces/dots for fuzzy matching
-        needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(tok))
-        if re.search(needle, cv_text, re.IGNORECASE):
+    used_cv_sentences = set()
+
+    for phrase in jd_phrases:
+        keywords = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', phrase.lower())
+                    if w not in _STOP_WORDS]
+        if not keywords:
+            continue
+        found = sum(1 for kw in keywords if kw in cv_full)
+        # Shorter phrases (≤3 keywords) need 1 match; longer phrases need ≥30%
+        threshold = 1 if len(keywords) <= 3 else max(1, len(keywords) * 0.3)
+        if found >= threshold:
             if len(match_points) < max_match:
-                match_points.append(tok)
+                cv_phrase = _find_cv_phrase(keywords, cv_fields)
+                if cv_phrase and cv_phrase not in used_cv_sentences:
+                    used_cv_sentences.add(cv_phrase)
+                    match_points.append(cv_phrase)
         else:
             if len(miss_points) < max_miss:
-                miss_points.append(tok)
+                miss_points.append(phrase)
 
     return match_points, miss_points
 
