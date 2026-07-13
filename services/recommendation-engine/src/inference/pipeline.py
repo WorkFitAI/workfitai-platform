@@ -327,13 +327,15 @@ def _split_cv_sentences(text: str) -> list:
     return [p.strip() for p in parts if len(p.strip()) >= 12]
 
 
-def _find_cv_phrase(keywords: list, cv_fields: dict, max_len: int = 100) -> str:
+def _find_cv_phrase(keywords: list, cv_fields: dict, max_len: int = 120) -> str:
     """
     Find the CV sentence that best demonstrates the given keywords.
-    Searches all 4 CV fields. Returns the best matching sentence truncated.
+    Searches experience first, then other fields. Returns best match truncated.
     """
     best_sent, best_score = "", 0
-    for field_text in cv_fields.values():
+    field_order = ["experience", "skills", "summary", "education"]
+    for field_name in field_order:
+        field_text = cv_fields.get(field_name, "")
         for sent in _split_cv_sentences(field_text):
             sent_lower = sent.lower()
             score = sum(1 for kw in keywords if kw in sent_lower)
@@ -341,6 +343,22 @@ def _find_cv_phrase(keywords: list, cv_fields: dict, max_len: int = 100) -> str:
                 best_score = score
                 best_sent = sent
     return best_sent[:max_len].strip() if best_score > 0 else ""
+
+
+def _find_cv_phrase_for_skill(skill: str, cv_fields: dict, max_len: int = 120) -> str:
+    """
+    Find the CV sentence that contains the given skill keyword.
+    Searches experience first (most informative), then skills, summary, education.
+    Returns the first matching sentence truncated, or empty string if not found.
+    """
+    needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(skill))
+    field_order = ["experience", "skills", "summary", "education"]
+    for field_name in field_order:
+        field_text = cv_fields.get(field_name, "")
+        for sent in _split_cv_sentences(field_text):
+            if re.search(needle, sent, re.IGNORECASE):
+                return sent[:max_len].strip()
+    return ""
 
 
 def _rule_match_miss(
@@ -365,15 +383,20 @@ def _rule_match_miss(
 
     match_points, miss_points = [], []
 
-    # Step 1: tech skill matching — precise, returns clean skill tokens
+    # Step 1: tech skill matching — find CV sentence containing each JD skill
     jd_skills = list(dict.fromkeys(
         m.group(0).strip() for m in _SKILL_RE.finditer(job_text)
     ))
+    used_cv_sentences: set = set()
     for skill in jd_skills:
         needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(skill))
         if re.search(needle, cv_full, re.IGNORECASE):
             if len(match_points) < max_match:
-                match_points.append(skill)
+                cv_phrase = _find_cv_phrase_for_skill(skill, cv_fields)
+                entry = cv_phrase if cv_phrase else skill
+                if entry not in used_cv_sentences:
+                    used_cv_sentences.add(entry)
+                    match_points.append(entry)
         else:
             if len(miss_points) < max_miss:
                 miss_points.append(skill)
