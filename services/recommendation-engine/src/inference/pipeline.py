@@ -163,7 +163,14 @@ def _t5_generate(model, tokenizer, job_text: str, resume_text: str, score: float
     )
     inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
     with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=128, num_beams=4, early_stopping=True)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=128,
+            num_beams=4,
+            early_stopping=True,
+            no_repeat_ngram_size=3,
+            repetition_penalty=1.5,
+        )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
@@ -177,16 +184,25 @@ def _rule_explanation(score: float) -> str:
     return "Limited alignment with the job requirements based on profile analysis."
 
 
+_MAX_POINT_LEN = 80  # discard any parsed point longer than this (repetition artifact)
+
+
 def _parse_match_miss(text: str) -> tuple:
     """Parse T5 output 'match: X; Y. miss: A; B.' into two lists."""
     m = re.search(r'match:\s*([^.]+)', text, re.IGNORECASE)
     x = re.search(r'miss:\s*([^.]+)',  text, re.IGNORECASE)
-    match_points = [s.strip() for s in m.group(1).split(';') if s.strip()] if m else []
-    miss_points  = [s.strip() for s in x.group(1).split(';') if s.strip()] if x else []
+    match_points = [
+        s.strip() for s in m.group(1).split(';')
+        if s.strip() and len(s.strip()) <= _MAX_POINT_LEN
+    ] if m else []
+    miss_points = [
+        s.strip() for s in x.group(1).split(';')
+        if s.strip() and len(s.strip()) <= _MAX_POINT_LEN
+    ] if x else []
     return match_points, miss_points
 
 
-# Skill/tech token patterns — ordered longest-first to avoid substring shadowing
+# Tech skill tokens — longest-first to avoid substring shadowing
 _SKILL_RE = re.compile(
     r'\b('
     r'next\.?js|nest\.?js|node\.?js|vue\.?js|react\.?js|react|angular|svelte|'
@@ -198,11 +214,55 @@ _SKILL_RE = re.compile(
     r'graphql|rest\s*api|grpc|kafka|rabbitmq|celery|'
     r'pytorch|tensorflow|keras|scikit.learn|pandas|numpy|'
     r'git|linux|bash|sql|html|css|'
-    r'microservices|monorepo|agile|scrum|'
-    r'\d+\+?\s*(?:years?|yrs?)\s+(?:\w+\s+){0,3}experience'
+    r'microservices|monorepo|agile|scrum'
     r')\b',
     re.IGNORECASE,
 )
+
+# Education level patterns
+_EDU_RE = re.compile(
+    r'\b(bachelor\'?s?(?:\s+(?:degree|of\s+\w+))?'
+    r'|master\'?s?(?:\s+(?:degree|of\s+\w+))?'
+    r'|ph\.?d\.?|mba'
+    r'|(?:degree\s+in\s+[\w\s]{3,30}))',
+    re.IGNORECASE,
+)
+
+# Experience year patterns
+_EXP_RE = re.compile(
+    r'\b(\d+\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:[\w]+\s+){0,4}experience)',
+    re.IGNORECASE,
+)
+
+# Soft / domain skills
+_SOFT_RE = re.compile(
+    r'\b(communication\s+skills?|leadership|teamwork|problem[\s-]solving'
+    r'|analytical|critical\s+thinking|time\s+management|attention\s+to\s+detail'
+    r'|collaboration|presentation\s+skills?|project\s+management)',
+    re.IGNORECASE,
+)
+
+
+def _extract_jd_candidates(job_text: str) -> list:
+    """
+    Extract all checkable requirement phrases from JD text.
+    Priority order: tech skills → experience years → education → soft skills.
+    Uses regex for precision; deduplicates while preserving order.
+    """
+    found = []
+    seen = set()
+
+    def _add(tok: str):
+        key = tok.lower().strip()
+        if key not in seen:
+            seen.add(key)
+            found.append(tok.strip())
+
+    for pattern in (_SKILL_RE, _EXP_RE, _EDU_RE, _SOFT_RE):
+        for m in pattern.finditer(job_text):
+            _add(m.group(0))
+
+    return found
 
 
 def _rule_match_miss(
@@ -212,8 +272,8 @@ def _rule_match_miss(
     max_miss: int = 3,
 ) -> tuple:
     """
-    Rule-based match/miss fallback — active before T5 is retrained for structured output.
-    Extracts skill tokens from JD text and checks presence in CV text.
+    Rule-based match/miss fallback covering tech skills, experience, education,
+    and soft skills. Active when T5 output is missing or invalid.
     """
     cv_text = " ".join(filter(None, [
         getattr(resume, "resume_skills", ""),
@@ -223,13 +283,12 @@ def _rule_match_miss(
         getattr(resume, "resume_text", ""),
     ])).lower()
 
-    jd_tokens = list(dict.fromkeys(
-        m.group(0).strip() for m in _SKILL_RE.finditer(job_text)
-    ))
+    candidates = _extract_jd_candidates(job_text)
 
     match_points, miss_points = [], []
-    for tok in jd_tokens:
-        needle = re.sub(r'[\s.]+', r'\\s*\\.?', re.escape(tok))
+    for tok in candidates:
+        # Build a flexible needle: collapse spaces/dots for fuzzy matching
+        needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(tok))
         if re.search(needle, cv_text, re.IGNORECASE):
             if len(match_points) < max_match:
                 match_points.append(tok)
@@ -254,14 +313,21 @@ def _field_coverage(resume: ResumeInput) -> tuple:
 
 def _is_valid_t5_explanation(text: str) -> bool:
     """
-    Reject T5 output that is empty, too short, or contains error/diagnostic patterns
-    from a bad or undertrained model. Falls back to rule-based in those cases.
+    Reject T5 output that is empty, too short, contains error patterns,
+    or shows repetition loops (e.g. "Containerized Containerized...").
     """
     if not text or len(text.strip()) < 15:
         return False
     lower = text.lower()
-    # Reject outputs that look like internal error messages or diagnostic artifacts
-    return not any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score ("))
+    if any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score (")):
+        return False
+    # Detect repetition: any single word appearing > 4 times → garbage output
+    words = lower.split()
+    if words:
+        from collections import Counter
+        if max(Counter(words).values()) > 4:
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -564,10 +630,14 @@ class CVRankingPipeline:
             explanation = self._explain(c, label)
 
             match_points, miss_points = _parse_match_miss(explanation)
-            if not match_points and not miss_points:
-                match_points, miss_points = _rule_match_miss(
+            if not match_points or not miss_points:
+                rule_match, rule_miss = _rule_match_miss(
                     c.get("_job_text", ""), c.get("_resume"),
                 )
+                if not match_points:
+                    match_points = rule_match
+                if not miss_points:
+                    miss_points = rule_miss
             resume = c.get("_resume", {})
             coverage, fields_used = _field_coverage(resume)
 
