@@ -184,6 +184,18 @@ def _rule_explanation(score: float) -> str:
     return "Limited alignment with the job requirements based on profile analysis."
 
 
+def _build_nl_explanation(match_points: list, miss_points: list, label: str, score: float) -> str:
+    """Convert structured match/miss lists into a readable natural language explanation."""
+    parts = []
+    if match_points:
+        parts.append(f"Matches: {', '.join(match_points)}.")
+    if miss_points:
+        parts.append(f"Missing: {', '.join(miss_points)}.")
+    if parts:
+        return " ".join(parts)
+    return _rule_explanation(score)
+
+
 _MAX_POINT_LEN = 80  # discard any parsed point longer than this (repetition artifact)
 
 
@@ -629,15 +641,22 @@ class CVRankingPipeline:
             label = "Good Fit" if score >= good_fit_threshold else "No Fit"
             explanation = self._explain(c, label)
 
-            match_points, miss_points = _parse_match_miss(explanation)
-            if not match_points or not miss_points:
-                rule_match, rule_miss = _rule_match_miss(
-                    c.get("_job_text", ""), c.get("_resume"),
-                )
-                if not match_points:
-                    match_points = rule_match
-                if not miss_points:
-                    miss_points = rule_miss
+            # Detect if T5 produced structured format ("miss: X; Y.") — raw text looks bad on UI
+            t5_match, t5_miss = _parse_match_miss(explanation)
+            structured_t5 = bool(t5_match or t5_miss)
+
+            # match/miss always from rule-based — checks actual CV text, no hallucination
+            match_points, miss_points = _rule_match_miss(
+                c.get("_job_text", ""), c.get("_resume"),
+            )
+            # fallback: JD has no parseable requirements → use T5's extraction
+            if not match_points and not miss_points:
+                match_points, miss_points = t5_match, t5_miss
+
+            # Rebuild explanation from final match/miss so UI text is consistent with highlights
+            if structured_t5:
+                explanation = _build_nl_explanation(match_points, miss_points, label, score)
+
             resume = c.get("_resume", {})
             coverage, fields_used = _field_coverage(resume)
 
