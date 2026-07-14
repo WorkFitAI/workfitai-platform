@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -33,6 +36,7 @@ class CvRankingServiceTest {
     @Mock ApplicationRepository applicationRepository;
     @Mock ApplicationMapper applicationMapper;
     @Mock AuditLogService auditLogService;
+    @Mock ApplicationNoteService applicationNoteService;
 
     @InjectMocks CvRankingService service;
 
@@ -75,6 +79,8 @@ class CvRankingServiceTest {
         assertThat(result.getJobOverview()).isEqualTo("Senior Java Developer");
         assertThat(result.getApplications().get(0).isRanked()).isTrue();
         assertThat(result.getApplications().get(1).isRanked()).isFalse();
+        verify(applicationNoteService, times(1)).addNoteIfContentIsNew(app1, "Great CV", "AI_RANKING");
+        verify(applicationNoteService, never()).addNoteIfContentIsNew(eq(app2), anyString(), anyString());
     }
 
     @Test

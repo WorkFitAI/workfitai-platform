@@ -19,8 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,6 +71,35 @@ class RecommendationServiceImplTest {
         ResJobRecommendationDTO result = recommendationService.getRecommendationsByCV("alice", 5, null);
 
         assertThat(result.getRecommendations()).isEmpty();
+    }
+
+    @Test
+    void getRecommendationsByCV_forwardsStructuredFieldsAndCandidateUsername() {
+        Map<String, Object> cvData = Map.of(
+                "resumeSummary", "Fresher seeking OJT",
+                "resumeSkills", "Java, Spring",
+                "resumeExperience", "FPT Software intern",
+                "resumeEducation", "BSc Computer Science");
+        when(cvFeignClient.getCvDataBatch(List.of("alice"))).thenReturn(List.of(cvData));
+        when(recommendationFeignClient.getRecommendationsByProfile(any())).thenReturn(Map.of());
+
+        recommendationService.getRecommendationsByCV("alice", 5, null);
+
+        ArgumentCaptor<ReqJobRecommendationDTO> captor = ArgumentCaptor.forClass(ReqJobRecommendationDTO.class);
+        verify(recommendationFeignClient).getRecommendationsByProfile(captor.capture());
+        ReqJobRecommendationDTO sent = captor.getValue();
+
+        // Structured sections must reach the engine so the multi-field pipeline +
+        // seniority guardrail engage instead of a single encode of profileText.
+        assertThat(sent.getResumeSummary()).isEqualTo("Fresher seeking OJT");
+        assertThat(sent.getResumeSkills()).isEqualTo("Java, Spring");
+        assertThat(sent.getResumeExperience()).isEqualTo("FPT Software intern");
+        assertThat(sent.getResumeEducation()).isEqualTo("BSc Computer Science");
+        assertThat(sent.getProfileText()).contains("Fresher seeking OJT").contains("Java, Spring");
+
+        // candidateUsername must NOT be forwarded: it triggers fail-closed consent
+        // enforcement in the engine, turning a user-service outage into a 503 home feed.
+        assertThat(sent.getCandidateUsername()).isNull();
     }
 
     @Test

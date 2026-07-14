@@ -1,16 +1,16 @@
 {
   "candidateNum": 3,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 1
+    "hrmKey": "hrm1",
+    "index": 11
   },
-  "jobTitle": "Frontend Software Engineer - React (Contract)",
+  "jobTitle": "Bridge Software Engineer (BRSE)",
   "label": "match",
   "resume_index": 3,
-  "resume_summary": "Versatile Software Engineer (Full-Stack) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in Java and Java. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal Engineer @ BCG Vietnam (Apr 2023–Oct 2024) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Lead Software Engineer @ Oracle Vietnam (Oct 2023–Sep 2025) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jul 2025–Present)",
-  "resume_skills": "Redux, ReactJS, TypeScript, TailwindCSS, Spring Boot, NestJS, Next.js, Django, R, Java, Go, GitHub Actions, ArgoCD, Docker, Azure, Continuous Learning, Presentation Skills, Leadership & Mentoring",
+  "resume_summary": "Engineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with ArgoCD, AWS, and Go. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Engineer @ BCG Vietnam (Jun 2023–May 2025) · Led 7-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Oracle Vietnam (Sep 2023–Feb 2026) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jun 2025–Present)",
+  "resume_skills": "AWS, Docker, Java, Spring Boot, NestJS, Next.js, Django, TypeScript, R, Go, GitHub Actions, ArgoCD, Azure, REST API Design, Code Review, Continuous Learning, Project Planning, Problem Decomposition, Technical Communication, Time Management",
   "resume_education": "Bachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720",
-  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nVersatile Software Engineer (Full-Stack) (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in Java and Java. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ BCG Vietnam (Apr 2023–Oct 2024) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Lead Software Engineer @ Oracle Vietnam (Oct 2023–Sep 2025) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jul 2025–Present)\n\nSKILLS\nRedux, ReactJS, TypeScript, TailwindCSS, Spring Boot, NestJS, Next.js, Django, R, Java, Go, GitHub Actions, ArgoCD, Docker, Azure, Continuous Learning, Presentation Skills, Leadership & Mentoring\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with ArgoCD, AWS, and Go. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Engineer @ BCG Vietnam (Jun 2023–May 2025) · Led 7-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Oracle Vietnam (Sep 2023–Feb 2026) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Senior Software Engineer @ Amazon Web Services Vietnam (Jun 2025–Present)\n\nSKILLS\nAWS, Docker, Java, Spring Boot, NestJS, Next.js, Django, TypeScript, R, Go, GitHub Actions, ArgoCD, Azure, REST API Design, Code Review, Continuous Learning, Project Planning, Problem Decomposition, Technical Communication, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720",
   "pdf_file": "candidate3_12.pdf"
 }

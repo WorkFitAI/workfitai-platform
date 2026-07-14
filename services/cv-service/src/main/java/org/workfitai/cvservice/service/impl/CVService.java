@@ -318,15 +318,13 @@ public class CVService implements iCVService {
             var parseResult = uploadCvStrategy.parsePdfFileWithText(file);
             var parsed = parseResult.parsed();
 
-            // Build sections map
+            // Only the sections Ollama re-extraction validates/overrides are stored;
+            // heuristic-only projects/languages/objective/certifications are dropped as
+            // noise (see UploadCvStrategy for rationale). Ollama overrides these below.
             Map<String, Object> sections = new HashMap<>();
             sections.put("skills",        parsed.getSkills());
-            sections.put("projects",      parsed.getProjects());
             sections.put("experience",    parsed.getExperience());
             sections.put("education",     parsed.getEducation());
-            sections.put("languages",     parsed.getLanguages());
-            sections.put("objective",     parsed.getObjective());
-            sections.put("certifications",parsed.getCertifications());
 
             List<String> summaryLines = new java.util.ArrayList<>();
             if (parsed.getSummary() != null) summaryLines.addAll(parsed.getSummary());
@@ -399,14 +397,13 @@ public class CVService implements iCVService {
 
             var parsed = uploadCvStrategy.parsePdfFile(new java.io.ByteArrayInputStream(content));
 
+            // Only the 4 Ollama-validated sections are stored; heuristic-only
+            // projects/languages/certifications/objective are dropped as noise
+            // (see UploadCvStrategy for rationale).
             Map<String, Object> sections = new HashMap<>();
             sections.put("skills",        Objects.requireNonNullElse(parsed.getSkills(), List.of()));
             sections.put("experience",    Objects.requireNonNullElse(parsed.getExperience(), List.of()));
             sections.put("education",     Objects.requireNonNullElse(parsed.getEducation(), List.of()));
-            sections.put("projects",      Objects.requireNonNullElse(parsed.getProjects(), List.of()));
-            sections.put("languages",     Objects.requireNonNullElse(parsed.getLanguages(), List.of()));
-            sections.put("certifications",Objects.requireNonNullElse(parsed.getCertifications(), List.of()));
-            sections.put("objective",     Objects.requireNonNullElse(parsed.getObjective(), List.of()));
             sections.put("summary",       Objects.requireNonNullElse(parsed.getSummary(), List.of()));
 
             List<String> summaryLines = new java.util.ArrayList<>();

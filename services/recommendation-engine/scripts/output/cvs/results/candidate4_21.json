@@ -1,0 +1,16 @@
+{
+  "candidateNum": 4,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 4
+  },
+  "jobTitle": "Product Engineer (Intern/Fresher/Junior)",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Results-driven principal-level Security Engineer with 15 years building high-throughput logistics platforms. Deep expertise in MySQL, Agile / Scrum, and DDD. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Lead Security Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Senior Security Engineer @ Techcombank (Sep 2023–Jan 2025) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Security Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | Security Analyst @ Medici Health (May 2024–Mar 2026) | Security Analyst @ ACB Bank (May 2025–Present)",
+  "resume_skills": "Agile, Python, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Ownership & Accountability, Presentation Skills, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Cybersecurity – NEU – Hanoi, 2011 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Security Engineer with 15 years building high-throughput logistics platforms. Deep expertise in MySQL, Agile / Scrum, and DDD. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nLead Security Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Senior Security Engineer @ Techcombank (Sep 2023–Jan 2025) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Security Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | Security Analyst @ Medici Health (May 2024–Mar 2026) | Security Analyst @ ACB Bank (May 2025–Present)\n\nSKILLS\nAgile, Python, Event-Driven Architecture, TDD, DDD, Agile / Scrum, MySQL, Cassandra, BigQuery, Redis, Ansible, GitHub Actions, Ownership & Accountability, Presentation Skills, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Cybersecurity – NEU – Hanoi, 2011 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate4_21.pdf"
+}

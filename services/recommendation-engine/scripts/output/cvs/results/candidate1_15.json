@@ -1,16 +1,16 @@
 {
   "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 14
   },
-  "jobTitle": "Machine Learning Engineer - NLP",
+  "jobTitle": "Senior Project Manager/Program Manager (RTE)",
   "label": "match",
   "resume_index": 1,
-  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and PyTorch. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Principal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)",
-  "resume_skills": "Python, LangChain, PyTorch, HuggingFace Transformers, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and PyTorch. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nPython, LangChain, PyTorch, HuggingFace Transformers, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_summary": "Results-oriented Project Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in AWS and Java; comfortable presenting findings directly to C-suite stakeholders.",
+  "resume_experience": "Programme Manager @ BCG Vietnam (Apr 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior PM @ Techcombank (Sep 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Project Manager @ KMS Technology (Oct 2023–Present)",
+  "resume_skills": "Docker, AWS, Angular, Java, BPMN, Confluence, Visio, Stakeholder Workshops, Resource Planning, Asana, Kanban, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning",
+  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nResults-oriented Project Manager (6 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in AWS and Java; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nProgramme Manager @ BCG Vietnam (Apr 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior PM @ Techcombank (Sep 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Project Manager @ KMS Technology (Oct 2023–Present)\n\nSKILLS\nDocker, AWS, Angular, Java, BPMN, Confluence, Visio, Stakeholder Workshops, Resource Planning, Asana, Kanban, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Presentation Skills, Cross-functional Collaboration, Project Planning\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_15.pdf"
 }

@@ -24,7 +24,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 FORCE=""
-CV_BRANCH="main"
+CV_BRANCH="v2"
 
 for arg in "$@"; do
     case "$arg" in

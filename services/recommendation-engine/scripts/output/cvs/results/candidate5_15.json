@@ -1,16 +1,16 @@
 {
   "candidateNum": 5,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 14
   },
-  "jobTitle": "Machine Learning Engineer - NLP",
+  "jobTitle": "Senior Project Manager/Program Manager (RTE)",
   "label": "match",
   "resume_index": 5,
-  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Python, and PyTorch. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Principal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)",
-  "resume_skills": "LangChain, Python, PyTorch, HuggingFace Transformers, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
-  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Go, Python, and PyTorch. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ Lotte Vietnam (Sep 2023–Aug 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Lead ML Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Senior ML Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nLangChain, Python, PyTorch, HuggingFace Transformers, Redis, Cassandra, BigQuery, MySQL, scikit-learn, Airflow, Go, Bash, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – FTU HCMC, 2008 | TOEIC 600",
+  "resume_summary": "Commercially minded Project Manager (15 yrs) with a track record of driving 45% efficiency gains. Expertise in AWS and Java. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Programme Manager @ Lotte Vietnam (Feb 2024–Feb 2025) · Automated reporting workflows, saving the team approximately 22 engineering-hours per sprint. | Senior PM @ Atlassian (Jan 2024–Dec 2025) · Defined and shipped 8 major product features that increased DAU by 60%. | Project Manager @ AEON Vietnam (Oct 2025–Present)",
+  "resume_skills": "Docker, Java, AWS, Angular, TDD, REST API Design, Gap Analysis, Use Case Analysis, Monday.com, Agile / Scrum, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management",
+  "resume_education": "Bachelor of Business Administration – FTU HCMC, 2008 | TOEIC 600 | Cert: Certified Business Analysis Professional (CBAP)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19\n\nOBJECTIVE\nCommercially minded Project Manager (15 yrs) with a track record of driving 45% efficiency gains. Expertise in AWS and Java. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nProgramme Manager @ Lotte Vietnam (Feb 2024–Feb 2025) · Automated reporting workflows, saving the team approximately 22 engineering-hours per sprint. | Senior PM @ Atlassian (Jan 2024–Dec 2025) · Defined and shipped 8 major product features that increased DAU by 60%. | Project Manager @ AEON Vietnam (Oct 2025–Present)\n\nSKILLS\nDocker, Java, AWS, Angular, TDD, REST API Design, Gap Analysis, Use Case Analysis, Monday.com, Agile / Scrum, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management\n\nEDUCATION\nBachelor of Business Administration – FTU HCMC, 2008 | TOEIC 600 | Cert: Certified Business Analysis Professional (CBAP)",
   "pdf_file": "candidate5_15.pdf"
 }

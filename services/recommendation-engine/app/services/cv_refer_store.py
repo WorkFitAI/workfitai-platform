@@ -110,6 +110,10 @@ class CvReferStore:
         with self._lock:
             return self._cv_data.get(_cv_key(job_id, username))
 
+    def has_cv_snapshot(self, job_id: str, username: str) -> bool:
+        with self._lock:
+            return _cv_key(job_id, username) in self._cv_data
+
     def get_stats(self) -> Dict:
         with self._lock:
             return {

@@ -1,0 +1,16 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 14
+  },
+  "jobTitle": "AI Engineer (Python,ML,LLM)",
+  "label": "match",
+  "resume_index": 2,
+  "resume_summary": "Hands-on Machine Learning Engineer with 10 years building resilient, observable microservices in e-commerce. Expertise in Neo4j and Neo4j. Drove adoption of Azure-based tooling, improving MTTR by 53%.",
+  "resume_experience": "Principal ML Engineer @ Zalo Group (Feb 2021–Aug 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Lead ML Engineer @ Haravan (Jan 2023–Aug 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior ML Engineer @ Masan Group (Jun 2022–Apr 2025) | ML Engineer @ BCG Vietnam (Apr 2025–Mar 2026) | ML Engineer @ Google LLC (Jan 2024–Present)",
+  "resume_skills": "Python, MLOps, TypeScript, MongoDB, Neo4j, TensorFlow, scikit-learn, Bash, C++, Kotlin, Rust, Jenkins, AWS, Terraform, Azure, Leadership & Mentoring, Empathy & Active Listening, Technical Communication",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nHands-on Machine Learning Engineer with 10 years building resilient, observable microservices in e-commerce. Expertise in Neo4j and Neo4j. Drove adoption of Azure-based tooling, improving MTTR by 53%.\n\nEXPERIENCE\nPrincipal ML Engineer @ Zalo Group (Feb 2021–Aug 2023) · Reduced Docker image sizes by 23% via multi-stage builds, halving cold-start times in k8s. | Lead ML Engineer @ Haravan (Jan 2023–Aug 2024) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior ML Engineer @ Masan Group (Jun 2022–Apr 2025) | ML Engineer @ BCG Vietnam (Apr 2025–Mar 2026) | ML Engineer @ Google LLC (Jan 2024–Present)\n\nSKILLS\nPython, MLOps, TypeScript, MongoDB, Neo4j, TensorFlow, scikit-learn, Bash, C++, Kotlin, Rust, Jenkins, AWS, Terraform, Azure, Leadership & Mentoring, Empathy & Active Listening, Technical Communication\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "pdf_file": "candidate2_31.pdf"
+}

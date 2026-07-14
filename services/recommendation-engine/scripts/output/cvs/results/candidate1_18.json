@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "[HCM] Intern Product Owner",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "T-shaped Product Manager with 6 years spanning mobile, platform, and growth products. Leverages Jira and SQL to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.",
+  "resume_experience": "Group PM @ BCG Vietnam (Nov 2022–Dec 2024) · Authored internal RFC for strangler-fig architecture, adopted across 9 product squads. | Senior PM @ Techcombank (Feb 2025–Jan 2026) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Product Manager @ KMS Technology (Feb 2025–Present)",
+  "resume_skills": "Team Management, Jira, AWS, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills",
+  "resume_education": "Bachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nT-shaped Product Manager with 6 years spanning mobile, platform, and growth products. Leverages Jira and SQL to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.\n\nEXPERIENCE\nGroup PM @ BCG Vietnam (Nov 2022–Dec 2024) · Authored internal RFC for strangler-fig architecture, adopted across 9 product squads. | Senior PM @ Techcombank (Feb 2025–Jan 2026) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Product Manager @ KMS Technology (Feb 2025–Present)\n\nSKILLS\nTeam Management, Jira, AWS, Looker, SQL, Mixpanel, Google Analytics, Product Analytics, JIRA, User Story Mapping, Monday.com, Risk Management, Kanban, Asana, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Business Administration – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate1_18.pdf"
+}

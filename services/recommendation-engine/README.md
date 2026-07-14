@@ -7,6 +7,7 @@ AI-powered job recommendation system using **E5-Large bi-encoder** (1024d) and *
 - [Architecture Overview](#architecture-overview)
 - [Data Flow & Communication](#data-flow--communication)
 - [API Endpoints](#api-endpoints)
+- [Batch CV Dataset Generation](#batch-cv-dataset-generation)
 - [Setup & Installation](#setup--installation)
 - [Configuration](#configuration)
 - [Development Guide](#development-guide)
@@ -484,6 +485,21 @@ API keys are configured, the model fails, or all keys are rate-limited.
 
 Bounded to a 45s server-side wall-clock budget so it stays under cv-service's client
 timeout and doesn't exhaust the anyio threadpool during rate-limit incidents.
+
+---
+
+## Batch CV Dataset Generation
+
+From `services\recommendation-engine`, generate the application CV dataset with:
+
+```powershell
+& .\scripts\.cv_gen_venv\Scripts\python.exe .\scripts\generate_cv_pdfs.py --batch-jobs .\scripts\jobs.json --batch-apps .\scripts\applications.json --output .\scripts\output\cvs\results
+```
+
+- `jobs.json` supplies the job specifications and `applications.json` supplies the candidate/job assignments.
+- Every application `cvFile` must be a unique, plain PDF filename such as `candidate-001.pdf`; paths and duplicate names (case-insensitive) are rejected before generation starts.
+- The script creates all companion CV JSON data and `manifest.json` first, then renders the PDFs from that generated data.
+- Output is written to `scripts\output\cvs\results` under the recommendation-engine service directory.
 
 ---
 

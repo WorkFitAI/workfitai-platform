@@ -152,6 +152,33 @@ class TestApplicationCreated:
         }
         consumer._dispatch("application-events", event)  # must not raise
 
+    def test_does_not_overwrite_snapshot_from_earlier_ollama_push(self, consumer, store):
+        # Regression: cv-service kicks off an async Ollama re-extraction the moment the
+        # snapshot CV is created (before APPLICATION_CREATED is even published) and pushes
+        # corrected sections straight into this store via POST /internal/cv-refer/snapshot.
+        # That push can beat this Kafka event to the consumer — if this handler blindly
+        # overwrote, the better Ollama data would be silently clobbered back to the
+        # heuristic (often blank) event payload.
+        store.set_cv_snapshot("job-9", "ivan", {
+            "summary": "Ollama-corrected summary",
+            "experience": "Ollama-corrected experience",
+            "skills": "Ollama-corrected skills",
+            "education": "Ollama-corrected education",
+        })
+        event = {
+            "eventType": "APPLICATION_CREATED",
+            "data": {
+                "jobId": "job-9", "username": "ivan",
+                "resumeSummary": "", "resumeExperience": "",
+                "resumeSkills": "", "resumeEducation": "",
+            },
+        }
+
+        consumer._dispatch("application-events", event)
+
+        assert store.get_cv_data("job-9", "ivan")["summary"] == "Ollama-corrected summary"
+        assert "ivan" in store.get_applicant_usernames("job-9")
+
 
 class TestApplicationWithdrawn:
     def test_removes_applicant(self, consumer, store):

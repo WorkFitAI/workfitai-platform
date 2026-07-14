@@ -1,16 +1,16 @@
 {
   "candidateNum": 9,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 1
+    "hrmKey": "hrm1",
+    "index": 6
   },
-  "jobTitle": "Data Engineer - Apache Spark / Airflow",
+  "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)",
   "label": "no_match",
   "resume_index": 9,
-  "resume_summary": "Versatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Principal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
-  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration",
-  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
-  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_summary": "Systems thinker with 2 years in Data Scientist roles at high-growth companies. Deep expertise in Mixpanel; solid grounding in HuggingFace Transformers and scikit-learn. Recognised for bridging engineering velocity with product quality.",
+  "resume_experience": "Lead Data Scientist @ Meta Platforms (Nov 2024–Sep 2025) · Led cross-functional team of 10 to deliver dashboard launch across 3 key markets in 3 weeks. | Senior Data Scientist @ Medici Health (Jul 2025–Present) · Reduced end-to-end API latency by 31% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "Mixpanel, Excel (Advanced), Google Analytics, PyTorch, scikit-learn, LangChain, HuggingFace Transformers, Neo4j, PostgreSQL, DynamoDB, MySQL, C++, R, Go, Ownership & Accountability, Conflict Resolution, Stakeholder Management, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Data Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: Certified Business Analysis Professional (CBAP)",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nSystems thinker with 2 years in Data Scientist roles at high-growth companies. Deep expertise in Mixpanel; solid grounding in HuggingFace Transformers and scikit-learn. Recognised for bridging engineering velocity with product quality.\n\nEXPERIENCE\nLead Data Scientist @ Meta Platforms (Nov 2024–Sep 2025) · Led cross-functional team of 10 to deliver dashboard launch across 3 key markets in 3 weeks. | Senior Data Scientist @ Medici Health (Jul 2025–Present) · Reduced end-to-end API latency by 31% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nMixpanel, Excel (Advanced), Google Analytics, PyTorch, scikit-learn, LangChain, HuggingFace Transformers, Neo4j, PostgreSQL, DynamoDB, MySQL, C++, R, Go, Ownership & Accountability, Conflict Resolution, Stakeholder Management, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Data Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: Certified Business Analysis Professional (CBAP)",
   "pdf_file": "candidate9_7.pdf"
 }

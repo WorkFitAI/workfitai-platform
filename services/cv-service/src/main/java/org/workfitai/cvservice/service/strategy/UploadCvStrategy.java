@@ -108,15 +108,16 @@ public class UploadCvStrategy implements CvCreationStrategy<ReqCvUploadDTO> {
 
             CV cv = CVMapper.INSTANCE.toEntityFromUpload(dto);
 
+            // Only the 4 sections that Ollama re-extraction validates/overrides
+            // (summary/skills/experience/education) are stored. The heuristic PDFBox
+            // parser reliably mis-buckets content into projects/languages/certifications/
+            // objective (unrelated lines, dates, headers), and Ollama does not clean those,
+            // so they were surfaced as-is — noise. Skill mining above still consumes the
+            // heuristic projects/objective text internally; only the display copy is dropped.
             Map<String, Object> sections = new HashMap<>();
             sections.put("skills", Objects.requireNonNullElse(parsedData.getSkills(), Collections.emptyList()));
             sections.put("experience", Objects.requireNonNullElse(parsedData.getExperience(), Collections.emptyList()));
             sections.put("education", Objects.requireNonNullElse(parsedData.getEducation(), Collections.emptyList()));
-            sections.put("projects", Objects.requireNonNullElse(parsedData.getProjects(), Collections.emptyList()));
-            sections.put("languages", Objects.requireNonNullElse(parsedData.getLanguages(), Collections.emptyList()));
-            sections.put("certifications",
-                    Objects.requireNonNullElse(parsedData.getCertifications(), Collections.emptyList()));
-            sections.put("objective", Objects.requireNonNullElse(parsedData.getObjective(), Collections.emptyList()));
             sections.put("summary", Objects.requireNonNullElse(parsedData.getSummary(), Collections.emptyList()));
 
             cv.setSections(sections);

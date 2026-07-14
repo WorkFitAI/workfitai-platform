@@ -1,16 +1,16 @@
 {
   "candidateNum": 3,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 5
+    "hrmKey": "hrm1",
+    "index": 15
   },
-  "jobTitle": "Security Analyst Intern - AppSec (Internship)",
+  "jobTitle": "Chuyên gia Khoa học dữ liệu",
   "label": "match",
   "resume_index": 3,
-  "resume_summary": "3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "Lead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Nov 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)",
-  "resume_skills": "OWASP Top 10, Burp Suite, Python, Kali Linux, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills",
-  "resume_education": "Bachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
-  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\n3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Nov 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)\n\nSKILLS\nOWASP Top 10, Burp Suite, Python, Kali Linux, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills\n\nEDUCATION\nBachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
+  "resume_summary": "Commercially minded Business Analyst (6 yrs) with a track record of driving 47% efficiency gains. Expertise in Docker and Requirements Gathering. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Lead BA @ BCG Vietnam (Dec 2022–Mar 2025) · Reduced end-to-end API latency by 24% by introducing Kafka caching and query optimisation. | Senior BA @ Oracle Vietnam (Dec 2023–Mar 2026) · Recruited and onboarded 7 specialist hires for the engineering function in under 1 weeks. | Business Analyst @ Amazon Web Services Vietnam (Mar 2024–Present)",
+  "resume_skills": "Docker, AWS, Confluence, Visio, Requirements Gathering, Monday.com, Agile / Scrum, Power BI, Mixpanel, Amplitude, Google Analytics, Time Management, Conflict Resolution, Empathy & Active Listening, Analytical Thinking",
+  "resume_education": "Bachelor of Business Administration – FTU HCMC, 2019 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/boydshannon\n\nOBJECTIVE\nCommercially minded Business Analyst (6 yrs) with a track record of driving 47% efficiency gains. Expertise in Docker and Requirements Gathering. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nLead BA @ BCG Vietnam (Dec 2022–Mar 2025) · Reduced end-to-end API latency by 24% by introducing Kafka caching and query optimisation. | Senior BA @ Oracle Vietnam (Dec 2023–Mar 2026) · Recruited and onboarded 7 specialist hires for the engineering function in under 1 weeks. | Business Analyst @ Amazon Web Services Vietnam (Mar 2024–Present)\n\nSKILLS\nDocker, AWS, Confluence, Visio, Requirements Gathering, Monday.com, Agile / Scrum, Power BI, Mixpanel, Amplitude, Google Analytics, Time Management, Conflict Resolution, Empathy & Active Listening, Analytical Thinking\n\nEDUCATION\nBachelor of Business Administration – FTU HCMC, 2019 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
   "pdf_file": "candidate3_16.pdf"
 }

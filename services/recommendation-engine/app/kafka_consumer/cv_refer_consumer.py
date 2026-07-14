@@ -153,35 +153,49 @@ class CvReferConsumer:
         # Add to applicant pool
         self._store.add_applicant(job_id, username)
 
-        # Populate CV snapshot from event payload (best-effort: may be empty strings if
-        # cv-service was unavailable during snapshot creation, ranking will still work)
-        snapshot = {
-            "summary":    data.get("resumeSummary", ""),
-            "experience": data.get("resumeExperience", ""),
-            "skills":     data.get("resumeSkills", ""),
-            "education":  data.get("resumeEducation", ""),
-        }
-        cv_snapshot_id = data.get("cvSnapshotId")
-
-        # Always store — even when every field is empty — so the applicant still
-        # reaches the ranking pipeline (and gets scored, typically low, instead of
-        # silently disappearing pre-model). The reconciliation job backfills empty
-        # snapshots later when cvSnapshotId is null; this consumer just mirrors
-        # whatever application-service published.
-        self._store.set_cv_snapshot(job_id, username, snapshot)
-        self._try_cache_embedding(job_id, username, snapshot)
-        if any(snapshot.values()):
+        # cv-service kicks off an async Ollama re-extraction the moment the snapshot CV
+        # is created (before this event is even published) and pushes the corrected
+        # sections straight to /internal/cv-refer/snapshot. That push can beat this
+        # Kafka event to the consumer, so don't blindly overwrite an existing snapshot
+        # with this event's (possibly worse, heuristic-only) payload — APPLICATION_CREATED
+        # fires exactly once per (job_id, username), so an existing entry here can only
+        # be that earlier Ollama push.
+        if self._store.has_cv_snapshot(job_id, username):
             logger.info(
-                "cv-refer: APPLICATION_CREATED — jobId=%s username=%s (snapshot stored, cvSnapshotId=%s)",
-                job_id, username, cv_snapshot_id or "none",
-            )
-        else:
-            logger.warning(
-                "cv-refer: APPLICATION_CREATED — jobId=%s username=%s — CV snapshot fields empty "
-                "(cv-service was unavailable during SNAPSHOT_CV step); stored anyway, "
-                "awaiting reconciliation backfill",
+                "cv-refer: APPLICATION_CREATED — jobId=%s username=%s — snapshot already present "
+                "(Ollama re-extraction landed first), keeping it instead of overwriting",
                 job_id, username,
             )
+        else:
+            # Populate CV snapshot from event payload (best-effort: may be empty strings
+            # if cv-service was unavailable during snapshot creation, ranking will still work)
+            snapshot = {
+                "summary":    data.get("resumeSummary", ""),
+                "experience": data.get("resumeExperience", ""),
+                "skills":     data.get("resumeSkills", ""),
+                "education":  data.get("resumeEducation", ""),
+            }
+            cv_snapshot_id = data.get("cvSnapshotId")
+
+            # Always store — even when every field is empty — so the applicant still
+            # reaches the ranking pipeline (and gets scored, typically low, instead of
+            # silently disappearing pre-model). The reconciliation job backfills empty
+            # snapshots later when cvSnapshotId is null; this consumer just mirrors
+            # whatever application-service published.
+            self._store.set_cv_snapshot(job_id, username, snapshot)
+            self._try_cache_embedding(job_id, username, snapshot)
+            if any(snapshot.values()):
+                logger.info(
+                    "cv-refer: APPLICATION_CREATED — jobId=%s username=%s (snapshot stored, cvSnapshotId=%s)",
+                    job_id, username, cv_snapshot_id or "none",
+                )
+            else:
+                logger.warning(
+                    "cv-refer: APPLICATION_CREATED — jobId=%s username=%s — CV snapshot fields empty "
+                    "(cv-service was unavailable during SNAPSHOT_CV step); stored anyway, "
+                    "awaiting reconciliation backfill",
+                    job_id, username,
+                )
 
         # Applicant pool changed — cached ranking for this job is now stale
         self._mark_ranking_dirty(job_id)

@@ -1,0 +1,16 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 4
+  },
+  "jobTitle": "Product Engineer (Intern/Fresher/Junior)",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Results-oriented Finance Analyst (13 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Excel (Advanced) and Stakeholder Workshops; comfortable presenting findings directly to C-suite stakeholders.",
+  "resume_experience": "Finance Manager @ GHTK (Oct 2023–Jun 2025) · Conducted 11 stakeholder workshops; translated findings into 11 actionable OKRs. | Senior Financial Analyst @ GHN Express (Jun 2023–Nov 2025) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Financial Analyst @ Vingroup (Dec 2023–Present)",
+  "resume_skills": "Metabase, Excel (Advanced), BPMN, Process Mapping, Use Case Analysis, Stakeholder Workshops, Power BI, Time Management, Data-Driven Decision Making, Leadership & Mentoring",
+  "resume_education": "Bachelor of Finance & Accounting – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan\n\nOBJECTIVE\nResults-oriented Finance Analyst (13 yrs) excelling at requirements gathering, root-cause analysis, and change management. Proficient in Excel (Advanced) and Stakeholder Workshops; comfortable presenting findings directly to C-suite stakeholders.\n\nEXPERIENCE\nFinance Manager @ GHTK (Oct 2023–Jun 2025) · Conducted 11 stakeholder workshops; translated findings into 11 actionable OKRs. | Senior Financial Analyst @ GHN Express (Jun 2023–Nov 2025) · Designed a event-sourcing pipeline that scaled to 500k requests/minute with 99.95% uptime. | Financial Analyst @ Vingroup (Dec 2023–Present)\n\nSKILLS\nMetabase, Excel (Advanced), BPMN, Process Mapping, Use Case Analysis, Stakeholder Workshops, Power BI, Time Management, Data-Driven Decision Making, Leadership & Mentoring\n\nEDUCATION\nBachelor of Finance & Accounting – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "pdf_file": "candidate10_21.pdf"
+}

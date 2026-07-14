@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -81,6 +83,31 @@ class ApplicationNoteServiceTest {
 
         assertThatThrownBy(() -> noteService.addNote("bad", new CreateNoteRequest(), "hr1"))
                 .isInstanceOf(NotFoundException.class);
+    }
+
+    // ─── addNoteIfContentIsNew ──────────────────────────────────────────────────
+
+    @Test
+    void addNoteIfContentIsNew_newContent_pushesNoteAtomically() {
+        noteService.addNoteIfContentIsNew(application, "AI explanation: match Java, miss K8s", "AI_RANKING");
+
+        verify(mongoTemplate).updateFirst(any(Query.class), any(Update.class), eq(Application.class));
+    }
+
+    @Test
+    void addNoteIfContentIsNew_contentMatchesExistingNote_skipsPush() {
+        // "Initial note" already exists on the application from setUp()
+        noteService.addNoteIfContentIsNew(application, "Initial note", "AI_RANKING");
+
+        verify(mongoTemplate, never()).updateFirst(any(Query.class), any(Update.class), eq(Application.class));
+    }
+
+    @Test
+    void addNoteIfContentIsNew_blankContent_doesNothing() {
+        noteService.addNoteIfContentIsNew(application, "  ", "AI_RANKING");
+        noteService.addNoteIfContentIsNew(application, null, "AI_RANKING");
+
+        verifyNoInteractions(mongoTemplate);
     }
 
     // ─── updateNote ───────────────────────────────────────────────────────────

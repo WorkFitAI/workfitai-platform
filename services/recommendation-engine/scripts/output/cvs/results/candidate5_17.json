@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 0
+  },
+  "jobTitle": "Cloud Solutions Architect - AWS / GCP",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Ansible, GCP, and Python. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Architect @ Lotte Vietnam (Oct 2023–Sep 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Solutions Architect @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "Kubernetes, GCP, Python, Terraform, TDD, REST API Design, Code Review, CI/CD, MySQL, BigQuery, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation",
+  "resume_education": "Bachelor of Science in Information Technology – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Ansible, GCP, and Python. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Architect @ Lotte Vietnam (Oct 2023–Sep 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Solutions Architect @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | Solutions Architect @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nKubernetes, GCP, Python, Terraform, TDD, REST API Design, Code Review, CI/CD, MySQL, BigQuery, Ansible, Project Planning, Data-Driven Decision Making, Stakeholder Management, Technical Communication, Negotiation\n\nEDUCATION\nBachelor of Science in Information Technology – FTU HCMC, 2008 | TOEIC 600",
+  "pdf_file": "candidate5_17.pdf"
+}

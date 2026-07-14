@@ -38,6 +38,23 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+if __package__:
+    from .cv_batch_generation import render_pdf_atomically, run_data_then_pdf_phases
+    from .cv_output_naming import validate_unique_application_cv_files
+    from .cv_role_matching import (
+        JOB_ROLES,
+        find_matching_roles,
+        require_supported_matching_roles,
+    )
+else:
+    from cv_batch_generation import render_pdf_atomically, run_data_then_pdf_phases
+    from cv_output_naming import validate_unique_application_cv_files
+    from cv_role_matching import (
+        JOB_ROLES,
+        find_matching_roles,
+        require_supported_matching_roles,
+    )
+
 try:
     from faker import Faker
     from reportlab.lib import colors
@@ -332,39 +349,6 @@ SOFT_SKILLS = [
     "Ownership & Accountability", "Continuous Learning",
     "Negotiation", "Presentation Skills", "Data-Driven Decision Making",
     "Empathy & Active Listening", "Time Management",
-]
-
-JOB_ROLES = [
-    # Engineering
-    ("Software Engineer", "Backend"),
-    ("Software Engineer", "Frontend"),
-    ("Software Engineer", "Full-Stack"),
-    ("Data Engineer", ""),
-    ("Data Scientist", ""),
-    ("Machine Learning Engineer", ""),
-    ("DevOps / Platform Engineer", ""),
-    ("Site Reliability Engineer", ""),
-    ("Cloud Solutions Architect", ""),
-    ("QA / Automation Engineer", ""),
-    ("Security Engineer", ""),
-    ("Mobile Engineer", "Android & iOS"),
-    ("AI Research Engineer", ""),
-    ("Technical Lead", ""),
-    ("Staff Engineer", ""),
-    # Product & Design
-    ("Product Manager", ""),
-    ("Product Manager", "Growth"),
-    ("UX / UI Designer", ""),
-    # Business
-    ("Business Analyst", ""),
-    ("Project Manager", ""),
-    ("Data Analyst", ""),
-    ("Digital Marketing Manager", ""),
-    ("HR Manager", ""),
-    ("Finance Analyst", ""),
-    ("Solutions Consultant", ""),
-    ("Operations Manager", ""),
-    ("Customer Success Manager", ""),
 ]
 
 COMPANIES = [
@@ -806,48 +790,9 @@ def generate_cv_data(index: int) -> dict:
 # JOB-AWARE CV GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
 
-_ROLE_KEYWORDS: dict[str, list[str]] = {
-    "Software Engineer":          ["software engineer", "backend", "back-end", "back end", "fullstack", "full-stack", "full stack", "web engineer", "application developer"],
-    "Data Engineer":              ["data engineer", "etl", "data pipeline", "data platform", "data infrastructure"],
-    "Data Scientist":             ["data scientist", "data science"],
-    "Machine Learning Engineer":  ["machine learning", "ml engineer", "ai engineer", "deep learning", "llm engineer"],
-    "DevOps / Platform Engineer": ["devops", "platform engineer", "infrastructure engineer", "cloud engineer", "infra engineer"],
-    "Site Reliability Engineer":  ["sre", "site reliability", "reliability engineer"],
-    "Cloud Solutions Architect":  ["solutions architect", "cloud architect", "cloud solutions", "enterprise architect"],
-    "QA / Automation Engineer":   ["qa engineer", "quality assurance", "automation engineer", "sdet", "test engineer", "software tester"],
-    "Security Engineer":          ["security engineer", "infosec", "cybersecurity", "appsec", "security analyst"],
-    "Mobile Engineer":            ["mobile engineer", "android", "ios", "flutter developer", "react native", "mobile developer"],
-    "AI Research Engineer":       ["ai research", "research engineer", "nlp engineer", "computer vision", "research scientist"],
-    "Technical Lead":             ["tech lead", "technical lead", "engineering lead", "lead engineer", "lead developer"],
-    "Staff Engineer":             ["staff engineer", "principal engineer", "distinguished engineer"],
-    "Product Manager":            ["product manager", "product owner", "head of product", "vp of product"],
-    "UX / UI Designer":           ["ux designer", "ui designer", "product designer", "user experience", "ux/ui", "ui/ux", "interaction designer"],
-    "Business Analyst":           ["business analyst", "business analysis", "systems analyst", "functional analyst"],
-    "Project Manager":            ["project manager", "programme manager", "scrum master", "pmo", "delivery manager"],
-    "Data Analyst":               ["data analyst", "analytics engineer", "business intelligence", "bi analyst", "reporting analyst"],
-    "Digital Marketing Manager":  ["marketing manager", "digital marketing", "growth manager", "seo specialist", "performance marketing"],
-    "HR Manager":                 ["hr manager", "human resources", "talent acquisition", "people manager", "recruiter", "people & culture"],
-    "Finance Analyst":            ["finance analyst", "financial analyst", "fp&a", "accounting", "treasury analyst"],
-    "Solutions Consultant":       ["solutions consultant", "pre-sales", "solutions engineer", "technical consultant", "implementation consultant"],
-    "Operations Manager":         ["operations manager", "ops manager", "head of operations", "supply chain manager", "operations lead"],
-    "Customer Success Manager":   ["customer success", "csm", "account manager", "client success", "customer experience"],
-}
-
-
 def _find_matching_roles(job_title: str) -> list[tuple[str, str]]:
-    """Return JOB_ROLES entries matching job title via keyword table, with word-overlap fallback."""
-    t = job_title.lower()
-    matched = [
-        (rb, sp) for rb, sp in JOB_ROLES
-        if any(kw in t for kw in _ROLE_KEYWORDS.get(rb, [rb.lower()]))
-    ]
-    if not matched:
-        t_words = set(t.split())
-        matched = [
-            (rb, sp) for rb, sp in JOB_ROLES
-            if set(rb.lower().split()) & t_words
-        ]
-    return matched or list(JOB_ROLES)
+    """Compatibility wrapper around the shared role-matching rules."""
+    return find_matching_roles(job_title)
 
 
 def _parse_job_spec(source) -> dict:
@@ -930,7 +875,13 @@ def generate_cv_data_for_job(index: int, job_spec: dict, force_match: bool | Non
     job_title: str         = job_spec.get("title", "")
 
     # ── Role selection ────────────────────────────────────────────────────────
-    matched_roles = _find_matching_roles(job_title)
+    matched_roles = (
+        require_supported_matching_roles(job_title)
+        if force_match is not None
+        else _find_matching_roles(job_title)
+    )
+    if not matched_roles:
+        matched_roles = list(JOB_ROLES)
     if force_match is True:
         role_base, speciality = random.choice(matched_roles)
     elif force_match is False:
@@ -1741,6 +1692,12 @@ def main():
         with open(apps_path, encoding="utf-8") as f:
             applications = json.load(f)["applications"]
 
+        try:
+            application_files = validate_unique_application_cv_files(applications)
+        except ValueError as exc:
+            print(f"ERROR: {exc}")
+            sys.exit(1)
+
         # Build job lookup: {hrmKey: [job0, job1, ...]}
         job_lookup: dict[str, list[dict]] = {}
         for j in all_jobs:
@@ -1754,10 +1711,12 @@ def main():
                 seen_job_keys[key] = len(seen_job_keys) + 1
 
         # Group candidates per job key (preserving order); carry optional ground-truth label
-        job_candidates: dict[tuple, list[tuple[int, str | None]]] = {}
-        for app in applications:
+        job_candidates: dict[tuple, list[tuple[int, str | None, str, str]]] = {}
+        for app, (pdf_file, json_file) in zip(applications, application_files):
             key = (app["jobRef"]["hrmKey"], app["jobRef"]["index"])
-            job_candidates.setdefault(key, []).append((app["candidateNum"], app.get("label")))
+            job_candidates.setdefault(key, []).append(
+                (app["candidateNum"], app.get("label"), pdf_file, json_file)
+            )
 
         out_dir = Path(args.output) if args.output != "output/cvs" else Path("output/cvs/results")
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -1768,6 +1727,7 @@ def main():
         random.seed(args.seed)
 
         manifest = []
+        generated_records: list[tuple[dict, str, str, str, dict | None]] = []
         for job_key, candidates in job_candidates.items():
             hrm_key, job_index = job_key
             job_idx = seen_job_keys[job_key]
@@ -1782,17 +1742,15 @@ def main():
 
             print(f"\n  Job {job_idx}: [{hrm_key}/{job_index}] {job_spec['title']}")
 
-            for cand_ordinal, (cand_num, label) in enumerate(candidates, start=1):
+            for cand_ordinal, (cand_num, label, pdf_file, json_file) in enumerate(candidates, start=1):
                 force_match = {"match": True, "no_match": False}.get(label)
                 data = generate_cv_data_for_job(cand_num, job_spec, force_match=force_match)
                 meta = data["_meta"]
 
-                basename = f"candidate{cand_num}_{job_idx}"
-                pdf_path  = str(out_dir / f"{basename}.pdf")
-                json_path = str(out_dir / f"{basename}.json")
+                pdf_path = str(out_dir / pdf_file)
+                json_path = str(out_dir / json_file)
 
-                HarvardCVRenderer(data, pdf_path).build()
-
+                payload = None
                 if not args.no_json:
                     payload = {
                         "candidateNum":      cand_num,
@@ -1805,13 +1763,12 @@ def main():
                         "resume_skills":     data["resume_skills"],
                         "resume_education":  data["resume_education"],
                         "resume_text":       data["resume_text"],
-                        "pdf_file":          f"{basename}.pdf",
+                        "pdf_file":          pdf_file,
                     }
-                    with open(json_path, "w", encoding="utf-8") as f:
-                        json.dump(payload, f, ensure_ascii=False, indent=2)
+                generated_records.append((data, pdf_path, pdf_file, json_path, payload))
 
                 manifest.append({
-                    "file":         f"{basename}.pdf",
+                    "file":         pdf_file,
                     "candidateNum": cand_num,
                     "name":         meta["name"],
                     "role":         meta["role"],
@@ -1820,11 +1777,36 @@ def main():
                     "jobRef":       {"hrmKey": hrm_key, "index": job_index},
                     "jobTitle":     job_spec["title"],
                 })
-                print(f"    [{cand_ordinal}/{len(candidates)}] {basename}.pdf  ({meta['name']})")
+                print(f"    prepared [{cand_ordinal}/{len(candidates)}] {json_file}  ({meta['name']})")
 
         manifest_path = out_dir / "manifest.json"
-        with open(manifest_path, "w", encoding="utf-8") as f:
-            json.dump({"total": len(manifest), "records": manifest}, f, ensure_ascii=False, indent=2)
+
+        def write_cv_data(record) -> None:
+            _, _, _, json_path, payload = record
+            if payload is not None:
+                with open(json_path, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, ensure_ascii=False, indent=2)
+
+        def finish_data_phase() -> None:
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                json.dump({"total": len(manifest), "records": manifest}, f, ensure_ascii=False, indent=2)
+            data_location = out_dir if not args.no_json else "memory"
+            print(f"\nCV data created: {len(generated_records)} records -> {data_location}")
+            print("Rendering PDFs from generated CV data...")
+
+        def render_cv_pdf(record) -> None:
+            data, pdf_path, _, _, _ = record
+            render_pdf_atomically(
+                pdf_path,
+                lambda temporary_path: HarvardCVRenderer(data, temporary_path).build(),
+            )
+
+        run_data_then_pdf_phases(
+            generated_records,
+            write_cv_data,
+            render_cv_pdf,
+            after_data=finish_data_phase,
+        )
 
         print(f"\nDone! (batch mode)")
         print(f"   Output   : {out_dir.resolve()}")
@@ -2057,4 +2039,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

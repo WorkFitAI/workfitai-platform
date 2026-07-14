@@ -125,16 +125,15 @@ def format_job_as_fields(job_data: Dict) -> Dict[str, str]:
       - jd_overview:           shortDescription
       - jd_requirements:       requirements
       - jd_responsibilities:   responsibilities
-      - jd_preferred:          benefits (same mapping app/services/cv_rank_assembly.py
-                                already uses for the CV-ranking feature -- kept
-                                consistent rather than inventing a second rule)
+      - jd_preferred:          always empty -- job-service has no "preferred"
+                                field on the job schema
     """
     return {
         "job_description_text": format_job_as_text(job_data),
         "jd_overview": _clean_html(job_data.get("shortDescription", "")),
         "jd_requirements": _clean_html(job_data.get("requirements", "")),
         "jd_responsibilities": _clean_html(job_data.get("responsibilities", "")),
-        "jd_preferred": _clean_html(job_data.get("benefits", "")),
+        "jd_preferred": "",
     }
 
 

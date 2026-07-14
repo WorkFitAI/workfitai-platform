@@ -75,11 +75,11 @@ class TestFormatJobAsFields:
         fields = format_job_as_fields({"shortDescription": "<p>Great role</p>"})
         assert fields["jd_overview"] == "Great role"
 
-    def test_maps_benefits_to_jd_preferred(self):
-        """Matches app/services/cv_rank_assembly.py's existing benefits -> jd_preferred
-        convention -- no job-service schema change, see field_format.py docstring."""
+    def test_jd_preferred_always_empty(self):
+        """job-service has no "preferred" field -- jd_preferred is always empty,
+        regardless of what other fields (e.g. benefits) are set."""
         fields = format_job_as_fields({"benefits": "Remote work, health insurance"})
-        assert fields["jd_preferred"] == "Remote work, health insurance"
+        assert fields["jd_preferred"] == ""
 
     def test_maps_requirements_and_responsibilities_directly(self):
         fields = format_job_as_fields({"requirements": "Python required", "responsibilities": "Build APIs"})

@@ -1,10 +1,10 @@
 {
   "candidateNum": 7,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 5
+    "hrmKey": "hrm1",
+    "index": 15
   },
-  "jobTitle": "Security Analyst Intern - AppSec (Internship)",
+  "jobTitle": "Chuyên gia Khoa học dữ liệu",
   "label": "no_match",
   "resume_index": 7,
   "resume_summary": "13+ years as a DevOps / Platform Engineer specialising in NATS and WebSocket. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",

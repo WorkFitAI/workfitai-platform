@@ -1,18 +1,18 @@
 {
-  "total": 160,
+  "total": 320,
   "records": [
     {
       "file": "candidate1_1.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate2_1.pdf",
@@ -25,25 +25,38 @@
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate3_1.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate4_1.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 1,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 0
+      },
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
+    },
+    {
+      "file": "candidate5_1.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
       "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 1,
@@ -51,189 +64,176 @@
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
-    },
-    {
-      "file": "candidate5_1.pdf",
-      "candidateNum": 5,
-      "name": "Michelle Marquez",
-      "role": "Software Engineer (Backend)",
-      "label": "match",
-      "job_idx": 1,
-      "jobRef": {
-        "hrmKey": "hrm1",
-        "index": 0
-      },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate6_1.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "AI Research Engineer",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate7_1.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "QA / Automation Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate8_1.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "HR Manager",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate9_1.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Data Engineer",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate10_1.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "HR Manager",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 1,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 0
       },
-      "jobTitle": "Senior Backend Engineer - NodeJS / NestJS"
+      "jobTitle": "Web Frontend Engineer (ReactJS, JavaScript, Redux)"
     },
     {
       "file": "candidate1_2.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "UX / UI Designer",
+      "role": "Technical Lead",
       "label": "match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate2_2.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "DevOps / Platform Engineer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate3_2.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "UX / UI Designer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate4_2.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "UX / UI Designer",
+      "role": "Technical Lead",
       "label": "match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate5_2.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "DevOps / Platform Engineer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate6_2.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate7_2.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "DevOps / Platform Engineer",
       "label": "no_match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate8_2.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "HR Manager",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate9_2.pdf",
@@ -246,103 +246,90 @@
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate10_2.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "HR Manager",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 2,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 1
       },
-      "jobTitle": "Frontend Developer - React / TypeScript"
+      "jobTitle": "Senior/Lead Engineer (React Native, ReactJS, ≥5yoe)"
     },
     {
       "file": "candidate1_3.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "HR Manager",
       "label": "match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate2_3.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Software Engineer (Backend)",
+      "role": "Software Engineer (Frontend)",
       "label": "match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate3_3.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Business Analyst",
       "label": "match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate4_3.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Product Manager (Growth)",
       "label": "match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate5_3.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate6_3.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "AI Research Engineer",
-      "label": "no_match",
-      "job_idx": 3,
-      "jobRef": {
-        "hrmKey": "hrm1",
-        "index": 2
-      },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
-    },
-    {
-      "file": "candidate7_3.pdf",
-      "candidateNum": 7,
-      "name": "Heather Miller",
       "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 3,
@@ -350,111 +337,124 @@
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
+    },
+    {
+      "file": "candidate7_3.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 3,
+      "jobRef": {
+        "hrmKey": "hrm1",
+        "index": 2
+      },
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate8_3.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "HR Manager",
+      "role": "Project Manager",
       "label": "no_match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate9_3.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "no_match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate10_3.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "HR Manager",
+      "role": "Project Manager",
       "label": "no_match",
       "job_idx": 3,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 2
       },
-      "jobTitle": "Fullstack Engineer - Next.js / NodeJS"
+      "jobTitle": "[Hybrid] Frontend ReactJS (ReactJS, JavaScript)"
     },
     {
       "file": "candidate1_4.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Product Manager (Growth)",
       "label": "match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate2_4.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Product Manager",
       "label": "match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate3_4.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Product Manager",
       "label": "match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate4_4.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Product Manager (Growth)",
       "label": "match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate5_4.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Product Manager",
       "label": "match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate6_4.pdf",
@@ -467,7 +467,7 @@
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate7_4.pdf",
@@ -480,20 +480,20 @@
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate8_4.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate9_4.pdf",
@@ -506,501 +506,501 @@
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate10_4.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 4,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 3
       },
-      "jobTitle": "Mobile Developer - React Native"
+      "jobTitle": "Product Frontend Intern"
     },
     {
       "file": "candidate1_5.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "DevOps / Platform Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate2_5.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "DevOps / Platform Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate3_5.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "DevOps / Platform Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate4_5.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "DevOps / Platform Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate5_5.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "DevOps / Platform Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate6_5.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "AI Research Engineer",
       "label": "no_match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate7_5.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate8_5.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "HR Manager",
       "label": "no_match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate9_5.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Engineer",
       "label": "no_match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate10_5.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "HR Manager",
       "label": "no_match",
       "job_idx": 5,
       "jobRef": {
         "hrmKey": "hrm1",
         "index": 4
       },
-      "jobTitle": "DevOps Engineer - AWS / Kubernetes"
+      "jobTitle": "Software Engineer, UI (Angular/ RxJS/ ReactJS)"
     },
     {
       "file": "candidate1_6.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Cloud Solutions Architect",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate2_6.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Cloud Solutions Architect",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate3_6.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Cloud Solutions Architect",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate4_6.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Cloud Solutions Architect",
+      "role": "Security Engineer",
       "label": "match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate5_6.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Cloud Solutions Architect",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate6_6.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate7_6.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "DevOps / Platform Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate8_6.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate9_6.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate10_6.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 6,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 5
       },
-      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+      "jobTitle": "Senior/Expert Frontend Engineer (ReactJS, JavaScript)"
     },
     {
       "file": "candidate1_7.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Data Engineer",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate2_7.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate3_7.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Data Engineer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate4_7.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Data Engineer",
+      "role": "Security Engineer",
       "label": "match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate5_7.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate6_7.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate7_7.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate8_7.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate9_7.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate10_7.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 7,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 6
       },
-      "jobTitle": "Data Engineer - Apache Spark / Airflow"
+      "jobTitle": "Principal Frontend Engineer (ReactJS/ VueJS)"
     },
     {
       "file": "candidate1_8.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Machine Learning Engineer",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate2_8.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Data Scientist",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate3_8.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Data Scientist",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate4_8.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Machine Learning Engineer",
+      "role": "Security Engineer",
       "label": "match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate5_8.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Data Scientist",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate6_8.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Mobile Engineer (Android & iOS)",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate7_8.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Cloud Solutions Architect",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate8_8.pdf",
@@ -1010,23 +1010,23 @@
       "label": "no_match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate9_8.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate10_8.pdf",
@@ -1036,49 +1036,49 @@
       "label": "no_match",
       "job_idx": 8,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 7
       },
-      "jobTitle": "Data Scientist - Machine Learning"
+      "jobTitle": "Frontend Design Systems Engineer (HTML5/ CSS/ Figma)"
     },
     {
       "file": "candidate1_9.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Security Engineer",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate2_9.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Security Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate3_9.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Security Engineer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate4_9.pdf",
@@ -1088,231 +1088,231 @@
       "label": "match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate5_9.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Security Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate6_9.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "QA / Automation Engineer",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate7_9.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "DevOps / Platform Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate8_9.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate9_9.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate10_9.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 9,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 8
       },
-      "jobTitle": "Cybersecurity Engineer - Application Security"
+      "jobTitle": "Senior Frontend Engineer (Banking, Typescript)"
     },
     {
       "file": "candidate1_10.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Machine Learning Engineer",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate2_10.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Machine Learning Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate3_10.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Machine Learning Engineer",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate4_10.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Machine Learning Engineer",
+      "role": "Security Engineer",
       "label": "match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate5_10.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Machine Learning Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate6_10.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "Customer Success Manager",
       "label": "no_match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate7_10.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate8_10.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate9_10.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate10_10.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Digital Marketing Manager",
       "label": "no_match",
       "job_idx": 10,
       "jobRef": {
-        "hrmKey": "hrm2",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 9
       },
-      "jobTitle": "AI Engineer - LLM & Generative AI"
+      "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)"
     },
     {
       "file": "candidate1_11.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Staff Engineer",
       "label": "match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate2_11.pdf",
@@ -1322,75 +1322,75 @@
       "label": "match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate3_11.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Mobile Engineer (Android & iOS)",
       "label": "match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate4_11.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Software Engineer (Full-Stack)",
+      "role": "Security Engineer",
       "label": "match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate5_11.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Software Engineer (Backend)",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate6_11.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "AI Research Engineer",
+      "role": "Product Manager (Growth)",
       "label": "no_match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate7_11.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "QA / Automation Engineer",
+      "role": "Product Manager",
       "label": "no_match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate8_11.pdf",
@@ -1400,23 +1400,23 @@
       "label": "no_match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate9_11.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Data Engineer",
+      "role": "Data Scientist",
       "label": "no_match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate10_11.pdf",
@@ -1426,10 +1426,10 @@
       "label": "no_match",
       "job_idx": 11,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 0
+        "hrmKey": "hrm1",
+        "index": 10
       },
-      "jobTitle": "Junior Backend Engineer - NodeJS (Internship)"
+      "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)"
     },
     {
       "file": "candidate1_12.pdf",
@@ -1439,10 +1439,10 @@
       "label": "match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate2_12.pdf",
@@ -1452,10 +1452,10 @@
       "label": "match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate3_12.pdf",
@@ -1465,10 +1465,10 @@
       "label": "match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate4_12.pdf",
@@ -1478,10 +1478,10 @@
       "label": "match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate5_12.pdf",
@@ -1491,10 +1491,10 @@
       "label": "match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate6_12.pdf",
@@ -1504,10 +1504,10 @@
       "label": "no_match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate7_12.pdf",
@@ -1517,10 +1517,10 @@
       "label": "no_match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate8_12.pdf",
@@ -1530,10 +1530,10 @@
       "label": "no_match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate9_12.pdf",
@@ -1543,10 +1543,10 @@
       "label": "no_match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate10_12.pdf",
@@ -1556,218 +1556,218 @@
       "label": "no_match",
       "job_idx": 12,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 1
+        "hrmKey": "hrm1",
+        "index": 11
       },
-      "jobTitle": "Frontend Software Engineer - React (Contract)"
+      "jobTitle": "Bridge Software Engineer (BRSE)"
     },
     {
       "file": "candidate1_13.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate2_13.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate3_13.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate4_13.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Full-Stack)",
       "label": "match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate5_13.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Data Engineer",
+      "role": "Software Engineer (Backend)",
       "label": "match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate6_13.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "AI Research Engineer",
       "label": "no_match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate7_13.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate8_13.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "HR Manager",
       "label": "no_match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate9_13.pdf",
       "candidateNum": 9,
       "name": "Brian Wu",
-      "role": "Software Engineer (Backend)",
+      "role": "Data Engineer",
       "label": "no_match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate10_13.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "HR Manager",
       "label": "no_match",
       "job_idx": 13,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 2
+        "hrmKey": "hrm1",
+        "index": 12
       },
-      "jobTitle": "Lead Data Engineer - Data Platform"
+      "jobTitle": "Korean Bridge Software Engineer"
     },
     {
       "file": "candidate1_14.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Solutions Consultant",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate2_14.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Cloud Solutions Architect",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate3_14.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Cloud Solutions Architect",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate4_14.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Solutions Consultant",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate5_14.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Cloud Solutions Architect",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate6_14.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate7_14.pdf",
@@ -1777,10 +1777,10 @@
       "label": "no_match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate8_14.pdf",
@@ -1790,10 +1790,10 @@
       "label": "no_match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate9_14.pdf",
@@ -1803,10 +1803,10 @@
       "label": "no_match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate10_14.pdf",
@@ -1816,101 +1816,101 @@
       "label": "no_match",
       "job_idx": 14,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 3
+        "hrmKey": "hrm1",
+        "index": 13
       },
-      "jobTitle": "Associate Cloud Solutions Engineer - AWS Support (Part-Time)"
+      "jobTitle": "Agile Delivery Manager"
     },
     {
       "file": "candidate1_15.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Machine Learning Engineer",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate2_15.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Machine Learning Engineer",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate3_15.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Machine Learning Engineer",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate4_15.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Machine Learning Engineer",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate5_15.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Machine Learning Engineer",
+      "role": "Project Manager",
       "label": "match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate6_15.pdf",
       "candidateNum": 6,
       "name": "Lori Warren",
-      "role": "Security Engineer",
+      "role": "QA / Automation Engineer",
       "label": "no_match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate7_15.pdf",
       "candidateNum": 7,
       "name": "Heather Miller",
-      "role": "Site Reliability Engineer",
+      "role": "DevOps / Platform Engineer",
       "label": "no_match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate8_15.pdf",
@@ -1920,10 +1920,10 @@
       "label": "no_match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate9_15.pdf",
@@ -1933,10 +1933,10 @@
       "label": "no_match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate10_15.pdf",
@@ -1946,75 +1946,75 @@
       "label": "no_match",
       "job_idx": 15,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 4
+        "hrmKey": "hrm1",
+        "index": 14
       },
-      "jobTitle": "Machine Learning Engineer - NLP"
+      "jobTitle": "Senior Project Manager/Program Manager (RTE)"
     },
     {
       "file": "candidate1_16.pdf",
       "candidateNum": 1,
       "name": "Bonnie Dawson",
-      "role": "Security Engineer",
+      "role": "HR Manager",
       "label": "match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate2_16.pdf",
       "candidateNum": 2,
       "name": "Lucas Rodriguez",
-      "role": "Security Engineer",
+      "role": "Software Engineer (Frontend)",
       "label": "match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate3_16.pdf",
       "candidateNum": 3,
       "name": "Linda Turner",
-      "role": "Security Engineer",
+      "role": "Business Analyst",
       "label": "match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate4_16.pdf",
       "candidateNum": 4,
       "name": "Michael Sanchez",
-      "role": "Security Engineer",
+      "role": "Product Manager (Growth)",
       "label": "match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate5_16.pdf",
       "candidateNum": 5,
       "name": "Michelle Marquez",
-      "role": "Security Engineer",
+      "role": "Data Scientist",
       "label": "match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate6_16.pdf",
@@ -2024,10 +2024,10 @@
       "label": "no_match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate7_16.pdf",
@@ -2037,23 +2037,23 @@
       "label": "no_match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate8_16.pdf",
       "candidateNum": 8,
       "name": "Elizabeth Schwartz",
-      "role": "Data Analyst",
+      "role": "Project Manager",
       "label": "no_match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate9_16.pdf",
@@ -2063,23 +2063,2103 @@
       "label": "no_match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
-        "index": 5
+        "hrmKey": "hrm1",
+        "index": 15
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
     },
     {
       "file": "candidate10_16.pdf",
       "candidateNum": 10,
       "name": "William Johnson",
-      "role": "Data Analyst",
+      "role": "Project Manager",
       "label": "no_match",
       "job_idx": 16,
       "jobRef": {
-        "hrmKey": "hrm3",
+        "hrmKey": "hrm1",
+        "index": 15
+      },
+      "jobTitle": "Chuyên gia Khoa học dữ liệu"
+    },
+    {
+      "file": "candidate1_17.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Cloud Solutions Architect",
+      "label": "match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate2_17.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Cloud Solutions Architect",
+      "label": "match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate3_17.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Cloud Solutions Architect",
+      "label": "match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate4_17.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Cloud Solutions Architect",
+      "label": "match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate5_17.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Cloud Solutions Architect",
+      "label": "match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate6_17.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "Security Engineer",
+      "label": "no_match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate7_17.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate8_17.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate9_17.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate10_17.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 17,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 0
+      },
+      "jobTitle": "Cloud Solutions Architect - AWS / GCP"
+    },
+    {
+      "file": "candidate1_18.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate2_18.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate3_18.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate4_18.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate5_18.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate6_18.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate7_18.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate8_18.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate9_18.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate10_18.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 18,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 1
+      },
+      "jobTitle": "[HCM] Intern Product Owner"
+    },
+    {
+      "file": "candidate1_19.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate2_19.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate3_19.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate4_19.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate5_19.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate6_19.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate7_19.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate8_19.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate9_19.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate10_19.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 19,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 2
+      },
+      "jobTitle": "Cybersecurity Engineer - Application Security"
+    },
+    {
+      "file": "candidate1_20.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate2_20.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate3_20.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate4_20.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate5_20.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate6_20.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate7_20.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate8_20.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate9_20.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate10_20.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 20,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 3
+      },
+      "jobTitle": "Product Owner - Sales Intelligence Platform (Agile)"
+    },
+    {
+      "file": "candidate1_21.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Staff Engineer",
+      "label": "match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate2_21.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Software Engineer (Backend)",
+      "label": "match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate3_21.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate4_21.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Security Engineer",
+      "label": "match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate5_21.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate6_21.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "Business Analyst",
+      "label": "no_match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate7_21.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "UX / UI Designer",
+      "label": "no_match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate8_21.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Finance Analyst",
+      "label": "no_match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate9_21.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Data Scientist",
+      "label": "no_match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate10_21.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Finance Analyst",
+      "label": "no_match",
+      "job_idx": 21,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 4
+      },
+      "jobTitle": "Product Engineer (Intern/Fresher/Junior)"
+    },
+    {
+      "file": "candidate1_22.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
         "index": 5
       },
-      "jobTitle": "Security Analyst Intern - AppSec (Internship)"
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate2_22.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate3_22.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate4_22.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate5_22.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate6_22.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate7_22.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate8_22.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate9_22.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate10_22.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 22,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 5
+      },
+      "jobTitle": "Product Manager"
+    },
+    {
+      "file": "candidate1_23.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Project Manager",
+      "label": "match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate2_23.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate3_23.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Project Manager",
+      "label": "match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate4_23.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Project Manager",
+      "label": "match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate5_23.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate6_23.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate7_23.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate8_23.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate9_23.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate10_23.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 23,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 6
+      },
+      "jobTitle": "Product Owner cum Project Manager"
+    },
+    {
+      "file": "candidate1_24.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate2_24.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate3_24.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate4_24.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Product Manager (Growth)",
+      "label": "match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate5_24.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Product Manager",
+      "label": "match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate6_24.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate7_24.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate8_24.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate9_24.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate10_24.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Digital Marketing Manager",
+      "label": "no_match",
+      "job_idx": 24,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 7
+      },
+      "jobTitle": "Product Manager (Japanese Required)"
+    },
+    {
+      "file": "candidate1_25.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate2_25.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate3_25.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate4_25.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate5_25.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate6_25.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate7_25.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate8_25.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate9_25.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate10_25.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 25,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 8
+      },
+      "jobTitle": "Mid/Sr iOS Developer - English required"
+    },
+    {
+      "file": "candidate1_26.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate2_26.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate3_26.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate4_26.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate5_26.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate6_26.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate7_26.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate8_26.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate9_26.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate10_26.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 26,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 9
+      },
+      "jobTitle": "iOS Developer (Swift/ Objective-C)"
+    },
+    {
+      "file": "candidate1_27.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate2_27.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate3_27.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate4_27.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate5_27.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate6_27.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate7_27.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate8_27.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate9_27.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate10_27.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 27,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 10
+      },
+      "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)"
+    },
+    {
+      "file": "candidate1_28.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate2_28.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate3_28.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate4_28.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate5_28.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate6_28.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate7_28.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate8_28.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate9_28.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate10_28.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 28,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 11
+      },
+      "jobTitle": "IOS Developer"
+    },
+    {
+      "file": "candidate1_29.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate2_29.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Software Engineer (Backend)",
+      "label": "match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate3_29.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate4_29.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate5_29.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Software Engineer (Backend)",
+      "label": "match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate6_29.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "AI Research Engineer",
+      "label": "no_match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate7_29.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate8_29.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate9_29.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Data Engineer",
+      "label": "no_match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate10_29.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 29,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 12
+      },
+      "jobTitle": "Mobile Software Engineer - Attractive Salary"
+    },
+    {
+      "file": "candidate1_30.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate2_30.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate3_30.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate4_30.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate5_30.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Mobile Engineer (Android & iOS)",
+      "label": "match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate6_30.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate7_30.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "DevOps / Platform Engineer",
+      "label": "no_match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate8_30.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate9_30.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate10_30.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 30,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 13
+      },
+      "jobTitle": "Junior iOS Mobile Developer (Swift, English)"
+    },
+    {
+      "file": "candidate1_31.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Machine Learning Engineer",
+      "label": "match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate2_31.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Machine Learning Engineer",
+      "label": "match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate3_31.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Machine Learning Engineer",
+      "label": "match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate4_31.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Machine Learning Engineer",
+      "label": "match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate5_31.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Machine Learning Engineer",
+      "label": "match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate6_31.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "Security Engineer",
+      "label": "no_match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate7_31.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "Site Reliability Engineer",
+      "label": "no_match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate8_31.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate9_31.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Software Engineer (Backend)",
+      "label": "no_match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate10_31.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "Data Analyst",
+      "label": "no_match",
+      "job_idx": 31,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 14
+      },
+      "jobTitle": "AI Engineer (Python,ML,LLM)"
+    },
+    {
+      "file": "candidate1_32.pdf",
+      "candidateNum": 1,
+      "name": "Bonnie Dawson",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate2_32.pdf",
+      "candidateNum": 2,
+      "name": "Lucas Rodriguez",
+      "role": "Software Engineer (Backend)",
+      "label": "match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate3_32.pdf",
+      "candidateNum": 3,
+      "name": "Linda Turner",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate4_32.pdf",
+      "candidateNum": 4,
+      "name": "Michael Sanchez",
+      "role": "Software Engineer (Full-Stack)",
+      "label": "match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate5_32.pdf",
+      "candidateNum": 5,
+      "name": "Michelle Marquez",
+      "role": "Software Engineer (Backend)",
+      "label": "match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate6_32.pdf",
+      "candidateNum": 6,
+      "name": "Lori Warren",
+      "role": "AI Research Engineer",
+      "label": "no_match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate7_32.pdf",
+      "candidateNum": 7,
+      "name": "Heather Miller",
+      "role": "QA / Automation Engineer",
+      "label": "no_match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate8_32.pdf",
+      "candidateNum": 8,
+      "name": "Elizabeth Schwartz",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate9_32.pdf",
+      "candidateNum": 9,
+      "name": "Brian Wu",
+      "role": "Data Engineer",
+      "label": "no_match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
+    },
+    {
+      "file": "candidate10_32.pdf",
+      "candidateNum": 10,
+      "name": "William Johnson",
+      "role": "HR Manager",
+      "label": "no_match",
+      "job_idx": 32,
+      "jobRef": {
+        "hrmKey": "hrm2",
+        "index": 15
+      },
+      "jobTitle": "Software Engineer (Python, TypeScript)"
     }
   ]
 }

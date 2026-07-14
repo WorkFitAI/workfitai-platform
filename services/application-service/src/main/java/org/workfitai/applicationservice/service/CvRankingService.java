@@ -37,11 +37,14 @@ public class CvRankingService {
      *  own CV_RANKING_MISS_RETRY_AFTER_SECONDS default (10s), matching the prior synchronous 10-30s budget. */
     private static final int MAX_RANKING_ATTEMPTS = 5;
     private static final int DEFAULT_RETRY_AFTER_SECONDS = 15;
+    /** Author recorded on notes auto-created from the AI ranking explanation. */
+    private static final String RANKING_NOTE_AUTHOR = "AI_RANKING";
 
     private final RecommendationEngineClient recommendationEngineClient;
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
     private final AuditLogService auditLogService;
+    private final ApplicationNoteService applicationNoteService;
 
     /**
      * Calls the recommendation engine, then merges the ranked applicant list with full
@@ -87,6 +90,9 @@ public class CvRankingService {
                         .inputCoverage(ra.getInputCoverage())
                         .build());
                 rankedUsernames.add(ra.getUsername());
+                applicationNoteService.addNoteIfContentIsNew(app, ra.getExplanation(), RANKING_NOTE_AUTHOR);
+                log.debug("CV ranking candidate: jobId={}, username={}, score={}, label={}, matchPoints={}, missPoints={}",
+                        jobId, ra.getUsername(), ra.getScore(), ra.getLabel(), ra.getMatchPoints(), ra.getMissPoints());
             }
         }
 

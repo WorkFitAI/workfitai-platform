@@ -1,0 +1,16 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 9
+  },
+  "jobTitle": "iOS Developer (Swift/ Objective-C)",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Express.js and Event-Driven Architecture. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Software Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Microservices, CI/CD, Agile / Scrum, Event-Driven Architecture, Express.js, React, Spring Boot, Next.js, Azure, GitHub Actions, GCP, C#, Leadership & Mentoring, Stakeholder Management, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate9_26.pdf"
+}

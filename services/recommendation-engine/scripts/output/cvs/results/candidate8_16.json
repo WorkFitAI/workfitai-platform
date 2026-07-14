@@ -1,16 +1,16 @@
 {
   "candidateNum": 8,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 5
+    "hrmKey": "hrm1",
+    "index": 15
   },
-  "jobTitle": "Security Analyst Intern - AppSec (Internship)",
+  "jobTitle": "Chuyên gia Khoa học dữ liệu",
   "label": "no_match",
   "resume_index": 8,
-  "resume_summary": "Strategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.",
-  "resume_experience": "Lead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Aug 2024–Jun 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)",
-  "resume_skills": "Excel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening",
-  "resume_education": "Bachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
-  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nStrategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.\n\nEXPERIENCE\nLead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Aug 2024–Jun 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)\n\nSKILLS\nExcel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_summary": "Commercially minded Project Manager (16 yrs) with a track record of driving 55% efficiency gains. Expertise in BPMN and Requirements Gathering. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Programme Manager @ NashTech Vietnam (Nov 2022–Jan 2025) · Recruited and onboarded 4 specialist hires for the operations function in under 1 weeks. | Senior PM @ ThoughtWorks Vietnam (Oct 2024–Oct 2025) · Built financial model for $45M capex project; approved by CFO within 4 weeks. | Project Manager @ Shopee Vietnam (Jan 2024–Present)",
+  "resume_skills": "Kanban, JIRA, Asana, Confluence, BPMN, Requirements Gathering, Event-Driven Architecture, REST API Design, Git, CI/CD, Conflict Resolution, Continuous Learning, Problem Decomposition, Project Planning, Cross-functional Collaboration",
+  "resume_education": "Bachelor of Business Administration – UEH, 2009 | TOEIC 600 | Cert: Meta Blueprint: Digital Marketing Associate",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/emartin\n\nOBJECTIVE\nCommercially minded Project Manager (16 yrs) with a track record of driving 55% efficiency gains. Expertise in BPMN and Requirements Gathering. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nProgramme Manager @ NashTech Vietnam (Nov 2022–Jan 2025) · Recruited and onboarded 4 specialist hires for the operations function in under 1 weeks. | Senior PM @ ThoughtWorks Vietnam (Oct 2024–Oct 2025) · Built financial model for $45M capex project; approved by CFO within 4 weeks. | Project Manager @ Shopee Vietnam (Jan 2024–Present)\n\nSKILLS\nKanban, JIRA, Asana, Confluence, BPMN, Requirements Gathering, Event-Driven Architecture, REST API Design, Git, CI/CD, Conflict Resolution, Continuous Learning, Problem Decomposition, Project Planning, Cross-functional Collaboration\n\nEDUCATION\nBachelor of Business Administration – UEH, 2009 | TOEIC 600 | Cert: Meta Blueprint: Digital Marketing Associate",
   "pdf_file": "candidate8_16.pdf"
 }

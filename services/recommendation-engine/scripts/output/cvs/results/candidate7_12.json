@@ -1,10 +1,10 @@
 {
   "candidateNum": 7,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 1
+    "hrmKey": "hrm1",
+    "index": 11
   },
-  "jobTitle": "Frontend Software Engineer - React (Contract)",
+  "jobTitle": "Bridge Software Engineer (BRSE)",
   "label": "no_match",
   "resume_index": 7,
   "resume_summary": "13+ years as a QA / Automation Engineer specialising in DDD and Flask. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",

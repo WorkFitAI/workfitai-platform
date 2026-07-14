@@ -1,16 +1,16 @@
 {
   "candidateNum": 6,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 9
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)",
   "label": "no_match",
   "resume_index": 6,
-  "resume_summary": "Versatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in CQRS and Helm. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.",
-  "resume_experience": "Lead Security Engineer @ Base.vn (May 2022–Aug 2023) · Collaborated with ML team to serve a model at <20ms p99 latency using ONNX Runtime. | Senior Security Engineer @ PwC Vietnam (Dec 2021–May 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Security Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Feb 2025) | Security Analyst @ MoMo (M-Service) (Jun 2024–Jan 2026) | Security Analyst @ Zalo Group (Feb 2024–Present)",
-  "resume_skills": "Docker, GCP, Helm, Terraform, Python, Scala, C#, Agile / Scrum, CQRS, Event-Driven Architecture, Microservices, Redis, ClickHouse, Analytical Thinking, Ownership & Accountability, Continuous Learning, Data-Driven Decision Making",
-  "resume_education": "Bachelor of Science in Cybersecurity – HUST, 2018 | TOEIC 860",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nVersatile Security Engineer (6 yrs) with a track record of delivering complex distributed systems on time. Proficient in CQRS and Helm. Mentored 6 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nLead Security Engineer @ Base.vn (May 2022–Aug 2023) · Collaborated with ML team to serve a model at <20ms p99 latency using ONNX Runtime. | Senior Security Engineer @ PwC Vietnam (Dec 2021–May 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Security Engineer @ Samsung R&D Institute Vietnam (Jul 2023–Feb 2025) | Security Analyst @ MoMo (M-Service) (Jun 2024–Jan 2026) | Security Analyst @ Zalo Group (Feb 2024–Present)\n\nSKILLS\nDocker, GCP, Helm, Terraform, Python, Scala, C#, Agile / Scrum, CQRS, Event-Driven Architecture, Microservices, Redis, ClickHouse, Analytical Thinking, Ownership & Accountability, Continuous Learning, Data-Driven Decision Making\n\nEDUCATION\nBachelor of Science in Cybersecurity – HUST, 2018 | TOEIC 860",
+  "resume_summary": "Commercially minded Customer Success Manager (10 yrs) with a track record of driving 55% efficiency gains. Expertise in Resource Planning and PMP Methodology. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Head of Customer Success @ Base.vn (Oct 2021–Jun 2023) · Led cross-functional team of 10 to deliver onboarding launch across APAC in 3 weeks. | Senior CSM @ PwC Vietnam (Jul 2021–May 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | CSM @ Samsung R&D Institute Vietnam (Dec 2023–Jan 2025) | Customer Success Associate @ MoMo (M-Service) (Dec 2024–Feb 2026) | Customer Success Associate @ Zalo Group (Nov 2023–Present)",
+  "resume_skills": "Product Roadmapping, Go-to-Market Strategy, A/B Testing, SQL, Tableau, JIRA, Resource Planning, PMP Methodology, Asana, Problem Decomposition, Time Management, Analytical Thinking",
+  "resume_education": "Bachelor of Business Administration – HUST, 2014 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/jfox\n\nOBJECTIVE\nCommercially minded Customer Success Manager (10 yrs) with a track record of driving 55% efficiency gains. Expertise in Resource Planning and PMP Methodology. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nHead of Customer Success @ Base.vn (Oct 2021–Jun 2023) · Led cross-functional team of 10 to deliver onboarding launch across APAC in 3 weeks. | Senior CSM @ PwC Vietnam (Jul 2021–May 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | CSM @ Samsung R&D Institute Vietnam (Dec 2023–Jan 2025) | Customer Success Associate @ MoMo (M-Service) (Dec 2024–Feb 2026) | Customer Success Associate @ Zalo Group (Nov 2023–Present)\n\nSKILLS\nProduct Roadmapping, Go-to-Market Strategy, A/B Testing, SQL, Tableau, JIRA, Resource Planning, PMP Methodology, Asana, Problem Decomposition, Time Management, Analytical Thinking\n\nEDUCATION\nBachelor of Business Administration – HUST, 2014 | TOEIC 860",
   "pdf_file": "candidate6_10.pdf"
 }

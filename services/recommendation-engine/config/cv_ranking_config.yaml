@@ -12,10 +12,11 @@ cross_encoder_model: cross-encoder  # subdir under model_dir (symlink or copy of
 t5_model: explanation-t5
 
 # Score thresholds
-# NOTE: evaluation auto-calibrated threshold to 27.1 (F1-optimal on 1630 test pairs).
-#       good_fit_threshold=55 gives Recall=0.095; set to 27 in production.
+# NOTE: recalibrated for new bi+cross model (v2). New model score distribution:
+#       mean=51.8, median=48.5. Old model had mean~22 → old threshold 27 is now obsolete.
+#       threshold=48 (median) gives balanced Good Fit / No Fit split.
 min_score: 20.0
-good_fit_threshold: 27.0
+good_fit_threshold: 48.0
 
 # Batch processing
 batch_size: 32
