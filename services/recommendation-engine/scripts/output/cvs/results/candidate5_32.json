@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 15
+  },
+  "jobTitle": "Software Engineer (Python, TypeScript)",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Versatile Software Engineer (Backend) (15 yrs) with a track record of delivering complex distributed systems on time. Proficient in Python and Go. Mentored 4 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Engineer @ Lotte Vietnam (Nov 2023–Dec 2024) · Defined and shipped 12 major product features that increased DAU by 43%. | Lead Software Engineer @ Atlassian (May 2024–Jun 2025) · Launched in-app campaign reaching 132k impressions with 63% above-benchmark CTR. | Senior Software Engineer @ AEON Vietnam (Sep 2023–Present)",
+  "resume_skills": "Kubernetes, TypeScript, Python, Ansible, Helm, GCP, ArgoCD, Redis, MySQL, DynamoDB, Go, Bash, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – FTU HCMC, 2008 | TOEIC 600 | Cert: Certified Management Accountant (CMA)",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nVersatile Software Engineer (Backend) (15 yrs) with a track record of delivering complex distributed systems on time. Proficient in Python and Go. Mentored 4 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Engineer @ Lotte Vietnam (Nov 2023–Dec 2024) · Defined and shipped 12 major product features that increased DAU by 43%. | Lead Software Engineer @ Atlassian (May 2024–Jun 2025) · Launched in-app campaign reaching 132k impressions with 63% above-benchmark CTR. | Senior Software Engineer @ AEON Vietnam (Sep 2023–Present)\n\nSKILLS\nKubernetes, TypeScript, Python, Ansible, Helm, GCP, ArgoCD, Redis, MySQL, DynamoDB, Go, Bash, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2008 | TOEIC 600 | Cert: Certified Management Accountant (CMA)",
+  "pdf_file": "candidate5_32.pdf"
+}

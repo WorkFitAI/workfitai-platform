@@ -1,0 +1,16 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 11
+  },
+  "jobTitle": "IOS Developer",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Mobile Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in NestJS and Django. Drove adoption of Python-based tooling, improving MTTR by 37%.",
+  "resume_experience": "Lead Mobile Engineer @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Senior Mobile Engineer @ Techcombank (Dec 2023–Sep 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | iOS/Android Engineer @ ThoughtWorks Vietnam (Dec 2022–Mar 2025) | Mobile Developer @ BCG Vietnam (Dec 2023–Mar 2026) | Mobile Developer @ Oracle Vietnam (Oct 2023–Present)",
+  "resume_skills": "Swift, iOS, Objective-C, Python, Scala, Go, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, CI/CD, Project Planning, Empathy & Active Listening, Time Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Mobile Engineer with 3 years building resilient, observable microservices in insurtech. Expertise in NestJS and Django. Drove adoption of Python-based tooling, improving MTTR by 37%.\n\nEXPERIENCE\nLead Mobile Engineer @ VPBank (Nov 2022–Mar 2024) · Delivered referral feature 2 weeks ahead of schedule, contributing to a 56% revenue uplift. | Senior Mobile Engineer @ Techcombank (Dec 2023–Sep 2024) · Mentored 2 junior engineers through weekly 1-on-1s, code reviews, and design sessions. | iOS/Android Engineer @ ThoughtWorks Vietnam (Dec 2022–Mar 2025) | Mobile Developer @ BCG Vietnam (Dec 2023–Mar 2026) | Mobile Developer @ Oracle Vietnam (Oct 2023–Present)\n\nSKILLS\nSwift, iOS, Objective-C, Python, Scala, Go, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, CI/CD, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: HubSpot Inbound Marketing Certification",
+  "pdf_file": "candidate3_28.pdf"
+}

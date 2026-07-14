@@ -39,6 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationNoteService {
 
+    /** Note.content is capped at 2000 chars (see Application.Note); truncate defensively for system-generated content. */
+    private static final int NOTE_CONTENT_MAX_LENGTH = 2000;
+
     private final ApplicationRepository applicationRepository;
     private final MongoTemplate mongoTemplate;
 
@@ -141,6 +144,43 @@ public class ApplicationNoteService {
                 Application.class);
 
         log.info("Note deleted successfully: noteId={}", noteId);
+    }
+
+    /**
+     * Adds a system-generated note (e.g. AI ranking explanation) to an already-loaded
+     * Application, but only if no existing note has the exact same content. Prevents
+     * duplicate notes from piling up when ranking is re-run and the AI explanation is
+     * unchanged.
+     */
+    public void addNoteIfContentIsNew(Application application, String content, String author) {
+        if (content == null || content.isBlank()) {
+            return;
+        }
+
+        String truncated = content.length() > NOTE_CONTENT_MAX_LENGTH
+                ? content.substring(0, NOTE_CONTENT_MAX_LENGTH) : content;
+
+        boolean alreadyExists = application.getNotes().stream()
+                .anyMatch(n -> n.getContent().equals(truncated));
+        if (alreadyExists) {
+            return;
+        }
+
+        Application.Note note = Application.Note.builder()
+                .id(UUID.randomUUID().toString())
+                .author(author)
+                .content(truncated)
+                .candidateVisible(false)
+                .createdAt(Instant.now())
+                .build();
+
+        // Atomic $push — no race condition on concurrent note additions
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("_id").is(application.getId()).and("deletedAt").isNull()),
+                new Update().push("notes", note),
+                Application.class);
+
+        log.info("System note added from ranking explanation: appId={}, noteId={}", application.getId(), note.getId());
     }
 
     /**

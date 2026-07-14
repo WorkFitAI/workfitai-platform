@@ -1,0 +1,16 @@
+{
+  "candidateNum": 4,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 6
+  },
+  "jobTitle": "Product Owner cum Project Manager",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Detail-oriented principal-level Project Manager with 15 years optimising operations and delivering insights. Strong command of JIRA and Monday.com. Managed portfolios of up to $8M across 5 concurrent projects.",
+  "resume_experience": "Programme Manager @ CMC Global (Sep 2022–Nov 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior PM @ Techcombank (Jul 2023–Jun 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Project Manager @ Shopee Vietnam (Jan 2024–May 2025) | Project Coordinator @ Medici Health (Jun 2024–Nov 2025) | Project Coordinator @ ACB Bank (Jan 2024–Present)",
+  "resume_skills": "Python, Agile, Visio, Gap Analysis, JIRA, Monday.com, Risk Management, Confluence, TDD, Agile / Scrum, Code Review, Time Management, Presentation Skills, Empathy & Active Listening, Stakeholder Management, Conflict Resolution",
+  "resume_education": "Bachelor of Business Administration – NEU – Hanoi, 2011 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Da Nang, Vietnam | LinkedIn: linkedin.com/in/ocrawford\n\nOBJECTIVE\nDetail-oriented principal-level Project Manager with 15 years optimising operations and delivering insights. Strong command of JIRA and Monday.com. Managed portfolios of up to $8M across 5 concurrent projects.\n\nEXPERIENCE\nProgramme Manager @ CMC Global (Sep 2022–Nov 2023) · Implemented RBAC + OpenTelemetry authentication, achieving SOC 2 Type II compliance requirements. | Senior PM @ Techcombank (Jul 2023–Jun 2024) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Project Manager @ Shopee Vietnam (Jan 2024–May 2025) | Project Coordinator @ Medici Health (Jun 2024–Nov 2025) | Project Coordinator @ ACB Bank (Jan 2024–Present)\n\nSKILLS\nPython, Agile, Visio, Gap Analysis, JIRA, Monday.com, Risk Management, Confluence, TDD, Agile / Scrum, Code Review, Time Management, Presentation Skills, Empathy & Active Listening, Stakeholder Management, Conflict Resolution\n\nEDUCATION\nBachelor of Business Administration – NEU – Hanoi, 2011 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate4_23.pdf"
+}

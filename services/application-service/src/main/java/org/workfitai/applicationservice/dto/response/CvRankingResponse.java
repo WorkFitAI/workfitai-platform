@@ -55,5 +55,14 @@ public class CvRankingResponse {
 
         private String label;
         private String explanation;
+
+        @JsonProperty("match_points")
+        private List<String> matchPoints;
+
+        @JsonProperty("miss_points")
+        private List<String> missPoints;
+
+        @JsonProperty("input_coverage")
+        private Double inputCoverage;
     }
 }

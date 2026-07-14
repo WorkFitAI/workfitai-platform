@@ -1,16 +1,16 @@
 {
   "candidateNum": 6,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 0
+    "hrmKey": "hrm1",
+    "index": 10
   },
-  "jobTitle": "Junior Backend Engineer - NodeJS (Internship)",
+  "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)",
   "label": "no_match",
   "resume_index": 6,
-  "resume_summary": "Results-driven senior AI Research Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Airflow, Docker, and scikit-learn. Comfortable owning systems end-to-end from architecture through on-call.",
-  "resume_experience": "Principal Research Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Research Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | ML Research Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Research Engineer @ MoMo (M-Service) (May 2023–Jan 2026) | Research Engineer @ Zalo Group (Oct 2025–Present)",
-  "resume_skills": "R, Bash, Python, Airflow, NumPy, HuggingFace Transformers, scikit-learn, Docker, Jenkins, ArgoCD, Analytical Thinking, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition",
-  "resume_education": "Master of Science in Computer Science – HUST, 2018 | TOEIC 860",
-  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox | GitHub: github.com/larry18\n\nOBJECTIVE\nResults-driven senior AI Research Engineer with 6 years building high-throughput B2B software platforms. Deep expertise in Airflow, Docker, and scikit-learn. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Research Engineer @ Base.vn (Jan 2021–Oct 2023) · Reduced customer acquisition cost by 39% by optimising organic search spend allocation. | Senior Research Engineer @ PwC Vietnam (Jun 2023–Jul 2024) · Integrated Kafka observability stack; MTTR dropped from 9h to under 12min. | ML Research Engineer @ Samsung R&D Institute Vietnam (Jun 2024–Aug 2025) | Research Engineer @ MoMo (M-Service) (May 2023–Jan 2026) | Research Engineer @ Zalo Group (Oct 2025–Present)\n\nSKILLS\nR, Bash, Python, Airflow, NumPy, HuggingFace Transformers, scikit-learn, Docker, Jenkins, ArgoCD, Analytical Thinking, Stakeholder Management, Cross-functional Collaboration, Leadership & Mentoring, Problem Decomposition\n\nEDUCATION\nMaster of Science in Computer Science – HUST, 2018 | TOEIC 860",
+  "resume_summary": "T-shaped Product Manager with 6 years spanning mobile, platform, and growth products. Leverages Resource Planning and PMP Methodology to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.",
+  "resume_experience": "Group PM @ Base.vn (Jul 2021–Nov 2023) · Set up Kafka CI/CD pipeline with zero-downtime blue-green deployments across 10 environments. | Senior PM @ PwC Vietnam (Jan 2023–Aug 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Product Manager @ Samsung R&D Institute Vietnam (Dec 2023–Jul 2025) | Associate Product Manager @ MoMo (M-Service) (Sep 2023–Jan 2026) | Associate Product Manager @ Zalo Group (Jul 2025–Present)",
+  "resume_skills": "Product Roadmapping, Go-to-Market Strategy, A/B Testing, SQL, Tableau, JIRA, Resource Planning, PMP Methodology, Asana, Problem Decomposition, Time Management, Analytical Thinking",
+  "resume_education": "Bachelor of Business Administration – HUST, 2018 | TOEIC 860",
+  "resume_text": "Name: Lori Warren\nEmail: fpierce@example.org | Phone: 330-613-9341x753\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/jfox\n\nOBJECTIVE\nT-shaped Product Manager with 6 years spanning mobile, platform, and growth products. Leverages Resource Planning and PMP Methodology to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.\n\nEXPERIENCE\nGroup PM @ Base.vn (Jul 2021–Nov 2023) · Set up Kafka CI/CD pipeline with zero-downtime blue-green deployments across 10 environments. | Senior PM @ PwC Vietnam (Jan 2023–Aug 2024) · Reduced Docker image sizes by 35% via multi-stage builds, halving cold-start times in k8s. | Product Manager @ Samsung R&D Institute Vietnam (Dec 2023–Jul 2025) | Associate Product Manager @ MoMo (M-Service) (Sep 2023–Jan 2026) | Associate Product Manager @ Zalo Group (Jul 2025–Present)\n\nSKILLS\nProduct Roadmapping, Go-to-Market Strategy, A/B Testing, SQL, Tableau, JIRA, Resource Planning, PMP Methodology, Asana, Problem Decomposition, Time Management, Analytical Thinking\n\nEDUCATION\nBachelor of Business Administration – HUST, 2018 | TOEIC 860",
   "pdf_file": "candidate6_11.pdf"
 }

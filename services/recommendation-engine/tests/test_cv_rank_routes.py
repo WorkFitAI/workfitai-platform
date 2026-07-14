@@ -39,6 +39,15 @@ def _fake_rank_result(job_index=1, ranked=None):
             "cross_score": 84.0,
             "label": "Good Fit",
             "explanation": "Strong match.",
+            "match_points": ["Python", "FastAPI"],
+            "miss_points": ["Kubernetes"],
+            "input_coverage": 0.75,
+            "fields_used": {
+                "resume_summary": True,
+                "resume_experience": True,
+                "resume_skills": True,
+                "resume_education": False,
+            },
         }
     ]
     return {
@@ -61,6 +70,37 @@ class TestRankEndpoint:
         body = resp.json()
         assert body["total_candidates"] == 1
         assert body["ranked_resumes"][0]["label"] == "Good Fit"
+
+    def test_new_fields_present_in_rank_response(self, client, app_state, monkeypatch):
+        monkeypatch.setattr(
+            "app.api.cv_rank_routes.rank_resumes",
+            lambda pipeline, request, *a, **kw: _fake_rank_result(),
+        )
+        resp = client.post("/api/v1/cv-ranking/rank", json=_cv_rank_request_payload())
+        assert resp.status_code == 200
+        r = resp.json()["ranked_resumes"][0]
+        assert r["match_points"] == ["Python", "FastAPI"]
+        assert r["miss_points"] == ["Kubernetes"]
+        assert r["input_coverage"] == 0.75
+        assert r["fields_used"]["resume_education"] is False
+
+    def test_new_fields_default_when_missing_from_pipeline(self, client, app_state, monkeypatch):
+        """Pipeline result without new fields → response defaults to empty list / 1.0 / {}."""
+        monkeypatch.setattr(
+            "app.api.cv_rank_routes.rank_resumes",
+            lambda pipeline, request, *a, **kw: _fake_rank_result(ranked=[{
+                "resume_index": 0, "score": 55.0, "similarity_score": 50.0,
+                "cross_score": 57.0, "label": "No Fit", "explanation": "Partial match.",
+                # no match_points / miss_points / input_coverage / fields_used
+            }]),
+        )
+        resp = client.post("/api/v1/cv-ranking/rank", json=_cv_rank_request_payload())
+        assert resp.status_code == 200
+        r = resp.json()["ranked_resumes"][0]
+        assert r["match_points"] == []
+        assert r["miss_points"] == []
+        assert r["input_coverage"] == 1.0
+        assert r["fields_used"] == {}
 
     def test_empty_ranked_resumes(self, client, app_state, monkeypatch):
         monkeypatch.setattr(
@@ -193,6 +233,32 @@ class TestRankByJob:
         assert resp.status_code == 200
         body = resp.json()
         assert body["ranked_count"] == 1
+
+    def test_rank_by_job_cache_disabled_new_fields_propagated(self, client, app_state, monkeypatch):
+        """New fields must flow from rank_resumes result through the cache-disabled _compute path."""
+        from app.config import get_settings
+
+        monkeypatch.setattr(get_settings(), "CV_RANKING_CACHE_ENABLED", False)
+        app_state["cv_refer_store"].add_applicant("job-fields", "frank")
+        app_state["cv_refer_store"].set_cv_snapshot(
+            "job-fields", "frank", {"summary": "s", "experience": "e", "skills": "sk", "education": "ed"}
+        )
+
+        async def _fake_fetch(url, job_id, timeout):
+            return {"shortDescription": "Backend role"}
+
+        monkeypatch.setattr("app.api.cv_rank_routes.fetch_job_data", _fake_fetch)
+        monkeypatch.setattr(
+            "app.api.cv_rank_routes.rank_resumes",
+            lambda pipeline, request, *a, **kw: _fake_rank_result(job_index=0),
+        )
+        resp = client.post("/api/v1/cv-ranking/rank-by-job/job-fields")
+        assert resp.status_code == 200
+        applicant = resp.json()["ranked_applicants"][0]
+        assert applicant["match_points"] == ["Python", "FastAPI"]
+        assert applicant["miss_points"] == ["Kubernetes"]
+        assert applicant["input_coverage"] == 0.75
+        assert applicant["fields_used"]["resume_education"] is False
 
     def test_cache_disabled_job_service_unreachable_returns_503(self, client, app_state, monkeypatch):
         from app.config import get_settings

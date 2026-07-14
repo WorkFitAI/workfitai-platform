@@ -167,31 +167,88 @@ class FAISSIndexManager:
             logger.error(f"Error updating job with embedding {job_id}: {e}", exc_info=True)
             raise
     
+    def compact_index(self) -> int:
+        """Rebuild the FAISS index to remove accumulated ghost vectors.
+
+        Ghost vectors appear whenever remove_job() or update_job_with_embedding()
+        is called — FAISS IndexFlatIP does not support in-place deletion, so the
+        old vectors stay in the index while the mapping entries are removed.
+        search() already skips ghosts correctly, but they waste memory and slow
+        scans. compact_index() reconstructs the index from live vectors only.
+
+        Returns the number of ghost vectors removed (0 if index was already clean).
+        """
+        ghost_count = self.index.ntotal - len(self.job_id_to_id)
+        if ghost_count == 0:
+            return 0
+
+        new_index = faiss.IndexFlatIP(self.dimension)
+        new_id_to_job_id: Dict[int, str] = {}
+        new_job_id_to_id: Dict[str, int] = {}
+        new_field_presence: Dict[str, List[bool]] = {k: [] for k in self.field_presence}
+        new_field_embeddings: Dict[str, List] = {k: [] for k in self.field_embeddings}
+        new_next_id = 0
+
+        for old_id in range(self.next_id):
+            if old_id not in self.id_to_job_id:
+                continue  # ghost — skip
+            job_id = self.id_to_job_id[old_id]
+            embedding = self.index.reconstruct(old_id).reshape(1, -1)
+            new_index.add(embedding)
+            new_id_to_job_id[new_next_id] = job_id
+            new_job_id_to_id[job_id] = new_next_id
+
+            for name in new_field_presence:
+                if old_id < len(self.field_presence[name]):
+                    new_field_presence[name].append(self.field_presence[name][old_id])
+                    new_field_embeddings[name].append(self.field_embeddings[name][old_id])
+                else:
+                    new_field_presence[name].append(False)
+                    new_field_embeddings[name].append(np.zeros(self.dimension, dtype=np.float32))
+
+            new_next_id += 1
+
+        self.index = new_index
+        self.id_to_job_id = new_id_to_job_id
+        self.job_id_to_id = new_job_id_to_id
+        self.field_presence = new_field_presence
+        self.field_embeddings = new_field_embeddings
+        self.next_id = new_next_id
+
+        logger.info(
+            "compact_index: removed %d ghost vector(s), %d live job(s) remain",
+            ghost_count, len(self.job_id_to_id),
+        )
+        return ghost_count
+
     def remove_job(self, job_id: str):
         """
-        Remove a job from the index
-        
-        Note: FAISS doesn't support efficient removal, so we mark as removed
-        and rebuild index periodically
-        
-        Args:
-            job_id: Job ID to remove
+        Remove a job from the index.
+
+        The FAISS vector becomes a ghost (not addressable, but still physically
+        in the index). compact_index() is called automatically when the ghost
+        ratio is high to prevent unbounded memory growth.
         """
         try:
             if job_id not in self.job_id_to_id:
                 logger.warning(f"Job {job_id} not found in index")
                 return
-            
+
             internal_id = self.job_id_to_id[job_id]
-            
-            # Remove from mappings
+
             del self.job_id_to_id[job_id]
             del self.id_to_job_id[internal_id]
             del self.job_metadata[job_id]
-            
+
             logger.info(f"✓ Removed job {job_id} (internal_id={internal_id})")
-            logger.info(f"  Note: FAISS vector still in index, rebuild needed for cleanup")
-            
+
+            # Auto-compact when ghost count is large relative to live jobs so the
+            # index doesn't grow unboundedly under sustained update/delete load.
+            live_count = len(self.job_id_to_id)
+            ghost_count = self.index.ntotal - live_count
+            if ghost_count >= max(50, live_count):
+                self.compact_index()
+
         except Exception as e:
             logger.error(f"Error removing job {job_id}: {e}", exc_info=True)
             raise
@@ -352,12 +409,12 @@ class FAISSIndexManager:
 
     def save_index(self, path: Optional[str] = None):
         """
-        Save FAISS index and metadata to disk
-        
-        Args:
-            path: Path to save index (uses self.index_path if not provided)
+        Save FAISS index and metadata to disk.
+
+        Compacts ghost vectors before writing so the on-disk index is always clean.
         """
         try:
+            self.compact_index()
             save_path = path or self.index_path
             if not save_path:
                 logger.warning("No save path provided")
@@ -443,9 +500,11 @@ class FAISSIndexManager:
     
     def get_stats(self) -> Dict:
         """Get index statistics"""
+        live = len(self.job_id_to_id)
         return {
-            "total_jobs": len(self.job_id_to_id),
+            "total_jobs": live,
             "vectors_in_index": self.index.ntotal,
+            "ghost_vectors": self.index.ntotal - live,
             "dimension": self.dimension,
-            "next_id": self.next_id
+            "next_id": self.next_id,
         }

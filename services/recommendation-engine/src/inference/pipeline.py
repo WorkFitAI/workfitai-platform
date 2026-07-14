@@ -27,6 +27,7 @@ Labels (configurable via good_fit_threshold; calibrated optimum ~27):
 from __future__ import annotations
 
 import os
+import re
 import time
 import yaml
 import logging
@@ -72,6 +73,18 @@ class RankedResume:
     cross_score: float
     label: str            # "Good Fit" | "No Fit"
     explanation: str
+    match_points: List[str] = None   # parsed from T5 output "match: X; Y."
+    miss_points: List[str] = None    # parsed from T5 output "miss: A; B."
+    input_coverage: float = 1.0      # fraction of CV fields that are non-empty
+    fields_used: Dict[str, bool] = None  # per-field presence mask
+
+    def __post_init__(self):
+        if self.match_points is None:
+            self.match_points = []
+        if self.miss_points is None:
+            self.miss_points = []
+        if self.fields_used is None:
+            self.fields_used = {}
 
 
 @dataclass
@@ -112,11 +125,14 @@ def _build_job_text(job: JobInput) -> str:
         parts.append(f"Responsibilities: {job.jd_responsibilities[:400]}")
     if job.jd_preferred:
         parts.append(f"Preferred: {job.jd_preferred[:256]}")
-    text = " | ".join(parts).strip()
-    # Fallback: use raw description when structured fields were not populated
-    if not text:
-        text = (job.job_description_text or "")[:450].strip()
-    return text
+    # Always append full description when structured fields are absent or thin —
+    # job APIs often only return description without separate requirements/responsibilities keys.
+    structured_len = sum(
+        len(p) for p in [job.jd_requirements, job.jd_responsibilities, job.jd_preferred] if p
+    )
+    if job.job_description_text and structured_len < 100:
+        parts.append(job.job_description_text[:600])
+    return " | ".join(parts).strip()
 
 
 def _build_resume_text(resume: ResumeInput) -> str:
@@ -150,7 +166,14 @@ def _t5_generate(model, tokenizer, job_text: str, resume_text: str, score: float
     )
     inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
     with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=128, num_beams=4, early_stopping=True)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=128,
+            num_beams=4,
+            early_stopping=True,
+            no_repeat_ngram_size=3,
+            repetition_penalty=1.5,
+        )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
@@ -164,16 +187,275 @@ def _rule_explanation(score: float) -> str:
     return "Limited alignment with the job requirements based on profile analysis."
 
 
+def _build_nl_explanation(match_points: list, miss_points: list, label: str, score: float) -> str:
+    """Convert structured match/miss lists into a readable natural language explanation."""
+    parts = []
+    if match_points:
+        parts.append(f"Matches: {', '.join(match_points)}.")
+    if miss_points:
+        parts.append(f"Missing: {', '.join(miss_points)}.")
+    if parts:
+        return " ".join(parts)
+    return _rule_explanation(score)
+
+
+_MAX_POINT_LEN = 80  # discard any parsed point longer than this (repetition artifact)
+
+
+def _parse_match_miss(text: str) -> tuple:
+    """Parse T5 output 'match: X; Y. miss: A; B.' into two lists."""
+    m = re.search(r'match:\s*([^.]+)', text, re.IGNORECASE)
+    x = re.search(r'miss:\s*([^.]+)',  text, re.IGNORECASE)
+    match_points = [
+        s.strip() for s in m.group(1).split(';')
+        if s.strip() and len(s.strip()) <= _MAX_POINT_LEN
+    ] if m else []
+    miss_points = [
+        s.strip() for s in x.group(1).split(';')
+        if s.strip() and len(s.strip()) <= _MAX_POINT_LEN
+    ] if x else []
+    return match_points, miss_points
+
+
+# Tech skill tokens — longest-first to avoid substring shadowing
+_SKILL_RE = re.compile(
+    r'\b('
+    r'next\.?js|nest\.?js|node\.?js|vue\.?js|react\.?js|react|angular|svelte|'
+    r'typescript|javascript|python|java\b|golang|rust\b|kotlin|swift|dart|php|ruby|scala|'
+    r'spring\s*boot|spring|django|flask|fastapi|express\.?js|laravel|rails|'
+    r'postgresql|mysql|mongodb|redis|elasticsearch|cassandra|dynamodb|sqlite|'
+    r'docker|kubernetes|k8s|terraform|ansible|jenkins|github\s*actions|gitlab\s*ci|'
+    r'aws|gcp|azure|cloud|devops|ci/?cd|'
+    r'graphql|rest\s*api|grpc|kafka|rabbitmq|celery|'
+    r'pytorch|tensorflow|keras|scikit.learn|pandas|numpy|'
+    r'git|linux|bash|sql|html|css|'
+    r'microservices|monorepo|agile|scrum'
+    r')\b',
+    re.IGNORECASE,
+)
+
+# Education level patterns
+_EDU_RE = re.compile(
+    r'\b(bachelor\'?s?(?:\s+(?:degree|of\s+\w+))?'
+    r'|master\'?s?(?:\s+(?:degree|of\s+\w+))?'
+    r'|ph\.?d\.?|mba'
+    r'|(?:degree\s+in\s+[\w\s]{3,30}))',
+    re.IGNORECASE,
+)
+
+# Experience year patterns
+_EXP_RE = re.compile(
+    r'\b(\d+\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:[\w]+\s+){0,4}experience)',
+    re.IGNORECASE,
+)
+
+# Soft / domain skills
+_SOFT_RE = re.compile(
+    r'\b(communication\s+skills?|leadership|teamwork|problem[\s-]solving'
+    r'|analytical|critical\s+thinking|time\s+management|attention\s+to\s+detail'
+    r'|collaboration|presentation\s+skills?|project\s+management)',
+    re.IGNORECASE,
+)
+
+
+_STOP_WORDS = frozenset({
+    'with', 'the', 'and', 'for', 'that', 'this', 'from', 'have', 'has',
+    'are', 'was', 'will', 'can', 'may', 'must', 'not', 'but', 'its',
+    'our', 'you', 'your', 'their', 'such', 'than', 'into', 'over',
+    'able', 'well', 'good', 'high', 'new', 'use', 'used', 'using',
+    'also', 'some', 'all', 'any', 'each', 'which', 'they', 'them',
+})
+
+_SKILL_RE = re.compile(
+    r'\b('
+    r'next\.?js|nest\.?js|node\.?js|vue\.?js|react\.?js|react|angular|svelte|'
+    r'typescript|javascript|python|java\b|golang|rust\b|kotlin|swift|dart|php|ruby|scala|'
+    r'spring\s*boot|spring|django|flask|fastapi|express\.?js|laravel|rails|'
+    r'postgresql|mysql|mongodb|redis|elasticsearch|cassandra|dynamodb|sqlite|'
+    r'docker|kubernetes|k8s|terraform|ansible|jenkins|github\s*actions|gitlab\s*ci|'
+    r'aws|gcp|azure|cloud|devops|ci/?cd|'
+    r'graphql|rest\s*api|grpc|kafka|rabbitmq|celery|'
+    r'pytorch|tensorflow|keras|scikit.learn|pandas|numpy|'
+    r'git|linux|bash|sql|html|css|'
+    r'microservices|monorepo|agile|scrum|'
+    r'\d+\+?\s*(?:years?|yrs?)\s+(?:\w+\s+){0,3}experience'
+    r')\b',
+    re.IGNORECASE,
+)
+
+
+_SECTION_HEADER_RE = re.compile(
+    r'^(what you\'?ll do|responsibilities|requirements|qualifications|about|overview'
+    r'|preferred|benefits|nice to have|you will|your role|the role|join us)',
+    re.IGNORECASE,
+)
+
+
+def _extract_jd_phrases(job_text: str) -> list:
+    """
+    Split JD text into natural language requirement phrases.
+    Filters out section headers and short/empty fragments.
+    """
+    # Split on bullet chars and newlines only — NOT on hyphens (would break "stand-ups", "back-end" etc.)
+    parts = re.split(r'[•\*\n;]|(?<!\d),(?!\d)', job_text)
+    phrases = []
+    seen = set()
+    for p in parts:
+        p = re.sub(r'\s+', ' ', p).strip(' .,|')
+        # Strip leading bullet-style hyphens only
+        p = re.sub(r'^[\-–]+\s*', '', p).strip()
+        if not (8 <= len(p) <= 100):
+            continue
+        if re.match(r'^(and|or|to|but|with|also)\s', p, re.IGNORECASE):
+            continue
+        if p.endswith(':') or _SECTION_HEADER_RE.match(p):
+            continue
+        words = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', p.lower())
+                 if w not in _STOP_WORDS]
+        if len(words) < 2:
+            continue
+        key = p.lower()
+        if key not in seen:
+            seen.add(key)
+            phrases.append(p)
+    return phrases[:25]
+
+
+def _split_cv_sentences(text: str) -> list:
+    """Split CV field text into individual sentences/clauses."""
+    parts = re.split(r'[.\n;]', text or "")
+    return [p.strip() for p in parts if len(p.strip()) >= 12]
+
+
+def _find_cv_phrase(keywords: list, cv_fields: dict, max_len: int = 120) -> str:
+    """
+    Find the CV sentence that best demonstrates the given keywords.
+    Searches experience first, then other fields. Returns best match truncated.
+    """
+    best_sent, best_score = "", 0
+    field_order = ["experience", "skills", "summary", "education"]
+    for field_name in field_order:
+        field_text = cv_fields.get(field_name, "")
+        for sent in _split_cv_sentences(field_text):
+            sent_lower = sent.lower()
+            score = sum(1 for kw in keywords if kw in sent_lower)
+            if score > best_score:
+                best_score = score
+                best_sent = sent
+    return best_sent[:max_len].strip() if best_score > 0 else ""
+
+
+def _find_cv_phrase_for_skill(skill: str, cv_fields: dict, max_len: int = 120) -> str:
+    """
+    Find the CV sentence that contains the given skill keyword.
+    Searches experience first (most informative), then skills, summary, education.
+    Returns the first matching sentence truncated, or empty string if not found.
+    """
+    needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(skill))
+    field_order = ["experience", "skills", "summary", "education"]
+    for field_name in field_order:
+        field_text = cv_fields.get(field_name, "")
+        for sent in _split_cv_sentences(field_text):
+            if re.search(needle, sent, re.IGNORECASE):
+                return sent[:max_len].strip()
+    return ""
+
+
+def _rule_match_miss(
+        job_text: str,
+        resume: "ResumeInput",
+        max_match: int = 4,
+        max_miss: int = 3,
+) -> tuple:
+    """
+    Match/miss extraction:
+    - Step 1: tech skill matching via _SKILL_RE → clean skill name tokens
+    - Step 2: phrase-level matching for remaining slots (non-tech requirements)
+    matchPoints show concrete skills/phrases from CV; missPoints show JD gaps.
+    """
+    cv_fields = {
+        "skills":     getattr(resume, "resume_skills",     "") or "",
+        "experience": getattr(resume, "resume_experience", "") or "",
+        "summary":    getattr(resume, "resume_summary",    "") or "",
+        "education":  getattr(resume, "resume_education",  "") or "",
+    }
+    cv_full = " ".join(cv_fields.values()).lower()
+
+    match_points, miss_points = [], []
+
+    # Step 1: tech skill matching — find CV sentence containing each JD skill
+    jd_skills = list(dict.fromkeys(
+        m.group(0).strip() for m in _SKILL_RE.finditer(job_text)
+    ))
+    used_cv_sentences: set = set()
+    for skill in jd_skills:
+        needle = re.sub(r'[\s.]+', r'[\\s.]*', re.escape(skill))
+        if re.search(needle, cv_full, re.IGNORECASE):
+            if len(match_points) < max_match:
+                cv_phrase = _find_cv_phrase_for_skill(skill, cv_fields)
+                entry = cv_phrase if cv_phrase else skill
+                if entry not in used_cv_sentences:
+                    used_cv_sentences.add(entry)
+                    match_points.append(entry)
+        else:
+            if len(miss_points) < max_miss:
+                miss_points.append(skill)
+        if len(match_points) >= max_match and len(miss_points) >= max_miss:
+            break
+
+    # Step 2: phrase-level matching for remaining slots
+    if len(match_points) < max_match or len(miss_points) < max_miss:
+        jd_phrases = _extract_jd_phrases(job_text)
+        used_cv_sentences = set()
+        for phrase in jd_phrases:
+            keywords = [w for w in re.findall(r'\b[a-zA-Z]\w{2,}\b', phrase.lower())
+                        if w not in _STOP_WORDS]
+            if not keywords:
+                continue
+            found = sum(1 for kw in keywords if kw in cv_full)
+            threshold = 1 if len(keywords) <= 3 else max(2, int(len(keywords) * 0.5))
+            if found >= threshold:
+                if len(match_points) < max_match:
+                    cv_phrase = _find_cv_phrase(keywords, cv_fields)
+                    if cv_phrase and cv_phrase not in used_cv_sentences:
+                        used_cv_sentences.add(cv_phrase)
+                        match_points.append(cv_phrase)
+            else:
+                if len(miss_points) < max_miss:
+                    miss_points.append(phrase)
+
+    return match_points, miss_points
+
+
+def _field_coverage(resume: ResumeInput) -> tuple:
+    """Return (coverage_ratio, fields_dict) for the 4 CV structured fields."""
+    fields = {
+        "resume_summary":    bool((resume.resume_summary    or "").strip()),
+        "resume_experience": bool((resume.resume_experience or "").strip()),
+        "resume_skills":     bool((resume.resume_skills     or "").strip()),
+        "resume_education":  bool((resume.resume_education  or "").strip()),
+    }
+    coverage = sum(fields.values()) / len(fields)
+    return round(coverage, 3), fields
+
+
 def _is_valid_t5_explanation(text: str) -> bool:
     """
-    Reject T5 output that is empty, too short, or contains error/diagnostic patterns
-    from a bad or undertrained model. Falls back to rule-based in those cases.
+    Reject T5 output that is empty, too short, contains error patterns,
+    or shows repetition loops (e.g. "Containerized Containerized...").
     """
     if not text or len(text.strip()) < 15:
         return False
     lower = text.lower()
-    # Reject outputs that look like internal error messages or diagnostic artifacts
-    return not any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score ("))
+    if any(kw in lower for kw in ("failed", "error", "cross-encoder", "llm", "score (")):
+        return False
+    # Detect repetition: any single word appearing > 4 times → garbage output
+    words = lower.split()
+    if words:
+        from collections import Counter
+        if max(Counter(words).values()) > 4:
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -310,12 +592,16 @@ class CVRankingPipeline:
             "processing_time_ms": result.processing_time_ms,
             "ranked_resumes": [
                 {
-                    "resume_index": r.resume_index,
-                    "score": r.score,
-                    "similarity_score": r.similarity_score,
-                    "cross_score": r.cross_score,
-                    "label": r.label,
-                    "explanation": r.explanation,
+                    "resume_index":    r.resume_index,
+                    "score":           r.score,
+                    "similarity_score":r.similarity_score,
+                    "cross_score":     r.cross_score,
+                    "label":           r.label,
+                    "explanation":     r.explanation,
+                    "match_points":    r.match_points,
+                    "miss_points":     r.miss_points,
+                    "input_coverage":  r.input_coverage,
+                    "fields_used":     r.fields_used,
                 }
                 for r in result.ranked_resumes
             ],
@@ -430,7 +716,14 @@ class CVRankingPipeline:
 
         try:
             raw = self._cross_encoder.predict(pairs, convert_to_numpy=True, show_progress_bar=False)
-            cross_scores = (1.0 / (1.0 + np.exp(-raw))) * 100.0
+            raw = np.array(raw, dtype=np.float32)
+            r_min, r_max = raw.min(), raw.max()
+            if r_max - r_min > 0.5:
+                # Enough variance in batch → min-max normalize to [5, 95]
+                cross_scores = 5.0 + (raw - r_min) / (r_max - r_min) * 90.0
+            else:
+                # Batch too uniform → fallback to sigmoid
+                cross_scores = (1.0 / (1.0 + np.exp(-raw))) * 100.0
 
             for c, cs in zip(candidates, cross_scores):
                 c["cross_score"] = round(float(cs), 2)
@@ -455,20 +748,43 @@ class CVRankingPipeline:
             good_fit_threshold: float,
             min_score: float,
     ) -> List[RankedResume]:
-        """Assign label, generate explanation, filter score < min_score."""
+        """Assign label, generate explanation + match/miss, filter score < min_score."""
         results = []
         for c in ranked:
             score = c["score"]
             if score < min_score:
                 continue
             label = "Good Fit" if score >= good_fit_threshold else "No Fit"
+            explanation = self._explain(c, label)
+
+            # If T5 produced structured format ("miss: X; Y."), it's not a readable explanation.
+            # Fall back to score-based narrative — match/miss arrays carry the detail separately.
+            t5_match, t5_miss = _parse_match_miss(explanation)
+            if t5_match or t5_miss:
+                explanation = _rule_explanation(score)
+
+            # match/miss always from rule-based — checks actual CV text, no hallucination
+            match_points, miss_points = _rule_match_miss(
+                c.get("_job_text", ""), c.get("_resume"),
+            )
+            # fallback: JD has no parseable requirements → use T5's extraction
+            if not match_points and not miss_points:
+                match_points, miss_points = t5_match, t5_miss
+
+            resume = c.get("_resume", {})
+            coverage, fields_used = _field_coverage(resume)
+
             results.append(RankedResume(
                 resume_index=c["resume_index"],
                 score=round(score, 2),
                 similarity_score=c["similarity_score"],
                 cross_score=c.get("cross_score", c["similarity_score"]),
                 label=label,
-                explanation=self._explain(c, label),
+                explanation=explanation,
+                match_points=match_points,
+                miss_points=miss_points,
+                input_coverage=coverage,
+                fields_used=fields_used,
             ))
         logger.debug("Stage 3: %d resumes after min_score filter (%.1f)", len(results), min_score)
         return results

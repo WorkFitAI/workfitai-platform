@@ -12,7 +12,7 @@ Pipeline instantiation is bypassed (__new__, no __init__) to avoid loading real 
 weights; only _stage3_explain/_explain are under test, so no other instance state is needed.
 """
 
-from src.inference.pipeline import CVRankingPipeline
+from src.inference.pipeline import CVRankingPipeline, ResumeInput
 
 
 def _make_pipeline() -> CVRankingPipeline:
@@ -25,6 +25,13 @@ def _candidate(resume_index: int, score: float) -> dict:
         "score": score,
         "similarity_score": score,
         "cross_score": score,
+        "_resume": ResumeInput(
+            resume_index=resume_index,
+            resume_summary="Experienced developer",
+            resume_experience="3 years Python",
+            resume_skills="Python, FastAPI",
+            resume_education="BSc Computer Science",
+        ),
     }
 
 

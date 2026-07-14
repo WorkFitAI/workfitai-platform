@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     CROSS_ENCODER_PATH: str = Field(
         default="/app/models/job-recommend/cross-encoder-structured", env="CROSS_ENCODER_PATH"
     )
-    RERANK_TOP_K: int = Field(default=50, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
+    RERANK_TOP_K: int = Field(default=100, env="RERANK_TOP_K")  # Retrieve top-K from bi-encoder
     RERANK_TOP_N: int = Field(default=20, env="RERANK_TOP_N")  # Return top-N after reranking
     
     # FAISS Configuration

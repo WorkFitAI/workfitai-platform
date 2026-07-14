@@ -171,6 +171,10 @@ class CvRankingRefresher:
                     cross_score=r["cross_score"],
                     label=r["label"],
                     explanation=r["explanation"],
+                    match_points=r.get("match_points", []),
+                    miss_points=r.get("miss_points", []),
+                    input_coverage=r.get("input_coverage", 1.0),
+                    fields_used=r.get("fields_used", {}),
                 )
                 for r in result["ranked_resumes"]
             ]

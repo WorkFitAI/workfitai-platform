@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 12
+  },
+  "jobTitle": "Mobile Software Engineer - Attractive Salary",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Engineering-focused problem solver with 13 years in B2B software startups and scale-ups. Hands-on with Git, C++, and REST API Design. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Principal Engineer @ KMS Technology (Jul 2022–Jan 2025) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead Software Engineer @ Techcombank (Jun 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior Software Engineer @ Rikkeisoft (Aug 2025–Present)",
+  "resume_skills": "Flutter, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, NestJS, Node.js, Git, REST API Design, PostgreSQL, Cross-functional Collaboration, Problem Decomposition, Negotiation, Continuous Learning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 13 years in B2B software startups and scale-ups. Hands-on with Git, C++, and REST API Design. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal Engineer @ KMS Technology (Jul 2022–Jan 2025) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead Software Engineer @ Techcombank (Jun 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior Software Engineer @ Rikkeisoft (Aug 2025–Present)\n\nSKILLS\nFlutter, Kotlin, C++, R, Scala, AWS, GitHub Actions, Kubernetes, Ansible, Django, NestJS, Node.js, Git, REST API Design, PostgreSQL, Cross-functional Collaboration, Problem Decomposition, Negotiation, Continuous Learning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate1_29.pdf"
+}

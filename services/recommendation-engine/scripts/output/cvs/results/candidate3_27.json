@@ -1,0 +1,16 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 10
+  },
+  "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Hands-on Mobile Engineer with 3 years building resilient, observable microservices in edtech. Expertise in iOS and Agile / Scrum. Drove adoption of FastAPI-based tooling, improving MTTR by 32%.",
+  "resume_experience": "Lead Mobile Engineer @ VPBank (Oct 2021–Mar 2024) · Negotiated $34M vendor contract, achieving 46% cost savings vs. prior agreement. | Senior Mobile Engineer @ Techcombank (Jul 2023–Aug 2024) · Led migration of 12 monolithic services to microservices, cutting deployment time by 62%. | iOS/Android Engineer @ ThoughtWorks Vietnam (Feb 2024–Mar 2025) | Mobile Developer @ BCG Vietnam (Apr 2024–Jun 2025) | Mobile Developer @ Oracle Vietnam (Apr 2024–Present)",
+  "resume_skills": "Swift, Dart, Objective-C, iOS, Python, Scala, Go, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, CI/CD, Empathy & Active Listening, Project Planning, Continuous Learning, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nHands-on Mobile Engineer with 3 years building resilient, observable microservices in edtech. Expertise in iOS and Agile / Scrum. Drove adoption of FastAPI-based tooling, improving MTTR by 32%.\n\nEXPERIENCE\nLead Mobile Engineer @ VPBank (Oct 2021–Mar 2024) · Negotiated $34M vendor contract, achieving 46% cost savings vs. prior agreement. | Senior Mobile Engineer @ Techcombank (Jul 2023–Aug 2024) · Led migration of 12 monolithic services to microservices, cutting deployment time by 62%. | iOS/Android Engineer @ ThoughtWorks Vietnam (Feb 2024–Mar 2025) | Mobile Developer @ BCG Vietnam (Apr 2024–Jun 2025) | Mobile Developer @ Oracle Vietnam (Apr 2024–Present)\n\nSKILLS\nSwift, Dart, Objective-C, iOS, Python, Scala, Go, Django, Flask, FastAPI, NestJS, Agile / Scrum, Microservices, CQRS, CI/CD, Empathy & Active Listening, Project Planning, Continuous Learning, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – HUST, 2022 | TOEIC 650 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate3_27.pdf"
+}

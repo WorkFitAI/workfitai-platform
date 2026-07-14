@@ -1,0 +1,16 @@
+{
+  "candidateNum": 2,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 12
+  },
+  "jobTitle": "Mobile Software Engineer - Attractive Salary",
+  "label": "match",
+  "resume_index": 2,
+  "resume_summary": "Results-driven senior Software Engineer with 10 years building high-throughput insurtech platforms. Deep expertise in Terraform, Event-Driven Architecture, and Angular. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal Engineer @ Zalo Group (Dec 2021–Feb 2023) · Built a real-time analytics dashboard used by 354k monthly active users. | Lead Software Engineer @ Haravan (Jun 2021–Dec 2023) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior Software Engineer @ Masan Group (May 2023–Dec 2024) | Software Engineer @ BCG Vietnam (Oct 2022–Aug 2025) | Junior Software Engineer @ Google LLC (Feb 2024–Present)",
+  "resume_skills": "Flutter, Event-Driven Architecture, CQRS, Kubernetes, Terraform, Vue.js, Django, React, Angular, Swift, Kotlin, Rust, PostgreSQL, BigQuery, Empathy & Active Listening, Technical Communication, Project Planning",
+  "resume_education": "Bachelor of Engineering in Software Engineering – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "resume_text": "Name: Lucas Rodriguez\nEmail: jeffreywaters@example.com | Phone: 001-936-888-3999\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/smithanna | GitHub: github.com/rharrison\n\nOBJECTIVE\nResults-driven senior Software Engineer with 10 years building high-throughput insurtech platforms. Deep expertise in Terraform, Event-Driven Architecture, and Angular. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal Engineer @ Zalo Group (Dec 2021–Feb 2023) · Built a real-time analytics dashboard used by 354k monthly active users. | Lead Software Engineer @ Haravan (Jun 2021–Dec 2023) · Recruited and onboarded 11 specialist hires for the engineering function in under 5 weeks. | Senior Software Engineer @ Masan Group (May 2023–Dec 2024) | Software Engineer @ BCG Vietnam (Oct 2022–Aug 2025) | Junior Software Engineer @ Google LLC (Feb 2024–Present)\n\nSKILLS\nFlutter, Event-Driven Architecture, CQRS, Kubernetes, Terraform, Vue.js, Django, React, Angular, Swift, Kotlin, Rust, PostgreSQL, BigQuery, Empathy & Active Listening, Technical Communication, Project Planning\n\nEDUCATION\nBachelor of Engineering in Software Engineering – NEU – Hanoi, 2013 | GPA: 8.57/10 | TOEIC 750 | Cert: Oracle Certified Professional: Java SE 17",
+  "pdf_file": "candidate2_29.pdf"
+}

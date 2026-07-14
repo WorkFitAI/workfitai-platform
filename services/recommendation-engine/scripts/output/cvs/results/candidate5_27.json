@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 10
+  },
+  "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Engineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Objective-C, Dart, and Objective-C. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Mobile Engineer @ Lotte Vietnam (Oct 2023–Sep 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Mobile Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ AEON Vietnam (May 2025–Present)",
+  "resume_skills": "Swift, Dart, Objective-C, iOS, TDD, REST API Design, Node.js, Flask, Kotlin, TypeScript, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management",
+  "resume_education": "Bachelor of Engineering in Software Engineering – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19 | GitHub: github.com/udunn\n\nOBJECTIVE\nEngineering-focused problem solver with 15 years in fintech startups and scale-ups. Hands-on with Objective-C, Dart, and Objective-C. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Mobile Engineer @ Lotte Vietnam (Oct 2023–Sep 2025) · Spearheaded adoption of TDD practices; unit-test coverage increased from 42% to 93%. | Senior Mobile Engineer @ Atlassian (Sep 2023–Mar 2026) · Led 8-person cross-functional squad through a full product cycle from discovery to GA. | iOS/Android Engineer @ AEON Vietnam (May 2025–Present)\n\nSKILLS\nSwift, Dart, Objective-C, iOS, TDD, REST API Design, Node.js, Flask, Kotlin, TypeScript, Analytical Thinking, Ownership & Accountability, Project Planning, Stakeholder Management\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2008 | TOEIC 600",
+  "pdf_file": "candidate5_27.pdf"
+}

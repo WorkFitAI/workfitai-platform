@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 6
+  },
+  "jobTitle": "Product Owner cum Project Manager",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Commercially minded Project Manager (13 yrs) with a track record of driving 41% efficiency gains. Expertise in CI/CD and Python. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Programme Manager @ KMS Technology (Jan 2022–Dec 2024) · Conducted 10 rounds of user research, surfacing 10 critical usability issues before launch. | Senior PM @ Techcombank (Jul 2022–Jun 2025) · Defined and shipped 12 major product features that increased DAU by 20%. | Project Manager @ Rikkeisoft (Jan 2024–Present)",
+  "resume_skills": "Python, Agile, Stakeholder Reporting, Asana, MS Project, Monday.com, Confluence, Gap Analysis, SQL, DDD, CI/CD, Ownership & Accountability, Negotiation, Conflict Resolution",
+  "resume_education": "Bachelor of Business Administration – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKAD: Certified Kubernetes Application Developer",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nCommercially minded Project Manager (13 yrs) with a track record of driving 41% efficiency gains. Expertise in CI/CD and Python. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nProgramme Manager @ KMS Technology (Jan 2022–Dec 2024) · Conducted 10 rounds of user research, surfacing 10 critical usability issues before launch. | Senior PM @ Techcombank (Jul 2022–Jun 2025) · Defined and shipped 12 major product features that increased DAU by 20%. | Project Manager @ Rikkeisoft (Jan 2024–Present)\n\nSKILLS\nPython, Agile, Stakeholder Reporting, Asana, MS Project, Monday.com, Confluence, Gap Analysis, SQL, DDD, CI/CD, Ownership & Accountability, Negotiation, Conflict Resolution\n\nEDUCATION\nBachelor of Business Administration – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKAD: Certified Kubernetes Application Developer",
+  "pdf_file": "candidate1_23.pdf"
+}

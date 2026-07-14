@@ -98,9 +98,21 @@ class CvReferStore:
         with self._lock:
             return list(self._job_applicants.get(job_id, set()))
 
+    def get_jobs_for_username(self, username: str) -> List[str]:
+        """Return all job IDs where username is in the active applicant pool."""
+        with self._lock:
+            return [
+                job_id for job_id, pool in self._job_applicants.items()
+                if username in pool
+            ]
+
     def get_cv_data(self, job_id: str, username: str) -> Optional[Dict]:
         with self._lock:
             return self._cv_data.get(_cv_key(job_id, username))
+
+    def has_cv_snapshot(self, job_id: str, username: str) -> bool:
+        with self._lock:
+            return _cv_key(job_id, username) in self._cv_data
 
     def get_stats(self) -> Dict:
         with self._lock:

@@ -1,0 +1,16 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 15
+  },
+  "jobTitle": "Software Engineer (Python, TypeScript)",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Versatile Data Engineer (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Neo4j and AWS. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.",
+  "resume_experience": "Principal Data Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Data Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.",
+  "resume_skills": "DynamoDB, Neo4j, ClickHouse, Apache Kafka, RabbitMQ, gRPC, WebSocket, FAISS, PyTorch, dbt, Pandas, GitHub Actions, GCP, AWS, Go, Project Planning, Cross-functional Collaboration, Analytical Thinking, Stakeholder Management",
+  "resume_education": "Bachelor of Science in Computer Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nVersatile Data Engineer (2 yrs) with a track record of delivering complex distributed systems on time. Proficient in Neo4j and AWS. Mentored 10 engineers and led cross-functional squads in fast-moving Agile environments.\n\nEXPERIENCE\nPrincipal Data Engineer @ Meta Platforms (Mar 2024–Oct 2025) · Led 10-person cross-functional squad through a full product cycle from discovery to GA. | Lead Data Engineer @ Medici Health (Apr 2024–Present) · Recruited and onboarded 11 specialist hires for the HR function in under 1 weeks.\n\nSKILLS\nDynamoDB, Neo4j, ClickHouse, Apache Kafka, RabbitMQ, gRPC, WebSocket, FAISS, PyTorch, dbt, Pandas, GitHub Actions, GCP, AWS, Go, Project Planning, Cross-functional Collaboration, Analytical Thinking, Stakeholder Management\n\nEDUCATION\nBachelor of Science in Computer Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate9_32.pdf"
+}

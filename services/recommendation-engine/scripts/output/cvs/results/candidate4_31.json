@@ -1,0 +1,16 @@
+{
+  "candidateNum": 4,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 14
+  },
+  "jobTitle": "AI Engineer (Python,ML,LLM)",
+  "label": "match",
+  "resume_index": 4,
+  "resume_summary": "Results-driven principal-level Machine Learning Engineer with 11 years building high-throughput logistics platforms. Deep expertise in AWS, Jenkins, and Helm. Comfortable owning systems end-to-end from architecture through on-call.",
+  "resume_experience": "Principal ML Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead ML Engineer @ Techcombank (Sep 2023–Jan 2025) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior ML Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | ML Engineer @ Medici Health (May 2024–Mar 2026) | ML Engineer @ ACB Bank (May 2025–Present)",
+  "resume_skills": "TypeScript, Python, MLOps, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, Dart, Ownership & Accountability, Presentation Skills, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Michael Sanchez\nEmail: cindysmith@example.net | Phone: 260.546.3764x545\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/ocrawford | GitHub: github.com/daviserin\n\nOBJECTIVE\nResults-driven principal-level Machine Learning Engineer with 11 years building high-throughput logistics platforms. Deep expertise in AWS, Jenkins, and Helm. Comfortable owning systems end-to-end from architecture through on-call.\n\nEXPERIENCE\nPrincipal ML Engineer @ CMC Global (Mar 2023–Feb 2024) · Consolidated 4 redundant microservices, reducing infra cost by $54k/yr. | Lead ML Engineer @ Techcombank (Sep 2023–Jan 2025) · Streamlined sales operations with process automation, reducing manual effort by 41%. | Senior ML Engineer @ Shopee Vietnam (Feb 2024–Jul 2025) | ML Engineer @ Medici Health (May 2024–Mar 2026) | ML Engineer @ ACB Bank (May 2025–Present)\n\nSKILLS\nTypeScript, Python, MLOps, Kubernetes, Helm, Jenkins, AWS, DynamoDB, MySQL, Cassandra, MongoDB, Scala, Dart, Ownership & Accountability, Presentation Skills, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – NEU – Hanoi, 2015 | TOEIC 750 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate4_31.pdf"
+}

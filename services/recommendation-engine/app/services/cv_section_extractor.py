@@ -47,7 +47,11 @@ Document Type: RESUME
 
 For RESUME, extract these sections:
 1. summary: Professional summary, objective, or profile statement
-2. experience: Work history, job experiences, projects, achievements
+2. experience: PAID work history only — actual jobs, internships, or employment
+   the candidate held (employer name, job title, dates, responsibilities performed
+   as an employee). Do NOT include personal, academic, side, or portfolio projects
+   here, even if the document lists them under a combined "Experience & Projects"
+   section — leave those out of this field entirely.
 3. skills: Technical skills, competencies, tools, technologies
 4. education: Degrees, certifications, courses, training
 
@@ -58,6 +62,9 @@ IMPORTANT RULES:
 - If a section is too long, keep the most important/relevant information
 - Do NOT add information not present in the original document
 - Do NOT use markdown formatting in the output
+- In "experience", keep the candidate's own stated job title/level exactly as
+  written (e.g. "Intern", "Fresher", "Junior") — never upgrade or infer a more
+  senior title than what the document actually states
 
 Return ONLY a valid JSON object with this exact structure (no markdown code blocks):
 {{

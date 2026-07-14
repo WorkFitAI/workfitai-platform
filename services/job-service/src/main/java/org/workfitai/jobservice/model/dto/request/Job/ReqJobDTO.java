@@ -1,5 +1,6 @@
 package org.workfitai.jobservice.model.dto.request.Job;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +18,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// Clients resolve skillNames/jobCategoryName to skillIds/jobCategoryId before submitting but
+// don't strip the original string fields from the payload — ignore them instead of 500ing.
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqJobDTO {
 
     @NotBlank(message = "Title must not be null")

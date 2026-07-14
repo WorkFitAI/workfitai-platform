@@ -984,7 +984,7 @@ services:
       application-service:
         condition: service_started
       cv-service:
-        condition: service_started
+        condition: service_healthy
     networks: [workfitai-net]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

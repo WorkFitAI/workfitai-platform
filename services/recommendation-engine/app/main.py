@@ -5,6 +5,7 @@ Main entry point for the service
 
 import logging
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
@@ -48,6 +49,19 @@ async def lifespan(app: FastAPI):
     """
     Startup and shutdown events
     """
+    # Load secrets from Vault before constructing settings so pydantic sees the
+    # updated env vars. Failures are non-fatal — env vars injected by Docker
+    # Compose serve as the fallback.
+    if os.getenv("VAULT_ENABLED", "").lower() == "true":
+        try:
+            from app.vault_client import load_config_from_vault
+            vault_config = load_config_from_vault()
+            if vault_config:
+                os.environ.update({k: str(v) for k, v in vault_config.items()})
+                logger.info("Applied %d value(s) from Vault", len(vault_config))
+        except Exception as _vault_err:
+            logger.warning("Vault config load failed, continuing with env vars: %s", _vault_err)
+
     settings = get_settings()
     logger.info(f"Starting {settings.SERVICE_NAME} v{settings.VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
@@ -207,6 +221,7 @@ async def lifespan(app: FastAPI):
                     "group_id": settings.KAFKA_CV_REFER_GROUP,
                     "topic_application_events": settings.KAFKA_TOPIC_APPLICATION_EVENTS,
                     "topic_application_status": settings.KAFKA_TOPIC_APPLICATION_STATUS,
+                    "topic_cv_updated": settings.KAFKA_TOPIC_CV_UPDATED,
                 }
                 app_state["cv_refer_consumer"] = CvReferConsumer(
                     kafka_config=cv_refer_kafka_config,

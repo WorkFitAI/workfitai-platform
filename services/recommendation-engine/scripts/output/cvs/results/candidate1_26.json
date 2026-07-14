@@ -1,0 +1,16 @@
+{
+  "candidateNum": 1,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 9
+  },
+  "jobTitle": "iOS Developer (Swift/ Objective-C)",
+  "label": "match",
+  "resume_index": 1,
+  "resume_summary": "Senior Mobile Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in Swift and Vue.js. Cut release cycle by 29% through CI/CD automation at last role.",
+  "resume_experience": "Lead Mobile Engineer @ BCG Vietnam (Apr 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Mobile Engineer @ Techcombank (Sep 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | iOS/Android Engineer @ KMS Technology (Apr 2024–Present)",
+  "resume_skills": "Objective-C, Swift, Flutter, Django, Vue.js, Node.js, Java, Dart, JavaScript, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Time Management, Presentation Skills",
+  "resume_education": "Bachelor of Engineering in Software Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nSenior Mobile Engineer who thrives at the intersection of technical depth and delivery speed. 6 years shipping production code in Swift and Vue.js. Cut release cycle by 29% through CI/CD automation at last role.\n\nEXPERIENCE\nLead Mobile Engineer @ BCG Vietnam (Apr 2023–Jul 2025) · Authored internal RFC for hexagonal architecture, adopted across 4 product squads. | Senior Mobile Engineer @ Techcombank (Sep 2024–Nov 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | iOS/Android Engineer @ KMS Technology (Apr 2024–Present)\n\nSKILLS\nObjective-C, Swift, Flutter, Django, Vue.js, Node.js, Java, Dart, JavaScript, CI/CD, REST API Design, DDD, Microservices, Conflict Resolution, Time Management, Presentation Skills\n\nEDUCATION\nBachelor of Engineering in Software Engineering – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "pdf_file": "candidate1_26.pdf"
+}

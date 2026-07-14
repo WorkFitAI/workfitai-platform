@@ -1,16 +1,16 @@
 {
   "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm2",
-    "index": 4
+    "hrmKey": "hrm1",
+    "index": 9
   },
-  "jobTitle": "AI Engineer - LLM & Generative AI",
+  "jobTitle": "Frontend Engineer (AI Coding Agent/Javascript/React)",
   "label": "match",
   "resume_index": 1,
-  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and OpenAI API. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Principal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)",
-  "resume_skills": "Python, PyTorch, OpenAI API, LangChain, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
-  "resume_education": "Bachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with Kubernetes, Dart, and OpenAI API. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nPrincipal ML Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Lead ML Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Senior ML Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nPython, PyTorch, OpenAI API, LangChain, MySQL, ClickHouse, DynamoDB, Cassandra, GitHub Actions, Kubernetes, AWS, Kotlin, Dart, Go, JavaScript, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nBachelor of Science in Artificial Intelligence – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_summary": "Engineering-focused problem solver with 13 years in B2B software startups and scale-ups. Hands-on with DDD, Pandas, and JavaScript. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Distinguished Engineer @ KMS Technology (Jul 2022–Jan 2025) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Staff Engineer @ Techcombank (Jun 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Staff Engineer @ Rikkeisoft (Aug 2025–Present)",
+  "resume_skills": "Python, TypeScript, JavaScript, ReactJS, C#, Kotlin, GitHub Actions, AWS, Ansible, DDD, CI/CD, NumPy, Pandas, TensorFlow, Airflow, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation",
+  "resume_education": "Master of Science in Computer Science – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 13 years in B2B software startups and scale-ups. Hands-on with DDD, Pandas, and JavaScript. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nDistinguished Engineer @ KMS Technology (Jul 2022–Jan 2025) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Staff Engineer @ Techcombank (Jun 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Staff Engineer @ Rikkeisoft (Aug 2025–Present)\n\nSKILLS\nPython, TypeScript, JavaScript, ReactJS, C#, Kotlin, GitHub Actions, AWS, Ansible, DDD, CI/CD, NumPy, Pandas, TensorFlow, Airflow, Cross-functional Collaboration, Project Planning, Time Management, Problem Decomposition, Negotiation\n\nEDUCATION\nMaster of Science in Computer Science – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKA: Certified Kubernetes Administrator",
   "pdf_file": "candidate1_10.pdf"
 }

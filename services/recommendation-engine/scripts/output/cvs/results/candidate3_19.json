@@ -1,0 +1,16 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 2
+  },
+  "jobTitle": "Cybersecurity Engineer - Application Security",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
+  "resume_experience": "Lead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Dec 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)",
+  "resume_skills": "VMware, Linux, Python, AWS, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills",
+  "resume_education": "Bachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\n3+ years as a Security Engineer specialising in Go and Docker. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nLead Security Engineer @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior Security Engineer @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Security Engineer @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Security Analyst @ BCG Vietnam (Nov 2024–Dec 2025) | Security Analyst @ Oracle Vietnam (Jun 2025–Present)\n\nSKILLS\nVMware, Linux, Python, AWS, Docker, GCP, Terraform, Helm, Java, Go, C#, C++, Microservices, CQRS, DDD, Continuous Learning, Stakeholder Management, Problem Decomposition, Presentation Skills\n\nEDUCATION\nBachelor of Science in Cybersecurity – HUST, 2022 | TOEIC 650",
+  "pdf_file": "candidate3_19.pdf"
+}

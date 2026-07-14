@@ -1,0 +1,16 @@
+{
+  "candidateNum": 9,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 4
+  },
+  "jobTitle": "Product Engineer (Intern/Fresher/Junior)",
+  "label": "no_match",
+  "resume_index": 9,
+  "resume_summary": "Systems thinker with 2 years in Data Scientist roles at high-growth companies. Deep expertise in Mixpanel; solid grounding in HuggingFace Transformers and scikit-learn. Recognised for bridging engineering velocity with product quality.",
+  "resume_experience": "Lead Data Scientist @ Meta Platforms (Nov 2024–Sep 2025) · Led cross-functional team of 10 to deliver dashboard launch across 3 key markets in 3 weeks. | Senior Data Scientist @ Medici Health (Jul 2025–Present) · Reduced end-to-end API latency by 31% by introducing OAuth2 caching and query optimisation.",
+  "resume_skills": "Mixpanel, Excel (Advanced), Google Analytics, PyTorch, scikit-learn, LangChain, HuggingFace Transformers, Neo4j, PostgreSQL, DynamoDB, MySQL, C++, R, Go, Ownership & Accountability, Conflict Resolution, Stakeholder Management, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Data Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: Certified Business Analysis Professional (CBAP)",
+  "resume_text": "Name: Brian Wu\nEmail: justin64@example.com | Phone: 001-366-632-5267\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/morrisonmark | GitHub: github.com/greenzachary\n\nOBJECTIVE\nSystems thinker with 2 years in Data Scientist roles at high-growth companies. Deep expertise in Mixpanel; solid grounding in HuggingFace Transformers and scikit-learn. Recognised for bridging engineering velocity with product quality.\n\nEXPERIENCE\nLead Data Scientist @ Meta Platforms (Nov 2024–Sep 2025) · Led cross-functional team of 10 to deliver dashboard launch across 3 key markets in 3 weeks. | Senior Data Scientist @ Medici Health (Jul 2025–Present) · Reduced end-to-end API latency by 31% by introducing OAuth2 caching and query optimisation.\n\nSKILLS\nMixpanel, Excel (Advanced), Google Analytics, PyTorch, scikit-learn, LangChain, HuggingFace Transformers, Neo4j, PostgreSQL, DynamoDB, MySQL, C++, R, Go, Ownership & Accountability, Conflict Resolution, Stakeholder Management, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Data Science – UEH, 2021 | GPA: 6.84/10 | TOEIC 720 | Cert: Certified Business Analysis Professional (CBAP)",
+  "pdf_file": "candidate9_21.pdf"
+}

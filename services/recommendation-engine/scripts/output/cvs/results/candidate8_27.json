@@ -1,0 +1,16 @@
+{
+  "candidateNum": 8,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 10
+  },
+  "jobTitle": "Senior Flutter Developer (Dart, iOS, Android)",
+  "label": "no_match",
+  "resume_index": 8,
+  "resume_summary": "Strategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.",
+  "resume_experience": "Lead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Sep 2024–Jul 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)",
+  "resume_skills": "Excel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening",
+  "resume_education": "Bachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "resume_text": "Name: Elizabeth Schwartz\nEmail: bsimmons@example.net | Phone: (539)451-3746x02\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/emartin | GitHub: github.com/lesliegomez\n\nOBJECTIVE\nStrategic principal-level Data Analyst (16 yrs) combining domain expertise with Neo4j and Neo4j proficiency. Led 8-person teams and delivered 8 cross-functional initiatives on time and within budget.\n\nEXPERIENCE\nLead Data Analyst @ NashTech Vietnam (Nov 2021–Jul 2024) · Spearheaded adoption of TDD practices; unit-test coverage increased from 35% to 92%. | Senior Data Analyst @ ThoughtWorks Vietnam (Sep 2024–Jul 2025) · Reduced end-to-end API latency by 35% by introducing OAuth2 caching and query optimisation. | Data Analyst @ Shopee Vietnam (Aug 2025–Present)\n\nSKILLS\nExcel (Advanced), Amplitude, Mixpanel, DynamoDB, MongoDB, Neo4j, Redis, Scala, Python, Presentation Skills, Time Management, Cross-functional Collaboration, Conflict Resolution, Empathy & Active Listening\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – UEH, 2009 | TOEIC 600 | Cert: PMP - Project Management Professional",
+  "pdf_file": "candidate8_27.pdf"
+}

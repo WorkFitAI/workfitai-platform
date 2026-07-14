@@ -1,0 +1,16 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 4
+  },
+  "jobTitle": "Product Engineer (Intern/Fresher/Junior)",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Engineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with Agile, Code Review, and Code Review. Passionate about observability, platform reliability, and engineering culture.",
+  "resume_experience": "Lead Mobile Engineer @ BCG Vietnam (Nov 2022–Feb 2025) · Consolidated 4 redundant microservices, reducing infra cost by $77k/yr. | Senior Mobile Engineer @ Oracle Vietnam (Sep 2022–Jun 2025) · Launched influencer campaign reaching 18k impressions with 45% above-benchmark CTR. | iOS/Android Engineer @ Amazon Web Services Vietnam (May 2025–Present)",
+  "resume_skills": "Agile, Python, C++, C#, Code Review, CI/CD, TDD, FastAPI, NestJS, Angular, Vue.js, Time Management, Conflict Resolution, Empathy & Active Listening, Analytical Thinking",
+  "resume_education": "Bachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/boydshannon | GitHub: github.com/millsrhonda\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in insurtech startups and scale-ups. Hands-on with Agile, Code Review, and Code Review. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Mobile Engineer @ BCG Vietnam (Nov 2022–Feb 2025) · Consolidated 4 redundant microservices, reducing infra cost by $77k/yr. | Senior Mobile Engineer @ Oracle Vietnam (Sep 2022–Jun 2025) · Launched influencer campaign reaching 18k impressions with 45% above-benchmark CTR. | iOS/Android Engineer @ Amazon Web Services Vietnam (May 2025–Present)\n\nSKILLS\nAgile, Python, C++, C#, Code Review, CI/CD, TDD, FastAPI, NestJS, Angular, Vue.js, Time Management, Conflict Resolution, Empathy & Active Listening, Analytical Thinking\n\nEDUCATION\nBachelor of Engineering in Software Engineering – FTU HCMC, 2019 | TOEIC 720 | Cert: AWS Certified Machine Learning - Specialty",
+  "pdf_file": "candidate3_21.pdf"
+}

@@ -1,0 +1,16 @@
+{
+  "candidateNum": 10,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 9
+  },
+  "jobTitle": "iOS Developer (Swift/ Objective-C)",
+  "label": "no_match",
+  "resume_index": 10,
+  "resume_summary": "Commercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Lead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (Jun 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Mar 2024–Present)",
+  "resume_skills": "DynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution",
+  "resume_education": "Bachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "resume_text": "Name: William Johnson\nEmail: campbelljason@example.net | Phone: +1-899-494-3637x\nLocation: Ho Chi Minh City, Vietnam | LinkedIn: linkedin.com/in/clarkeryan | GitHub: github.com/richardmurray\n\nOBJECTIVE\nCommercially minded Data Analyst (13 yrs) with a track record of driving 39% efficiency gains. Expertise in BPMN and DynamoDB. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nLead Data Analyst @ GHTK (Apr 2022–Aug 2024) · Automated 5 manual reporting workflows, reclaiming 24h/week across the analytics team. | Senior Data Analyst @ GHN Express (Jun 2024–Sep 2025) · Led cross-functional team of 7 to deliver payment launch across 3 key markets in 6 weeks. | Data Analyst @ Vingroup (Mar 2024–Present)\n\nSKILLS\nDynamoDB, Neo4j, MySQL, Cassandra, TypeScript, Dart, Power BI, Tableau, BPMN, Visio, Negotiation, Empathy & Active Listening, Technical Communication, Data-Driven Decision Making, Conflict Resolution\n\nEDUCATION\nBachelor of Science in Statistics & Data Analytics – VNU-HN, 2010 | GPA: 6.77/10 | TOEIC 700",
+  "pdf_file": "candidate10_26.pdf"
+}

@@ -133,6 +133,11 @@ class TestByProfile:
         resp = client.post("/api/v1/recommendations/by-profile", json=payload)
         assert resp.status_code == 422
 
+
+class TestByProfileConsentAndService:
+    """Admin toggle / candidate-consent gating and service-readiness for the
+    by-profile endpoint."""
+
     def test_missing_service_returns_503(self, client, app_state):
         app_state["model"] = None
         payload = {"profileText": "Experienced backend engineer", "topK": 5}

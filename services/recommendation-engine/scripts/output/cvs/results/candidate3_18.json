@@ -1,0 +1,16 @@
+{
+  "candidateNum": 3,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 1
+  },
+  "jobTitle": "[HCM] Intern Product Owner",
+  "label": "match",
+  "resume_index": 3,
+  "resume_summary": "Mid-level Product Manager with 3+ years leading product discovery, roadmapping, and go-to-market in insurtech. Proficient in Amplitude and A/B Testing. Passionate about shipping user-centred products that move business KPIs.",
+  "resume_experience": "Group PM @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior PM @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Product Manager @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Associate Product Manager @ BCG Vietnam (Nov 2024–Dec 2025) | Associate Product Manager @ Oracle Vietnam (Jun 2025–Present)",
+  "resume_skills": "Jira, Team Management, AWS, Product Roadmapping, Go-to-Market Strategy, OKRs, A/B Testing, Power BI, Mixpanel, Amplitude, Google Analytics, MS Project, Confluence, PMP Methodology, Kanban, Project Planning, Empathy & Active Listening, Time Management",
+  "resume_education": "Bachelor of Business Administration – HUST, 2022 | TOEIC 650",
+  "resume_text": "Name: Linda Turner\nEmail: blairkathleen@example.com | Phone: +1-392-814-7386x\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/boydshannon\n\nOBJECTIVE\nMid-level Product Manager with 3+ years leading product discovery, roadmapping, and go-to-market in insurtech. Proficient in Amplitude and A/B Testing. Passionate about shipping user-centred products that move business KPIs.\n\nEXPERIENCE\nGroup PM @ VPBank (May 2022–Nov 2023) · Led cross-functional team of 4 to deliver dashboard launch across Vietnam in 1 weeks. | Senior PM @ Techcombank (Nov 2022–Oct 2024) · Collaborated with ML team to serve a model at <80ms p99 latency using ONNX Runtime. | Product Manager @ ThoughtWorks Vietnam (Jan 2023–Jul 2025) | Associate Product Manager @ BCG Vietnam (Nov 2024–Dec 2025) | Associate Product Manager @ Oracle Vietnam (Jun 2025–Present)\n\nSKILLS\nJira, Team Management, AWS, Product Roadmapping, Go-to-Market Strategy, OKRs, A/B Testing, Power BI, Mixpanel, Amplitude, Google Analytics, MS Project, Confluence, PMP Methodology, Kanban, Project Planning, Empathy & Active Listening, Time Management\n\nEDUCATION\nBachelor of Business Administration – HUST, 2022 | TOEIC 650",
+  "pdf_file": "candidate3_18.pdf"
+}

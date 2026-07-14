@@ -1,0 +1,16 @@
+{
+  "candidateNum": 5,
+  "jobRef": {
+    "hrmKey": "hrm2",
+    "index": 7
+  },
+  "jobTitle": "Product Manager (Japanese Required)",
+  "label": "match",
+  "resume_index": 5,
+  "resume_summary": "Growth-minded principal-level Product Manager (15 yrs). Deep knowledge of OKRs and Mixpanel; comfortable in both qualitative research and quantitative A/B testing. Consistently delivers products users love.",
+  "resume_experience": "Group PM @ Lotte Vietnam (Dec 2023–Jan 2025) · Reduced Docker image sizes by 16% via multi-stage builds, halving cold-start times in k8s. | Senior PM @ Atlassian (Apr 2023–Jan 2026) · Led cross-functional team of 8 to deliver auth launch across APAC in 2 weeks. | Product Manager @ AEON Vietnam (Oct 2024–Present)",
+  "resume_skills": "Agile, Python, Stakeholder Reporting, Agile / Scrum, Google Analytics, Amplitude, Excel (Advanced), OKRs, Mixpanel, Negotiation, Stakeholder Management, Problem Decomposition, Empathy & Active Listening",
+  "resume_education": "Bachelor of Business Administration – FTU HCMC, 2008 | TOEIC 600",
+  "resume_text": "Name: Michelle Marquez\nEmail: kerrikeller@example.com | Phone: 642-684-9128\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/ashley19\n\nOBJECTIVE\nGrowth-minded principal-level Product Manager (15 yrs). Deep knowledge of OKRs and Mixpanel; comfortable in both qualitative research and quantitative A/B testing. Consistently delivers products users love.\n\nEXPERIENCE\nGroup PM @ Lotte Vietnam (Dec 2023–Jan 2025) · Reduced Docker image sizes by 16% via multi-stage builds, halving cold-start times in k8s. | Senior PM @ Atlassian (Apr 2023–Jan 2026) · Led cross-functional team of 8 to deliver auth launch across APAC in 2 weeks. | Product Manager @ AEON Vietnam (Oct 2024–Present)\n\nSKILLS\nAgile, Python, Stakeholder Reporting, Agile / Scrum, Google Analytics, Amplitude, Excel (Advanced), OKRs, Mixpanel, Negotiation, Stakeholder Management, Problem Decomposition, Empathy & Active Listening\n\nEDUCATION\nBachelor of Business Administration – FTU HCMC, 2008 | TOEIC 600",
+  "pdf_file": "candidate5_24.pdf"
+}

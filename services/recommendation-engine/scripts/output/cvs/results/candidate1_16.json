@@ -1,16 +1,16 @@
 {
   "candidateNum": 1,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 5
+    "hrmKey": "hrm1",
+    "index": 15
   },
-  "jobTitle": "Security Analyst Intern - AppSec (Internship)",
+  "jobTitle": "Chuyên gia Khoa học dữ liệu",
   "label": "match",
   "resume_index": 1,
-  "resume_summary": "Engineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with GCP, OWASP Top 10, and AWS. Passionate about observability, platform reliability, and engineering culture.",
-  "resume_experience": "Lead Security Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Security Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Security Engineer @ KMS Technology (Aug 2025–Present)",
-  "resume_skills": "Burp Suite, Kali Linux, OWASP Top 10, Python, MySQL, ClickHouse, DynamoDB, Cassandra, Agile / Scrum, Event-Driven Architecture, DDD, Terraform, GCP, AWS, Kubernetes, Cross-functional Collaboration, Problem Decomposition, Negotiation, Continuous Learning",
-  "resume_education": "Bachelor of Science in Cybersecurity – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
-  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Hanoi, Vietnam | LinkedIn: linkedin.com/in/fbrown | GitHub: github.com/stephaniebrown\n\nOBJECTIVE\nEngineering-focused problem solver with 6 years in B2B software startups and scale-ups. Hands-on with GCP, OWASP Top 10, and AWS. Passionate about observability, platform reliability, and engineering culture.\n\nEXPERIENCE\nLead Security Engineer @ BCG Vietnam (Jul 2022–Dec 2024) · Reduced design-to-dev handoff cycle time by 45% by introducing a shared Figma design system. | Senior Security Engineer @ Techcombank (May 2023–Jun 2025) · Set up OpenTelemetry CI/CD pipeline with zero-downtime blue-green deployments across 6 environments. | Security Engineer @ KMS Technology (Aug 2025–Present)\n\nSKILLS\nBurp Suite, Kali Linux, OWASP Top 10, Python, MySQL, ClickHouse, DynamoDB, Cassandra, Agile / Scrum, Event-Driven Architecture, DDD, Terraform, GCP, AWS, Kubernetes, Cross-functional Collaboration, Problem Decomposition, Negotiation, Continuous Learning\n\nEDUCATION\nBachelor of Science in Cybersecurity – UIT, 2019 | TOEIC 500 | Cert: CKA: Certified Kubernetes Administrator",
+  "resume_summary": "Commercially minded HR Manager (13 yrs) with a track record of driving 41% efficiency gains. Expertise in Looker and AWS. Consistently bridges analytical rigour with practical business judgment.",
+  "resume_experience": "Senior HR Manager @ KMS Technology (Jan 2022–Dec 2024) · Conducted 10 rounds of user research, surfacing 10 critical usability issues before launch. | HR Manager @ Techcombank (Jul 2022–Jun 2025) · Defined and shipped 12 major product features that increased DAU by 20%. | HR Specialist @ Rikkeisoft (Jan 2024–Present)",
+  "resume_skills": "AWS, Docker, SAP SuccessFactors, Workday, Performance Management, Compensation & Benefits, Resource Planning, Kanban, Stakeholder Reporting, Amplitude, Looker, Ownership & Accountability, Negotiation, Conflict Resolution",
+  "resume_education": "Bachelor of Business Administration in Human Resources – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKAD: Certified Kubernetes Application Developer",
+  "resume_text": "Name: Bonnie Dawson\nEmail: laura83@example.net | Phone: 001-262-321-7338\nLocation: Can Tho, Vietnam | LinkedIn: linkedin.com/in/fbrown\n\nOBJECTIVE\nCommercially minded HR Manager (13 yrs) with a track record of driving 41% efficiency gains. Expertise in Looker and AWS. Consistently bridges analytical rigour with practical business judgment.\n\nEXPERIENCE\nSenior HR Manager @ KMS Technology (Jan 2022–Dec 2024) · Conducted 10 rounds of user research, surfacing 10 critical usability issues before launch. | HR Manager @ Techcombank (Jul 2022–Jun 2025) · Defined and shipped 12 major product features that increased DAU by 20%. | HR Specialist @ Rikkeisoft (Jan 2024–Present)\n\nSKILLS\nAWS, Docker, SAP SuccessFactors, Workday, Performance Management, Compensation & Benefits, Resource Planning, Kanban, Stakeholder Reporting, Amplitude, Looker, Ownership & Accountability, Negotiation, Conflict Resolution\n\nEDUCATION\nBachelor of Business Administration in Human Resources – HUST, 2013 | GPA: 8.9/10 | TOEIC 720 | Cert: CKAD: Certified Kubernetes Application Developer",
   "pdf_file": "candidate1_16.pdf"
 }

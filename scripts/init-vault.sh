@@ -204,7 +204,15 @@ create_service_secrets "recommendation-engine" '{
     "sync.enable.initial": "'"${RECOMMENDATION_ENABLE_INITIAL_SYNC:-true}"'",
     "sync.initial.batch.size": "50",
     "rebuild.enable.periodic": "false",
-    "rebuild.interval.hours": "24"
+    "rebuild.interval.hours": "24",
+    "cv.ranking.bi-encoder.path": "'"${CV_RANKING_BI_ENCODER_PATH:-/app/models/cv-refer/bi-encoder}"'",
+    "cv.ranking.cross-encoder.path": "'"${CV_RANKING_CROSS_ENCODER_PATH:-/app/models/cv-refer/cross-encoder}"'",
+    "cv.ranking.explanation-t5.path": "'"${CV_RANKING_EXPLANATION_T5_PATH:-/app/models/cv-refer/explanation-t5}"'",
+    "cv.ranking.config.path": "/app/config/cv_ranking_config.yaml",
+    "cv.ranking.enabled": "'"${ENABLE_CV_RANKING:-true}"'",
+    "cv.ranking.cache.enabled": "'"${CV_RANKING_CACHE_ENABLED:-true}"'",
+    "cv.ranking.cache.cooldown-seconds": "'"${CV_RANKING_CACHE_COOLDOWN_SECONDS:-300}"'",
+    "cv.ranking.refresh-interval-seconds": "'"${CV_RANKING_REFRESH_INTERVAL_SECONDS:-60}"'"
   }
 }'
 

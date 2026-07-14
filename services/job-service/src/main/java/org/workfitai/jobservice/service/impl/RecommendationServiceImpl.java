@@ -34,20 +34,42 @@ public class RecommendationServiceImpl implements iRecommendationService {
         log.info("Fetching recommendations for user: {}", userId);
 
         // 1. Get CV from CV Service
-        String cvProfileText = fetchCVProfileText(userId);
+        Map<String, Object> cvData = fetchCVData(userId);
 
-        if (cvProfileText == null || cvProfileText.isEmpty()) {
+        if (cvData == null) {
             log.warn("No CV found for user: {}", userId);
-            return ResJobRecommendationDTO.builder()
-                    .recommendations(Collections.emptyList())
-                    .totalResults(0)
-                    .processingTime("0ms")
-                    .build();
+            return buildEmptyResponse();
         }
 
-        // 2. Call Recommendation Engine
+        String resumeSummary = asText(cvData.get("resumeSummary"));
+        String resumeSkills = asText(cvData.get("resumeSkills"));
+        String resumeExperience = asText(cvData.get("resumeExperience"));
+        String resumeEducation = asText(cvData.get("resumeEducation"));
+
+        String cvProfileText = buildProfileText(resumeSummary, resumeSkills, resumeExperience, resumeEducation);
+
+        if (cvProfileText.isEmpty()) {
+            log.warn("CV data empty for user: {}", userId);
+            return buildEmptyResponse();
+        }
+
+        // 2. Call Recommendation Engine. Pass BOTH the flattened profileText (backward
+        // compatible / cross-encoder query) AND the structured sections, so the engine
+        // uses its multi-field pipeline and seniority guardrail rather than a single
+        // encode of profileText.
+        //
+        // candidateUsername is deliberately NOT set here: it makes the engine enforce
+        // per-candidate AI consent by calling user-service, and ai_consent_client fails
+        // CLOSED — so a transient user-service outage turns the whole home feed into a
+        // 503 for every candidate. /for-me is the candidate viewing their own feed and
+        // is already gated by the admin platform toggle in the engine; the extra hard
+        // dependency on user-service is not worth that failure mode.
         ReqJobRecommendationDTO request = ReqJobRecommendationDTO.builder()
                 .profileText(cvProfileText)
+                .resumeSummary(resumeSummary)
+                .resumeSkills(resumeSkills)
+                .resumeExperience(resumeExperience)
+                .resumeEducation(resumeEducation)
                 .topK(topK != null ? topK : 20)
                 .filters(filters)
                 .build();
@@ -255,7 +277,7 @@ public class RecommendationServiceImpl implements iRecommendationService {
      * Returns null when the user has no CV (legitimate empty state, not an error).
      * Feign exceptions propagate so audit @AfterThrowing fires on service failure.
      */
-    private String fetchCVProfileText(String username) {
+    private Map<String, Object> fetchCVData(String username) {
         List<Map<String, Object>> cvDataList = cvFeignClient.getCvDataBatch(List.of(username));
 
         if (cvDataList == null || cvDataList.isEmpty()) {
@@ -263,29 +285,27 @@ public class RecommendationServiceImpl implements iRecommendationService {
             return null;
         }
 
-        Map<String, Object> cvData = cvDataList.get(0);
         log.info("Found CV data for user {}", username);
-
-        StringBuilder profileText = new StringBuilder();
-        appendField(profileText, "Summary", cvData.get("resumeSummary"));
-        appendField(profileText, "Skills", cvData.get("resumeSkills"));
-        appendField(profileText, "Experience", cvData.get("resumeExperience"));
-        appendField(profileText, "Education", cvData.get("resumeEducation"));
-
-        String result = profileText.toString().trim();
-        if (result.isEmpty()) {
-            log.warn("CV data empty for user: {}", username);
-            return null;
-        }
-        return result;
+        return cvDataList.get(0);
     }
 
-    private void appendField(StringBuilder sb, String label, Object value) {
-        if (value != null) {
-            String text = value.toString().trim();
-            if (!text.isEmpty()) {
-                sb.append(label).append(": ").append(text).append("\n\n");
-            }
+    private static String asText(Object value) {
+        return value == null ? "" : value.toString().trim();
+    }
+
+    /** Flatten the structured CV sections into labeled profile text (cross-encoder query). */
+    private String buildProfileText(String summary, String skills, String experience, String education) {
+        StringBuilder sb = new StringBuilder();
+        appendField(sb, "Summary", summary);
+        appendField(sb, "Skills", skills);
+        appendField(sb, "Experience", experience);
+        appendField(sb, "Education", education);
+        return sb.toString().trim();
+    }
+
+    private void appendField(StringBuilder sb, String label, String value) {
+        if (value != null && !value.isEmpty()) {
+            sb.append(label).append(": ").append(value).append("\n\n");
         }
     }
 

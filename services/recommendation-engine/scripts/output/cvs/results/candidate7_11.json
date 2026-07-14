@@ -1,16 +1,16 @@
 {
   "candidateNum": 7,
   "jobRef": {
-    "hrmKey": "hrm3",
-    "index": 0
+    "hrmKey": "hrm1",
+    "index": 10
   },
-  "jobTitle": "Junior Backend Engineer - NodeJS (Internship)",
+  "jobTitle": "Japanese IT Comtor / Bridge Engineer (BrSE)",
   "label": "no_match",
   "resume_index": 7,
-  "resume_summary": "13+ years as a QA / Automation Engineer specialising in DDD and Flask. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.",
-  "resume_experience": "QA Lead @ Gameloft Vietnam (May 2022–May 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior QA Engineer @ GHTK (Jul 2024–Apr 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | SDET @ HDBank (Oct 2022–Jul 2025) | QA Engineer @ Rikkeisoft (Aug 2023–Present)",
-  "resume_skills": "Flutter, Flask, Go, Python, Ansible, GCP, Helm, Docker, DDD, CQRS, Technical Communication, Negotiation, Project Planning, Stakeholder Management, Empathy & Active Listening",
-  "resume_education": "Bachelor of Engineering in Software Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
-  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin | GitHub: github.com/rileynicolas\n\nOBJECTIVE\n13+ years as a QA / Automation Engineer specialising in DDD and Flask. Designed and maintained production systems serving millions of users. Strong advocate of clean architecture, TDD, and continuous delivery.\n\nEXPERIENCE\nQA Lead @ Gameloft Vietnam (May 2022–May 2024) · Designed a strangler-fig pipeline that scaled to 250k requests/minute with 99.95% uptime. | Senior QA Engineer @ GHTK (Jul 2024–Apr 2025) · Reduced customer acquisition cost by 33% by optimising email spend allocation. | SDET @ HDBank (Oct 2022–Jul 2025) | QA Engineer @ Rikkeisoft (Aug 2023–Present)\n\nSKILLS\nFlutter, Flask, Go, Python, Ansible, GCP, Helm, Docker, DDD, CQRS, Technical Communication, Negotiation, Project Planning, Stakeholder Management, Empathy & Active Listening\n\nEDUCATION\nBachelor of Engineering in Software Engineering – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_summary": "T-shaped Product Manager with 13 years spanning mobile, platform, and growth products. Leverages Tableau and A/B Testing to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.",
+  "resume_experience": "Group PM @ Gameloft Vietnam (Dec 2023–Sep 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Senior PM @ GHTK (Apr 2023–Apr 2025) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Product Manager @ HDBank (Jul 2025–Apr 2026) | Associate Product Manager @ Rikkeisoft (Jun 2024–Present)",
+  "resume_skills": "Resource Planning, JIRA, Asana, Monday.com, A/B Testing, OKRs, Go-to-Market Strategy, Product Roadmapping, Mixpanel, Google Analytics, Tableau, Power BI, Continuous Learning, Stakeholder Management, Negotiation, Technical Communication",
+  "resume_education": "Bachelor of Business Administration – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
+  "resume_text": "Name: Heather Miller\nEmail: andrew20@example.com | Phone: +1-944-284-6592\nLocation: Bien Hoa, Vietnam | LinkedIn: linkedin.com/in/newtoncaitlin\n\nOBJECTIVE\nT-shaped Product Manager with 13 years spanning mobile, platform, and growth products. Leverages Tableau and A/B Testing to make fast, informed prioritisation decisions; drives alignment across engineering, design, and business.\n\nEXPERIENCE\nGroup PM @ Gameloft Vietnam (Dec 2023–Sep 2024) · Launched influencer campaign reaching 68k impressions with 15% above-benchmark CTR. | Senior PM @ GHTK (Apr 2023–Apr 2025) · Drove 40% improvement in CAC through 11 A/B experiments across the B2B segment. | Product Manager @ HDBank (Jul 2025–Apr 2026) | Associate Product Manager @ Rikkeisoft (Jun 2024–Present)\n\nSKILLS\nResource Planning, JIRA, Asana, Monday.com, A/B Testing, OKRs, Go-to-Market Strategy, Product Roadmapping, Mixpanel, Google Analytics, Tableau, Power BI, Continuous Learning, Stakeholder Management, Negotiation, Technical Communication\n\nEDUCATION\nBachelor of Business Administration – CTU, 2012 | GPA: 7.0/10 | TOEIC 750 | Cert: HubSpot Inbound Marketing Certification",
   "pdf_file": "candidate7_11.pdf"
 }

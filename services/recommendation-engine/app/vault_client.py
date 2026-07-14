@@ -197,6 +197,16 @@ def load_config_from_vault() -> Dict[str, Any]:
         "INITIAL_SYNC_BATCH_SIZE": secrets.get("sync.initial.batch.size"),
         "ENABLE_PERIODIC_REBUILD": secrets.get("rebuild.enable.periodic"),
         "REBUILD_INTERVAL_HOURS": secrets.get("rebuild.interval.hours"),
+
+        # CV Ranking (cv-refer pipeline)
+        "CV_RANKING_BI_ENCODER_PATH": secrets.get("cv.ranking.bi-encoder.path"),
+        "CV_RANKING_CROSS_ENCODER_PATH": secrets.get("cv.ranking.cross-encoder.path"),
+        "CV_RANKING_EXPLANATION_T5_PATH": secrets.get("cv.ranking.explanation-t5.path"),
+        "CV_RANKING_CONFIG_PATH": secrets.get("cv.ranking.config.path"),
+        "ENABLE_CV_RANKING": secrets.get("cv.ranking.enabled"),
+        "CV_RANKING_CACHE_ENABLED": secrets.get("cv.ranking.cache.enabled"),
+        "CV_RANKING_CACHE_COOLDOWN_SECONDS": secrets.get("cv.ranking.cache.cooldown-seconds"),
+        "CV_RANKING_REFRESH_INTERVAL_SECONDS": secrets.get("cv.ranking.refresh-interval-seconds"),
     }
     
     # Filter out None values
